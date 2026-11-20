@@ -2153,14 +2153,47 @@ namespace Slic3r
                     nozzle_table.push_back({ _u8L("Nozzle"), nozzle_cells });
                     nozzle_table.push_back({ _u8L("Time"), time_cells });
 
-                    // The first column is sized by its title only, like the other ColorPrint tables.
-                    auto offset_columns = nozzle_table;
-                    offset_columns.front().second = { "" };
-                    nozzle_table_offsets = calculate_offsets(offset_columns, icon_size);
-                    const float table_width = nozzle_table_offsets.back() + max_width(nozzle_table.back().second, nozzle_table.back().first) + window_padding * 3.0f;
+                    // Column starts accumulate the real column widths, so a long value never runs into the next column;
+                    // spare room up to the panel width is spread evenly over the gaps.
+                    auto header_width = [&imgui](const std::string& title) {
+                        const bool bold = imgui.push_bold_font();
+                        const float width = ImGui::CalcTextSize(title.c_str()).x;
+                        if (bold)
+                            imgui.pop_bold_font();
+                        return width;
+                    };
+                    const ImGuiStyle& style = ImGui::GetStyle();
+                    const float column_gap = 2.0f * style.ItemSpacing.x;
+                    // The first column starts at a different x in the header, in the filament rows (after the colour icon, with
+                    // append_item's 20px item spacing) and in the total row (no icon); it ends where the widest of them ends.
+                    const auto& first_cells = nozzle_table.front().second;
+                    float first_column_end = window_padding + style.ItemSpacing.x + header_width(nozzle_table.front().first);
+                    for (size_t row = 0; row + 1 < first_cells.size(); ++row)
+                        first_column_end = std::max(first_column_end, 20.0f * m_scale + icon_size + ImGui::CalcTextSize(first_cells[row].c_str()).x);
+                    first_column_end = std::max(first_column_end, window_padding * 3.0f + ImGui::CalcTextSize(first_cells.back().c_str()).x);
+                    std::vector<float> column_widths;
+                    float natural_width = first_column_end + window_padding * 3.0f;
+                    for (size_t col = 1; col < nozzle_table.size(); ++col) {
+                        float width = header_width(nozzle_table[col].first);
+                        for (const std::string& cell : nozzle_table[col].second)
+                            width = std::max(width, ImGui::CalcTextSize(cell.c_str()).x);
+                        column_widths.push_back(width);
+                        natural_width += column_gap + width;
+                    }
+                    const float gap = column_gap + std::max(0.0f, title_row_right - natural_width) / static_cast<float>(column_widths.size());
+                    nozzle_table_offsets.assign(1, 0.0f);
+                    float column_end = first_column_end;
+                    for (float width : column_widths) {
+                        nozzle_table_offsets.push_back(column_end + gap);
+                        column_end += gap + width;
+                    }
+                    const float table_width = column_end + window_padding * 3.0f;
                     // Keep the panel width when the detail columns do not fit; the table scrolls horizontally instead.
                     nozzle_table_view_width = std::max(title_row_right, ImGui::GetWindowWidth());
                     nozzle_table_scroll = detail && table_width > nozzle_table_view_width;
+                    // The auto-resized legend only fits new content on the next frame; ask for it so the last column is not clipped meanwhile.
+                    if (!nozzle_table_scroll && table_width > ImGui::GetWindowWidth() + 0.5f)
+                        wxGetApp().plater()->get_current_canvas3D()->request_extra_frame();
                 }
                 // extrusion paths section -> title
                 ImGui::Dummy({ window_padding, window_padding });
