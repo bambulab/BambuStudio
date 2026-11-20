@@ -883,61 +883,64 @@ static void attach_ignored_non_models_to_target(ModelObject* target_object,
     }
 }
 
-// Move a result that keeps its operands next to them instead of on top of them: try the four
-// sides of the operands' footprint and take the first spot that stays on the operands' plate
-// and does not overlap any other object. Falls back to the right-hand side.
-static void place_beside_operands(ModelObject *result, const std::vector<const ModelObject *> &operands, const Model &model)
-{
-    if (result == nullptr || operands.empty())
-        return;
-    const double gap = 5.;
-
-    BoundingBoxf3 operands_bb;
-    for (const ModelObject *mo : operands)
-        operands_bb.merge(mo->bounding_box());
-    result->invalidate_bounding_box();
-    const BoundingBoxf3 result_bb = result->bounding_box();
-    if (!operands_bb.defined || !result_bb.defined)
-        return;
-
-    BoundingBoxf3 plate_bb;
-    {
-        const auto it = std::find(model.objects.begin(), model.objects.end(), operands.front());
-        auto &plate_list = wxGetApp().plater()->get_partplate_list();
-        const int plate_idx = it == model.objects.end() ? -1 : plate_list.find_instance(int(it - model.objects.begin()), 0);
-        if (PartPlate *plate = plate_idx >= 0 ? plate_list.get_plate(plate_idx) : nullptr)
-            plate_bb = plate->get_plate_box();
-    }
-
-    auto overlaps_xy = [](const BoundingBoxf3 &a, const BoundingBoxf3 &b) {
-        return a.min.x() < b.max.x() && b.min.x() < a.max.x() && a.min.y() < b.max.y() && b.min.y() < a.max.y();
-    };
-    auto fits = [&](const Vec3d &shift) {
-        const BoundingBoxf3 moved(result_bb.min + shift, result_bb.max + shift);
-        if (plate_bb.defined &&
-            (moved.min.x() < plate_bb.min.x() || moved.max.x() > plate_bb.max.x() ||
-             moved.min.y() < plate_bb.min.y() || moved.max.y() > plate_bb.max.y()))
-            return false;
-        for (const ModelObject *mo : model.objects)
-            if (mo != nullptr && mo != result && overlaps_xy(moved, mo->bounding_box()))
-                return false;
-        return true;
-    };
-
-    const Vec3d candidates[] = {
-        { operands_bb.max.x() - result_bb.min.x() + gap, 0., 0. },
-        { operands_bb.min.x() - result_bb.max.x() - gap, 0., 0. },
-        { 0., operands_bb.max.y() - result_bb.min.y() + gap, 0. },
-        { 0., operands_bb.min.y() - result_bb.max.y() - gap, 0. },
-    };
-    Vec3d shift = candidates[0];
-    for (const Vec3d &c : candidates)
-        if (fits(c)) { shift = c; break; }
-
-    for (ModelInstance *inst : result->instances)
-        inst->set_offset(inst->get_offset() + shift);
-    result->invalidate_bounding_box();
-}
+// Disabled: user feedback prefers keeping the result in place (no side offset) when
+// "keep original models" is on. Logic retained for possible re-enable later.
+//
+// // Move a result that keeps its operands next to them instead of on top of them: try the four
+// // sides of the operands' footprint and take the first spot that stays on the operands' plate
+// // and does not overlap any other object. Falls back to the right-hand side.
+// static void place_beside_operands(ModelObject *result, const std::vector<const ModelObject *> &operands, const Model &model)
+// {
+//     if (result == nullptr || operands.empty())
+//         return;
+//     const double gap = 5.;
+//
+//     BoundingBoxf3 operands_bb;
+//     for (const ModelObject *mo : operands)
+//         operands_bb.merge(mo->bounding_box());
+//     result->invalidate_bounding_box();
+//     const BoundingBoxf3 result_bb = result->bounding_box();
+//     if (!operands_bb.defined || !result_bb.defined)
+//         return;
+//
+//     BoundingBoxf3 plate_bb;
+//     {
+//         const auto it = std::find(model.objects.begin(), model.objects.end(), operands.front());
+//         auto &plate_list = wxGetApp().plater()->get_partplate_list();
+//         const int plate_idx = it == model.objects.end() ? -1 : plate_list.find_instance(int(it - model.objects.begin()), 0);
+//         if (PartPlate *plate = plate_idx >= 0 ? plate_list.get_plate(plate_idx) : nullptr)
+//             plate_bb = plate->get_plate_box();
+//     }
+//
+//     auto overlaps_xy = [](const BoundingBoxf3 &a, const BoundingBoxf3 &b) {
+//         return a.min.x() < b.max.x() && b.min.x() < a.max.x() && a.min.y() < b.max.y() && b.min.y() < a.max.y();
+//     };
+//     auto fits = [&](const Vec3d &shift) {
+//         const BoundingBoxf3 moved(result_bb.min + shift, result_bb.max + shift);
+//         if (plate_bb.defined &&
+//             (moved.min.x() < plate_bb.min.x() || moved.max.x() > plate_bb.max.x() ||
+//              moved.min.y() < plate_bb.min.y() || moved.max.y() > plate_bb.max.y()))
+//             return false;
+//         for (const ModelObject *mo : model.objects)
+//             if (mo != nullptr && mo != result && overlaps_xy(moved, mo->bounding_box()))
+//                 return false;
+//         return true;
+//     };
+//
+//     const Vec3d candidates[] = {
+//         { operands_bb.max.x() - result_bb.min.x() + gap, 0., 0. },
+//         { operands_bb.min.x() - result_bb.max.x() - gap, 0., 0. },
+//         { 0., operands_bb.max.y() - result_bb.min.y() + gap, 0. },
+//         { 0., operands_bb.min.y() - result_bb.max.y() - gap, 0. },
+//     };
+//     Vec3d shift = candidates[0];
+//     for (const Vec3d &c : candidates)
+//         if (fits(c)) { shift = c; break; }
+//
+//     for (ModelInstance *inst : result->instances)
+//         inst->set_offset(inst->get_offset() + shift);
+//     result->invalidate_bounding_box();
+// }
 
 // ========================================================================================
 // BOOLEAN OPERATION ENGINE IMPLEMENTATION
@@ -3096,15 +3099,16 @@ void GLGizmoMeshBoolean::apply_boolean_result_from_job(const BooleanJobData& job
             }
         };
 
-        // Every participating object, kept or not; the result is placed clear of them below.
-        std::vector<const ModelObject *> operand_objects;
-        auto add_operand_object = [&](const ObjectID &vol_id) {
-            const ModelObject *obj = find_object_by_volume_id(vol_id);
-            if (obj && obj != new_obj && std::find(operand_objects.begin(), operand_objects.end(), obj) == operand_objects.end())
-                operand_objects.push_back(obj);
-        };
-        for (const auto &vol_data : job_data.volumes_a) add_operand_object(vol_data.volume_id);
-        for (const auto &vol_data : job_data.volumes_b) add_operand_object(vol_data.volume_id);
+        // Disabled with place_beside_operands: only used to shift the keep-original result aside.
+        // // Every participating object, kept or not; the result is placed clear of them below.
+        // std::vector<const ModelObject *> operand_objects;
+        // auto add_operand_object = [&](const ObjectID &vol_id) {
+        //     const ModelObject *obj = find_object_by_volume_id(vol_id);
+        //     if (obj && obj != new_obj && std::find(operand_objects.begin(), operand_objects.end(), obj) == operand_objects.end())
+        //         operand_objects.push_back(obj);
+        // };
+        // for (const auto &vol_data : job_data.volumes_a) add_operand_object(vol_data.volume_id);
+        // for (const auto &vol_data : job_data.volumes_b) add_operand_object(vol_data.volume_id);
 
         // Keeping the originals keeps all of them, the difference minuend A included.
         if (!keep_originals) {
@@ -3126,8 +3130,9 @@ void GLGizmoMeshBoolean::apply_boolean_result_from_job(const BooleanJobData& job
 
         // Ensure the new object is on the build plate (missing in original async implementation)
         new_obj->ensure_on_bed();
-        if (keep_originals)
-            place_beside_operands(new_obj, operand_objects, *model);
+        // Disabled: keep result in place when keeping originals (no side offset).
+        // if (keep_originals)
+        //     place_beside_operands(new_obj, operand_objects, *model);
         if (part_mode)
             m_kept_result_objects.insert(new_obj->id());
 
