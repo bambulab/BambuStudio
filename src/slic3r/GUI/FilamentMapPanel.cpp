@@ -2,6 +2,7 @@
 #include "Widgets/MultiNozzleSync.hpp"
 #include "GUI_App.hpp"
 #include "Plater.hpp"
+#include "PartPlate.hpp"
 #include "DeviceCore/DevConfigUtil.h"
 #include "DeviceCore/DevNozzleSystem.h"
 #include <cassert>
@@ -179,6 +180,10 @@ bool should_skip_filament_grouping(const ConfigBase& config)
         const std::string preset_nozzle_diameter = (nozzle_diameter_opt && !nozzle_diameter_opt->values.empty()) ? format_diameter_to_str(nozzle_diameter_opt->values.front()) : std::string();
         return get_single_fixed_nozzle_volume_from_full_stat(-1, false, preset_nozzle_diameter).has_value();
     }
+
+    // Main and auxiliary extruders always retain explicit grouping.
+    if (PartPlate::has_different_extruder_types())
+        return false;
 
     // ---------- 阶段 2：多挤出机收集喷嘴规格（规格 = 口径 + 流量） ----------
     // 双挤出机带换喷嘴库的机型尚未适配，保持原有弹窗逻辑；
