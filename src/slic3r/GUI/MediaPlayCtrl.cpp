@@ -372,16 +372,17 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
     m_button_camera_switch->Enable(should_show && is_playing);
     update_camera_switch_tooltip();
 
-    // Check camera validity only for machines with camera switching support
-    // For old machines (liveview_current_camera == -1) or single-camera machines, skip to avoid clearing existing status
-    if (obj && is_support_switch_cam(obj->support_liveview_cams)) {
-        if (!is_valid_camera(obj->liveview_current_camera)) {
-            SetStatus(_L("Current camera is abnormal"), false);
-            BOOST_LOG_TRIVIAL(warning) << "invalid camera " << obj->liveview_current_camera;
-        } else if (m_last_state == MEDIASTATE_IDLE) {
-            SetStatus(_L(""), false);
-        }
+    // Camera id is only meaningful for machines with camera switching support
+    wxString camera_error;
+    if (obj) {
+        if (is_support_switch_cam(obj->support_liveview_cams) && !is_valid_camera(obj->liveview_current_camera))
+            camera_error = _L("Current camera is abnormal");
+        else if (obj->GetCamera()->GetIpcamReadyState() == DevCamera::IPCAM_RELEASED)
+            camera_error = _L("Camera preparing, please try again later...");
+        else if (!obj->GetCamera()->IsIpcamReady())
+            camera_error = _L("Printer camera is malfunctioning.");
     }
+    SetCameraError(camera_error);
 
     if (obj) {
         m_obj            = obj;
@@ -1271,6 +1272,25 @@ void MediaPlayCtrl::SetStatus(wxString const &msg2, bool hyperlink)
     OutputDebugStringA(msg.ToUTF8().data());
     OutputDebugStringA("\n");
 #endif // __WXMSW__
+
+    m_status_msg       = msg;
+    m_status_hyperlink = hyperlink;
+    RefreshStatusLabel();
+}
+
+void MediaPlayCtrl::SetCameraError(wxString const &err)
+{
+    if (err == m_camera_error)
+        return;
+    m_camera_error = err;
+    RefreshStatusLabel();
+}
+
+void MediaPlayCtrl::RefreshStatusLabel()
+{
+    const bool      has_error = !m_camera_error.empty();
+    const wxString &msg       = has_error ? m_camera_error : m_status_msg;
+    const bool      hyperlink = !has_error && m_status_hyperlink;
 
     wxGCDC dc;
     wxSize msg_size = dc.GetTextExtent(msg);
