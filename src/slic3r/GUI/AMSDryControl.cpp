@@ -19,6 +19,7 @@
 
 #include <wx/dcbuffer.h>
 #include <wx/dcgraph.h>
+#include <wx/display.h>
 #include <wx/weakref.h>
 #include <wx/wupdlock.h>
 #include "libslic3r/Log.hpp"
@@ -370,13 +371,27 @@ void AMSDryCtrWin::RunModal(wxWindow* parent, const std::string& ams_id,
     s_active_dry_ctr_win = &dlg;
 
     dlg.set_ams_id(ams_id);
-    if (popup_pos.has_value()) {
-        dlg.Move(popup_pos.value());
-    }
+    dlg.Move(popup_pos.value_or(DefaultPopupPos(parent, dlg.GetSize())));
     dlg.ShowModal();
     s_active_dry_ctr_win = nullptr;
 }
 
+wxPoint AMSDryCtrWin::DefaultPopupPos(wxWindow* parent, const wxSize& size)
+{
+    const wxRect rect     = parent ? parent->GetScreenRect() : wxGetClientDisplayRect();
+    const wxSize def_size = wxTopLevelWindow::GetDefaultSize();
+    wxPoint      pos(rect.x + (rect.width - def_size.x) / 2, rect.y + (rect.height - def_size.y) / 2);
+    if (size == wxDefaultSize) {
+        return pos;
+    }
+
+    // The offset is fixed in pixels while the window scales with DPI, so it can overflow on high DPI.
+    const int    display_idx = wxDisplay::GetFromPoint(pos);
+    const wxRect area        = wxDisplay(display_idx == wxNOT_FOUND ? 0u : unsigned(display_idx)).GetClientArea();
+    pos.x = std::max(area.x, std::min(pos.x, area.GetRight() + 1 - size.x));
+    pos.y = std::max(area.y, std::min(pos.y, area.GetBottom() + 1 - size.y));
+    return pos;
+}
 
 wxScrolledWindow* AMSDryCtrWin::create_preview_scrolled_window(wxWindow* parent)
 {

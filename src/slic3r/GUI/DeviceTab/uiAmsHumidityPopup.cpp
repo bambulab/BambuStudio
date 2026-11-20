@@ -19,8 +19,8 @@
 
 namespace Slic3r { namespace GUI {
 
-uiAmsPercentHumidityDryPopup::uiAmsPercentHumidityDryPopup(wxWindow *parent)
-    : wxDialog(parent, wxID_ANY, "")
+uiAmsPercentHumidityDryPopup::uiAmsPercentHumidityDryPopup(wxWindow *parent, const wxPoint &pos)
+    : wxDialog(parent, wxID_ANY, "", pos)
 {
     Create();
 }

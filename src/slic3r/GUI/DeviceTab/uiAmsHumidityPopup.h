@@ -34,7 +34,7 @@ struct uiAmsHumidityInfo
 class uiAmsPercentHumidityDryPopup : public wxDialog
 {
 public:
-    uiAmsPercentHumidityDryPopup(wxWindow *parent);
+    uiAmsPercentHumidityDryPopup(wxWindow *parent, const wxPoint &pos = wxDefaultPosition);
     ~uiAmsPercentHumidityDryPopup() = default;
 
 public:
@@ -68,7 +68,7 @@ private:
 
     wxStaticBitmap* m_dry_state_img;
     Label*          m_dry_state;
-    
+
     Label* m_humidity_header;
     Label* m_humidity_label;
 

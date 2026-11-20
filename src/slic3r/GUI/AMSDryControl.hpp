@@ -93,6 +93,8 @@ public:
     // time; a second call while one is shown is silently ignored.
     static void RunModal(wxWindow* parent, const std::string& ams_id,
                          const std::optional<wxPoint>& popup_pos = std::nullopt);
+    // With a size, the result is kept inside the work area of the display it lands on.
+    static wxPoint DefaultPopupPos(wxWindow* parent, const wxSize& size = wxDefaultSize);
 
     void msw_rescale();
     void update(std::shared_ptr<DevFilaSystem> fila_system, MachineObject* obj);
