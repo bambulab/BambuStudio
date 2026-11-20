@@ -5898,6 +5898,8 @@ void TreeSupport::drop_nodes()
                             if (!neighbour_node->valid) continue;
                             if (neighbour_node->type == ePolygon) continue;
                             if (node.radius < neighbour_node->radius) continue; // bug fix: STUDIO-6326, do not merge if current node has smaller radius than neighbor.
+                            // 半径相同时由离顶更远的旧分支吸收新节点；反过来旧分支会被逐层重置，贴着陡坡长不下去。
+                            if (node.radius <= neighbour_node->radius + EPSILON && node.dist_mm_to_top < neighbour_node->dist_mm_to_top - EPSILON) continue;
 
                             if (p_node->valid)
                             {
@@ -6104,6 +6106,11 @@ first_pass_next:;
 
                         if (is_line_cut_by_contour(node.position, neighbour)) continue;
 
+                        // 仍在接触层（含 Z 间隙）的圆节点最终按悬垂区域绘制，不产生吸引；节点进入支撑主体后才开始拉别人。
+                        // 否则陡坡上逐层新生的接触点会把已长成的树干拖着贴坡走。
+                        if (neighbour_node->type == eCircle && neighbour_node->support_roof_layers_below >= 0)
+                            continue;
+
                         double mass_weight = 1.0;
 #if USE_TREE_SUPPORT_CARRIED_MASS
                         const double nb_mass = std::max<double>(neighbour_node->total_carried_mass(), EPSILON);
@@ -6271,6 +6278,14 @@ first_pass_next:;
                 SupportNode *     next_node     = m_ts_data->create_node(next_layer_vertex, node.distance_to_top + 1, obj_layer_nr_next, node.support_roof_layers_below - 1, to_buildplate, p_node,
                     print_z_next, height_next);
                 next_node->xy_gap               = merged_child_gap(node);
+                // 自身还在接触层时并入被吸收节点的悬垂，接触面不丢。不延长接触层数：
+                // 陡坡上每层都有新接触点被吸收，延长会让整根分支一直按接触面绘制而被间距裁空。
+                if (next_node->support_roof_layers_below >= 0)
+                    for (const SupportNode *neighbour : node.merged_neighbours) {
+                        if (neighbour->support_roof_layers_below <= 0 || neighbour->overhang.empty()) continue;
+                        if (ExPolygons merged = union_ex(ExPolygons{ next_node->overhang, neighbour->overhang }); merged.size() == 1)
+                            next_node->overhang = std::move(merged.front());
+                    }
                 const ExPolygons &next_collision = node_collision(obj_layer_nr_next, next_node->xy_gap);
                 // don't increase radius if next node will collide partially with the object (STUDIO-7883)
                 to_outside             = projection_onto(next_collision, next_node->position);
