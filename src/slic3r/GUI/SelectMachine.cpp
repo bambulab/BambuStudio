@@ -2342,11 +2342,6 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
     } else if (status == PrintStatusFilamentSuspectEngagementWarning) {
         Enable_Refresh_Button(true);
         Enable_Send_Button(true);
-    } else if (status == PrintStatusExtSpoolNotLoadedWarning ||
-               status == PrintStatusAmsSlotNotLoadedWarning ||
-               status == PrintStatusN11AmsSlotNotLoadedWarning) {
-        Enable_Refresh_Button(true);
-        Enable_Send_Button(true);
     } else if (status == PrintStatusRackAmsNeedManualUnloadWarning ||
                status == PrintStatusRackAmsMixExtAmsWarning ||
                status == PrintStatusTpuSlipOnToolChangeWarning) {
@@ -7756,12 +7751,6 @@ bool SelectMachineDialog::CheckErrorWarningFilamentMapping(MachineObject* obj_)
                     {tpu_slip_warning_msg});
     }
 
-    wxString n11_ams_not_loaded_msg;
-    if (!CheckWarningN11AmsSlotNotLoaded(obj_, n11_ams_not_loaded_msg)) {
-        show_status(PrintDialogStatus::PrintStatusN11AmsSlotNotLoadedWarning,
-                    {n11_ams_not_loaded_msg});
-    }
-
     return true;
 }
 
@@ -8456,41 +8445,6 @@ bool SelectMachineDialog::CheckWarningTpuSlipOnToolChange(MachineObject* obj_, w
             _L("TPU in slot %d may slip out during PrintTool change. Move it to another slot and retry."),
             warn_nozzle);
         return false;
-    }
-
-    return true;
-}
-
-bool SelectMachineDialog::CheckWarningN11AmsSlotNotLoaded(MachineObject* obj_, wxString& warning_msg)
-{
-    warning_msg.clear();
-    if (!obj_ || obj_->printer_type != "N11") return true;
-
-    if (!obj_->GetNozzleRack()->IsDirectConnectedRack())
-        return true;
-
-    for (const auto& fila : m_ams_mapping_result) {
-        if (fila.tray_id < 0 || fila.ams_id.empty()) continue;
-
-        auto tray_opt = obj_->get_tray(fila.ams_id, fila.slot_id);
-        if (!tray_opt.has_value()) continue;
-
-        if (!devAmsTypeUtil::IsRackAms(tray_opt->ams_type))
-            continue;
-
-        auto addr_opt = s_resolve_mapped_nozzle_addr_id(obj_, *tray_opt);
-        if (!addr_opt.has_value()) continue;
-        auto nozzle_opt = obj_->GetNozzleSystem()->GetNozzleOptByAddrId(addr_opt.value());
-        if (!nozzle_opt.has_value()) continue;
-
-        const DevAmsSlotId mapped_slot{fila.get_ams_id(), fila.get_slot_id()};
-        const auto slot_now = nozzle_opt->GetSlotNowId();
-        const bool is_loaded = nozzle_opt->HasFilamentAtNozzleInlet() &&
-                               slot_now.has_value() && *slot_now == mapped_slot;
-        if (!is_loaded) {
-            warning_msg = _L("Filament not loaded. Loading will start automatically before printing.");
-            return false;
-        }
     }
 
     return true;

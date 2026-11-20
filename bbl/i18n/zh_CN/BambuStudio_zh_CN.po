@@ -16894,9 +16894,6 @@ msgstr "请确认所需喷嘴直径和流量是否和当前显示一致。"
 msgid "Current printer firmware does not yet support large flushing volumes. The flushing volume set in the slicer may be limited."
 msgstr "当前打印机固件暂不支持较大冲刷量，切片设置的冲刷量可能会被限制。"
 
-msgid "Filament not loaded. Loading will start automatically before printing."
-msgstr "耗材尚未进料，发起打印后会先进行进料流程。"
-
 #, c-format, boost-format
 msgid "The current firmware supports a maximum of %s materials. You can either reduce the number of materials to %s or fewer on the Preparation Page, or try updating the firmware. If you are still restricted after the update, please wait for subsequent firmware support."
 msgstr "当前固件最多支持%s种材料。您可以在准备页将材料数量减少至%s种及以下，或尝试更新固件。若更新后仍受限，请等待后续固件支持。"

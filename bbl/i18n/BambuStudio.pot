@@ -16528,9 +16528,6 @@ msgstr ""
 msgid "Current printer firmware does not yet support large flushing volumes. The flushing volume set in the slicer may be limited."
 msgstr ""
 
-msgid "Filament not loaded. Loading will start automatically before printing."
-msgstr ""
-
 #, possible-c-format, possible-boost-format
 msgid "The current firmware supports a maximum of %s materials. You can either reduce the number of materials to %s or fewer on the Preparation Page, or try updating the firmware. If you are still restricted after the update, please wait for subsequent firmware support."
 msgstr ""
