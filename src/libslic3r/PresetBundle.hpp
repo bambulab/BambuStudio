@@ -344,6 +344,13 @@ public:
     // the result keep it anyway so validation can flag them instead of rewriting them to the
     // smallest remaining option.
     void                        seed_filament_nozzles_for_multi_diameter(const std::string &fallback_diameter);
+    // Writes process_nozzle_diameter_mode on the edited process preset right before it is saved, so a
+    // user/project process remembers which multi-diameter mode it was saved in. Printers that cannot do
+    // multi-diameter get an empty value.
+    void                        stamp_process_nozzle_diameter_mode();
+    // Whether `preset` is a user/project process preset saved in the other multi-diameter mode than the
+    // current one, on a printer that supports multi-diameter mode. Such presets must not be the active process.
+    bool                        is_other_multi_nozzle_mode_process_preset(const Preset &preset) const;
     // Writes printer_nozzle_diameter_mode on the edited printer preset right before it is saved, so a
     // user/project printer remembers which multi-diameter mode it was saved in. Printers that cannot do
     // multi-diameter get an empty value.

@@ -2282,6 +2282,14 @@ inline bool nozzle_variant_exists(const std::string &diameter, NozzleVolumeType 
     return true;
 }
 
+// Values of the process option process_nozzle_diameter_mode: the multi-diameter mode a user/project process
+// preset was saved in. System presets and presets saved before the option existed carry an empty value.
+inline constexpr const char *process_nozzle_diameter_mode_single() { return "single"; }
+inline constexpr const char *process_nozzle_diameter_mode_multi() { return "multi"; }
+
+// The process_nozzle_diameter_mode value of a process config, empty when missing.
+std::string process_nozzle_diameter_mode_tag(const ConfigBase &config);
+
 // Values of the printer option printer_nozzle_diameter_mode: the multi-diameter mode a user/project printer
 // preset was saved in. System presets and presets saved before the option existed carry an empty value.
 inline constexpr const char *printer_nozzle_diameter_mode_single() { return "single"; }

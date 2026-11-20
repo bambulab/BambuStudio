@@ -7452,6 +7452,10 @@ bool Tab::select_preset(
 
     if (technology_changed)
         wxGetApp().mainframe->technology_changed();
+    // The process picked after a printer switch or a deletion only follows compatibility, so it may be a
+    // user/project process of the other multi-diameter mode.
+    if (!canceled && (print_tab || printer_tab) && wxGetApp().plater() != nullptr)
+        wxGetApp().plater()->sidebar().replace_mismatched_process_for_multi_nozzle_mode();
     BOOST_LOG_TRIVIAL(info) << boost::format("select preset, exit");
 
     return !canceled;
@@ -7938,6 +7942,8 @@ void Tab::save_preset(std::string name /*= ""*/, bool detach, bool save_to_proje
 
     if (m_type == Preset::TYPE_PRINTER)
         m_preset_bundle->stamp_printer_nozzle_diameter_mode();
+    else if (m_type == Preset::TYPE_PRINT)
+        m_preset_bundle->stamp_process_nozzle_diameter_mode();
 
     // Save the preset into Slic3r::data_dir / presets / section_name / preset_name.ini
     m_presets->save_current_preset(name, detach, save_to_project, nullptr, &extra_map);

@@ -6,6 +6,7 @@
 #include <cstdlib>
 #include <cmath>
 #include <optional>
+#include <set>
 #include <utility>
 #include <vector>
 #include <string>
@@ -213,6 +214,40 @@ static bool installed_multi_nozzle_system_printer(const PresetCollection& printe
         return !multi_nozzle_mode ||
                preset.config.opt_string("printer_model") == printers.get_edited_preset().config.opt_string("printer_model");
     return false;
+}
+
+// Names of every system variant of the edited printer's model, whatever its visibility or installed nozzles.
+static std::set<std::string> same_model_system_printer_names(const PresetCollection& printers)
+{
+    std::set<std::string> result;
+    const Preset* printer_base = printers.get_preset_base(printers.get_edited_preset());
+    if (printer_base == nullptr || !printer_base->is_system)
+        return result;
+    const std::string printer_model = printer_base->config.opt_string("printer_model");
+    for (const Preset& p : printers.get_presets())
+        if (p.is_system && !printer_model.empty() && p.config.opt_string("printer_model") == printer_model)
+            result.insert(p.name);
+    return result;
+}
+
+// A user/project process of the other multi-diameter mode is listed greyed out and unselectable when it
+// belongs to the active printer model, whatever nozzle diameter it was saved for. A preset of another
+// diameter is matched through the compatible_printers of its system parent, which is much cheaper than
+// evaluating its compatibility against every variant of the model.
+static bool is_disabled_other_mode_process(const PresetBundle&          preset_bundle,
+                                           const Preset&                preset,
+                                           const std::set<std::string>& model_printers)
+{
+    if (!preset_bundle.is_other_multi_nozzle_mode_process_preset(preset))
+        return false;
+    if (preset.is_compatible)
+        return true;
+    const Preset* base = preset_bundle.prints.get_preset_base(preset);
+    const auto* compatible_printers = base != nullptr && base->is_system ?
+        base->config.option<ConfigOptionStrings>("compatible_printers") : nullptr;
+    return compatible_printers != nullptr &&
+           std::any_of(compatible_printers->values.begin(), compatible_printers->values.end(),
+                       [&model_printers](const std::string& name) { return model_printers.count(name) > 0; });
 }
 
 // ---------------------------------
@@ -2171,6 +2206,8 @@ void TabPresetComboBox::update()
     size_t idx_selected = m_collection->get_selected_idx();
     const bool multi_nozzle_mode = m_preset_bundle != nullptr &&
         multi_nozzle_diameter_mode_enabled(m_preset_bundle->project_config);
+    const std::set<std::string> multi_nozzle_model_printers =
+        m_type == Preset::TYPE_PRINT && m_preset_bundle != nullptr ? same_model_system_printer_names(m_preset_bundle->printers) : std::set<std::string>{};
 
     // unselect printer
     if (m_type == Preset::TYPE_PRINTER && m_preset_bundle->physical_printers.has_selection()) {
@@ -2186,20 +2223,26 @@ void TabPresetComboBox::update()
             m_type == Preset::TYPE_PRINTER && installed_multi_nozzle_system_printer(*m_collection, preset, multi_nozzle_mode);
         const bool is_canonical_multi_nozzle =
             installed_multi_nozzle && is_canonical_multi_nozzle_diameter_printer_preset(*m_collection, preset);
+        const bool disabled_other_mode_process =
+            m_type == Preset::TYPE_PRINT && m_preset_bundle != nullptr &&
+            is_disabled_other_mode_process(*m_preset_bundle, preset, multi_nozzle_model_printers);
         if ((!preset.is_visible && !is_canonical_multi_nozzle) ||
-            (!show_incompatible && !preset.is_compatible && i != idx_selected))
+            (!show_incompatible && !preset.is_compatible && i != idx_selected && !disabled_other_mode_process))
             continue;
 
         // marker used for disable incompatible printer models for the selected physical printer
-        bool is_enabled = true;
+        bool is_enabled = !disabled_other_mode_process;
 
         wxBitmap* bmp = get_bmp(preset);
         assert(bmp);
 
         const wxString name = get_preset_name(preset);
-        available_presets.push_back(name);
+        available_presets.push_back(is_enabled ? name : name + " >disabled");
 
-        const wxString description = preset.is_system ? _L(preset.description) : wxString();
+        const wxString description =
+            !is_enabled ? (multi_nozzle_mode ? _L("Saved in single-diameter mode. Switch to single-diameter mode to use it.") :
+                                               _L("Saved in multi-diameter mode. Switch to multi-diameter mode to use it.")) :
+            preset.is_system ? _L(preset.description) : wxString();
 
         if (preset.is_default || preset.is_system) {
             //BBS: move system to the end
@@ -2300,13 +2343,13 @@ void TabPresetComboBox::update()
     {
         set_label_marker(Append(_L("Project-inside presets"), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM));
         for (auto it = project_embedded_presets.begin(); it != project_embedded_presets.end(); ++it) {
-            int item_id = Append(it->first, *it->second.bitmap);
+            bool is_enabled = it->second.enabled;
+            int item_id = Append(it->first, *it->second.bitmap, is_enabled ? 0 : DD_ITEM_STYLE_DISABLED);
             if (it->second.mode_target)
                 m_item_mode_targets.emplace(item_id, *it->second.mode_target);
             else
                 m_item_preset_names.emplace(item_id, it->second.preset_name);
             SetItemTooltip(item_id, it->second.description);
-            bool is_enabled = it->second.enabled;
             if (!is_enabled)
                 set_label_marker(item_id, LABEL_ITEM_DISABLED);
             validate_selection(it->first == selected);
@@ -2316,13 +2359,13 @@ void TabPresetComboBox::update()
     {
         set_label_marker(Append(_L("User presets"), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM));
         for (auto it = nonsys_presets.begin(); it != nonsys_presets.end(); ++it) {
-            int item_id = Append(it->first, *it->second.bitmap);
+            bool is_enabled = it->second.enabled;
+            int item_id = Append(it->first, *it->second.bitmap, is_enabled ? 0 : DD_ITEM_STYLE_DISABLED);
             if (it->second.mode_target)
                 m_item_mode_targets.emplace(item_id, *it->second.mode_target);
             else
                 m_item_preset_names.emplace(item_id, it->second.preset_name);
             SetItemTooltip(item_id, it->second.description);
-            bool is_enabled = it->second.enabled;
             if (!is_enabled)
                 set_label_marker(item_id, LABEL_ITEM_DISABLED);
             validate_selection(it->first == selected);
@@ -2333,13 +2376,13 @@ void TabPresetComboBox::update()
     {
         set_label_marker(Append(_L("System presets"), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM));
         for (auto it = system_presets.begin(); it != system_presets.end(); ++it) {
-            int item_id = Append(it->first, *it->second.bitmap);
+            bool is_enabled = it->second.enabled;
+            int item_id = Append(it->first, *it->second.bitmap, is_enabled ? 0 : DD_ITEM_STYLE_DISABLED);
             if (it->second.mode_target)
                 m_item_mode_targets.emplace(item_id, *it->second.mode_target);
             else
                 m_item_preset_names.emplace(item_id, it->second.preset_name);
             SetItemTooltip(item_id, it->second.description);
-            bool is_enabled = it->second.enabled;
             if (!is_enabled)
                 set_label_marker(item_id, LABEL_ITEM_DISABLED);
             validate_selection(it->first == selected);

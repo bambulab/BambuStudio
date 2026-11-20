@@ -2117,6 +2117,44 @@ static void discard_process_edits_before_multi_nozzle_mode()
     reload_print_tab_from_edited_preset();
 }
 
+// User/project process presets of the opposite multi-diameter mode are greyed out and unselectable.
+// If a mode switch, a printer switch or a deletion left one active (e.g. a 0.2 user preset that stayed
+// compatible with the 0.2 printer across the switch), fall back to the active machine's default process.
+// Unsaved edits go through the usual unsaved-changes handling of the process switch.
+static void replace_mismatched_user_process_for_multi_nozzle_mode()
+{
+    PresetBundle *preset_bundle = wxGetApp().preset_bundle;
+    if (preset_bundle == nullptr)
+        return;
+
+    const Preset &printer = preset_bundle->printers.get_edited_preset();
+    const Preset &process = preset_bundle->prints.get_edited_preset();
+    if (!preset_bundle->is_other_multi_nozzle_mode_process_preset(process))
+        return;
+
+    const Preset *fallback = preset_bundle->prints.find_preset(printer.config.opt_string("default_print_profile"), false);
+    if (fallback == nullptr || !fallback->is_compatible || (!fallback->is_system && !fallback->is_default)) {
+        fallback = nullptr;
+        for (const Preset &candidate : preset_bundle->prints.get_presets()) {
+            if (candidate.is_compatible && (candidate.is_system || candidate.is_default)) {
+                fallback = &candidate;
+                break;
+            }
+        }
+    }
+    if (fallback == nullptr) {
+        BOOST_LOG_TRIVIAL(warning) << "no compatible system process preset to replace " << process.name
+                                   << " after switching multi-diameter mode";
+        return;
+    }
+
+    if (Tab *print_tab = wxGetApp().get_tab(Preset::TYPE_PRINT)) {
+        if (!print_tab->select_preset(fallback->name))
+            BOOST_LOG_TRIVIAL(warning) << "could not select fallback process preset " << fallback->name
+                                       << " after switching multi-diameter mode";
+    }
+}
+
 // Auto options keep their single-diameter edits out of the multi-diameter process: there they are
 // neither shown nor undoable, yet would still mark the preset dirty and be written on save.
 void Sidebar::priv::stash_multi_nozzle_auto_process_edits()
@@ -2202,6 +2240,7 @@ bool Sidebar::priv::apply_multi_nozzle_diameter_mode(bool enabled, const std::op
         option->value = true;
         if (!preset_before.empty())
             m_printer_preset_before_multi_diameter = preset_before;
+        replace_mismatched_user_process_for_multi_nozzle_mode();
         stash_multi_nozzle_auto_process_edits();
     } else {
         option->value = false;
@@ -2218,6 +2257,7 @@ bool Sidebar::priv::apply_multi_nozzle_diameter_mode(bool enabled, const std::op
         }
         m_printer_preset_before_multi_diameter.reset();
         restore_multi_nozzle_auto_process_edits();
+        replace_mismatched_user_process_for_multi_nozzle_mode();
     }
 
     // Turning the mode on writes the gate after the printer switch, so the process values follow only here.
@@ -5817,6 +5857,11 @@ void Sidebar::select_printer_across_multi_nozzle_mode(const std::string &printer
         printer_tab->update_preset_choice();
 }
 
+void Sidebar::replace_mismatched_process_for_multi_nozzle_mode()
+{
+    replace_mismatched_user_process_for_multi_nozzle_mode();
+}
+
 MultiDiameterPresetMigrationResult Sidebar::try_migrate_multi_diameter_printer_preset(std::string preset_name)
 {
     PresetBundle *preset_bundle = wxGetApp().preset_bundle;
@@ -5914,6 +5959,7 @@ MultiDiameterPresetMigrationResult Sidebar::try_migrate_multi_diameter_printer_p
     }
 
     preset_bundle->stamp_printer_nozzle_diameter_mode();
+    replace_mismatched_user_process_for_multi_nozzle_mode();
     p->m_saved_per_slot_valid = false;
     p->m_saved_selected_nozzle_diameters.clear();
     p->m_saved_filament_volume_map.clear();

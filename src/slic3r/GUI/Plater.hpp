@@ -219,6 +219,8 @@ public:
     // single-diameter preset; non-empty projects prompt when the target cannot preserve every nozzle
     // exactly or the project exceeds its physical nozzle capacity.
     MultiDiameterPresetMigrationResult try_migrate_multi_diameter_printer_preset(std::string preset_name);
+    // Leave a user/project process of the other multi-diameter mode for the machine's default process.
+    void replace_mismatched_process_for_multi_nozzle_mode();
     void set_bed_by_curr_bed_type(AppConfig *config);
     void update_all_preset_comboboxes();
     //void update_partplate(PartPlateList& list);

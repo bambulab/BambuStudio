@@ -2186,6 +2186,8 @@ void PresetBundle::save_changes_for_preset(const std::string& new_name, Preset::
 
     if (type == Preset::TYPE_PRINTER)
         stamp_printer_nozzle_diameter_mode();
+    else if (type == Preset::TYPE_PRINT)
+        stamp_process_nozzle_diameter_mode();
 
     // Save the preset into Slic3r::data_dir / presets / section_name / preset_name.ini
     //BBS: add project embedded preset logic
@@ -2372,6 +2374,11 @@ void PresetBundle::load_selections(AppConfig &config, const PresetPreferences& p
         if ((!initial_filament_profile_name.compare("Default Filament")) && (prefered_filament_profiles.size() > 0))
             initial_filament_profile_name = prefered_filament_profiles[0];
     }
+
+    // A process of the other multi-diameter mode is not selectable, so do not restore it either.
+    if (const Preset *initial_print = prints.find_preset(initial_print_profile_name, false);
+        initial_print != nullptr && is_other_multi_nozzle_mode_process_preset(*initial_print))
+        initial_print_profile_name = printers.get_selected_preset().config.opt_string("default_print_profile");
 
     // Selects the profile, leaves it to -1 if the initial profile name is empty or if it was not found.
     prints.select_preset_by_name_strict(initial_print_profile_name);
@@ -4368,6 +4375,28 @@ std::string PresetBundle::tray_diameter_for_filament_slot(size_t filament_index)
             first_match = diameter;
     }
     return first_match;
+}
+
+void PresetBundle::stamp_process_nozzle_diameter_mode()
+{
+    std::string tag;
+    const Preset *printer_base = printers.get_preset_base(printers.get_edited_preset());
+    if (printer_base != nullptr && printer_base->is_system && supports_multi_nozzle_diameter_mode(printer_base->config))
+        tag = multi_nozzle_diameter_mode_enabled(project_config) ? process_nozzle_diameter_mode_multi() :
+                                                                   process_nozzle_diameter_mode_single();
+    prints.get_edited_preset().config.option<ConfigOptionString>("process_nozzle_diameter_mode", true)->value = tag;
+}
+
+bool PresetBundle::is_other_multi_nozzle_mode_process_preset(const Preset &preset) const
+{
+    if (preset.is_system || preset.is_default)
+        return false;
+    const Preset *printer_base = printers.get_preset_base(printers.get_edited_preset());
+    if (printer_base == nullptr || !printer_base->is_system || !supports_multi_nozzle_diameter_mode(printer_base->config))
+        return false;
+    // Untagged presets predate the tag, when only single-diameter mode existed in releases.
+    const bool preset_multi = process_nozzle_diameter_mode_tag(preset.config) == process_nozzle_diameter_mode_multi();
+    return preset_multi != multi_nozzle_diameter_mode_enabled(project_config);
 }
 
 void PresetBundle::stamp_printer_nozzle_diameter_mode()
