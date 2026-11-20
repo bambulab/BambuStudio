@@ -158,6 +158,24 @@ void fill_nil_filament_values(DynamicPrintConfig &config, const DynamicPrintConf
 void resolve_user_filament_config(DynamicPrintConfig &config, const std::string &inherits,
                                   const std::function<bool(const std::string &file, DynamicPrintConfig &config)> &load_filament_preset);
 
+//======================================================================================================================
+// filament_colour
+//
+// filament_colour must be "#RRGGBB" or "#RRGGBBAA". The CLI writes it as is to slice_info.config / plate_x.json,
+// and computes the flush volumes from it.
+// Bambu Studio always saves hex values, but some 3mfs have been edited by other tools and hold colour names, e.g. "Black".
+// The CLI only rejects invalid values when publishing (slicing all plates, plate_to_slice == 0),
+// so the 3mfs already online can still be sliced.
+//   3mf:          an empty value is invalid.
+//   command line: an empty value keeps the colour of the 3mf.
+//======================================================================================================================
+
+// Whether colour is "#RRGGBB" or "#RRGGBBAA".
+bool is_hex_colour(const std::string &colour);
+
+// Returns the index of the first value that is not hex (or is empty, unless allow_empty), or -1 if all are valid.
+int find_invalid_filament_colour(const std::vector<std::string> &colours, bool allow_empty);
+
 } // namespace Slic3r
 
 #endif /* slic3r_CLIUtils_hpp_ */

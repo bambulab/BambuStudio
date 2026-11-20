@@ -2211,6 +2211,18 @@ int CLI::run(int argc, char **argv)
                         }
                     }
 
+                    //filament_colour in 3mf, only checked when publishing, see CLIUtils.hpp
+                    const ConfigOptionStrings *project_colour_opt = config.option<ConfigOptionStrings>("filament_colour");
+                    if ((plate_to_slice == 0) && project_colour_opt) {
+                        int invalid_colour_index = find_invalid_filament_colour(project_colour_opt->values, false);
+                        if (invalid_colour_index >= 0) {
+                            BOOST_LOG_TRIVIAL(error) << boost::format("invalid filament_colour in 3mf, index %1%, value \"%2%\", should be #RRGGBB or #RRGGBBAA")
+                                % invalid_colour_index % project_colour_opt->values[invalid_colour_index];
+                            record_exit_reson(outfile_dir, CLI_INVALID_VALUES_IN_3MF, 0, cli_errors[CLI_INVALID_VALUES_IN_3MF], sliced_info);
+                            flush_and_exit(CLI_INVALID_VALUES_IN_3MF);
+                        }
+                    }
+
                     /*for (ModelObject *model_object : model.objects)
                         for (ModelInstance *model_instance : model_object->instances)
                         {

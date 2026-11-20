@@ -488,4 +488,22 @@ void resolve_user_filament_config(DynamicPrintConfig &config, const std::string 
     fill_nil_filament_values(config, has_parent ? &parent_config : nullptr);
 }
 
+bool is_hex_colour(const std::string &colour)
+{
+    if ((colour.size() != 7 && colour.size() != 9) || colour.front() != '#')
+        return false;
+    return std::all_of(colour.begin() + 1, colour.end(),
+                       [](char c) { return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F'); });
+}
+
+int find_invalid_filament_colour(const std::vector<std::string> &colours, bool allow_empty)
+{
+    for (size_t index = 0; index < colours.size(); index++) {
+        const std::string &colour = colours[index];
+        if (colour.empty() ? !allow_empty : !is_hex_colour(colour))
+            return (int) index;
+    }
+    return -1;
+}
+
 } // namespace Slic3r
