@@ -79,11 +79,11 @@
     ],
     "nozzle_temperature": [
         "255",
-        "255"
+        "265"
     ],
     "nozzle_temperature_initial_layer": [
         "255",
-        "255"
+        "265"
     ],
     "optional_cooling_fan_speed": [
         "10"
