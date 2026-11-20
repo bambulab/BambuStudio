@@ -729,14 +729,20 @@ void DropDown::autoPosition()
             if (use_content_width && count <= (size_t)max_visible_rows) size.x += 6;
             size.y = drect.GetBottom() - GetPosition().y - 10;
             wxWindow::SetSize(size);
-            if (selection >= 0) {
-                if (offset.y + rowSize.y * (selection + 1) > size.y)
-                    offset.y = size.y - rowSize.y * (selection + 1);
-                else if (offset.y + rowSize.y * selection < 0)
-                    offset.y = -rowSize.y * selection;
+            // Scroll by the visible row, not the raw item index: grouped items fold into one
+            // row, so the raw index can pass the last row and scroll the whole list out of view.
+            const int row = selectedItem();
+            if (row >= 0) {
+                if (offset.y + rowSize.y * (row + 1) > size.y)
+                    offset.y = size.y - rowSize.y * (row + 1);
+                else if (offset.y + rowSize.y * row < 0)
+                    offset.y = -rowSize.y * row;
             }
         }
     }
+    // Keep at least the last page of rows in view, whatever offset was left from earlier.
+    const int min_offset = std::min(0, GetSize().y - rowSize.y * int(count));
+    offset.y = std::clamp(offset.y, min_offset, 0);
 }
 
 void DropDown::fitWidthToDisplay(wxSize &size)
