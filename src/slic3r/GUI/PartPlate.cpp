@@ -1695,6 +1695,24 @@ bool PartPlate::check_filament_printable(const DynamicPrintConfig &config, wxStr
     return true;
 }
 
+bool PartPlate::all_used_filaments_have_groupable_nozzle() const
+{
+    const std::vector<int> used_filaments = get_extruders(true); // 1-based
+    if (used_filaments.empty())
+        return true;
+
+    const PresetBundle *bundle = wxGetApp().preset_bundle;
+    if (bundle == nullptr)
+        return false;
+
+    for (int filament_idx : used_filaments) {
+        const int filament_id = filament_idx - 1;
+        if (filament_id < 0 || !bundle->has_compatible_installed_nozzle(static_cast<size_t>(filament_id)))
+            return false;
+    }
+    return true;
+}
+
 bool PartPlate::check_missing_tpu285_nozzle(const DynamicPrintConfig &config) const
 {
     std::vector<int> used_filaments = get_extruders(true); // 1-based

@@ -324,6 +324,9 @@ public:
     // its per-diameter flow list cannot disagree. The printer preset's extruder_variant_list only
     // says what the model could take and must not be used to offer flow types on its own.
     std::set<std::pair<std::string, NozzleVolumeType>> get_installed_nozzle_variants() const;
+    // Whether an installed nozzle can print this filament after applying its diameter, flow and
+    // extruder restrictions. Uses the same nozzle-selection rules as the per-filament selector.
+    bool                        has_compatible_installed_nozzle(size_t filament_index) const;
     // Updates the selected diameter and switches to a matching system preset when the current preset cannot serve it.
     // `diameter_picked_by_user` keeps a diameter the machine does not currently carry: the request then
     // only has to be one the filament has a preset for. Picking a tray by hand is such a case -- the

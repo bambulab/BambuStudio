@@ -375,6 +375,9 @@ public:
     int  get_physical_extruder_by_filament_id(const DynamicConfig& g_config, int idx) const;
     int  get_physical_extruder_by_logical_extruder(const DynamicConfig& g_config, int logical_extruder) const;
     bool check_filament_printable(const DynamicPrintConfig & config, wxString& error_message);
+    // True when every used filament has a currently groupable nozzle compatible with its diameter,
+    // flow type and extruder restrictions.
+    bool all_used_filaments_have_groupable_nozzle() const;
     // True when a used 2.85mm/TPU285 filament is present but the printer preset has no TPU285 nozzle.
     bool check_missing_tpu285_nozzle(const DynamicPrintConfig &config) const;
     bool check_tpu_printable_status(const DynamicPrintConfig & config, const std::vector<int> &tpu_filaments);

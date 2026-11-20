@@ -17,6 +17,7 @@
 #include <algorithm>
 #include <atomic>
 #include <charconv>
+#include <limits>
 #include <numeric>
 #include <set>
 #include <string_view>
@@ -4085,6 +4086,46 @@ static std::set<std::pair<std::string, NozzleVolumeType>> collect_installed_nozz
     return result;
 }
 
+// 收集位于耗材可用挤出机上的当前有效喷嘴规格（口径、流量类型）。
+// 先过滤不可用挤出机和无效喷嘴槽；单口径只保留当前口径，多口径保留各槽实际口径。
+// 此处不判断流量类型兼容性，后续由 get_filament_nozzle_flow_options() 检查。
+static std::set<std::pair<std::string, NozzleVolumeType>> collect_printable_installed_nozzle_variants(
+    const PresetBundle &bundle, unsigned int printable_extruders)
+{
+    std::set<std::pair<std::string, NozzleVolumeType>> groupable_variants;     // 最终返回的候选喷嘴规格
+
+    const Preset &printer = bundle.printers.get_edited_preset();               // 当前打印机预设
+    const bool multi_diameter_mode =
+        multi_nozzle_diameter_mode_enabled(bundle.project_config) &&
+        supports_multi_nozzle_diameter_mode(printer.config);                   // 当前是否实际启用多口径模式
+
+    const std::string primary_diameter =
+        format_diameter_to_str(string_to_double_decimal_point(printer.config.opt_string("printer_variant"))); // 单口径模式使用的口径
+
+    constexpr int max_extruder_count = static_cast<int>(sizeof(unsigned int) * 8);
+    for (int extruder_id = 0; extruder_id < bundle.nozzle_inventory.extruder_count(); ++extruder_id) {
+        const bool extruder_is_printable =
+            extruder_id < max_extruder_count && (printable_extruders & (1u << extruder_id)) != 0; // 耗材是否允许使用该挤出机
+        if (!extruder_is_printable)
+            continue;
+
+        for (const NozzleSlot &slot : bundle.nozzle_inventory.slots(extruder_id)) {
+            const double diameter_value = string_to_double_decimal_point(slot.diameter);
+            const bool has_valid_nozzle = !slot.empty() && diameter_value > 0.0; // 喷嘴槽非空且口径有效
+            if (!has_valid_nozzle)
+                continue;
+
+            const std::string diameter = format_diameter_to_str(diameter_value);
+            const bool diameter_is_usable = multi_diameter_mode || diameter == primary_diameter; // 当前模式是否允许该口径
+            if (!diameter_is_usable)
+                continue;
+            const auto variant = std::make_pair(diameter, slot.volume_type); // 喷嘴规格 = 口径 + 流量类型
+            groupable_variants.insert(variant);                             // set 自动去重
+        }
+    }
+    return groupable_variants; // 返回位于耗材可用挤出机上的候选喷嘴规格
+}
+
 static std::vector<NozzleVolumeType> get_filament_nozzle_flow_options(
     const PresetBundle                                       &bundle,
     size_t                                                    filament_index,
@@ -4249,6 +4290,50 @@ std::vector<std::string> PresetBundle::get_filament_nozzle_diameter_options(size
 std::set<std::pair<std::string, NozzleVolumeType>> PresetBundle::get_installed_nozzle_variants() const
 {
     return ::Slic3r::collect_installed_nozzle_variants(*this);
+}
+
+bool PresetBundle::has_compatible_installed_nozzle(size_t filament_index) const
+{
+    // 1. 确认耗材槽位和预设有效。
+    if (filament_index >= filament_presets.size())
+        return false;
+
+    const Preset *filament_preset = filaments.find_preset(filament_presets[filament_index], false);
+    if (filament_preset == nullptr)
+        return false;
+
+    // 2. 读取耗材允许使用的挤出机；没有配置时默认允许全部挤出机。
+    unsigned int printable_extruders = std::numeric_limits<unsigned int>::max();
+    if (const auto *printable = filament_preset->config.option<ConfigOptionInts>("filament_printable");
+        printable != nullptr && !printable->values.empty() && printable->values.front() >= 0)
+        printable_extruders = static_cast<unsigned int>(printable->values.front());
+
+    // 3. 取得耗材与当前打印机共同支持的喷嘴口径。
+    const std::vector<std::string> diameter_options = get_filament_nozzle_diameter_options(filament_index);
+    std::set<std::string> allowed_diameters(diameter_options.begin(), diameter_options.end());
+    if (allowed_diameters.empty())
+        return false;
+
+    // 4. 多口径模式下，进一步限定为该耗材当前选择的口径。
+    if (multi_nozzle_diameter_mode_enabled(project_config) &&
+        supports_multi_nozzle_diameter_mode(printers.get_edited_preset().config)) {
+        const auto *selected = project_config.option<ConfigOptionStrings>("filament_diameter_map");
+        if (selected != nullptr && filament_index < selected->values.size() && !selected->values[filament_index].empty()) {
+            const std::string diameter =
+                format_diameter_to_str(string_to_double_decimal_point(selected->values[filament_index]));
+            if (allowed_diameters.count(diameter) == 0)
+                return false;
+            allowed_diameters = {diameter};
+        }
+    }
+
+    // 5. 从允许使用的挤出机中收集当前有效喷嘴。
+    const auto installed = collect_printable_installed_nozzle_variants(*this, printable_extruders);
+
+    // 6. 任一允许口径存在兼容流量类型的喷嘴，即可通过重新分组修复。
+    return std::any_of(allowed_diameters.begin(), allowed_diameters.end(), [&](const std::string &diameter) {
+        return !get_filament_nozzle_flow_options(*this, filament_index, diameter, installed).empty();
+    });
 }
 
 bool PresetBundle::is_filament_nozzle_diameter_valid(size_t filament_index, const std::string &diameter) const

@@ -14411,9 +14411,10 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
             if (state){
                 const auto full_config = wxGetApp().preset_bundle->full_config();
                 // The regroup link opens nothing when grouping is skipped, so only offer it when grouping is available.
-                // On single-extruder multi-nozzle machines it is offered only when a groupable TPU285 nozzle exists.
-                const bool show_regroup_link = !should_skip_filament_grouping(full_config) &&
-                    (!is_single_ext_multi_nozzle(full_config) || has_groupable_tpu285_nozzle(full_config));
+                PartPlate *curr_plate = wxGetApp().plater() ? wxGetApp().plater()->get_partplate_list().get_curr_plate() : nullptr;
+                const bool show_regroup_link = curr_plate &&
+                    curr_plate->all_used_filaments_have_groupable_nozzle() &&
+                    !should_skip_filament_grouping(full_config);
                 if (!show_regroup_link) {
                     notification_manager.push_slicing_customize_error_notification(NotificationType::BBLFilamentPrintableError, NotificationLevel::ErrorNotificationLevel, text);
                 } else {
