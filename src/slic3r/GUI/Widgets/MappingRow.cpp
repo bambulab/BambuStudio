@@ -402,7 +402,7 @@ void MappingRow::set_dest(const FilamentInfo &f, const wxString &slot_label, std
         m_dst_name->SetLabel(label.name);
         const bool mismatch = m_src_diameter > 0 && f.nozzle_diameter > 0 && !is_approx(m_src_diameter, f.nozzle_diameter);
         show_flow_pill(m_dst_size, flow_text(f), mismatch);
-        m_dst_size->SetToolTip(mismatch ? _L("The current nozzle diameter is incompatible with the printer") : wxString());
+        m_dst_size->SetToolTip(mismatch ? _L("Nozzle diameter mismatch after filament synchronization") : wxString());
     } else {
         m_dst_brand->Hide();
         m_dst_size->Hide();

@@ -7112,7 +7112,7 @@ bool Sidebar::is_filament_referenced(size_t filament_id) const
     return false;
 }
 
-void Sidebar::delete_filament(size_t filament_id, int replace_filament_id) {
+void Sidebar::delete_filament(size_t filament_id, int replace_filament_id, bool confirm_if_used) {
     if (is_new_project_in_gcode3mf()) { return; }
     if (p->combos_filament.size() <= 1) return;
     wxBusyCursor busy;
@@ -7130,7 +7130,7 @@ void Sidebar::delete_filament(size_t filament_id, int replace_filament_id) {
 
     bool is_mixed = (filament_id >= p->combos_filament.size());
 
-    if (!confirm_delete_used_filament(filament_id, replace_filament_id)) return;
+    if (confirm_if_used && !confirm_delete_used_filament(filament_id, replace_filament_id)) return;
 
     // The delete erases every object-level support_interface_filament override naming this slot,
     // after which "had one, wiped" and "never had one" look the same. Record the per-object combo
@@ -7781,7 +7781,10 @@ void Sidebar::sync_ams_list(bool is_from_big_sync_btn)
             if (sync_result.sync_maps.find(i) != sync_result.sync_maps.end())
                 continue;
             const size_t before = p->combos_filament.size();
-            delete_filament(i);
+            // The sync dialog already warned that the filament list changes for good. A filament can be
+            // referenced but not printed (e.g. a base filament under full Color Painting), so it is left
+            // off the mapping list. Asking again per filament here would be a false alarm.
+            delete_filament(i, -1, false);
             if (p->combos_filament.size() == before)
                 continue;
             std::map<int, AMSMapInfo> shifted;

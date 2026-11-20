@@ -248,7 +248,16 @@ public:
     void on_filaments_delete(size_t filament_id);
 
     void add_filament();
-    void delete_filament(size_t filament_id = size_t(-1), int replace_filament_id = -1);  // 0 base, -1 means default
+    /**
+     * \brief Delete a project filament and remap everything that references it.
+     *
+     * \param filament_id          0-based filament to delete; size_t(-1) deletes the last one
+     * \param replace_filament_id  0-based filament that takes over the references ("Merge with"),
+     *                             or -1 to reset them to the first remaining filament
+     * \param confirm_if_used      ask the user before deleting a filament a model or mixed filament uses.
+     *                             Pass false when the caller has already confirmed the delete, e.g. filament sync.
+     */
+    void delete_filament(size_t filament_id = size_t(-1), int replace_filament_id = -1, bool confirm_if_used = true);
     // Whether a model or mixed filament references this physical filament (0 base).
     bool is_filament_referenced(size_t filament_id) const;
     void change_filament(size_t from_id, size_t to_id);  // 0 base
