@@ -336,11 +336,17 @@ void AMSMaterialsSetting::create_panel_normal(wxWindow* parent)
     m_clr_picker->SetBackgroundColour(*wxWHITE);
 
     m_sizer_colour->Add(m_clr_picker, 0, wxRESERVE_SPACE_EVEN_IF_HIDDEN | wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(10));
-    m_clr_name = new Label(parent, wxEmptyString);
+    m_clr_name = new Label(parent, wxEmptyString, wxST_ELLIPSIZE_END);
     m_clr_name->SetForegroundColour(*wxBLACK);
     m_clr_name->SetBackgroundColour(*wxWHITE);
     m_clr_name->SetFont(Label::Body_13);
+    // Small min width: a long colour name must ellipsize, not widen the row.
+    m_clr_name->SetMinSize(wxSize(FromDIP(20), -1));
     m_sizer_colour->Add(m_clr_name, 1, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(10));
+    m_clr_name->Bind(wxEVT_SIZE, [this](wxSizeEvent& e) {
+        e.Skip();
+        update_clr_name_tooltip();
+    });
 
     m_color_picker_popup = new ColorPickerPopup(parent, this);
     m_color_picker_popup->SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
@@ -1700,6 +1706,7 @@ void AMSMaterialsSetting::set_color(wxColour color)
     fila_color.EndSet(m_clr_picker->ctype);
     m_clr_name->SetLabelText(material_color_label(ams_filament_id, fila_color));
     if (m_clr_picker->GetParent()) m_clr_picker->GetParent()->Layout();
+    update_clr_name_tooltip();
 }
 
 void AMSMaterialsSetting::set_empty_color(wxColour color)
@@ -1710,6 +1717,7 @@ void AMSMaterialsSetting::set_empty_color(wxColour color)
     m_clr_picker->Hide();
     m_clr_name->SetLabelText(_L("Please select a color"));
     if (m_clr_picker->GetParent()) m_clr_picker->GetParent()->Layout();
+    update_clr_name_tooltip();
 }
 
 void AMSMaterialsSetting::set_colors(std::vector<wxColour> colors)
@@ -1726,12 +1734,23 @@ void AMSMaterialsSetting::set_colors(std::vector<wxColour> colors)
         fila_color.EndSet(m_clr_picker->ctype);
         m_clr_name->SetLabelText(material_color_label(ams_filament_id, fila_color));
         if (m_clr_picker->GetParent()) m_clr_picker->GetParent()->Layout();
+        update_clr_name_tooltip();
     }
 }
 
 void AMSMaterialsSetting::set_ctype(int ctype)
 {
     m_clr_picker->ctype = ctype;
+}
+
+void AMSMaterialsSetting::update_clr_name_tooltip()
+{
+    const wxString text  = m_clr_name->GetLabelText();
+    const int      avail = m_clr_name->GetClientSize().x;
+    if (avail > 0 && m_clr_name->GetTextExtent(text).x > avail)
+        m_clr_name->SetToolTip(text);
+    else
+        m_clr_name->UnsetToolTip();
 }
 
 void AMSMaterialsSetting::on_picker_color(wxCommandEvent& event)

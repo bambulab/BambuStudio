@@ -136,6 +136,8 @@ public:
     void set_empty_color(wxColour color);
     void set_colors(std::vector<wxColour> colors);
     void set_ctype(int ctype);
+    // Show the full colour name as a tooltip only when the label is too narrow to display it.
+    void update_clr_name_tooltip();
 
     void on_picker_color(wxCommandEvent& color);
 
