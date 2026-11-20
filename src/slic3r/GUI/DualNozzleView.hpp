@@ -2,8 +2,8 @@
 /**
  * \file DualNozzleView.hpp
  * \brief The sidebar nozzle content of a printer with two extruders and one nozzle each: a picker for
- *        the side that prints when the nozzles differ, then one card per nozzle with its diameter and type, and the
- *        filament switcher icon between the cards.
+ *        the side that prints when the nozzles differ, then one card per nozzle with its diameter, type
+ *        and AMS units, and the filament switcher icon between the cards.
  */
 
 #include <array>
@@ -44,6 +44,18 @@ public:
      * \brief Redraw the picker and the cards from the nozzle inventory and the multi-diameter mode.
      */
     void refresh();
+
+    /**
+     * \brief Redraw the AMS units on both cards from the AMS selection and the selected machine.
+     *
+     * Cheap when nothing changed, so call it on every machine update.
+     *
+     * \return true if a card changed, so the owner must fit the view again
+     */
+    bool refresh_ams();
+
+    /// \brief Called after the user adds or removes an AMS unit on a card.
+    void set_on_ams_changed(std::function<void()> on_changed) { m_on_ams_changed = std::move(on_changed); }
 
     /**
      * \brief Name the two nozzles on their cards and on the picker.
@@ -108,6 +120,7 @@ private:
     std::array<NozzleInfoCardView *, EXTRUDERS>   m_cards{};
     NozzleEditMenu                               *m_edit_menu{nullptr}; // created on first use, kept for reuse
     std::function<void(int)>                      m_on_pick;
+    std::function<void()>                         m_on_ams_changed;
     std::function<void(int, const std::string &, NozzleVolumeType)> m_on_edit;
 };
 

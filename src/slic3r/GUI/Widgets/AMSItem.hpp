@@ -745,6 +745,21 @@ public:
     void         msw_rescale();
     bool         IsSelected() const;
 
+    /**
+     * \brief Draw the whole preview at half strength. Off by default.
+     *
+     * Only the look changes: the preview still takes hover and clicks.
+     */
+    void set_dimmed(bool dimmed);
+
+    /**
+     * \brief Draw the square backdrop and the rounded plate behind the unit. On by default.
+     *
+     * Turn it off to draw the unit straight on the window's background colour, with a frame that has
+     * no filled surround, for an owner whose surface is already the unit's surround.
+     */
+    void set_backdrop(bool backdrop);
+
     DevAmsType   get_ams_type() const { return m_ams_item_type; }
     std::string  get_ams_id() const { return m_amsinfo.ams_id; };
 
@@ -774,6 +789,10 @@ protected:
 
 private:
     void renderMultiRowGrid(wxDC& dc, const wxSize& size);
+    void render_dimmed(wxDC& dc);
+
+    bool m_dimmed{false};
+    bool m_backdrop{true};
 };
 
 

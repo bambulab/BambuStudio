@@ -85,6 +85,8 @@ void PillView::set_dropdown(bool dropdown)
     Refresh();
 }
 
+int PillView::text_inset() const { return FromDIP(kPadX) / 2; }
+
 wxSize PillView::DoGetBestSize() const
 {
     // Height comes from the font's line height, not the text, so an empty pill keeps its row height.

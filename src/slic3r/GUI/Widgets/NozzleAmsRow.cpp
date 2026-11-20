@@ -12,6 +12,7 @@
 #include <wx/wx.h>
 
 #include "slic3r/GUI/ExtruderHelpers.hpp"
+#include "slic3r/GUI/ExtruderPanel.hpp" // HorizontalScrollView
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/I18N.hpp"
 #include "slic3r/GUI/Plater.hpp"
@@ -277,6 +278,9 @@ void show_ams_delete_popup(int extruder_index, AMSPreview *preview, const std::v
     popup->Popup();
 }
 
+/// \brief The row sits on its owner's surface, with the small label and the self-managed visibility.
+bool on_owner_surface(NozzleAmsRow::Style style) { return style == NozzleAmsRow::Style::Inline || style == NozzleAmsRow::Style::Scrolled; }
+
 } // namespace
 
 NozzleAmsRow::NozzleAmsRow(wxWindow *parent, int extruder_index, const wxString &label_text, Style style, std::function<void()> on_changed)
@@ -286,7 +290,8 @@ NozzleAmsRow::NozzleAmsRow(wxWindow *parent, int extruder_index, const wxString 
     , m_on_changed(std::move(on_changed))
 {
     // An inline row is a region of the card that hosts it, so it takes the card's surface.
-    const bool     inline_row = style == Style::Inline;
+    const bool     inline_row = on_owner_surface(style);
+    const bool     scrolled   = style == Style::Scrolled;
     const wxColour surface    = inline_row ? parent->GetBackgroundColour() : wxColour(ThemeColor::Grey200);
     SetBackgroundColour(surface);
 
@@ -309,9 +314,12 @@ NozzleAmsRow::NozzleAmsRow(wxWindow *parent, int extruder_index, const wxString 
     const bool band = style == Style::Band;
     row->Add(m_label, 0, wxALIGN_CENTER_VERTICAL | (band ? wxLEFT : 0) | wxRIGHT, FromDIP(inline_row ? 4 : 8));
 
-    m_previews_container = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
+    // A scroll view reports no width of its own, so many units never widen the row.
+    if (scrolled) m_scroll = new HorizontalScrollView(this);
+    m_previews_container = new wxPanel(scrolled ? m_scroll->Content() : static_cast<wxWindow *>(this), wxID_ANY, wxDefaultPosition, wxDefaultSize,
+                                       wxBORDER_NONE);
     m_previews_container->SetBackgroundColour(surface);
-    if (!inline_row) m_previews_container->SetMinSize(wxSize(-1, FromDIP(40)));
+    update_previews_min_height();
     m_previews_sizer = new wxBoxSizer(wxHORIZONTAL);
     m_previews_container->SetSizer(m_previews_sizer);
 
@@ -323,6 +331,8 @@ NozzleAmsRow::NozzleAmsRow(wxWindow *parent, int extruder_index, const wxString 
         // The preview draws over whatever was erased beneath it, and a window never inherits its
         // parent's colour, so without this nothing is erased and it renders on black.
         preview->SetBackgroundColour(surface);
+        // On a card the unit sits straight on the card's grey, as the design draws it.
+        if (scrolled) preview->set_backdrop(false);
         preview->Close();
         preview->Bind(wxEVT_ENTER_WINDOW, [this, preview](wxMouseEvent &e) {
             if (m_editable && m_feedable && hover_may_open_popup()) show_delete_popup(preview);
@@ -333,7 +343,13 @@ NozzleAmsRow::NozzleAmsRow(wxWindow *parent, int extruder_index, const wxString 
     };
     for (size_t i = 0; i < MAX_AMS_4_SLOT; ++i) make_preview(DevAmsType::AMS);
     for (size_t i = 0; i < MAX_AMS_1_SLOT; ++i) make_preview(DevAmsType::N3S);
-    row->Add(m_previews_container, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(inline_row ? 2 : 6));
+    if (scrolled) {
+        // Right-aligned, so the units sit next to the "+" while they fit.
+        m_scroll->ContentSizer()->Add(m_previews_container, 0, wxALIGN_RIGHT);
+        row->Add(m_scroll, 1, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(2));
+    } else {
+        row->Add(m_previews_container, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(inline_row ? 2 : 6));
+    }
 
     m_add_btn = new IconView(this, "add_filament", inline_row ? 16 : 12);
     m_add_btn->SetBackgroundColour(surface);
@@ -346,8 +362,12 @@ NozzleAmsRow::NozzleAmsRow(wxWindow *parent, int extruder_index, const wxString 
 
     // A band pads its content; a plain or inline row sits flush with the owner's other rows.
     auto *outer = new wxBoxSizer(wxHORIZONTAL);
-    outer->Add(row, 0, wxALL, band ? FromDIP(6) : 0);
-    outer->AddStretchSpacer();
+    if (scrolled) {
+        outer->Add(row, 1);
+    } else {
+        outer->Add(row, 0, wxALL, band ? FromDIP(6) : 0);
+        outer->AddStretchSpacer();
+    }
 
     // Corner check, outside the content padding: this row's 4-slot and 1-slot counts match the connected printer.
     if (band) {
@@ -393,6 +413,12 @@ bool NozzleAmsRow::set_feedable(bool feedable)
     return refresh();
 }
 
+// The whole pool, open or not, so a unit opened later already has the look.
+void NozzleAmsRow::set_dimmed(bool dimmed)
+{
+    for (AMSPreview *preview : m_previews) preview->set_dimmed(dimmed);
+}
+
 bool NozzleAmsRow::refresh()
 {
     PresetBundle &bundle = *wxGetApp().preset_bundle;
@@ -404,7 +430,7 @@ bool NozzleAmsRow::refresh()
 
     bool changed = exists && refresh_previews();
     bool visible = exists;
-    if (m_style == Style::Inline) {
+    if (on_owner_surface(m_style)) {
         visible = visible && (m_editable || !m_shown.empty());
         // One extruder needs no side name.
         changed |= m_label->Show(extruder_count > 1 && !m_label->GetLabel().empty());
@@ -527,8 +553,25 @@ void NozzleAmsRow::restore()
 
 void NozzleAmsRow::Rescale()
 {
-    if (m_previews_container && m_style != Style::Inline) m_previews_container->SetMinSize(wxSize(-1, FromDIP(40)));
+    update_previews_min_height();
     Layout();
+}
+
+// A Band or Plain row keeps a fixed slot height. A Scrolled row keeps the height of one unit, so the
+// owner's label stays on the same line with or without units. An Inline row grows with its units.
+void NozzleAmsRow::update_previews_min_height()
+{
+    if (!m_previews_container || m_style == Style::Inline) return;
+    const int unit_border = FromDIP(2); // the border refresh_previews() puts around each unit
+    const int height      = m_style == Style::Scrolled ? AMS_PREV_FOUR_SIZE.y + 2 * unit_border : FromDIP(40);
+    m_previews_container->SetMinSize(wxSize(-1, height));
+}
+
+// The scroll view first: it decides its scrollbar from the new units, which can change its height.
+bool NozzleAmsRow::Layout()
+{
+    if (m_scroll) m_scroll->Layout();
+    return wxPanel::Layout();
 }
 
 } // namespace Slic3r::GUI

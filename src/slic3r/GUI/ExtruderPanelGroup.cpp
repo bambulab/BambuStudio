@@ -207,8 +207,18 @@ void NozzleRackPanelGroup::CreateBody(wxBoxSizer *outer)
     m_dual = new DualNozzleView(m_body->Content());
     m_body->ContentSizer()->Add(m_dual, 0, wxEXPAND);
     m_dual->Hide();
+    // The cards report only user adds and removes. The sidebar applies them at once, so each is counted
+    // and committed before the refresh takes the next baseline. The row redraws itself before it
+    // reports the edit; fit anyway, the card's height may have changed.
+    m_dual->set_on_ams_changed([this] {
+        m_ams_edits.observe_ams_counts();
+        m_ams_edits.commit();
+        RefreshAms();
+        RequestFit();
+    });
 
-    // "AMS", then L and the left units, a divider, then R and the right units.
+    // A rack printer's AMS units, read-only: "AMS", then L and the left units, a divider, then R and
+    // the right units. The dual layout shows its units inside the nozzle cards instead.
     auto *ams_row   = new wxBoxSizer(wxHORIZONTAL);
     auto *ams_label = new Label(m_ams_body->Content(), _L("AMS"));
     ams_label->SetFont(Label::Body_12);
@@ -224,19 +234,8 @@ void NozzleRackPanelGroup::CreateBody(wxBoxSizer *outer)
             // blank margin, so equal gaps would look wider on the left.
             ams_row->Add(m_ams_divider, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, FromDIP(8));
         }
-        // The row reports only user adds and removes. The sidebar applies them at once, so each is
-        // counted and committed before the refresh takes the next baseline. The row redraws itself
-        // before it reports the edit, so RefreshAms finds nothing changed and skips the fit. Fit
-        // anyway: the row's width changed, and the card must lay it out again.
-        m_ams_rows[extruder] = new NozzleAmsRow(m_ams_body->Content(), extruder, extruder == 0 ? "L" : "R", NozzleAmsRow::Style::Inline,
-                                                [this] {
-                                                    m_ams_edits.observe_ams_counts();
-                                                    m_ams_edits.commit();
-                                                    RefreshAms();
-                                                    RequestFit();
-                                                });
-        // Only the dual view edits units on the sidebar, and it starts hidden; SetNozzleLayout keeps
-        // the two in step from here.
+        // Read-only, so the user never edits these units and the row never reports a change.
+        m_ams_rows[extruder] = new NozzleAmsRow(m_ams_body->Content(), extruder, extruder == 0 ? "L" : "R", NozzleAmsRow::Style::Inline, nullptr);
         m_ams_rows[extruder]->set_editable(false);
         ams_row->Add(m_ams_rows[extruder], 0, wxALIGN_CENTER_VERTICAL);
     }
@@ -360,12 +359,6 @@ void NozzleRackPanelGroup::SetNozzleLayout(NozzleLayout layout)
     m_header_row->Show(!dual);
     m_panel->Show(!dual);
     m_dual->Show(dual);
-    for (NozzleAmsRow *row : m_ams_rows) {
-        // A rack printer edits its AMS units in the nozzle settings dialog; here they are read-only.
-        row->set_editable(dual);
-        // Both extruders feed from their own AMS; the picker only decides which of them print.
-        if (dual) row->set_feedable(true);
-    }
     if (dual) m_dual->refresh();
     RefreshAms();
     BindHoverEvents();
@@ -375,14 +368,16 @@ void NozzleRackPanelGroup::SetNozzleLayout(NozzleLayout layout)
 
 void NozzleRackPanelGroup::RefreshAms()
 {
-    // Every AMS count change ends here, a sync included; only the row callback counts a change as an edit.
+    // Every AMS count change ends here, a sync included; only the card callback counts a change as an edit.
     m_ams_edits.rebaseline_ams_counts();
 
-    bool changed = false;
+    const bool dual    = m_dual->IsShown();
+    bool       changed = dual && m_dual->refresh_ams();
     for (NozzleAmsRow *row : m_ams_rows) changed |= row->refresh();
     changed |= m_ams_divider->Show(m_ams_rows[0]->IsShown() && m_ams_rows[1]->IsShown());
-    // Hide the whole AMS row, "AMS" label and gap included, while neither extruder shows units.
-    changed |= m_ams_body->Show(m_ams_rows[0]->IsShown() || m_ams_rows[1]->IsShown());
+    // Hide the whole AMS row, "AMS" label and gap included, while neither extruder shows units, and
+    // in the dual layout, whose cards show the units.
+    changed |= m_ams_body->Show(!dual && (m_ams_rows[0]->IsShown() || m_ams_rows[1]->IsShown()));
     if (!changed) return;
     BindHoverEvents();
     RequestFit();

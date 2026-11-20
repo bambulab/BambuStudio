@@ -16,7 +16,8 @@ class PopupWindow;
 
 namespace Slic3r::GUI {
 
-class AMSPreview; // defined in Widgets/AMSItem.hpp, in this namespace
+class AMSPreview;           // defined in Widgets/AMSItem.hpp, in this namespace
+class HorizontalScrollView; // defined in ExtruderPanel.hpp, in this namespace
 struct AMSinfo;   // defined in Widgets/AMSItem.hpp, in this namespace
 
 /**
@@ -37,6 +38,7 @@ public:
         Band,   ///< padded band with a corner check when the counts match the printer
         Plain,  ///< flush content, no corner check; lines up with the owner's other rows
         Inline, ///< on the owner's surface with a small label; for a card that lives across printer switches
+        Scrolled, ///< as Inline, but the row takes the width it is given: the units scroll sideways and the "+" stays at the end
     };
 
     /**
@@ -65,10 +67,17 @@ public:
     bool set_feedable(bool feedable);
 
     /**
+     * \brief Draw the units at half strength, for an extruder that does not print now. Off by default.
+     *
+     * Only the look changes: the units keep their trays, and add and remove still work.
+     */
+    void set_dimmed(bool dimmed);
+
+    /**
      * \brief Re-read the counts, the selection and the machine, then redraw if anything changed.
      *
      * Cheap when nothing changed, so it is safe on every machine update. The row hides while the
-     * selected printer has no such extruder or no AMS attach point. An Inline row also hides while it
+     * selected printer has no such extruder or no AMS attach point. An Inline or Scrolled row also hides while it
      * has no unit and is not editable, and shows its label only on a printer with two extruders.
      *
      * \return true if the row changed, so the owner must lay it out again
@@ -80,8 +89,12 @@ public:
 
     void Rescale();
 
+    // A Scrolled row also lays out its scroll view, which keeps its size when the units change.
+    bool Layout() override;
+
 private:
     bool refresh_previews(); // true if the previews changed
+    void update_previews_min_height();
     void update_sync_badge();
     void show_add_popup();
     void show_delete_popup(AMSPreview *preview);
@@ -102,6 +115,7 @@ private:
     std::vector<std::string> m_ams1_snapshot;
 
     Label                    *m_label{nullptr};
+    HorizontalScrollView     *m_scroll{nullptr}; // Scrolled only: holds the previews container
     wxPanel                  *m_previews_container{nullptr};
     wxBoxSizer               *m_previews_sizer{nullptr};
     std::vector<AMSPreview *> m_previews; // 4 AMS-type + 8 N3S-type, reused

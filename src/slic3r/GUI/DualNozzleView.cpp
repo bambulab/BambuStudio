@@ -19,6 +19,7 @@
 #include "Widgets/CascadeMenu.hpp"
 #include "Widgets/IconView.hpp"
 #include "Widgets/Label.hpp"
+#include "Widgets/NozzleAmsRow.hpp"
 #include "Widgets/PillView.hpp"
 #include "Widgets/StateColor.hpp"
 #include "libslic3r/NozzleInventory.hpp"
@@ -34,7 +35,8 @@ constexpr int PICK_H        = 24;
 constexpr int PICK_GAP      = 4;
 constexpr int BADGE_D       = 16; // the sync check in a card's top-right corner
 constexpr int EDIT_ICON_D   = 16;
-constexpr int CARD_INSET    = 8;  // between the card edge and its title and rows
+constexpr int CARD_INSET    = 4;  // between the card edge and the title pill; the rows line up with the title text
+constexpr int CARD_PAD_Y    = 8;  // above the title and below the last row, equal so the card looks balanced
 constexpr int HEADER_PAD_R  = 12; // keeps the "in use" chip clear of the sync check
 constexpr int SWITCHER_H    = 12; // the filament switcher icon; wider than the gap, so it overlaps both cards
 
@@ -78,17 +80,27 @@ void style_pick(Button *button, bool selected)
 } // namespace
 
 /**
- * \brief One nozzle as a small grey card: a title chip, an edit icon, an "in use" chip, then the
- *        diameter and type rows.
+ * \brief One nozzle as a small grey card: a title chip, an "in use" chip and an edit icon, then the
+ *        diameter and type rows, then the AMS units of its extruder.
  *
- * A nozzle that does not print shows its rows greyed, with a tip that says how to change it.
+ * A nozzle that does not print shows its rows greyed, with a tip that says how to change it. Its AMS
+ * units show dimmed but stay editable. The AMS units scroll sideways inside the card, so a long
+ * row never widens it.
  */
 class NozzleInfoCardView : public wxPanel
 {
 public:
-    NozzleInfoCardView(wxWindow *parent, std::function<void(wxWindow *)> on_edit);
+    /**
+     * \param extruder        0-based extruder of the nozzle
+     * \param on_edit         called with the edit icon when the user clicks it
+     * \param on_ams_changed  called after the user adds or removes an AMS unit
+     */
+    NozzleInfoCardView(wxWindow *parent, int extruder, std::function<void(wxWindow *)> on_edit, std::function<void()> on_ams_changed);
 
     void set_title(const wxString &title);
+
+    /// \return true if the card changed, so the owner must lay it out again
+    bool refresh_ams();
 
     /// \brief Whether the nozzle prints, and if not, what the user does to change it.
     enum class Usage {
@@ -111,33 +123,71 @@ private:
     // repaint covers the icon. Keep the icon above the cards in Z-order.
     WXDWORD MSWGetStyle(long flags, WXDWORD *exstyle) const override { return wxPanel::MSWGetStyle(flags, exstyle) | WS_CLIPSIBLINGS; }
 #endif
-    void   add_row(wxBoxSizer *rows, Label *&key, Label *&value, const wxString &key_text);
-    Label *make_label(const wxString &text);
-    void   apply_theme();
-    void   on_paint(wxPaintEvent &evt);
+    wxBoxSizer *create_header(std::function<void(wxWindow *)> on_edit);
+    void        add_row(wxBoxSizer *rows, Label *&key, Label *&value, const wxString &key_text);
+    void        add_ams_row(wxBoxSizer *rows, int extruder, std::function<void()> on_changed);
+    Label      *make_label(const wxString &text);
+    void        apply_theme();
+    void        on_paint(wxPaintEvent &evt);
 
-    PillView      *m_title{nullptr};
-    PillView      *m_in_use{nullptr};
-    Label         *m_diameter_key{nullptr};
-    Label         *m_diameter{nullptr};
-    Label         *m_type_key{nullptr};
-    Label         *m_type{nullptr};
-    bool           m_synced{false};
+    PillView             *m_title{nullptr};
+    PillView             *m_in_use{nullptr};
+    Label                *m_diameter_key{nullptr};
+    Label                *m_diameter{nullptr};
+    Label                *m_type_key{nullptr};
+    Label                *m_type{nullptr};
+    wxBoxSizer           *m_rows{nullptr};
+    wxBoxSizer           *m_ams_line{nullptr}; // the gap above it, the "AMS" key and the units; hidden with the units
+    Label                *m_ams_key{nullptr};
+    NozzleAmsRow         *m_ams{nullptr};
+    bool                  m_synced{false};
     bool           m_grayed{false}; // the rows show greyed: the nozzle does not print
 };
 
-NozzleInfoCardView::NozzleInfoCardView(wxWindow *parent, std::function<void(wxWindow *)> on_edit)
+NozzleInfoCardView::NozzleInfoCardView(wxWindow *parent, int extruder, std::function<void(wxWindow *)> on_edit, std::function<void()> on_ams_changed)
 {
     // Two-step creation: the base constructor would create the window before MSWGetStyle() is overridden.
     SetBackgroundStyle(wxBG_STYLE_PAINT);
     Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE | wxFULL_REPAINT_ON_RESIZE);
     Bind(wxEVT_PAINT, &NozzleInfoCardView::on_paint, this);
+    // The AMS row copies this colour when it is made; apply_theme() maps it later.
+    SetBackgroundColour(ThemeColor::Grey200);
 
+    m_rows = new wxBoxSizer(wxVERTICAL);
+    add_row(m_rows, m_diameter_key, m_diameter, _L("Diameter"));
+    m_rows->AddSpacer(FromDIP(CARD_GAP));
+    add_row(m_rows, m_type_key, m_type, _L("Type"));
+    add_ams_row(m_rows, extruder, std::move(on_ams_changed));
+
+    // Asymmetric side insets: the header keeps clear of the sync check. The rows line up with the
+    // title's text rather than its pill, and keep the same inset on the right.
+    auto *outer      = new wxBoxSizer(wxVERTICAL);
+    auto *header_box = new wxBoxSizer(wxHORIZONTAL);
+    header_box->Add(create_header(std::move(on_edit)), 1, wxEXPAND | wxLEFT, FromDIP(CARD_INSET));
+    header_box->AddSpacer(FromDIP(HEADER_PAD_R));
+    outer->Add(header_box, 0, wxEXPAND | wxTOP, FromDIP(CARD_PAD_Y));
+    outer->AddSpacer(FromDIP(12));
+    outer->Add(m_rows, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(CARD_INSET) + m_title->text_inset());
+    outer->AddSpacer(FromDIP(CARD_PAD_Y));
+    SetSizer(outer);
+    apply_theme();
+}
+
+// The title, the "in use" chip next to it, and the edit icon at the far end.
+wxBoxSizer *NozzleInfoCardView::create_header(std::function<void(wxWindow *)> on_edit)
+{
     auto *header = new wxBoxSizer(wxHORIZONTAL);
     m_title      = new PillView(this, ThemeColor::Grey200);
-    m_title->SetFont(Label::Body_12);
+    m_title->SetFont(Label::Body_13);
     m_title->set_shape(PillView::Shape::Capsule);
     header->Add(m_title, 0, wxALIGN_CENTER_VERTICAL);
+
+    m_in_use = new PillView(this, ThemeColor::Grey200);
+    m_in_use->SetFont(Label::Body_10);
+    m_in_use->set_shape(PillView::Shape::Capsule);
+    m_in_use->set_text(_L("In use"));
+    header->Add(m_in_use, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(4));
+    header->AddStretchSpacer();
 
     auto *edit = new IconView(this, "edit", EDIT_ICON_D);
     edit->SetCursor(wxCursor(wxCURSOR_HAND));
@@ -145,37 +195,46 @@ NozzleInfoCardView::NozzleInfoCardView(wxWindow *parent, std::function<void(wxWi
     // On the press, not the release: on macOS a click outside the open menu is taken by its mouse
     // capture, so cocoa never sees that press and hands the release to this icon, which reopened it.
     edit->Bind(wxEVT_LEFT_DOWN, [edit, on_edit](wxMouseEvent &) { on_edit(edit); });
-    header->Add(edit, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(8));
-    header->AddStretchSpacer();
+    header->Add(edit, 0, wxALIGN_CENTER_VERTICAL);
+    return header;
+}
 
-    m_in_use = new PillView(this, ThemeColor::Grey200);
-    m_in_use->SetFont(Label::Body_10);
-    m_in_use->set_shape(PillView::Shape::Capsule);
-    m_in_use->set_text(_L("In use"));
-    header->Add(m_in_use, 0, wxALIGN_CENTER_VERTICAL);
+// "AMS" on the left, the units and their "+" on the right. The units scroll inside the row and the
+// "+" stays put, so the card keeps the width its grid cell gives it.
+void NozzleInfoCardView::add_ams_row(wxBoxSizer *rows, int extruder, std::function<void()> on_changed)
+{
+    m_ams_key = make_label(_L("AMS"));
+    m_ams     = new NozzleAmsRow(this, extruder, wxEmptyString, NozzleAmsRow::Style::Scrolled, std::move(on_changed));
 
-    auto *rows = new wxBoxSizer(wxVERTICAL);
-    add_row(rows, m_diameter_key, m_diameter, _L("Diameter"));
-    rows->AddSpacer(FromDIP(CARD_GAP));
-    add_row(rows, m_type_key, m_type, _L("Type"));
+    auto *line = new wxBoxSizer(wxHORIZONTAL);
+    line->Add(m_ams_key, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(CARD_GAP));
+    line->Add(m_ams, 1, wxALIGN_CENTER_VERTICAL);
 
-    // Asymmetric side insets: the header keeps clear of the sync check, the rows line up with the title.
-    auto *outer      = new wxBoxSizer(wxVERTICAL);
-    auto *header_box = new wxBoxSizer(wxHORIZONTAL);
-    header_box->Add(header, 1, wxEXPAND | wxLEFT, FromDIP(CARD_INSET));
-    header_box->AddSpacer(FromDIP(HEADER_PAD_R));
-    outer->Add(header_box, 0, wxEXPAND | wxTOP, FromDIP(4));
-    outer->AddSpacer(FromDIP(12));
-    outer->Add(rows, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(CARD_INSET - 4));
-    outer->AddSpacer(FromDIP(12));
-    SetSizer(outer);
-    apply_theme();
+    m_ams_line = new wxBoxSizer(wxVERTICAL);
+    m_ams_line->AddSpacer(FromDIP(CARD_GAP));
+    m_ams_line->Add(line, 0, wxEXPAND);
+    rows->Add(m_ams_line, 0, wxEXPAND);
+    rows->Show(m_ams_line, m_ams->IsShown(), true);
+}
+
+bool NozzleInfoCardView::refresh_ams()
+{
+    bool       changed = m_ams->refresh();
+    const bool shown   = m_ams->IsShown();
+    // Not IsShown(m_ams_line): a sizer counts as shown while any item is, and the row shows itself.
+    if (m_ams_key->IsShown() != shown) {
+        m_rows->Show(m_ams_line, shown, true);
+        changed = true;
+    }
+    if (!changed) return false;
+    Layout();
+    return true;
 }
 
 Label *NozzleInfoCardView::make_label(const wxString &text)
 {
     auto *label = new Label(this, text);
-    label->SetFont(Label::Body_11);
+    label->SetFont(Label::Body_13);
     return label;
 }
 
@@ -186,7 +245,7 @@ void NozzleInfoCardView::apply_theme()
     const wxColour surface = themed(ThemeColor::Grey200);
     const wxColour text    = themed(m_grayed ? ThemeColor::TextDisabled : ThemeColor::TextPrimary);
     SetBackgroundColour(surface);
-    for (Label *label : {m_diameter_key, m_diameter, m_type_key, m_type}) {
+    for (Label *label : {m_diameter_key, m_diameter, m_type_key, m_type, m_ams_key}) {
         label->SetBackgroundColour(surface);
         label->SetForegroundColour(text);
     }
@@ -205,7 +264,7 @@ void NozzleInfoCardView::add_row(wxBoxSizer *rows, Label *&key, Label *&value, c
     row->Add(key, 0, wxALIGN_CENTER_VERTICAL);
     row->AddStretchSpacer();
     row->Add(value, 0, wxALIGN_CENTER_VERTICAL);
-    rows->Add(row, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(4));
+    rows->Add(row, 0, wxEXPAND);
 }
 
 void NozzleInfoCardView::set_title(const wxString &title) { m_title->set_text(title); }
@@ -225,6 +284,7 @@ void NozzleInfoCardView::update(const NozzleSlot &nozzle, Usage usage)
     // On each update, so a theme switch shows on the next refresh.
     apply_theme();
     m_in_use->Show(usage == Usage::InUse);
+    m_ams->set_dimmed(m_grayed);
     Layout();
     Refresh();
 }
@@ -388,7 +448,11 @@ DualNozzleView::DualNozzleView(wxWindow *parent) : wxPanel(parent, wxID_ANY, wxD
     // A grid keeps the two cards equal in width, even below their minimum.
     auto *cards = new wxGridSizer(1, EXTRUDERS, 0, FromDIP(CARD_GAP));
     for (int extruder = 0; extruder < EXTRUDERS; ++extruder) {
-        m_cards[extruder] = new NozzleInfoCardView(this, [this, extruder](wxWindow *anchor) { open_edit_menu(extruder, anchor); });
+        m_cards[extruder] = new NozzleInfoCardView(
+            this, extruder, [this, extruder](wxWindow *anchor) { open_edit_menu(extruder, anchor); },
+            [this] {
+                if (m_on_ams_changed) m_on_ams_changed();
+            });
         cards->Add(m_cards[extruder], 0, wxEXPAND);
     }
     outer->Add(cards, 0, wxEXPAND);
@@ -466,6 +530,14 @@ void DualNozzleView::update_picker(bool shown)
     const NozzleInventory &inventory = wxGetApp().preset_bundle->nozzle_inventory;
     for (int extruder = 0; extruder < EXTRUDERS; ++extruder)
         style_pick(m_picks[extruder], inventory.in_use(extruder));
+}
+
+bool DualNozzleView::refresh_ams()
+{
+    bool changed = false;
+    for (NozzleInfoCardView *card : m_cards) changed |= card->refresh_ams();
+    if (changed) Layout();
+    return changed;
 }
 
 void DualNozzleView::set_synced(int extruder, bool synced)

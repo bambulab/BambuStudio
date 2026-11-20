@@ -37,6 +37,14 @@ public:
      */
     void set_dropdown(bool dropdown);
 
+    /**
+     * \brief Distance in pixels from the pill's left edge to its text, so other content can line up
+     *        with the text instead of the pill.
+     *
+     * \note Valid while the pill keeps its best width; a stretched pill centres its text further in.
+     */
+    int text_inset() const;
+
 protected:
     wxSize DoGetBestSize() const override;
 
