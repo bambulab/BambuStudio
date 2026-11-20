@@ -885,5 +885,17 @@ ParamsPanel::~ParamsPanel()
         cur_tab->clear_pages();
 }
 
+void ParamsPanel::set_printer_group_mode(bool grouped)
+{
+    if (m_mode_region == nullptr || grouped == m_printer_group_mode)
+        return;
+    m_printer_group_mode = grouped;
+    m_mode_region->SetLabels(grouped ? _L("Group") : _L("Global"), _L("Objects"));
+    m_mode_region->SetToolTip(grouped ? _L("Group: the process settings of the printer group of the current plate. Objects: settings of single objects.") : wxString());
+    m_mode_region->Rescale();
+    if (m_top_panel)
+        m_top_panel->Layout();
+}
+
 } // GUI
 } // Slic3r

@@ -61,6 +61,15 @@ static const float GRABBER_Z_VALUE = 0.5f;
 static unsigned int GLOBAL_PLATE_INDEX = 0;
 
 static const double LOGICAL_PART_PLATE_GAP = 1. / 5.;
+// printer groups: extra distance between the rows of two groups, margins of the frame around a group
+static const double PRINTER_GROUP_ROW_GAP       = 75.;
+static const int    PRINTER_GROUP_MAX_COLS      = 4;   // plates of a group next to each other before a new line starts
+static const double PRINTER_GROUP_FRAME_LEFT    = 8.;
+static const double PRINTER_GROUP_FRAME_BOTTOM  = 8.;
+static const double PRINTER_GROUP_FRAME_RIGHT   = 28.; // room for the plate icons
+static const double PRINTER_GROUP_FRAME_TOP     = 20.; // room for the plate name
+static const double PRINTER_GROUP_FRAME_RADIUS  = 8.;
+static const double PRINTER_GROUP_LABEL_HEIGHT  = 18.;
 static const int PARTPLATE_ICON_SIZE = 16;
 static const int PARTPLATE_EDIT_PLATE_NAME_ICON_SIZE = 12;
 static const int PARTPLATE_PLATE_NAME_FIX_HEIGHT_SIZE = 20;
@@ -4469,9 +4478,13 @@ PartPlateList::~PartPlateList()
 void PartPlateList::init()
 {
 	m_intialized = false;
+	// a fresh list has a single printer group: the active one
+	m_groups.erase(std::remove_if(m_groups.begin(), m_groups.end(),
+		[this](const std::unique_ptr<PlateGroup> &g) { return g->id != m_active_group; }), m_groups.end());
 	PartPlate* first_plate = NULL;
 	first_plate = new PartPlate(this, Vec3d(0.0, 0.0, 0.0), m_plate_width, m_plate_depth, m_plate_height, m_plater, m_model, true, printer_technology);
 	assert(first_plate != NULL);
+	first_plate->set_group_id(m_active_group);
 	m_plate_list.push_back(first_plate);
     update_plate_trans(1);
 
@@ -4686,7 +4699,7 @@ void PartPlateList::apply_heat_soak_to_plates()
             continue;
 
         Vec2d pos = compute_shape_position(i, m_plate_cols);
-        plate->set_heat_soak_areas(m_heat_soak_areas, pos);
+        plate->set_heat_soak_areas(group(plate->get_group_id()).heat_soak_areas, pos);
     }
 }
 
@@ -4860,6 +4873,9 @@ Vec3d PartPlateList::compute_origin_for_unprintable()
 //compute shape position
 Vec2d PartPlateList::compute_shape_position(int index, int cols)
 {
+	if (has_mixed_groups())
+		return compute_group_row_position(index);
+
 	Vec2d pos;
 	int row, col;
 
@@ -5367,6 +5383,7 @@ int PartPlateList::create_plate(bool adjust_position)
 	origin = compute_origin(new_index, cols);
 	plate = new PartPlate(this, origin, m_plate_width, m_plate_depth, m_plate_height, m_plater, m_model, true, printer_technology);
 	assert(plate != NULL);
+	plate->set_group_id(m_active_group);
 
 	if (printer_technology == ptFFF)
 	{
@@ -5407,6 +5424,18 @@ int PartPlateList::create_plate(bool adjust_position)
 
 		//update bounding_boxes
 		calc_bounding_boxes();
+	}
+
+	// A plate that starts a new line in its printer group pushes the groups below it down.
+	if (has_mixed_groups()) {
+		bool moved = false;
+		for (int i = 0; i < (int) m_plate_list.size() && !moved; ++i) {
+			const Vec2d expected = compute_shape_position(i, m_plate_cols);
+			const Vec3d current  = m_plate_list[i]->get_origin();
+			moved = std::abs(expected.x() - current.x()) > EPSILON || std::abs(expected.y() - current.y()) > EPSILON;
+		}
+		if (moved)
+			relayout_plates();
 	}
 
 	// update wipe tower config
@@ -5525,7 +5554,7 @@ int PartPlateList::delete_plate(int index)
 	//move this plate's instance to the end
 	Vec3d current_origin;
 	current_origin = compute_origin_for_unprintable();
-	plate->set_pos_and_size(current_origin, m_plate_width, m_plate_depth, m_plate_height, true);
+	place_plate(plate, current_origin, true);
 
 	//update the plates after it
 	for (unsigned int i = index; i < (unsigned int)m_plate_list.size(); ++i)
@@ -5535,12 +5564,11 @@ int PartPlateList::delete_plate(int index)
 
 		plate->set_index(i);
 		Vec3d origin = compute_origin(i, m_plate_cols);
-		plate->set_pos_and_size(origin, m_plate_width, m_plate_depth, m_plate_height, true);
+		place_plate(plate, origin, true);
 
 		//update render shapes
 		Vec2d pos = compute_shape_position(i, m_plate_cols);
-		plate->set_shape(m_shape, m_exclude_areas, m_extruder_areas, m_extruder_heights, pos, m_height_to_lid, m_height_to_rod);
-		plate->set_heat_soak_areas(m_heat_soak_areas, pos);
+		shape_plate(plate, pos);
 	}
 
 	//update current_plate if delete current
@@ -5583,6 +5611,7 @@ int PartPlateList::delete_plate(int index)
 
 	delete plate;
     update_plate_trans(get_plate_count());
+    update_group_layout();
     // FIX: context of BackgroundSliceProcess and gcode preview need to be updated before ObjectList::reload_all_plates().
 #if 0
 	if (m_plater != nullptr) {
@@ -5704,6 +5733,7 @@ int PartPlateList::select_plate(int index)
 
 	m_current_plate = index;
 	m_plate_list[m_current_plate]->set_selected();
+	activate_current_plate_group();
 
     update_plate_trans(get_plate_count());
 	//BBS
@@ -5766,7 +5796,12 @@ double PartPlateList::plate_stride_x()
 	//const auto plate_shape = Slic3r::Polygon::new_scale(m_shape);
 	//double plate_width = plate_shape.bounding_box().size().x();
 	//return unscaled<double>((1. + LOGICAL_PART_PLATE_GAP) * plate_width);
-	return m_plate_width * (1. + LOGICAL_PART_PLATE_GAP);
+	// one grid for all printer groups: a cell fits the largest bed that is in use
+	int width = m_plate_width;
+	for (const auto &g : m_groups)
+		if (g->id != m_active_group && get_group_plate_count(g->id) > 0)
+			width = std::max(width, g->width);
+	return width * (1. + LOGICAL_PART_PLATE_GAP);
 }
 
 double PartPlateList::plate_stride_y()
@@ -5774,7 +5809,11 @@ double PartPlateList::plate_stride_y()
 	//const auto plate_shape = Slic3r::Polygon::new_scale(m_shape);
 	//double plate_depth = plate_shape.bounding_box().size().y();
 	//return unscaled<double>((1. + LOGICAL_PART_PLATE_GAP) * plate_depth);
-	return m_plate_depth * (1. + LOGICAL_PART_PLATE_GAP);
+	int depth = m_plate_depth;
+	for (const auto &g : m_groups)
+		if (g->id != m_active_group && get_group_plate_count(g->id) > 0)
+			depth = std::max(depth, g->depth);
+	return depth * (1. + LOGICAL_PART_PLATE_GAP);
 }
 
 //get the plate counts, not including the invalid plate
@@ -5786,6 +5825,412 @@ int PartPlateList::get_plate_count() const
 
 	return ret;
 }
+
+/* printer groups */
+
+// Makes a group the active one for the list members while it is alive, e.g. to draw a plate
+// of that group. Plates are not touched.
+struct PartPlateList::GroupScope
+{
+    PartPlateList *list;
+    int            previous;
+    GroupScope(PartPlateList *l, int group_id) : list(l), previous(l->m_active_group) { list->switch_group_members(group_id); }
+    ~GroupScope() { list->switch_group_members(previous); }
+};
+
+PlateGroup *PartPlateList::find_group(int group_id)
+{
+    for (auto &g : m_groups)
+        if (g->id == group_id)
+            return g.get();
+    return nullptr;
+}
+
+std::vector<int> PartPlateList::get_group_ids() const
+{
+    std::vector<int> ids;
+    for (const auto &g : m_groups)
+        ids.push_back(g->id);
+    if (std::find(ids.begin(), ids.end(), m_active_group) == ids.end())
+        ids.push_back(m_active_group);
+    std::sort(ids.begin(), ids.end());
+    return ids;
+}
+
+int PartPlateList::get_group_plate_count(int group_id) const
+{
+    int count = 0;
+    for (const PartPlate *plate : m_plate_list)
+        if (plate->get_group_id() == group_id)
+            ++count;
+    return count;
+}
+
+bool PartPlateList::has_mixed_groups()
+{
+    if (m_groups.size() < 2)
+        return false;
+    for (const PartPlate *plate : m_plate_list)
+        if (plate->get_group_id() != m_active_group && find_group(plate->get_group_id()) != nullptr)
+            return true;
+    return false;
+}
+
+void PartPlateList::store_active_group()
+{
+    PlateGroup *g = find_group(m_active_group);
+    if (g == nullptr) {
+        m_groups.emplace_back(new PlateGroup());
+        g     = m_groups.back().get();
+        g->id = m_active_group;
+    }
+    g->width                  = m_plate_width;
+    g->depth                  = m_plate_depth;
+    g->height                 = m_plate_height;
+    g->height_to_lid          = m_height_to_lid;
+    g->height_to_rod          = m_height_to_rod;
+    g->shape                  = m_shape;
+    g->exclude_areas          = m_exclude_areas;
+    g->wrapping_exclude_areas = m_wrapping_exclude_areas;
+    g->heat_soak_areas        = m_heat_soak_areas;
+    g->extruder_areas         = m_extruder_areas;
+    g->extruder_heights       = m_extruder_heights;
+    g->logo_texture_filename  = m_logo_texture_filename;
+}
+
+const PlateGroup &PartPlateList::group(int group_id)
+{
+    store_active_group();
+    PlateGroup *g = find_group(group_id);
+    return g != nullptr ? *g : *find_group(m_active_group);
+}
+
+void PartPlateList::swap_group_models(PlateGroup &g)
+{
+    std::swap(m_print_polygon, g.print_polygon);
+    m_triangles.swap(g.triangles);
+    m_exclude_triangles.swap(g.exclude_triangles);
+    m_wrapping_detection_triangles.swap(g.wrapping_detection_triangles);
+    m_heat_soak_inner_lines.swap(g.heat_soak_inner_lines);
+    m_heat_soak_outer_lines.swap(g.heat_soak_outer_lines);
+    m_gridlines.swap(g.gridlines);
+    m_gridlines_bolder.swap(g.gridlines_bolder);
+    m_del_icon.swap(g.del_icon);
+    m_arrange_icon.swap(g.arrange_icon);
+    m_orient_icon.swap(g.orient_icon);
+    m_lock_icon.swap(g.lock_icon);
+    m_plate_settings_icon.swap(g.plate_settings_icon);
+    m_plate_filament_map_icon.swap(g.plate_filament_map_icon);
+    m_plate_idx_icon.swap(g.plate_idx_icon);
+}
+
+void PartPlateList::switch_group_members(int group_id)
+{
+    if (group_id == m_active_group)
+        return;
+    PlateGroup *next = find_group(group_id);
+    if (next == nullptr)
+        return;
+
+    store_active_group();
+    swap_group_models(*find_group(m_active_group)); // the models of the list go to the group that was active
+    m_active_group = group_id;
+    swap_group_models(*next);                       // and the stored ones of the next group take their place
+
+    m_plate_width            = next->width;
+    m_plate_depth            = next->depth;
+    m_plate_height           = next->height;
+    m_height_to_lid          = next->height_to_lid;
+    m_height_to_rod          = next->height_to_rod;
+    m_shape                  = next->shape;
+    m_exclude_areas          = next->exclude_areas;
+    m_wrapping_exclude_areas = next->wrapping_exclude_areas;
+    m_heat_soak_areas        = next->heat_soak_areas;
+    m_extruder_areas         = next->extruder_areas;
+    m_extruder_heights       = next->extruder_heights;
+    m_logo_texture_filename  = next->logo_texture_filename;
+}
+
+void PartPlateList::place_plate(PartPlate *plate, const Vec3d &origin, bool with_instance_move, bool do_clear)
+{
+    const PlateGroup &g = group(plate->get_group_id());
+    Vec3d             plate_origin = origin;
+    plate->set_pos_and_size(plate_origin, g.width, g.depth, g.height, with_instance_move, do_clear);
+}
+
+void PartPlateList::shape_plate(PartPlate *plate, const Vec2d &pos)
+{
+    // the plate reads list members while it builds its shape, so they have to be the ones of its group
+    GroupScope group_scope(this, plate->get_group_id());
+    plate->set_shape(m_shape, m_exclude_areas, m_extruder_areas, m_extruder_heights, pos, m_height_to_lid, m_height_to_rod);
+    plate->set_heat_soak_areas(m_heat_soak_areas, pos);
+}
+
+void PartPlateList::relayout_plates()
+{
+    m_layout_stride = Vec2d(plate_stride_x(), plate_stride_y());
+    update_all_plates_pos_and_size(true, false);
+    set_shapes(m_shape, m_exclude_areas, m_wrapping_exclude_areas, m_extruder_areas, m_extruder_heights, m_logo_texture_filename, m_height_to_lid, m_height_to_rod);
+    if (m_plater) {
+        Vec2d pos = compute_shape_position(m_current_plate, m_plate_cols);
+        m_plater->set_bed_position(pos);
+    }
+}
+
+int PartPlateList::create_group()
+{
+    store_active_group();
+    const PlateGroup &active = *find_group(m_active_group);
+
+    int id = 0;
+    for (const auto &g : m_groups)
+        id = std::max(id, g->id + 1);
+
+    // the render models are not copied, they are built when the group gets its first plate
+    auto g                    = std::make_unique<PlateGroup>();
+    g->id                     = id;
+    g->width                  = active.width;
+    g->depth                  = active.depth;
+    g->height                 = active.height;
+    g->height_to_lid          = active.height_to_lid;
+    g->height_to_rod          = active.height_to_rod;
+    g->shape                  = active.shape;
+    g->exclude_areas          = active.exclude_areas;
+    g->wrapping_exclude_areas = active.wrapping_exclude_areas;
+    g->heat_soak_areas        = active.heat_soak_areas;
+    g->extruder_areas         = active.extruder_areas;
+    g->extruder_heights       = active.extruder_heights;
+    g->logo_texture_filename  = active.logo_texture_filename;
+    g->name                   = active.name;
+    g->bed_overhang_min       = active.bed_overhang_min;
+    g->bed_overhang_max       = active.bed_overhang_max;
+    m_groups.emplace_back(std::move(g));
+    return id;
+}
+
+void PartPlateList::set_plate_group(int plate_index, int group_id)
+{
+    if (plate_index < 0 || plate_index >= (int) m_plate_list.size() || find_group(group_id) == nullptr)
+        return;
+    PartPlate *plate = m_plate_list[plate_index];
+    if (plate->get_group_id() == group_id)
+        return;
+
+    plate->set_group_id(group_id);
+    plate->update_slice_result_valid_state(false);
+    if (plate_index == m_current_plate)
+        activate_current_plate_group();
+    else if (m_plater) {
+        GroupScope group_scope(this, group_id);
+        if (!m_triangles.is_initialized())
+            build_shape_models();
+    }
+    // every group has a block of its own, so this moves plates. Their objects move with them.
+    relayout_plates();
+}
+
+bool PartPlateList::activate_current_plate_group()
+{
+    if (m_current_plate < 0 || m_current_plate >= (int) m_plate_list.size())
+        return false;
+    PartPlate *plate = m_plate_list[m_current_plate];
+    if (find_group(plate->get_group_id()) == nullptr) {
+        // e.g. the group was removed and an undo brought the plate back
+        plate->set_group_id(m_active_group);
+        return false;
+    }
+    if (plate->get_group_id() == m_active_group)
+        return false;
+
+    switch_group_members(plate->get_group_id());
+    // the bed type textures belong to the printer model
+    is_load_bedtype_textures            = false;
+    is_load_extruder_only_area_textures = false;
+    Vec3d origin = compute_origin_for_unprintable();
+    unprintable_plate.set_pos_and_size(origin, m_plate_width, m_plate_depth, m_plate_height, false, false);
+    return true;
+}
+
+int PartPlateList::plate_group_id(const PartPlate *plate)
+{
+    return find_group(plate->get_group_id()) != nullptr ? plate->get_group_id() : m_active_group;
+}
+
+void PartPlateList::set_group_name(int group_id, const std::string &name)
+{
+    store_active_group();
+    if (PlateGroup *g = find_group(group_id))
+        g->name = name;
+}
+
+// The plates of a group fill lines of up to PRINTER_GROUP_MAX_COLS plates. Larger groups grow like the
+// stock grid (as many columns as lines), so a group never gets much taller than it is wide.
+static int printer_group_cols(int plate_count)
+{
+    return std::max(compute_colum_count(plate_count), std::min(plate_count, PRINTER_GROUP_MAX_COLS));
+}
+
+Vec2d PartPlateList::compute_group_row_position(int index)
+{
+    // the blocks follow the order in which the groups appear in the plate list
+    std::vector<int> blocks;
+    std::vector<int> counts;
+    for (const PartPlate *plate : m_plate_list) {
+        const int  id = plate_group_id(plate);
+        const auto it = std::find(blocks.begin(), blocks.end(), id);
+        if (it == blocks.end()) {
+            blocks.push_back(id);
+            counts.push_back(1);
+        } else
+            ++counts[it - blocks.begin()];
+    }
+
+    int group_id = m_active_group;
+    int slot     = 0; // position of the plate among the plates of its group
+    if (index >= 0 && index < (int) m_plate_list.size()) {
+        group_id = plate_group_id(m_plate_list[index]);
+        for (int i = 0; i < index; ++i)
+            if (plate_group_id(m_plate_list[i]) == group_id)
+                ++slot;
+    } else {
+        // a plate that does not exist yet (or the unprintable one) comes after the plates of the active group
+        for (const PartPlate *plate : m_plate_list)
+            if (plate_group_id(plate) == group_id)
+                ++slot;
+        slot += std::max(0, index - (int) m_plate_list.size());
+    }
+
+    double y = 0.;
+    for (size_t block = 0; block < blocks.size(); ++block) {
+        const PlateGroup &g        = group(blocks[block]);
+        const double      stride_x = g.width * (1. + LOGICAL_PART_PLATE_GAP);
+        const double      stride_y = g.depth * (1. + LOGICAL_PART_PLATE_GAP);
+        if (block > 0)
+            y -= stride_y + PRINTER_GROUP_ROW_GAP;
+        if (blocks[block] == group_id) {
+            const int cols = printer_group_cols(std::max(counts[block], slot + 1));
+            return Vec2d((slot % cols) * stride_x, y - (slot / cols) * stride_y);
+        }
+        const int cols = printer_group_cols(counts[block]);
+        y -= ((counts[block] - 1) / cols) * stride_y;
+    }
+    return Vec2d(slot * m_plate_width * (1. + LOGICAL_PART_PLATE_GAP), y);
+}
+
+// A frame around the plates of every printer group and the name of its printer above it.
+void PartPlateList::render_group_frames()
+{
+    if (!has_mixed_groups())
+        return;
+    store_active_group();
+
+    // The bed model is larger than the printable area. It is only known for the printer that is
+    // loaded, so the active group remembers by how much.
+    if (PlateGroup *active_group = find_group(m_active_group)) {
+        BoundingBoxf3 bed_box;
+        if (m_current_plate >= 0 && m_current_plate < (int) m_plate_list.size() && m_plate_list[m_current_plate]->calc_bed_3d_boundingbox(bed_box)) {
+            const Vec2d overhang_min(-bed_box.min.x(), -bed_box.min.y());
+            const Vec2d overhang_max(bed_box.max.x() - m_plate_width, bed_box.max.y() - m_plate_depth);
+            // While the presets of a group are being loaded the bed model can still be the one of the
+            // previous printer. A model that is smaller than the plate or much larger is not this printer's.
+            const double limit = 60.;
+            if (overhang_min.minCoeff() > -1. && overhang_max.minCoeff() > -1. && overhang_min.maxCoeff() < limit && overhang_max.maxCoeff() < limit) {
+                active_group->bed_overhang_min = overhang_min.cwiseMax(Vec2d::Zero());
+                active_group->bed_overhang_max = overhang_max.cwiseMax(Vec2d::Zero());
+            }
+        }
+    }
+
+    const Camera     &camera   = wxGetApp().plater()->get_camera();
+    const Transform3d view_mat = camera.get_view_matrix();
+    const Transform3d proj_mat = camera.get_projection_matrix();
+    const auto       &ogl      = wxGetApp().get_opengl_manager();
+
+    for (const auto &g : m_groups) {
+        BoundingBoxf box;
+        for (PartPlate *plate : m_plate_list)
+            if (plate_group_id(plate) == g->id) {
+                const BoundingBoxf3 plate_box = plate->get_plate_box();
+                box.merge(Vec2d(plate_box.min.x(), plate_box.min.y()));
+                box.merge(Vec2d(plate_box.max.x(), plate_box.max.y()));
+            }
+        if (!box.defined)
+            continue;
+        box.min -= Vec2d(PRINTER_GROUP_FRAME_LEFT, PRINTER_GROUP_FRAME_BOTTOM) + g->bed_overhang_min;
+        box.max += Vec2d(PRINTER_GROUP_FRAME_RIGHT, PRINTER_GROUP_FRAME_TOP) + g->bed_overhang_max;
+        const bool active = g->id == m_active_group;
+
+        // frame: a rectangle with rounded corners
+        const std::string frame_key = (boost::format("%1% %2% %3% %4%") % box.min.x() % box.min.y() % box.max.x() % box.max.y()).str();
+        if (frame_key != g->frame_key || !g->frame.is_initialized()) {
+            const double r = PRINTER_GROUP_FRAME_RADIUS;
+            const Vec2d  centers[4] = {{box.max.x() - r, box.max.y() - r}, {box.min.x() + r, box.max.y() - r},
+                                       {box.min.x() + r, box.min.y() + r}, {box.max.x() - r, box.min.y() + r}};
+            Polygon      outline;
+            for (int corner = 0; corner < 4; ++corner)
+                for (int step = 0; step <= 8; ++step) {
+                    const double angle = (corner + step / 8.) * M_PI / 2.;
+                    outline.points.emplace_back(scale_(centers[corner].x() + r * std::cos(angle)), scale_(centers[corner].y() + r * std::sin(angle)));
+                }
+            g->frame.reset();
+            g->frame.init_model_from_lines(to_lines(outline), GROUND_Z);
+            g->frame_key = frame_key;
+        }
+        {
+            const auto &shader = wxGetApp().get_shader("flat");
+            wxGetApp().bind_shader(shader);
+            shader->set_uniform("view_model_matrix", view_mat);
+            shader->set_uniform("projection_matrix", proj_mat);
+            ogl->set_line_width((active ? 3.0f : 1.5f) * m_scale_factor);
+            g->frame.set_color(active ? ColorRGBA{0.0f, 0.68f, 0.26f, 1.0f} : ColorRGBA{0.55f, 0.55f, 0.55f, 0.8f});
+            g->frame.render_geometry();
+            wxGetApp().unbind_shader();
+        }
+
+        // label: the printer of the group, above the left end of the frame
+        const std::string text      = g->name.empty() ? (boost::format("Printer %1%") % (g->id + 1)).str() : g->name;
+        const std::string label_key = text + (active ? "|1|" : "|0|") + frame_key;
+        if (label_key != g->label_key || !g->label.is_initialized()) {
+            g->label_key = label_key;
+            g->label.reset();
+            g->label_texture.reset();
+            const wxColour foreground = active ? wxColour(0x00, 0xae, 0x42) : wxColour(0xa0, 0xa0, 0xa0);
+            if (g->label_texture.generate_from_text_string(text, Label::Head_32, *wxBLACK, foreground) && g->label_texture.get_height() > 0) {
+                const double h = PRINTER_GROUP_LABEL_HEIGHT;
+                const double w = h * g->label_texture.get_width() / g->label_texture.get_height();
+                const Vec2d  p(box.min.x() + PRINTER_GROUP_FRAME_RADIUS, box.max.y() + 3.);
+                ExPolygon    poly;
+                poly.contour.append({scale_(p.x()), scale_(p.y())});
+                poly.contour.append({scale_(p.x() + w), scale_(p.y())});
+                poly.contour.append({scale_(p.x() + w), scale_(p.y() + h)});
+                poly.contour.append({scale_(p.x()), scale_(p.y() + h)});
+                g->label.init_model_from_poly(triangulate_expolygon_2f(poly, NORMALS_UP), GROUND_Z);
+            }
+        }
+        if (g->label.is_initialized()) {
+            const auto &shader = wxGetApp().get_shader("printbed");
+            wxGetApp().bind_shader(shader);
+            shader->set_uniform("view_model_matrix", view_mat);
+            shader->set_uniform("projection_matrix", proj_mat);
+            shader->set_uniform("svg_source", 0);
+            shader->set_uniform("transparent_background", 0);
+            glsafe(::glActiveTexture(GL_TEXTURE0 + 0));
+            glsafe(::glBindTexture(GL_TEXTURE_2D, (GLuint) g->label_texture.get_id()));
+            g->label.render_geometry();
+            glsafe(::glBindTexture(GL_TEXTURE_2D, 0));
+            wxGetApp().unbind_shader();
+        }
+    }
+}
+
+void PartPlateList::update_group_layout()
+{
+    // A group that lost its last plate stays (an undo can bring the plate back), it only loses its place in the layout.
+    const Vec2d stride(plate_stride_x(), plate_stride_y());
+    if (m_groups.size() > 1 || stride != m_layout_stride)
+        relayout_plates();
+}
+
 
 //update the plate cols due to plate count change
 void PartPlateList::update_plate_cols()
@@ -5807,7 +6252,7 @@ void PartPlateList::update_all_plates_pos_and_size(bool adjust_position, bool wi
 
 		//compute origin1 for PartPlate
 		origin1 = compute_origin(i, m_plate_cols);
-		plate->set_pos_and_size(origin1, m_plate_width, m_plate_depth, m_plate_height, adjust_position, do_clear);
+		place_plate(plate, origin1, adjust_position, do_clear);
 	}
 
 	origin2 = compute_origin_for_unprintable();
@@ -6386,8 +6831,11 @@ bool PartPlateList::preprocess_arrange_polygon(int obj_index, int instance_index
 				arrange_polygon.bed_idx = i;
 				arrange_polygon.row = i / m_plate_cols;
 				arrange_polygon.col = i % m_plate_cols;
-				arrange_polygon.translation(X) -= scaled<double>(plate_stride_x() * arrange_polygon.col);
-				arrange_polygon.translation(Y) += scaled<double>(plate_stride_y() * arrange_polygon.row);
+				{
+					const Vec2d plate_pos = compute_shape_position(arrange_polygon.row * m_plate_cols + arrange_polygon.col, m_plate_cols);
+					arrange_polygon.translation(X) -= scaled<double>(plate_pos.x());
+					arrange_polygon.translation(Y) -= scaled<double>(plate_pos.y());
+				}
 			}
 			else
 			{
@@ -6397,8 +6845,11 @@ bool PartPlateList::preprocess_arrange_polygon(int obj_index, int instance_index
 					arrange_polygon.bed_idx = i - lockplate_cnt;
 					arrange_polygon.row = i / m_plate_cols;
 					arrange_polygon.col = i % m_plate_cols;
-					arrange_polygon.translation(X) -= scaled<double>(plate_stride_x() * arrange_polygon.col);
-					arrange_polygon.translation(Y) += scaled<double>(plate_stride_y() * arrange_polygon.row);
+					{
+						const Vec2d plate_pos = compute_shape_position(arrange_polygon.row * m_plate_cols + arrange_polygon.col, m_plate_cols);
+						arrange_polygon.translation(X) -= scaled<double>(plate_pos.x());
+						arrange_polygon.translation(Y) -= scaled<double>(plate_pos.y());
+					}
 				}
 			}
 			BOOST_LOG_TRIVIAL(debug) << boost::format("obj_id %1% name %7% instance_id %2% already in plate %3%, locked %4%, row %5%, col %6%\n") % obj_index % instance_index % i % locked % arrange_polygon.row % arrange_polygon.col % arrange_polygon.name;
@@ -6435,8 +6886,11 @@ bool PartPlateList::preprocess_arrange_polygon_other_locked(int obj_index, int i
 				arrange_polygon.bed_idx = i;
 				arrange_polygon.row = i / m_plate_cols;
 				arrange_polygon.col = i % m_plate_cols;
-				arrange_polygon.translation(X) -= scaled<double>(plate_stride_x() * arrange_polygon.col);
-				arrange_polygon.translation(Y) += scaled<double>(plate_stride_y() * arrange_polygon.row);
+				{
+					const Vec2d plate_pos = compute_shape_position(arrange_polygon.row * m_plate_cols + arrange_polygon.col, m_plate_cols);
+					arrange_polygon.translation(X) -= scaled<double>(plate_pos.x());
+					arrange_polygon.translation(Y) -= scaled<double>(plate_pos.y());
+				}
 				//BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": obj_id %1% instance_id %2% in plate %3%, locked %4%, row %5%, col %6%\n") % obj_index % instance_index % i % locked % arrange_polygon.row % arrange_polygon.col;
 				return locked;
 			}
@@ -6667,8 +7121,11 @@ void PartPlateList::postprocess_arrange_polygon(arrangement::ArrangePolygon& arr
 
 		arrange_polygon.row = arrange_polygon.bed_idx / m_plate_cols;
 		arrange_polygon.col = arrange_polygon.bed_idx % m_plate_cols;
-		arrange_polygon.translation(X) += scaled<double>(plate_stride_x() * arrange_polygon.col);
-		arrange_polygon.translation(Y) -= scaled<double>(plate_stride_y() * arrange_polygon.row);
+		{
+			const Vec2d plate_pos = compute_shape_position(arrange_polygon.bed_idx, m_plate_cols);
+			arrange_polygon.translation(X) += scaled<double>(plate_pos.x());
+			arrange_polygon.translation(Y) += scaled<double>(plate_pos.y());
+		}
 	}
 
 	return;
@@ -6677,7 +7134,9 @@ void PartPlateList::postprocess_arrange_polygon(arrangement::ArrangePolygon& arr
 /*rendering related functions*/
 void PartPlateList::render_instance(bool bottom, bool only_current, bool only_body, bool force_background_color, int hover_id, bool show_grid, bool enable_multi_instance)
 {
-    if (enable_multi_instance) {
+    // plates of other printer groups have their own geometry, so they cannot share one instanced draw
+    const bool use_instances = enable_multi_instance && !has_mixed_groups();
+    if (use_instances) {
         if (!only_current) {
             if (m_update_plate_mats_vbo) {
                 m_update_plate_mats_vbo = false;
@@ -6727,11 +7186,11 @@ void PartPlateList::render_instance(bool bottom, bool only_current, bool only_bo
             if (show_grid)
                 render_grid(bottom); // for selected_plate
         }
-       if (enable_multi_instance) {
+       if (use_instances) {
            wxGetApp().unbind_shader();
        }
        if (!only_current) {
-           if (enable_multi_instance) {
+           if (use_instances) {
                 const auto& shader = wxGetApp().get_shader("flat_instance");
                 wxGetApp().bind_shader(shader);
                 auto res = shader->set_uniform("view_matrix", view_mat);
@@ -6746,6 +7205,9 @@ void PartPlateList::render_instance(bool bottom, bool only_current, bool only_bo
             }
             else {
                 for (size_t i = 0; i < m_unselected_plate_trans.size(); i++) {
+                    // m_unselected_plate_trans holds the plates in list order without the current one
+                    const size_t plate_idx = (int) i < m_current_plate ? i : i + 1;
+                    GroupScope group_scope(this, plate_idx < m_plate_list.size() ? m_plate_list[plate_idx]->get_group_id() : m_active_group);
                     shader->set_uniform("view_model_matrix", view_mat * m_unselected_plate_trans[i].get_matrix());
                     if (!bottom) {                                            // draw background
                         render_unselected_background(force_background_color);   // for unselected_plate
@@ -6755,7 +7217,7 @@ void PartPlateList::render_instance(bool bottom, bool only_current, bool only_bo
                 }
             }
        }
-       if (!enable_multi_instance) {
+       if (!use_instances) {
            wxGetApp().unbind_shader();
        }
 
@@ -6940,6 +7402,7 @@ void PartPlateList::render(bool bottom, bool only_current, bool only_body, int h
 
 	for (it = m_plate_list.begin(); it != m_plate_list.end(); it++) {
 		int current_index = (*it)->get_index();
+		GroupScope group_scope(this, (*it)->get_group_id());
 		if (only_current && (current_index != m_current_plate))
 			continue;
 		if (current_index == m_current_plate) {
@@ -6956,6 +7419,8 @@ void PartPlateList::render(bool bottom, bool only_current, bool only_body, int h
 				(*it)->render(bottom, only_body, false, PartPlate::HEIGHT_LIMIT_NONE, -1, render_cali);
 		}
 	}
+    if (!bottom && !only_current && !only_body)
+        render_group_frames();
     glsafe(::glDepthMask(GL_TRUE));
     glsafe(::glDisable(GL_BLEND));
     glsafe(::glDisable(GL_DEPTH_TEST));
@@ -6966,6 +7431,7 @@ void PartPlateList::render_for_picking_pass()
 	const std::lock_guard<std::mutex> local_lock(m_plates_mutex);
 	std::vector<PartPlate*>::iterator it = m_plate_list.begin();
 	for (it = m_plate_list.begin(); it != m_plate_list.end(); it++) {
+		GroupScope group_scope(this, (*it)->get_group_id());
 		(*it)->on_render_for_picking();
 	}
 }
@@ -7029,6 +7495,11 @@ void PartPlateList::calc_bounding_boxes()
 	for (it = m_plate_list.begin(); it != m_plate_list.end(); it++) {
 		m_bounding_box.merge((*it)->get_bounding_box(true));
 	}
+	// the frames around the printer groups and the printer names above them
+	if (has_mixed_groups() && m_bounding_box.defined) {
+		m_bounding_box.min -= Vec3d(PRINTER_GROUP_FRAME_LEFT + 30., PRINTER_GROUP_FRAME_BOTTOM + 30., 0.);
+		m_bounding_box.max += Vec3d(PRINTER_GROUP_FRAME_RIGHT + 30., PRINTER_GROUP_FRAME_TOP + PRINTER_GROUP_LABEL_HEIGHT + 30., 0.);
+	}
 }
 
 void PartPlateList::select_plate_view()
@@ -7061,6 +7532,7 @@ bool PartPlateList::set_shapes(const Pointfs              &shape,
 
 	double stride_x = plate_stride_x();
 	double stride_y = plate_stride_y();
+	m_layout_stride = Vec2d(stride_x, stride_y);
 	for (unsigned int i = 0; i < (unsigned int)m_plate_list.size(); ++i)
 	{
 		PartPlate* plate = m_plate_list[i];
@@ -7069,7 +7541,11 @@ bool PartPlateList::set_shapes(const Pointfs              &shape,
 		Vec2d pos;
 
 		pos = compute_shape_position(i, m_plate_cols);
-		plate->set_shape(shape, exclude_areas, extruder_areas, extruder_heights, pos, height_to_lid, height_to_rod);
+		// a plate of another printer group keeps the bed of its own group
+		if (plate->get_group_id() == m_active_group || find_group(plate->get_group_id()) == nullptr)
+			plate->set_shape(shape, exclude_areas, extruder_areas, extruder_heights, pos, height_to_lid, height_to_rod);
+		else
+			shape_plate(plate, pos);
 	}
 	is_load_bedtype_textures = false; //reload textures
     is_load_extruder_only_area_textures = false; // reload textures
@@ -7079,33 +7555,39 @@ bool PartPlateList::set_shapes(const Pointfs              &shape,
     update_plate_trans(get_plate_count());
 
     if (m_plater != nullptr) { // prepare render data, skip in CLI mode where m_plater is null
-        ExPolygon poly;
-        generate_print_polygon(poly);
-        calc_triangles(poly);
-
-        // reset m_wrapping_detection_triangles when change printer
-        m_print_polygon = poly;
-        m_wrapping_detection_triangles.reset();
-
-		ExPolygon exclude_poly;
-        generate_exclude_polygon(exclude_poly);
-        calc_exclude_triangles(exclude_poly);
         apply_heat_soak_to_plates();
-        calc_heat_soak_lines();
-
-        const BoundingBox &pp_bbox = poly.contour.bounding_box();
-        calc_gridlines(poly, pp_bbox);
-
-        // calc_vertex_for_icons(4, m_del_icon);
-        calc_vertex_for_icons(0, m_del_icon);
-        calc_vertex_for_icons(1, m_orient_icon);
-        calc_vertex_for_icons(2, m_arrange_icon);
-        calc_vertex_for_icons(3, m_lock_icon);
-        calc_vertex_for_icons(4, m_plate_settings_icon);
-        calc_vertex_for_icons(5, m_plate_filament_map_icon);
-        calc_vertex_for_number(0, false, m_plate_idx_icon);
+        build_shape_models();
     }
 	return true;
+}
+
+// Builds the render models of the active printer group from its bed shape.
+void PartPlateList::build_shape_models()
+{
+    ExPolygon poly;
+    generate_print_polygon(poly);
+    calc_triangles(poly);
+
+    // reset m_wrapping_detection_triangles when change printer
+    m_print_polygon = poly;
+    m_wrapping_detection_triangles.reset();
+
+    ExPolygon exclude_poly;
+    generate_exclude_polygon(exclude_poly);
+    calc_exclude_triangles(exclude_poly);
+    calc_heat_soak_lines();
+
+    const BoundingBox &pp_bbox = poly.contour.bounding_box();
+    calc_gridlines(poly, pp_bbox);
+
+    // calc_vertex_for_icons(4, m_del_icon);
+    calc_vertex_for_icons(0, m_del_icon);
+    calc_vertex_for_icons(1, m_orient_icon);
+    calc_vertex_for_icons(2, m_arrange_icon);
+    calc_vertex_for_icons(3, m_lock_icon);
+    calc_vertex_for_icons(4, m_plate_settings_icon);
+    calc_vertex_for_icons(5, m_plate_filament_map_icon);
+    calc_vertex_for_number(0, false, m_plate_idx_icon);
 }
 
 void PartPlateList::update_logo_texture_filename(const std::string &texture_filename)
@@ -7270,6 +7752,7 @@ int PartPlateList::rebuild_plates_after_deserialize(std::vector<bool>& previous_
 
 	BOOST_LOG_TRIVIAL(debug) << boost::format("plates count %1%") % m_plate_list.size();
 	update_plate_cols();
+	activate_current_plate_group();
 	update_all_plates_pos_and_size(false, false, false, false);
     for (unsigned int i = 0; i < (unsigned int) m_plate_list.size(); ++i) {
         m_plate_list[i]->m_partplate_list = this;

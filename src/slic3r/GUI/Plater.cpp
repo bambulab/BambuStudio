@@ -118,6 +118,7 @@
 #include "GUI_Preview.hpp"
 #include "3DBed.hpp"
 #include "PartPlate.hpp"
+#include "ParamsPanel.hpp"
 #include "Camera.hpp"
 #include "GCodeViewer.hpp"
 #include "IMSlider.hpp"
@@ -9802,6 +9803,37 @@ public:
     //BBS: add a flag to ignore cancel event
     bool m_ignore_event{false};
     bool m_slice_all{false};
+
+    // Presets of one printer group (see PlateGroup). The preset bundle holds the presets of the group
+    // m_presets_group, the ones of the other groups wait here until one of their plates is selected.
+    struct PrinterGroupPresets
+    {
+        std::string              printer;
+        std::string              print;
+        std::string              filament;  // the filament preset that is open for editing
+        std::vector<std::string> filaments; // one per filament slot
+        // edited presets, unsaved changes included
+        DynamicPrintConfig printer_config;
+        DynamicPrintConfig print_config;
+        DynamicPrintConfig filament_config;
+        DynamicPrintConfig project_config;
+    };
+    std::map<int, PrinterGroupPresets> m_group_presets;
+    int                                m_presets_group{0};
+    // true while the presets of another printer group are loaded: nothing the user sees changes for the plates
+    bool                               m_switching_printer_group{false};
+    void store_group_presets(int group_id);
+    void load_group_presets(const PrinterGroupPresets &presets);
+    // Loads the presets of the active printer group if the preset bundle still holds another group.
+    bool sync_presets_with_active_group();
+    // Tells the plate list the printer of every group (for the labels) and the process panel whether groups exist.
+    void update_printer_group_names();
+    // Printing or exporting all plates as one job needs one printer. Tells the user and returns true
+    // if the plates of the project are for different printers.
+    bool refuse_all_plates_action();
+    // The groups are stored in the auxiliary folder of the project and so in its 3mf.
+    void save_printer_groups();
+    void restore_printer_groups();
     bool m_is_slicing {false};
     bool m_is_publishing {false};
     int m_is_RightClickInLeftUI{-1};
@@ -12986,6 +13018,9 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
         }
         partplate_list.reset_size(current_width, current_depth, current_height, true, true);
     }
+
+    if (load_model && load_config)
+        restore_printer_groups();
 
     //BBS: add gcode loading logic in the end
     q->m_exported_file = false;
@@ -16259,7 +16294,10 @@ void Plater::priv::on_select_bed_type(wxCommandEvent &evt)
                 //update slice status
                 auto plate_list = partplate_list.get_plate_list();
                 for (auto plate : plate_list) {
-                    if (plate->get_bed_type() == btDefault) {
+                    // The default bed type belongs to the printer, so only the plates of the active printer group
+                    // follow it. A switch to another group loads the bed type of its printer, the plates did not change.
+                    if (plate->get_bed_type() == btDefault && !m_switching_printer_group &&
+                        plate->get_group_id() == partplate_list.get_active_group_id()) {
                         plate->update_slice_result_valid_state(false);
                     }
                 }
@@ -16496,6 +16534,9 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
     // update slice state and set bedtype default for 3rd-party printer
     auto plate_list = partplate_list.get_plate_list();
     for (auto plate : plate_list) {
+         // the presets of the other printer groups did not change
+         if (plate->get_group_id() != partplate_list.get_active_group_id())
+             continue;
          plate->update_slice_result_valid_state(false);
     }
 
@@ -19772,6 +19813,8 @@ int Plater::priv::update_print_required_data(Slic3r::DynamicPrintConfig config, 
 
 void Plater::priv::on_action_send_to_printer(bool isall)
 {
+    if (isall && refuse_all_plates_action())
+        return;
     if (!wxGetApp().check_send_print_version_policy()) return;
 
 	if (!m_send_to_sdcard_dlg) m_send_to_sdcard_dlg = new SendToPrinterDialog(q);
@@ -19799,6 +19842,8 @@ void Plater::priv::on_action_print_all(SimpleEvent&)
     if (q != nullptr) {
         BOOST_LOG_TRIVIAL(debug) << "received print all event\n" ;
     }
+    if (refuse_all_plates_action())
+        return;
 
     if (!wxGetApp().check_send_print_version_policy()) return;
 
@@ -20414,6 +20459,339 @@ void Plater::priv::init_notification_manager()
 }
 
 
+// Project options that describe the printer of a printer group, not the project.
+static const std::vector<std::string> s_printer_group_project_keys = {
+    "nozzle_volume_type", "filament_map_mode", "filament_map", "filament_volume_map",
+    "filament_nozzle_map", "filament_diameter_map", "multi_nozzle_diameter_mode", "extruder_nozzle_stats",
+    "extruder_nozzle_stats_new", "prime_volume_mode", "extruder_nozzle_count", "extruder_nozzle_volume_type",
+    "extruder_nozzle_diameter", "extruder_nozzle_slot", "has_filament_switcher",
+    "flush_volumes_vector", "flush_volumes_matrix", "flush_multiplier", "flush_multiplier_fast"
+};
+
+// The printer groups of a project travel in its auxiliary folder, which the 3mf carries along.
+static boost::filesystem::path printer_groups_file(Model &model)
+{
+    return boost::filesystem::path(model.get_auxiliary_file_temp_path()) / ".printer_groups" / "groups.json";
+}
+
+static json printer_group_config_to_json(const DynamicPrintConfig &config, const std::vector<std::string> *only_keys = nullptr)
+{
+    // the access data of a print host stays out of project files, as in PresetBundle::full_config_secure()
+    // the connection to a print host is not part of a project (see DynamicPrintConfig::save_to_json)
+    static const std::set<std::string> secrets = {"print_host", "print_host_webui", "printhost_apikey", "printhost_cafile",
+                                                  "printhost_user", "printhost_password", "printhost_port"};
+    json j = json::object();
+    for (const std::string &key : only_keys != nullptr ? *only_keys : config.keys())
+        if (config.has(key) && secrets.count(key) == 0)
+            j[key] = config.opt_serialize(key);
+    return j;
+}
+
+static void printer_group_config_from_json(const json &j, DynamicPrintConfig &config)
+{
+    if (!j.is_object())
+        return;
+    ConfigSubstitutionContext context(ForwardCompatibilitySubstitutionRule::EnableSilent);
+    for (auto it = j.begin(); it != j.end(); ++it) {
+        try {
+            if (it.value().is_string())
+                config.set_deserialize(it.key(), it.value().get<std::string>(), context);
+        } catch (const std::exception &) {
+            // an option this version does not know: the preset keeps its own value
+        }
+    }
+}
+
+void Plater::priv::save_printer_groups()
+{
+    namespace fs = boost::filesystem;
+    const fs::path            file = printer_groups_file(model);
+    boost::system::error_code ec;
+    if (!partplate_list.has_printer_groups()) {
+        fs::remove(file, ec);
+        return;
+    }
+    if (m_presets_group != partplate_list.get_active_group_id())
+        return; // in the middle of a switch
+    store_group_presets(m_presets_group);
+
+    json j;
+    j["version"]       = 1;
+    j["current_plate"] = partplate_list.get_curr_plate_index();
+    json plates = json::array();
+    std::set<int> used_groups;
+    for (int i = 0; i < partplate_list.get_plate_count(); ++i) {
+        PartPlate  *plate  = partplate_list.get_plate(i);
+        const Vec3d origin = plate->get_origin();
+        used_groups.insert(plate->get_group_id());
+        json instances = json::array();
+        // where an object sits on its plate, so that it finds its place whatever the layout is
+        for (const std::pair<int, int> &item : plate->get_obj_and_inst_set()) {
+            if (item.first < 0 || item.first >= (int) model.objects.size() || item.second < 0 || item.second >= (int) model.objects[item.first]->instances.size())
+                continue;
+            const Vec3d offset = model.objects[item.first]->instances[item.second]->get_offset();
+            // the name tells restore_printer_groups() whether the object is still the one that was saved
+            instances.push_back({item.first, item.second, offset.x() - origin.x(), offset.y() - origin.y(), model.objects[item.first]->name});
+        }
+        plates.push_back({{"group", plate->get_group_id()}, {"instances", instances}});
+    }
+    j["plates"] = plates;
+    json groups = json::array();
+    for (const auto &item : m_group_presets) {
+        if (used_groups.count(item.first) == 0)
+            continue;
+        const PrinterGroupPresets &presets = item.second;
+        groups.push_back({{"id", item.first},
+                          {"printer", presets.printer},
+                          {"print", presets.print},
+                          {"filament", presets.filament},
+                          {"filaments", presets.filaments},
+                          {"printer_config", printer_group_config_to_json(presets.printer_config)},
+                          {"print_config", printer_group_config_to_json(presets.print_config)},
+                          {"filament_config", printer_group_config_to_json(presets.filament_config)},
+                          {"project_config", printer_group_config_to_json(presets.project_config, &s_printer_group_project_keys)}});
+    }
+    j["groups"] = groups;
+
+    fs::create_directories(file.parent_path(), ec);
+    boost::nowide::ofstream out(file.string(), std::ios::trunc);
+    out << j.dump(1);
+}
+
+// Called after a project was loaded the usual way: all plates then share the printer of the plate
+// that was current when the project was saved. Gives the other plates their groups back.
+void Plater::priv::restore_printer_groups()
+{
+    namespace fs = boost::filesystem;
+    const fs::path            file = printer_groups_file(model);
+    boost::system::error_code ec;
+    if (!fs::exists(file, ec))
+        return;
+
+    json j;
+    try {
+        boost::nowide::ifstream in(file.string());
+        in >> j;
+    } catch (const std::exception &e) {
+        BOOST_LOG_TRIVIAL(error) << "printer groups: cannot read the group file: " << e.what();
+        return;
+    }
+    if (!j.is_object() || !j.contains("plates") || !j.contains("groups") || !j["plates"].is_array() ||
+        (int) j["plates"].size() != partplate_list.get_plate_count()) {
+        BOOST_LOG_TRIVIAL(warning) << "printer groups: the group file does not fit the plates of the project, ignored";
+        return;
+    }
+
+    try {
+        const int plate_count   = partplate_list.get_plate_count();
+        const int current_plate = std::clamp(j.value("current_plate", 0), 0, plate_count - 1);
+        std::vector<int> plate_groups;
+        for (const json &plate : j["plates"])
+            plate_groups.push_back(plate.value("group", 0));
+
+        // the loaded presets are the ones of the group of the plate that was current
+        std::map<int, int> group_ids; // id in the file -> id in the plate list
+        group_ids[plate_groups[current_plate]] = partplate_list.get_active_group_id();
+        m_group_presets.clear();
+        m_presets_group = partplate_list.get_active_group_id();
+
+        for (const json &group : j["groups"]) {
+            const int file_id = group.value("id", -1);
+            if (file_id < 0 || group_ids.count(file_id) != 0)
+                continue;
+            PrinterGroupPresets presets;
+            presets.printer   = group.value("printer", std::string());
+            presets.print     = group.value("print", std::string());
+            presets.filament  = group.value("filament", std::string());
+            presets.filaments = group.value("filaments", std::vector<std::string>());
+            printer_group_config_from_json(group.value("printer_config", json::object()), presets.printer_config);
+            printer_group_config_from_json(group.value("print_config", json::object()), presets.print_config);
+            printer_group_config_from_json(group.value("filament_config", json::object()), presets.filament_config);
+            presets.project_config = wxGetApp().preset_bundle->project_config;
+            printer_group_config_from_json(group.value("project_config", json::object()), presets.project_config);
+            const int id         = partplate_list.create_group();
+            group_ids[file_id]   = id;
+            m_group_presets[id]  = std::move(presets);
+        }
+
+        // The loaded presets belong to the plate that was current, so that plate has to be the current
+        // one while the others get their groups: the active group then stays the one of these presets.
+        q->select_plate(current_plate);
+        for (int i = 0; i < plate_count; ++i) {
+            auto it = group_ids.find(plate_groups[i]);
+            if (it != group_ids.end() && it->second != partplate_list.get_plate(i)->get_group_id())
+                partplate_list.set_plate_group(i, it->second);
+        }
+        // every group is visited once: loading its presets builds its bed
+        std::set<int> visited{partplate_list.get_active_group_id()};
+        for (int i = 0; i < plate_count; ++i)
+            if (visited.insert(partplate_list.get_plate(i)->get_group_id()).second)
+                q->select_plate(i);
+        q->select_plate(current_plate);
+
+        // The objects go back to their place on their plate. A version without printer groups may have
+        // added or removed objects in between: an entry that names another object is skipped.
+        int other_objects = 0;
+        for (int i = 0; i < plate_count; ++i) {
+            const Vec3d origin = partplate_list.get_plate(i)->get_origin();
+            const json &instances = j["plates"][i].value("instances", json::array());
+            for (const json &item : instances) {
+                if (!item.is_array() || item.size() < 4)
+                    continue;
+                const int obj_idx = item[0].get<int>(), inst_idx = item[1].get<int>();
+                if (obj_idx < 0 || obj_idx >= (int) model.objects.size() || inst_idx < 0 || inst_idx >= (int) model.objects[obj_idx]->instances.size())
+                    continue;
+                ModelInstance *instance = model.objects[obj_idx]->instances[inst_idx];
+                Vec3d          offset   = instance->get_offset();
+                if (item.size() > 4 && item[4].is_string() && item[4].get<std::string>() != model.objects[obj_idx]->name) {
+                    ++other_objects;
+                    continue;
+                }
+                offset.x() = origin.x() + item[2].get<double>();
+                offset.y() = origin.y() + item[3].get<double>();
+                instance->set_offset(offset);
+                model.objects[obj_idx]->invalidate_bounding_box();
+            }
+        }
+        partplate_list.reload_all_objects();
+        update_printer_group_names();
+        sidebar->obj_list()->reload_all_plates();
+        update();
+        BOOST_LOG_TRIVIAL(info) << "printer groups: restored " << group_ids.size() << " groups, " << other_objects
+                                << " saved positions belong to objects that are gone";
+    } catch (const std::exception &e) {
+        BOOST_LOG_TRIVIAL(error) << "printer groups: cannot restore the groups: " << e.what();
+    }
+}
+
+void Plater::priv::store_group_presets(int group_id)
+{
+    const PresetBundle  &bundle = *wxGetApp().preset_bundle;
+    PrinterGroupPresets &presets = m_group_presets[group_id];
+    presets.printer         = bundle.printers.get_selected_preset_name();
+    presets.print           = bundle.prints.get_selected_preset_name();
+    presets.filament        = bundle.filaments.get_selected_preset_name();
+    presets.filaments       = bundle.filament_presets;
+    presets.printer_config  = bundle.printers.get_edited_preset().config;
+    presets.print_config    = bundle.prints.get_edited_preset().config;
+    presets.filament_config = bundle.filaments.get_edited_preset().config;
+    presets.project_config  = bundle.project_config;
+}
+
+void Plater::priv::load_group_presets(const PrinterGroupPresets &presets)
+{
+    PresetBundle &bundle = *wxGetApp().preset_bundle;
+
+    if (bundle.printers.select_preset_by_name(presets.printer, true))
+        bundle.printers.get_edited_preset().config.apply(presets.printer_config);
+    if (bundle.prints.select_preset_by_name(presets.print, true))
+        bundle.prints.get_edited_preset().config.apply(presets.print_config);
+
+    // the number of filament slots belongs to the project, the preset in a slot to the group
+    for (size_t i = 0; i < bundle.filament_presets.size() && !presets.filaments.empty(); ++i)
+        bundle.filament_presets[i] = presets.filaments[std::min(i, presets.filaments.size() - 1)];
+    if (bundle.filaments.select_preset_by_name(presets.filament, true))
+        bundle.filaments.get_edited_preset().config.apply(presets.filament_config);
+
+    bundle.update_compatible(PresetSelectCompatibleType::Never);
+    // Loads the presets into the tabs and the sidebar and calls Plater::on_config_change(), which
+    // resets some of the project options below when the printer model changes.
+    wxGetApp().load_current_presets(false, false);
+
+    // Project options that describe the printer, not the project. Colours, the wipe tower positions
+    // and the other per plate or per project options stay as they are. The bed type is not in the list:
+    // the sidebar remembers it per printer preset and has set it by now.
+    const std::vector<std::string> &printer_keys = s_printer_group_project_keys;
+    auto filament_count = [](const DynamicPrintConfig &config) {
+        const ConfigOptionStrings *colours = config.option<ConfigOptionStrings>("filament_colour");
+        return colours != nullptr ? colours->values.size() : size_t(0);
+    };
+    // most of them have one value per filament slot, so they only fit while the slot count is the same
+    if (filament_count(presets.project_config) == filament_count(bundle.project_config))
+        bundle.project_config.apply_only(presets.project_config, printer_keys, true);
+    else
+        BOOST_LOG_TRIVIAL(warning) << "printer group: filament slot count changed, the printer options of the project were not restored";
+
+    q->on_config_change(bundle.full_config());
+}
+
+void Plater::priv::update_printer_group_names()
+{
+    if (m_presets_group == partplate_list.get_active_group_id())
+        partplate_list.set_group_name(m_presets_group, wxGetApp().preset_bundle->printers.get_selected_preset_name());
+    for (const auto &item : m_group_presets)
+        if (item.first != m_presets_group)
+            partplate_list.set_group_name(item.first, item.second.printer);
+    if (ParamsPanel *params = wxGetApp().params_panel())
+        params->set_printer_group_mode(partplate_list.has_printer_groups());
+}
+
+bool Plater::priv::refuse_all_plates_action()
+{
+    if (!partplate_list.has_printer_groups())
+        return false;
+    MessageDialog dlg(q, _L("The plates of this project are for different printers, so they cannot be printed or exported as one job. "
+                           "Please print or export the plates one by one."),
+                      _L("Printer groups"), wxOK | wxICON_INFORMATION);
+    dlg.ShowModal();
+    return true;
+}
+
+bool Plater::priv::sync_presets_with_active_group()
+{
+    // forget the presets of groups that are gone, e.g. after a new project
+    const std::vector<int> group_ids = partplate_list.get_group_ids();
+    for (auto it = m_group_presets.begin(); it != m_group_presets.end();)
+        it = std::find(group_ids.begin(), group_ids.end(), it->first) == group_ids.end() ? m_group_presets.erase(it) : std::next(it);
+
+    const int active_group = partplate_list.get_active_group_id();
+    if (active_group == m_presets_group)
+        return false;
+
+    const bool old_group_exists = std::find(group_ids.begin(), group_ids.end(), m_presets_group) != group_ids.end();
+    auto       it               = m_group_presets.find(active_group);
+    if (it == m_group_presets.end()) {
+        // a group without stored presets takes the ones that are loaded
+        m_presets_group = active_group;
+        return false;
+    }
+
+    // The slicing context has to be the one of the current plate before the presets change,
+    // otherwise they would be applied to the print of a plate of the other group.
+    if (!background_process.can_switch_print())
+        background_process.stop();
+    partplate_list.update_slice_context_to_current_plate(background_process);
+    preview->update_gcode_result(partplate_list.get_current_slice_result());
+
+    if (old_group_exists)
+        store_group_presets(m_presets_group);
+    BOOST_LOG_TRIVIAL(info) << "printer group: switch presets from group " << m_presets_group << " to group " << active_group;
+    m_presets_group = active_group;
+    const PrinterGroupPresets presets = m_group_presets[active_group];
+    // The sidebar and the tabs reload for the other printer as if it had just been chosen, which pushes
+    // its nozzle and flow defaults into the filament maps of the plates. A group switch changes no
+    // plate: what the slicer stored there has to stay, or a sliced plate no longer matches its result.
+    static const t_config_option_keys plate_map_keys = {"filament_map_mode", "filament_map", "filament_volume_map", "filament_nozzle_map"};
+    std::vector<DynamicPrintConfig>   plate_maps;
+    for (PartPlate *plate : partplate_list.get_plate_list()) {
+        plate_maps.emplace_back();
+        plate_maps.back().apply_only(*plate->config(), plate_map_keys, true);
+    }
+
+    m_switching_printer_group = true;
+    load_group_presets(presets);
+    m_switching_printer_group = false;
+
+    const std::vector<PartPlate *> plates = partplate_list.get_plate_list();
+    for (size_t i = 0; i < plates.size() && i < plate_maps.size(); ++i) {
+        for (const t_config_option_key &key : plate_map_keys)
+            plates[i]->config()->erase(key);
+        plates[i]->config()->apply(plate_maps[i]);
+    }
+    update_printer_group_names();
+    return true;
+}
+
 void Plater::priv::update_objects_position_when_select_preset(const std::function<void()> &select_prest)
 {
     PartPlateList &old_plate_list = this->partplate_list;
@@ -20534,6 +20912,9 @@ void Plater::priv::update_objects_position_when_select_preset(const std::functio
     // set default wipe tower pos
     PartPlateList &cur_plate_list       = this->partplate_list;
     for (size_t plate_id = 0; plate_id < cur_plate_list.get_plate_list().size(); ++plate_id) {
+        // the plates of the other printer groups keep their printer
+        if (cur_plate_list.get_plate((int) plate_id)->get_group_id() != cur_plate_list.get_active_group_id())
+            continue;
         cur_plate_list.set_default_wipe_tower_pos_for_plate(plate_id);
     }
     update();
@@ -20573,12 +20954,17 @@ void Plater::priv::update_objects_position_when_select_preset(const std::functio
 
     // Objects taller than the new Z capacity go to the virtual plate. Compare
     // bbox max.z (not size.z) so models lifted off z=0 are still caught.
+    // objects on the plates of other printer groups: they are not measured against the new printer
+    std::set<int> foreign_obj_idxs;
+    for (int i = 0; i < static_cast<int>(plate_object.size()) && i < cur_plate_list.get_plate_count(); ++i)
+        if (cur_plate_list.get_plate(i)->get_group_id() != cur_plate_list.get_active_group_id())
+            foreign_obj_idxs.insert(plate_object[i].begin(), plate_object[i].end());
     std::set<int> tall_obj_idxs;
     for (int i = 0; i < static_cast<int>(model.objects.size()); ++i) {
         ModelObject *o = model.objects[i];
         if (!o || o->instances.empty())
             continue;
-        if (o->instance_bounding_box(0).max.z() > new_max_print_height + size_eps)
+        if (foreign_obj_idxs.count(i) == 0 && o->instance_bounding_box(0).max.z() > new_max_print_height + size_eps)
             tall_obj_idxs.insert(i);
     }
 
@@ -20647,6 +21033,21 @@ void Plater::priv::update_objects_position_when_select_preset(const std::functio
             // No matching plate in the new list -> reschedule.
             for (int o : effective_objs)
                 reschedule_set.insert(o);
+            continue;
+        }
+
+        // A plate of another printer group keeps its bed: its objects only follow the plate
+        // if the grid moved it.
+        if (cur_plate_list.get_plate(i)->get_group_id() != cur_plate_list.get_active_group_id()) {
+            const Vec3d plate_delta = cur_plate_list.get_plate(i)->get_plate_box().min - old_plate_bbox_list[i].min;
+            if (std::abs(plate_delta.x()) > EPSILON || std::abs(plate_delta.y()) > EPSILON) {
+                for (int o : effective_objs) {
+                    ModelObject *mo = model.objects[o];
+                    for (ModelInstance *inst : mo->instances)
+                        inst->set_offset(inst->get_offset() + Vec3d(plate_delta.x(), plate_delta.y(), 0.));
+                    mo->invalidate_bounding_box();
+                }
+            }
             continue;
         }
 
@@ -21209,14 +21610,19 @@ void Plater::priv::update_objects_position_when_select_preset(const std::functio
 
         // 8. Compact the plate list by dropping empty non-locked plates.
         //    cur_plate is skipped here and handled separately in 8b.
-        int cur_plate_index = cur_plate_list.get_curr_plate_index();
+        //    Only the plates of the printer group that changed take part, and a group keeps its last
+        //    plate: without one its printer would be gone.
+        const int changed_group   = cur_plate_list.get_active_group_id();
+        int       cur_plate_index = cur_plate_list.get_curr_plate_index();
         for (int idx = cur_plate_list.get_plate_count() - 1; idx >= 0; --idx) {
-            if (cur_plate_list.get_plate_count() <= 1)
+            if (cur_plate_list.get_group_plate_count(changed_group) <= 1)
                 break;
             PartPlate *plate = cur_plate_list.get_plate(idx);
             if (!plate || plate->is_locked())
                 continue;
             if (idx == cur_plate_index)
+                continue;
+            if (plate->get_group_id() != changed_group)
                 continue;
             if (plate->empty()) {
                 cur_plate_list.delete_plate(idx);
@@ -21226,7 +21632,7 @@ void Plater::priv::update_objects_position_when_select_preset(const std::functio
         }
 
         // 8b. Drop cur_plate too if it ended up empty (all-reschedule case).
-        if (cur_plate_list.get_plate_count() > 1) {
+        if (cur_plate_list.get_group_plate_count(changed_group) > 1) {
             const int cur_idx = cur_plate_list.get_curr_plate_index();
             PartPlate *cur_p  = (cur_idx >= 0 && cur_idx < static_cast<int>(cur_plate_list.get_plate_count()))
                                     ? cur_plate_list.get_plate(cur_idx)
@@ -21234,6 +21640,14 @@ void Plater::priv::update_objects_position_when_select_preset(const std::functio
             if (cur_p && !cur_p->is_locked() && cur_p->empty())
                 cur_plate_list.delete_plate(cur_idx);
         }
+        // The plate that became current may belong to another printer group: stay in the group
+        // whose printer was just chosen, its presets are the ones that are loaded.
+        if (cur_plate_list.get_curr_plate()->get_group_id() != changed_group)
+            for (int idx = 0; idx < cur_plate_list.get_plate_count(); ++idx)
+                if (cur_plate_list.get_plate(idx)->get_group_id() == changed_group) {
+                    cur_plate_list.select_plate(idx);
+                    break;
+                }
         cur_plate = cur_plate_list.get_curr_plate();
 
         // 8c. Reschedule/overflow plates skipped the per-plate optimal-position pass
@@ -21779,8 +22193,14 @@ void Plater::priv::set_bed_shape(const Pointfs       &shape,
         partplate_list.update_logo_texture_filename(custom_texture);
     }
     if (new_shape) {
+        // With printer groups the view shows the plates of several printers. It stays where it is when
+        // a plate of another group is selected or when the printer of a group is changed, instead of
+        // zooming to the one bed that changed.
+        const bool zoom_to_bed = q->get_camera().requires_zoom_to_bed;
         if (view3D) view3D->bed_shape_changed();
         if (preview) preview->bed_shape_changed();
+        if (m_switching_printer_group || partplate_list.has_printer_groups())
+            q->get_camera().requires_zoom_to_bed = zoom_to_bed;
 
         //BBS: update part plate's size
         // BBS: to be checked
@@ -23466,6 +23886,8 @@ void Plater::priv::undo_redo_to(std::vector<UndoRedo::Snapshot>::const_iterator 
 void Plater::priv::update_after_undo_redo(const UndoRedo::Snapshot& snapshot, bool /* temp_snapshot_was_taken */)
 {
     this->partplate_list.reset_thumbnail_assembly_view_data();
+    sync_presets_with_active_group();
+    update_printer_group_names();
     get_current_canvas3D()->get_canvas_type() == GLCanvas3D::CanvasAssembleView ? assemble_view->get_canvas3d()->get_selection().clear() : this->view3D->get_canvas3d()->get_selection().clear();
     // Update volumes from the deserializd model, always stop / update the background processing (for both the SLA and FFF technologies).
     this->update((unsigned int)UpdateParams::FORCE_BACKGROUND_PROCESSING_UPDATE | (unsigned int)UpdateParams::POSTPONE_VALIDATION_ERROR_MESSAGE);
@@ -26985,6 +27407,8 @@ void Plater::export_gcode_3mf(bool export_all)
 {
     if (p->model.objects.empty())
         return;
+    if (export_all && p->refuse_all_plates_action())
+        return;
 
     if (p->process_completed_with_error == p->partplate_list.get_curr_plate_index())
         return;
@@ -27731,6 +28155,7 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, SaveStrategy 
     store_params.export_plate_idx = export_plate_idx;
     store_params.project_presets = project_presets;
     store_params.config = export_config ? &cfg : nullptr;
+    p->save_printer_groups();
     store_params.thumbnail_data = thumbnails;
     store_params.no_light_thumbnail_data  = no_light_thumbnails;
     store_params.top_thumbnail_data = top_thumbnails;
@@ -29251,6 +29676,8 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
 
     if (p->main_frame->is_loaded())
         this->p->schedule_background_process();
+    if (!p->m_switching_printer_group)
+        p->update_printer_group_names();
 }
 
 bool Plater::cur_selected_preset_is_system_preset()
@@ -30398,11 +30825,60 @@ void Plater::apply_background_progress()
     }
 }
 
+// Gives a plate a printer group of its own: the plate keeps its objects and from now on has its
+// own printer, process and filament presets, which are loaded whenever the plate is selected.
+void Plater::add_printer_group_for_plate(int plate_index)
+{
+    PartPlateList &list = p->partplate_list;
+    if (plate_index < 0)
+        plate_index = list.get_curr_plate_index();
+    if (plate_index >= list.get_plate_count())
+        return;
+    if (list.get_group_plate_count(list.get_plate(plate_index)->get_group_id()) < 2)
+        return; // the plate is alone in its group already
+    if (plate_index != list.get_curr_plate_index() && select_plate(plate_index) != 0)
+        return;
+
+    take_snapshot("New printer group");
+    p->sync_presets_with_active_group();
+    const int old_group = list.get_active_group_id();
+    p->store_group_presets(old_group);
+    const int new_group = list.create_group();
+    // the new group starts as a copy, the printer is chosen in the sidebar afterwards
+    p->m_group_presets[new_group] = p->m_group_presets[old_group];
+    list.set_plate_group(plate_index, new_group);
+    p->m_presets_group = new_group;
+    p->update_printer_group_names();
+
+    p->sidebar->obj_list()->reload_all_plates();
+    update();
+}
+
+void Plater::add_plate_for_another_printer()
+{
+    if (is_background_process_slicing())
+        return;
+    take_snapshot("Add plate for another printer");
+    const int plate_index = p->partplate_list.create_plate();
+    if (plate_index < 0)
+        return;
+    update();
+    if (select_plate(plate_index) == 0)
+        add_printer_group_for_plate(plate_index);
+    // like the "add plate" action: show all plates, the new one starts a block of its own
+    get_camera().requires_zoom_to_plate = REQUIRES_ZOOM_TO_ALL_PLATE;
+}
+
 //BBS: select Plate
 int Plater::select_plate(int plate_index, bool need_slice)
 {
     int ret;
     BOOST_LOG_TRIVIAL(info) << boost::format("plate %1%, need_slice %2% ")%plate_index  %need_slice;
+    // The presets of another printer group cannot be loaded while a plate is being sliced.
+    if (plate_index >= 0 && plate_index < p->partplate_list.get_plate_count() &&
+        p->partplate_list.get_plate(plate_index)->get_group_id() != p->partplate_list.get_active_group_id() &&
+        !p->background_process.can_switch_print())
+        return -1;
     take_snapshot("select partplate!");
     ret = p->partplate_list.select_plate(plate_index);
     if (!ret) {
@@ -30415,6 +30891,7 @@ int Plater::select_plate(int plate_index, bool need_slice)
     {
         //select successfully
         p->partplate_list.update_slice_context_to_current_plate(p->background_process);
+        p->sync_presets_with_active_group();
         p->preview->update_gcode_result(p->partplate_list.get_current_slice_result());
         p->update_print_volume_state();
 
@@ -30891,6 +31368,11 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click, bool isModi
     if (action == 0)
     {
         //select plate
+        // The presets of another printer group cannot be loaded while a plate is being sliced.
+        if (plate_index >= 0 && plate_index < p->partplate_list.get_plate_count() &&
+            p->partplate_list.get_plate(plate_index)->get_group_id() != p->partplate_list.get_active_group_id() &&
+            !p->background_process.can_switch_print())
+            return -1;
         ret = p->partplate_list.select_plate(plate_index);
         if (!ret) {
             SimpleEvent event(EVT_GLCANVAS_PLATE_SELECT);
@@ -30900,6 +31382,7 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click, bool isModi
         {
             //select successfully
             p->partplate_list.update_slice_context_to_current_plate(p->background_process);
+            p->sync_presets_with_active_group();
             p->preview->update_gcode_result(p->partplate_list.get_current_slice_result());
             p->update_print_volume_state();
 
@@ -31121,6 +31604,8 @@ int Plater::delete_plate(int plate_index)
 
     //BBS: update the current print to the current plate
     p->partplate_list.update_slice_context_to_current_plate(p->background_process);
+    p->sync_presets_with_active_group();
+    p->update_printer_group_names();
     p->preview->update_gcode_result(p->partplate_list.get_current_slice_result());
     p->sidebar->obj_list()->reload_all_plates();
 

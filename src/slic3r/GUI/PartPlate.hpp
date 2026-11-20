@@ -94,6 +94,7 @@ public:
 
 private:
     PartPlateList* m_partplate_list {nullptr };
+    int m_group_id{0};
     Plater* m_plater; //Plater reference, not own it
     Model* m_model; //Model reference, not own it
     PrinterTechnology  printer_technology;
@@ -302,6 +303,10 @@ public:
     void set_index(int index);
     // get the plate's index
     int get_index() { return m_plate_index; }
+
+    // Printer group this plate belongs to, see PlateGroup.
+    int  get_group_id() const { return m_group_id; }
+    void set_group_id(int group_id) { m_group_id = group_id; }
 
     // get the plate's name
     std::string get_plate_name() const { return m_name; }
@@ -606,7 +611,7 @@ public:
         std::vector<std::pair<int, int>>	objects_and_instances;
         std::vector<std::pair<int, int>>	instances_outside;
 
-        ar(m_plate_index, m_print_index, m_locked, m_selected, m_ready_for_slice, m_slice_result_valid, m_apply_invalid, m_printable, m_tmp_gcode_path, objects_and_instances, instances_outside, m_config, m_name, m_wipe_tower_placed);
+        ar(m_plate_index, m_print_index, m_locked, m_selected, m_ready_for_slice, m_slice_result_valid, m_apply_invalid, m_printable, m_tmp_gcode_path, objects_and_instances, instances_outside, m_config, m_name, m_wipe_tower_placed, m_group_id);
 
         for (std::vector<std::pair<int, int>>::iterator it = objects_and_instances.begin(); it != objects_and_instances.end(); ++it)
             obj_to_instance_set.insert(std::pair(it->first, it->second));
@@ -624,7 +629,7 @@ public:
         for (std::set<std::pair<int, int>>::iterator it = obj_to_instance_set.begin(); it != obj_to_instance_set.end(); ++it)
             objects_and_instances.emplace_back(it->first, it->second);
 
-        ar(m_plate_index, m_print_index, m_locked, m_selected, m_ready_for_slice, m_slice_result_valid, m_apply_invalid, m_printable,m_tmp_gcode_path, objects_and_instances, instances_outside, m_config, m_name, m_wipe_tower_placed);
+        ar(m_plate_index, m_print_index, m_locked, m_selected, m_ready_for_slice, m_slice_result_valid, m_apply_invalid, m_printable,m_tmp_gcode_path, objects_and_instances, instances_outside, m_config, m_name, m_wipe_tower_placed, m_group_id);
     }
     /*template<class Archive> void serialize(Archive& ar)
     {
@@ -633,6 +638,58 @@ public:
             objects_and_instances.emplace_back(it->first, it->second);
         ar(m_plate_index, m_origin, m_width, m_depth, m_height, m_locked, m_ready_for_slice, m_printable, objects_and_instances);
     }*/
+};
+
+// A printer group: the plates that are printed on the same printer with the same presets.
+// The list keeps the bed geometry of the active group in its own members (m_shape, m_plate_width, ...)
+// and stores the geometry of the other groups here, so one project can hold plates of different sizes.
+struct PlateGroup
+{
+    int id{0};
+
+    int   width{0};
+    int   depth{0};
+    int   height{0};
+    float height_to_lid{0.f};
+    float height_to_rod{0.f};
+
+    Pointfs              shape;
+    Pointfs              exclude_areas;
+    Pointfs              wrapping_exclude_areas;
+    Pointfs              heat_soak_areas;
+    std::vector<Pointfs> extruder_areas;
+    std::vector<double>  extruder_heights;
+    std::string          logo_texture_filename;
+    // shown next to the plates of the group, the name of its printer preset
+    std::string          name;
+
+    // Render geometry built from the shape above. It is exchanged with the list's own models
+    // (GLModel::swap) while the group is active or one of its plates is drawn.
+    ExPolygon print_polygon;
+    GLModel   triangles;
+    GLModel   exclude_triangles;
+    GLModel   wrapping_detection_triangles;
+    GLModel   heat_soak_inner_lines;
+    GLModel   heat_soak_outer_lines;
+    GLModel   gridlines;
+    GLModel   gridlines_bolder;
+    GLModel   del_icon;
+    GLModel   arrange_icon;
+    GLModel   orient_icon;
+    GLModel   lock_icon;
+    GLModel   plate_settings_icon;
+    GLModel   plate_filament_map_icon;
+    GLModel   plate_idx_icon;
+
+    // Frame around the plates of the group and its label, rebuilt when the key changes.
+    GLModel     frame;
+    GLModel     label;
+    GLTexture   label_texture;
+    std::string frame_key;
+    std::string label_key;
+    // how far the bed model of the printer reaches beyond the printable area
+    Vec2d       bed_overhang_min{Vec2d::Zero()};
+    Vec2d       bed_overhang_max{Vec2d::Zero()};
 };
 
 class PartPlateList : public ObjectBase
@@ -651,9 +708,17 @@ class PartPlateList : public ObjectBase
     int m_current_plate;
     int m_print_index;
 
+    // Bed size of the active printer group.
     int m_plate_width;
     int m_plate_depth;
     int m_plate_height;
+
+    // All printer groups, the active one included. The entry of the active group is only
+    // refreshed by store_active_group(), read the groups through group().
+    std::vector<std::unique_ptr<PlateGroup>> m_groups;
+    int m_active_group{0};
+    // grid cell size the plates were laid out with
+    Vec2d m_layout_stride{Vec2d::Zero()};
 
     float m_height_to_lid;
     float m_height_to_rod;
@@ -707,6 +772,30 @@ class PartPlateList : public ObjectBase
     Vec3d compute_origin_for_unprintable();
     //compute shape position
     Vec2d compute_shape_position(int index, int cols);
+
+    // printer groups
+    PlateGroup *find_group(int group_id);
+    // Copies the geometry of the active group from the list members into its PlateGroup.
+    void store_active_group();
+    // Exchanges the render models of the list with the ones stored in the group.
+    void swap_group_models(PlateGroup &group);
+    // Makes a group the active one for the list members only: no plate is moved or reshaped.
+    void switch_group_members(int group_id);
+    // Applies position and bed size / bed shape of the plate's own group.
+    void place_plate(PartPlate *plate, const Vec3d &origin, bool with_instance_move, bool do_clear = true);
+    void shape_plate(PartPlate *plate, const Vec2d &pos);
+    // True if a plate belongs to another group than the active one.
+    bool has_mixed_groups();
+    // Builds the render models of the active group from its bed shape.
+    void build_shape_models();
+    // Recomputes positions and shapes of all plates, objects move with their plate.
+    void relayout_plates();
+    struct GroupScope;
+    // Group of a plate, the active group if the plate refers to a group that is gone.
+    int  plate_group_id(const PartPlate *plate);
+    // Position of a plate when every printer group has a block of its own (lines of plates, groups below each other).
+    Vec2d compute_group_row_position(int index);
+    void render_group_frames();
     //generate icon textures
     void generate_icon_textures();
     void release_icon_textures();
@@ -857,6 +946,26 @@ public:
     //get the plate stride
     double plate_stride_x();
     double plate_stride_y();
+
+    /* printer groups */
+    int  get_group_count() const { return (int) m_groups.size(); }
+    int  get_active_group_id() const { return m_active_group; }
+    std::vector<int> get_group_ids() const;
+    // Geometry of a group, the active one included. Falls back to the active group for an unknown id.
+    const PlateGroup &group(int group_id);
+    void set_group_name(int group_id, const std::string &name);
+    // True if plates of more than one printer group exist. Each group then has a block of its own.
+    bool has_printer_groups() { return has_mixed_groups(); }
+    // Number of plates in a group.
+    int  get_group_plate_count(int group_id) const;
+    // Creates a new group with the bed of the active group and returns its id.
+    int  create_group();
+    // Moves a plate into a group. The plate takes the bed of that group.
+    void set_plate_group(int plate_index, int group_id);
+    // Makes the group of the current plate the active one. Returns true if the active group changed.
+    bool activate_current_plate_group();
+    // Lays the plates out again if the largest bed in use changed, e.g. after a group lost its last plate.
+    void update_group_layout();
     void get_plate_size(int& width, int& depth, int& height) {
         width = m_plate_width;
         depth = m_plate_depth;

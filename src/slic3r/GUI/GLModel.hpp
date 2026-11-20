@@ -177,6 +177,17 @@ namespace GUI {
         GLModel() = default;
         virtual ~GLModel();
 
+        // Exchanges geometry and GPU buffers with another model. Nothing is copied or released,
+        // so it is safe where a copy would free the buffers of the source.
+        void swap(GLModel &other)
+        {
+            m_render_data.swap(other.m_render_data);
+            std::swap(m_bounding_box, other.m_bounding_box);
+            m_filename.swap(other.m_filename);
+            std::swap(m_visible, other.m_visible);
+            std::swap(mesh, other.mesh);
+        }
+
         size_t get_vertices_count(int i = 0) const;
         size_t get_indices_count(int i = 0) const;
 
