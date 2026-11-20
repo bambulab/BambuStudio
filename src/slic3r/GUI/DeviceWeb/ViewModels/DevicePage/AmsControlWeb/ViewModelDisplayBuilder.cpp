@@ -507,7 +507,7 @@ void Build(MachineObject* machine_obj, SchemaFormat::State& state)
         view.id           = id;
         view.has_filament = has_filament;
         view.icon         = extruder_icon_name(extruder_count, id, series_name);
-        view.nozzle_label = build_nozzle_label(machine_obj, ext);
+        view.nozzle_label = extruder_count >= 2 ? build_nozzle_label(machine_obj, ext) : std::string();
         if (has_filament)
             view.filament_color = color;
         if (has_filament && loading_extruder_id.has_value() && *loading_extruder_id == id)
