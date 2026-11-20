@@ -213,7 +213,6 @@ private:
                                                                      const Vec3f &                                       projected_position,
                                                                      const size_t                                        layer_idx,
                                                                      const float                                         max_distance,
-                                                                     const int                                           region_id,
                                                                      const SeamPlacerImpl::SeamComparator &              comparator) const;
     std::vector<std::pair<size_t, size_t>>   gather_all_seams_of_object(const std::vector<PrintObjectSeamData::LayerSeams> &layers);
     void filter_scarf_seam_switch_by_angle(const float &angle, std::vector<PrintObjectSeamData::LayerSeams> &layers);

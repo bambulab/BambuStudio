@@ -415,10 +415,54 @@ Polygons extract_perimeter_polygons(const Layer *layer, const SeamPosition confi
     return polygons;
 }
 
+// Removes near-duplicate vertices and spike tips from a ring used only for distance queries. A vertex closer than 0.001 mm
+// to its predecessor or successor is dropped, and so is a spike tip whose two neighbours coincide within that tolerance.
+// Dropping a spike tip makes its two near-coincident edges of opposite sign collapse into one, so the sign of the nearest
+// edge no longer depends on which of them is returned. Repeats until nothing changes. A ring that would keep fewer than
+// three points is returned unchanged, so it still gives the same distances as before.
+static Points clean_ring_for_distance(const Points &input)
+{
+    const int64_t tol2 = int64_t(scale_(0.001)) * int64_t(scale_(0.001));
+    auto coincident = [tol2](const Point &a, const Point &b) {
+        const int64_t dx = a.x() - b.x();
+        const int64_t dy = a.y() - b.y();
+        return dx * dx + dy * dy <= tol2;
+    };
+
+    Points ring = input;
+    while (ring.size() >= 3) {
+        const size_t n = ring.size();
+        Points       kept;
+        kept.reserve(n);
+        for (size_t i = 0; i < n; ++i) {
+            const Point &before = ring[(i + n - 1) % n];
+            const Point &after  = ring[(i + 1) % n];
+            if (!coincident(ring[i], before) && !coincident(before, after))
+                kept.push_back(ring[i]);
+        }
+        if (kept.size() == n)
+            return ring;
+        ring.swap(kept);
+    }
+    return input;
+}
+
 class PerimeterDistancer
 {
     std::vector<Linef>                lines;
     AABBTreeIndirect::Tree<2, double> tree;
+
+    void add_ring(const Points &ring)
+    {
+        const size_t n = ring.size();
+        if (n < 3)
+            return; // a degenerate ring has no outline, and its zero-length edges have no sign
+        for (size_t i = 0; i < n; ++i) {
+            const Point &a = ring[i];
+            const Point &b = ring[(i + 1) % n];
+            lines.emplace_back(Vec2d(unscale<double>(a.x()), unscale<double>(a.y())), Vec2d(unscale<double>(b.x()), unscale<double>(b.y())));
+        }
+    }
 
 public:
     PerimeterDistancer(const Layer *layer)
@@ -426,10 +470,10 @@ public:
         ExPolygons layer_outline = layer->lslices;
         for (const ExPolygon &island : layer_outline) {
             assert(island.contour.is_counter_clockwise());
-            for (const auto &line : island.contour.lines()) { lines.emplace_back(unscale(line.a), unscale(line.b)); }
+            add_ring(clean_ring_for_distance(island.contour.points));
             for (const Polygon &hole : island.holes) {
                 assert(hole.is_clockwise());
-                for (const auto &line : hole.lines()) { lines.emplace_back(unscale(line.a), unscale(line.b)); }
+                add_ring(clean_ring_for_distance(hole.points));
             }
         }
         tree = AABBTreeLines::build_aabb_tree_over_indexed_lines(lines);
@@ -1284,7 +1328,6 @@ std::optional<std::pair<size_t, size_t>> SeamPlacer::find_next_seam_in_layer(con
                                                                              const Vec3f &                                       projected_position,
                                                                              const size_t                                        layer_idx,
                                                                              const float                                         max_distance,
-                                                                             const int                                           region_id,
                                                                              const SeamPlacerImpl::SeamComparator &              comparator) const
 {
     using namespace SeamPlacerImpl;
@@ -1298,7 +1341,7 @@ std::optional<std::pair<size_t, size_t>> SeamPlacer::find_next_seam_in_layer(con
     // Now find best nearby point, nearest point, and corresponding indices
     for (const size_t &nearby_point_index : nearby_points_indices) {
         const SeamCandidate &point = layers[layer_idx].points[nearby_point_index];
-        if (point.perimeter.finalized || point.perimeter.region_id != region_id) {
+        if (point.perimeter.finalized) {
             continue; // skip over finalized perimeters, try to find some that is not finalized
         }
         if (! best_nearby_point_index.has_value() ||
@@ -1377,7 +1420,7 @@ std::vector<std::pair<size_t, size_t>> SeamPlacer::find_seam_string(const PrintO
         projected_position.z()   = float(po->get_layer(next_layer)->slice_z);
 
         std::optional<std::pair<size_t, size_t>> maybe_next_seam =
-            find_next_seam_in_layer(layers, projected_position, next_layer, max_distance, region_id, comparator);
+            find_next_seam_in_layer(layers, projected_position, next_layer, max_distance, comparator);
 
         if (maybe_next_seam.has_value()) {
             // For old macOS (pre 10.14), std::optional does not have .value() method, so the code is using operator*() instead.
@@ -1512,9 +1555,10 @@ void SeamPlacer::align_seam_points(const PrintObject *po, const SeamPlacerImpl::
                 const auto &pair = seam_string[index];
                 float       t    = std::min(1.0f, std::pow(std::abs(layers[pair.first].points[pair.second].local_ccw_angle) / SeamPlacer::sharp_angle_snapping_threshold, 3.0f));
                 if (layers[pair.first].points[pair.second].type == EnforcedBlockedSeamPoint::Enforced) { t = std::max(0.4f, t); }
-                // A hidden seam gains nothing from visual alignment, while moving it along the wall towards the fitted curve
-                // may spend the hidden wall left after the seam (or even move the seam onto the exposed part of the wall).
-                if (layers[pair.first].points[pair.second].embedded_headroom > 0.f) { t = 1.0f; }
+                // A hidden (embedded) seam gains nothing from visual alignment, while moving it along the wall towards the fitted
+                // curve may spend the hidden wall left after the seam (or even move the seam onto the exposed part of the wall).
+                // Pin every embedded seam, including when seam_embedded_headroom is 0, so it stays on its candidate position.
+                if (SeamComparator::is_embedded(layers[pair.first].points[pair.second])) { t = 1.0f; }
 
                 Vec3f current_pos = layers[pair.first].points[pair.second].position;
                 Vec2f fitted_pos  = curve.get_fitted_value(current_pos.z());
