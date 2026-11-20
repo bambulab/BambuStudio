@@ -5524,7 +5524,12 @@ bool MachineObject::is_target_slot_unload() const
         return m_fila_system->IsVirtualTrayId(std::to_string(tar_second));
     }
 
-    return m_fila_system->IsVirtualTrayId(m_extder_system->GetTargetSlotId());
+    auto target_slot = m_extder_system->GetTargetSlotId();
+    if (target_slot.empty()) {
+        return true;
+    }
+
+    return m_fila_system->IsVirtualTrayId(target_slot);
 }
 
 Slic3r::DevAms* MachineObject::get_curr_Ams()
