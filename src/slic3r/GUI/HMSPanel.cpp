@@ -30,6 +30,29 @@ static wxString hms_row_text(const std::string& dev_id, DevHMSItem& item)
     return wxString::Format("[%s] %s", code, _L("Unknown error"));
 }
 
+// Wrap text to width; shrink the font (not below min_point_size) when it would exceed two lines
+static void wrap_hms_text(wxStaticText* label, const wxString& text, int width, wxString& wrapped_text)
+{
+    constexpr int max_lines      = 2;
+    constexpr int min_point_size = 8;
+
+    wxFont     font        = label->GetFont();
+    const int  start_point = font.IsOk() ? font.GetPointSize() : 0;
+    const int  max_shrink  = std::max(0, start_point - min_point_size);
+    wxClientDC dc(label);
+    for (int shrink = 0; shrink <= max_shrink; ++shrink) {
+        if (shrink > 0)
+            font.SetPointSize(start_point - shrink);
+        dc.SetFont(font);
+        Label::split_lines(dc, width, text, wrapped_text);
+        if ((int)wrapped_text.Freq('\n') < max_lines)
+            break;
+    }
+
+    if (font.IsOk())
+        label->SetFont(font);
+}
+
 HMSNotifyItem::HMSNotifyItem(const std::string& dev_id, wxWindow *parent, DevHMSItem& item)
     : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL)
     , m_hms_item(item)
@@ -55,10 +78,9 @@ HMSNotifyItem::HMSNotifyItem(const std::string& dev_id, wxWindow *parent, DevHMS
     m_hms_content->SetSize(HMS_NOTIFY_ITEM_TEXT_SIZE);
     m_hms_content->SetMinSize(HMS_NOTIFY_ITEM_TEXT_SIZE);
     // wxStaticText::Wrap only breaks at spaces, which splits CJK text badly
-    wxClientDC dc(m_hms_content);
-    dc.SetFont(m_hms_content->GetFont());
     wxString wrapped_text;
-    Label::split_lines(dc, HMS_NOTIFY_ITEM_TEXT_SIZE.GetX(), hms_row_text(dev_id, m_hms_item), wrapped_text);
+    const int wrap_width = HMS_NOTIFY_ITEM_TEXT_SIZE.GetX() - FromDIP(10);
+    wrap_hms_text(m_hms_content, hms_row_text(dev_id, m_hms_item), wrap_width, wrapped_text);
     m_hms_content->SetLabelText(wrapped_text);
 
     m_bitmap_arrow = new wxStaticBitmap(m_panel_hms, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, 0);
