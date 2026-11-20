@@ -20768,9 +20768,26 @@ bool Plater::priv::sync_presets_with_active_group()
     BOOST_LOG_TRIVIAL(info) << "printer group: switch presets from group " << m_presets_group << " to group " << active_group;
     m_presets_group = active_group;
     const PrinterGroupPresets presets = m_group_presets[active_group];
+    // The sidebar and the tabs reload for the other printer as if it had just been chosen, which pushes
+    // its nozzle and flow defaults into the filament maps of the plates. A group switch changes no
+    // plate: what the slicer stored there has to stay, or a sliced plate no longer matches its result.
+    static const t_config_option_keys plate_map_keys = {"filament_map_mode", "filament_map", "filament_volume_map", "filament_nozzle_map"};
+    std::vector<DynamicPrintConfig>   plate_maps;
+    for (PartPlate *plate : partplate_list.get_plate_list()) {
+        plate_maps.emplace_back();
+        plate_maps.back().apply_only(*plate->config(), plate_map_keys, true);
+    }
+
     m_switching_printer_group = true;
     load_group_presets(presets);
     m_switching_printer_group = false;
+
+    const std::vector<PartPlate *> plates = partplate_list.get_plate_list();
+    for (size_t i = 0; i < plates.size() && i < plate_maps.size(); ++i) {
+        for (const t_config_option_key &key : plate_map_keys)
+            plates[i]->config()->erase(key);
+        plates[i]->config()->apply(plate_maps[i]);
+    }
     update_printer_group_names();
     return true;
 }
