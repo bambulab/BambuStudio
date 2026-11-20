@@ -1140,8 +1140,9 @@ std::optional<DevFilamentStep> DevFilaSystem::GetCurrentFilamentChangeStep() con
 }
 std::vector<DevFilamentStep> DevFilaSystem::GetCurrentFilamentChangeSteps() const
 {
-    if (m_owner->GetMcTask().IsValid() && m_filament_change_steps_multi.size() > m_owner->GetMcTask().GetSubStep() && m_filament_change_steps_multi.size() > 1) {
-        return m_filament_change_steps_multi[m_owner->GetMcTask().GetSubStep()];
+    auto mc_task = m_owner->GetMcTask();
+    if (GetFilamentChangingSlots().size() > 1 && m_filament_change_steps_multi.size() > mc_task.GetSubStep() && m_filament_change_steps_multi.size() > 1) {
+        return m_filament_change_steps_multi[mc_task.GetSubStep()];
     };
 
     return m_filament_change_steps;
