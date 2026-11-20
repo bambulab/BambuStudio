@@ -3321,6 +3321,23 @@ std::vector<std::string> PresetCollection::dirty_options_without_option_list(con
     return changed;
 }
 
+void PresetCollection::set_preset_float(size_t idx, const std::string &opt_key, double value, bool copies_follow)
+{
+    Preset            &preset   = m_presets[idx];
+    ConfigOptionFloat *opt      = preset.config.option<ConfigOptionFloat>(opt_key);
+    const double       previous = opt->value;
+    opt->value = value;
+    if (!copies_follow)
+        return;
+    for (Preset *copy : { &m_edited_preset, &m_saved_preset }) {
+        if (copy->name != preset.name)
+            continue;
+        ConfigOptionFloat *copy_opt = copy->config.option<ConfigOptionFloat>(opt_key);
+        if (copy_opt->value == previous)
+            copy_opt->value = value;
+    }
+}
+
 // Select a new preset. This resets all the edits done to the currently selected preset.
 // If the preset with index idx does not exist, a first visible preset is selected.
 Preset& PresetCollection::select_preset(size_t idx)

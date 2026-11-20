@@ -661,6 +661,9 @@ public:
         return (idx == m_idx_selected) ? m_edited_preset : m_presets[idx];
     }
     const Preset&   preset(size_t idx) const    { return const_cast<PresetCollection*>(this)->preset(idx); }
+    // Sets a float option of the preset at idx. With copies_follow, its edited and saved copies follow while they
+    // still hold the previous value, so the change does not show up as a user modification.
+    void            set_preset_float(size_t idx, const std::string &opt_key, double value, bool copies_follow);
     void            discard_current_changes() {
         m_presets[m_idx_selected].reset_dirty();
         m_edited_preset = m_presets[m_idx_selected];

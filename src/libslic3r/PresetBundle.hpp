@@ -464,7 +464,7 @@ public:
     // Load user configuration and store it into the user profiles.
     // This method is called by the configuration wizard.
     void                        load_config_from_wizard(const std::string &name, DynamicPrintConfig config, Semver file_version)
-        { this->load_config_file_config(name, false, std::move(config), file_version, true); }
+        { this->load_config_file_config(name, false, std::move(config), file_version, true); this->forget_loaded_process_keys(); }
 
     // Load configuration that comes from a model file containing configuration, such as 3MF et al.
     // This method is called by the Plater.
@@ -531,6 +531,17 @@ public:
     void                        update_compatible(PresetSelectCompatibleType select_other_print_if_incompatible, PresetSelectCompatibleType select_other_filament_if_incompatible);
     void                        update_compatible(PresetSelectCompatibleType select_other_if_incompatible) { this->update_compatible(select_other_if_incompatible, select_other_if_incompatible); }
 
+    // While uses_multi_nozzle_initial_layer_line_width() holds for the edited printer and the project, the system
+    // process presets hold multi_nozzle_initial_layer_line_width for multi_nozzle_initial_layer_line_width_keys, and
+    // the user process presets that follow their system parent's value follow it there too. Otherwise the replaced
+    // values are put back. update_compatible() calls it; a multi_nozzle_diameter_mode change without a printer
+    // switch has to call it as well.
+    void                        update_multi_nozzle_process_values();
+    // Forgets the keys of the last loaded 3mf's different_settings_to_system that update_multi_nozzle_process_values()
+    // keeps on the edited process. Call it once the project's multi_nozzle_diameter_mode is restored and the process
+    // values follow it.
+    void                        forget_loaded_process_keys();
+
     /**
      * \brief Replace the built-in default process and filament presets with the printer's preferred ones
      *
@@ -589,6 +600,15 @@ private:
 
     DynamicPrintConfig          full_fff_config(bool apply_extruder, std::optional<std::vector<int>> filament_maps=std::nullopt, std::optional<std::vector<int>> filament_volume_maps=std::nullopt) const;
     DynamicPrintConfig          full_sla_config() const;
+
+    // Process values update_multi_nozzle_process_values() replaced, by preset name and key: the own value of a system
+    // preset, or the system value a user preset follows. std::nullopt marks a user preset that keeps a value of its own.
+    std::map<std::string, std::map<std::string, std::optional<double>>> m_multi_nozzle_process_values;
+    // Edited process after the last config load, and the multi_nozzle_initial_layer_line_width_keys its
+    // different_settings_to_system lists. Those are the project's own values: the edited and saved copies of that
+    // process keep them while update_multi_nozzle_process_values() replaces the preset's values.
+    std::string           m_loaded_process_name;
+    std::set<std::string> m_loaded_process_keys;
 };
 
 ENABLE_ENUM_BITMASK_OPERATORS(PresetBundle::LoadConfigBundleAttribute)

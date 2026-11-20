@@ -643,6 +643,9 @@ PresetBundle& PresetBundle::operator=(const PresetBundle &rhs)
     extruder_ams_counts     = rhs.extruder_ams_counts;
     extruder_ams_selections = rhs.extruder_ams_selections;
     nozzle_inventory        = rhs.nozzle_inventory;
+    m_multi_nozzle_process_values = rhs.m_multi_nozzle_process_values;
+    m_loaded_process_name         = rhs.m_loaded_process_name;
+    m_loaded_process_keys         = rhs.m_loaded_process_keys;
 
     // Adjust Preset::vendor pointers to point to the copied vendors map.
     prints       .update_vendor_ptrs_after_copy(this->vendors);
@@ -673,6 +676,7 @@ void PresetBundle::reset(bool delete_files)
     this->obsolete_presets.sla_materials.clear();
     this->obsolete_presets.printers.clear();
     this->extruder_ams_selections.clear();
+    this->m_multi_nozzle_process_values.clear();
 }
 
 void PresetBundle::setup_directories()
@@ -5387,6 +5391,8 @@ ConfigSubstitutions PresetBundle::load_config_file(const std::string &path, Forw
         ConfigSubstitutions config_substitutions = config.load_from_gcode_file(path, compatibility_rule);
         Preset::normalize(config);
 		load_config_file_config(path, true, std::move(config));
+        // No project mode is restored after an import.
+        this->forget_loaded_process_keys();
 		return config_substitutions;
 	}
 
@@ -5692,6 +5698,11 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
         }
 
         load_preset(this->prints, 0, "print_settings_id", print_different_keys_set, std::string());
+        m_loaded_process_name = this->prints.get_edited_preset().name;
+        m_loaded_process_keys.clear();
+        for (const char *opt_key : multi_nozzle_initial_layer_line_width_keys)
+            if (print_different_keys_set.count(opt_key) != 0)
+                m_loaded_process_keys.insert(opt_key);
 
         //clear compatible printers
         clear_compatible_printers(config);
@@ -7656,8 +7667,94 @@ bool PresetBundle::replace_default_presets()
     return changed;
 }
 
+void PresetBundle::update_multi_nozzle_process_values()
+{
+    const bool active = uses_multi_nozzle_initial_layer_line_width(this->printers.get_edited_preset().config,
+                                                                   multi_nozzle_diameter_mode_enabled(this->project_config));
+    if (!active && m_multi_nozzle_process_values.empty())
+        return;
+
+    auto value_of = [this](size_t idx, const std::string &opt_key) {
+        return this->prints.preset(idx, true).config.option<ConfigOptionFloat>(opt_key)->value;
+    };
+    // The system preset a user preset inherits from, null for system and default presets.
+    auto system_parent = [this](size_t idx) -> const Preset * {
+        const Preset &preset = this->prints.preset(idx, true);
+        if (preset.is_system || preset.is_default)
+            return nullptr;
+        const Preset *parent = this->prints.get_preset_parent(preset);
+        return parent != nullptr && parent->is_system ? parent : nullptr;
+    };
+    // The loaded project's own values stay on the edited and saved copies of its process.
+    auto copies_follow = [this](size_t idx, const std::string &opt_key) {
+        return this->prints.preset(idx, true).name != m_loaded_process_name || m_loaded_process_keys.count(opt_key) == 0;
+    };
+
+    if (active) {
+        // User presets first, while their system parents still hold the values the user presets are compared with.
+        for (size_t idx = 0; idx < this->prints.size(); ++idx) {
+            const Preset *parent = system_parent(idx);
+            if (parent == nullptr)
+                continue;
+            auto &values = m_multi_nozzle_process_values[this->prints.preset(idx, true).name];
+            for (const char *opt_key : multi_nozzle_initial_layer_line_width_keys) {
+                if (values.count(opt_key) != 0)
+                    continue;
+                const double parent_value = parent->config.option<ConfigOptionFloat>(opt_key)->value;
+                if (value_of(idx, opt_key) != parent_value) {
+                    values[opt_key] = std::nullopt;
+                    continue;
+                }
+                // A parent replaced by an earlier pass already holds multi_nozzle_initial_layer_line_width.
+                const auto parent_values = m_multi_nozzle_process_values.find(parent->name);
+                values[opt_key] = parent_values != m_multi_nozzle_process_values.end() && parent_values->second.count(opt_key) != 0 ?
+                    parent_values->second.at(opt_key) : parent_value;
+                this->prints.set_preset_float(idx, opt_key, multi_nozzle_initial_layer_line_width, copies_follow(idx, opt_key));
+            }
+        }
+        for (size_t idx = 0; idx < this->prints.size(); ++idx) {
+            const Preset &preset = this->prints.preset(idx, true);
+            if (!preset.is_system)
+                continue;
+            for (const char *opt_key : multi_nozzle_initial_layer_line_width_keys) {
+                const double value = value_of(idx, opt_key);
+                if (value == multi_nozzle_initial_layer_line_width)
+                    continue;
+                m_multi_nozzle_process_values[preset.name][opt_key] = value;
+                this->prints.set_preset_float(idx, opt_key, multi_nozzle_initial_layer_line_width, copies_follow(idx, opt_key));
+            }
+        }
+        return;
+    }
+
+    for (size_t idx = 0; idx < this->prints.size(); ++idx) {
+        auto values = m_multi_nozzle_process_values.find(this->prints.preset(idx, true).name);
+        if (values == m_multi_nozzle_process_values.end()) {
+            // A user preset saved while the values were replaced follows its system parent when it holds the replaced value.
+            const Preset *parent = system_parent(idx);
+            if (parent == nullptr)
+                continue;
+            values = m_multi_nozzle_process_values.find(parent->name);
+            if (values == m_multi_nozzle_process_values.end())
+                continue;
+        }
+        for (const auto &[opt_key, previous] : values->second)
+            if (previous && value_of(idx, opt_key) == multi_nozzle_initial_layer_line_width)
+                this->prints.set_preset_float(idx, opt_key, *previous, copies_follow(idx, opt_key));
+    }
+    m_multi_nozzle_process_values.clear();
+}
+
+void PresetBundle::forget_loaded_process_keys()
+{
+    m_loaded_process_name.clear();
+    m_loaded_process_keys.clear();
+}
+
 void PresetBundle::update_compatible(PresetSelectCompatibleType select_other_print_if_incompatible, PresetSelectCompatibleType select_other_filament_if_incompatible)
 {
+    this->update_multi_nozzle_process_values();
+
     const Preset					&printer_preset					    = this->printers.get_edited_preset();
 	const PresetWithVendorProfile    printer_preset_with_vendor_profile = this->printers.get_preset_with_vendor_profile(printer_preset);
 

@@ -3541,6 +3541,17 @@ int CLI::run(int argc, char **argv)
         }
     }
 
+    // A system process read in multi-diameter mode holds the multi-diameter first-layer line widths, as the GUI's
+    // system process presets do there.
+    const bool multi_nozzle_process_values = uses_multi_nozzle_initial_layer_line_width(machine_config, is_multi_nozzle_diameter_mode);
+    auto apply_multi_nozzle_process_values = [multi_nozzle_process_values](DynamicPrintConfig &system_process) {
+        if (multi_nozzle_process_values)
+            for (const char *opt_key : multi_nozzle_initial_layer_line_width_keys)
+                system_process.option<ConfigOptionFloat>(opt_key, true)->value = multi_nozzle_initial_layer_line_width;
+    };
+    if (!load_process_config.empty() && (new_process_name.empty() || new_process_config_is_system))
+        apply_multi_nozzle_process_values(load_process_config);
+
     // Validate compatible_printers for externally loaded filament presets.
     if (check_preset && !is_multi_nozzle_diameter_mode) {
         std::string effective_printer_system_name;
@@ -3624,6 +3635,7 @@ int CLI::run(int argc, char **argv)
                 else {
                     //same as the other process configs loaded from process_full
                     load_default_gcodes_to_config(config, Preset::TYPE_PRINT);
+                    apply_multi_nozzle_process_values(config);
 
                     //the variants of the 3mf, saved before merging; an old 3mf without variants is for the default variant
                     std::vector<std::string> print_extruder_variants;

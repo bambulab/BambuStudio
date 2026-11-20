@@ -2331,6 +2331,16 @@ double multi_nozzle_prime_tower_line_width(const ConfigBase &config, double nozz
 double multi_nozzle_prime_tower_ramming_line_width(const ConfigBase &config, double nozzle_diameter, double preset_value);
 double multi_nozzle_prime_tower_feedrate_factor(const ConfigBase &config, double nozzle_diameter, double preset_value);
 
+// Single-extruder multi-nozzle machines (handle_hotend_as_extruder) author wide first-layer line widths on their
+// process presets, and multi-diameter mode scales an authored width by the nozzle ratio, which carries those widths
+// far too wide on the large nozzles. While multi-diameter mode is on for such a machine, the system process presets
+// hold multi_nozzle_initial_layer_line_width for these keys, a width authored for the 0.4 nozzle the process preset
+// sits on.
+inline constexpr double multi_nozzle_initial_layer_line_width = 0.42;
+inline constexpr std::array<const char *, 2> multi_nozzle_initial_layer_line_width_keys {
+    "initial_layer_line_width", "initial_layer_infill_line_width" };
+bool uses_multi_nozzle_initial_layer_line_width(const ConfigBase &printer_config, bool multi_nozzle_diameter_mode);
+
 // Whether the printer offers more than one nozzle diameter to pick from. This is the machine capability,
 // not what a print uses: with a single diameter available nothing downstream may behave as multi-diameter.
 // Always false while multi_nozzle_diameter_mode is off.

@@ -406,6 +406,13 @@ double multi_nozzle_prime_tower_feedrate_factor(const ConfigBase &config, double
     return multi_nozzle_value(config, nozzle_diameter, preset_value, &MultiNozzleDiameterRule::prime_tower_feedrate_factor);
 }
 
+bool uses_multi_nozzle_initial_layer_line_width(const ConfigBase &printer_config, bool multi_nozzle_diameter_mode)
+{
+    const auto *hotend_as_extruder = printer_config.option<ConfigOptionBool>("handle_hotend_as_extruder");
+    return multi_nozzle_diameter_mode && supports_multi_nozzle_diameter_mode(printer_config) &&
+           hotend_as_extruder != nullptr && hotend_as_extruder->value;
+}
+
 // The diameters that describe what the machine offers: per-slot where that data is authoritative,
 // per-extruder otherwise. Per-slot diameters describe the capability of both single-extruder multi-nozzle
 // machines and H2C-class multi-extruder machines. The "offers more than one diameter" query reads this.

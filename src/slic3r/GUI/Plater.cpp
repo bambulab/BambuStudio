@@ -2211,6 +2211,8 @@ bool Sidebar::priv::apply_multi_nozzle_diameter_mode(bool enabled, const std::op
             // so they need another pass once the gate is back to its previous value. The return point
             // is kept so a later attempt can still use it.
             option->value = true;
+            wxGetApp().preset_bundle->update_multi_nozzle_process_values();
+            reload_print_tab_from_edited_preset();
             refresh_multi_nozzle_preset_choices();
             return false;
         }
@@ -2218,6 +2220,9 @@ bool Sidebar::priv::apply_multi_nozzle_diameter_mode(bool enabled, const std::op
         restore_multi_nozzle_auto_process_edits();
     }
 
+    // Turning the mode on writes the gate after the printer switch, so the process values follow only here.
+    wxGetApp().preset_bundle->update_multi_nozzle_process_values();
+    reload_print_tab_from_edited_preset();
     refresh_multi_nozzle_preset_choices();
     // On the turn-on path the gate is written after select_preset(), so the nozzles and the
     // mode-dependent printer/process UI are refreshed once the final mode value is available.
@@ -2272,6 +2277,8 @@ static void clear_multi_nozzle_diameter_mode()
     PresetBundle *preset_bundle = wxGetApp().preset_bundle;
     if (auto *option = preset_bundle->project_config.option<ConfigOptionBool>("multi_nozzle_diameter_mode"))
         option->value = false;
+    preset_bundle->update_multi_nozzle_process_values();
+    reload_print_tab_from_edited_preset();
     // N10 spells custom grouping as fmmNozzleManual while the gate is on. Dropping the gate leaves
     // that value on the project and on the plate, and the plate value is the one slicing reads.
     if (auto *mode_opt = preset_bundle->project_config.option<ConfigOptionEnum<FilamentMapMode>>("filament_map_mode")) {
@@ -5922,6 +5929,8 @@ MultiDiameterPresetMigrationResult Sidebar::try_migrate_multi_diameter_printer_p
     sync_custom_map_mode_with_diameter_mode();
     preset_bundle->validate_filament_nozzle_diameter_selections();
     preset_bundle->update_compatible(PresetSelectCompatibleType::Never);
+    // The process values follow target_multi_diameter_mode also when the printer preset stayed the same.
+    reload_print_tab_from_edited_preset();
     apply_nozzle_manual_maps_to_plates();
 
     refresh_multi_nozzle_preset_choices();
@@ -12883,6 +12892,9 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                             preset_bundle->project_config.opt<ConfigOptionBool>("multi_nozzle_diameter_mode", true)->value =
                                 file_multi_nozzle_diameter_mode;
                             preset_bundle->nozzle_inventory.open_project(preset_bundle->printers, file_nozzle_keys);
+                            // load_config_model() selected the presets under the previous project's mode.
+                            preset_bundle->update_multi_nozzle_process_values();
+                            preset_bundle->forget_loaded_process_keys();
 
                             ConfigOption* bed_type_opt = preset_bundle->project_config.option("curr_bed_type");
                             if (bed_type_opt != nullptr) {
