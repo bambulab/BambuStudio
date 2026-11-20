@@ -2912,7 +2912,10 @@ void MixedFilamentDialog::run_color_match()
             return decompose_normalize_color_hex(m_physical_colors[i]) == target_hex;
         };
 
-        // Use the measured recipe table when a complete, same-diameter official PLA Palette CMYKW kit exists.
+        // The closest measured CMYKW recipe depends only on the target color. Use it when one same-diameter group of
+        // official PLA Palette filaments holds every base color it needs; otherwise match the project filaments.
+        // Measured and model-predicted colors are not comparable, so a less close measured recipe is never used, and
+        // adding or removing a filament the recipe does not use keeps the result.
         const std::vector<DecomposeOfficialComponent> official_components = pla_palette_cmykw_official_components();
         std::set<size_t> excluded_config_indices;
         for (size_t i = 0; i < m_physical_colors.size() && i < m_physical_config_indices.size(); ++i) {
@@ -2920,7 +2923,6 @@ void MixedFilamentDialog::run_color_match()
                 excluded_config_indices.insert(m_physical_config_indices[i]);
         }
         const std::vector<OfficialMixingKitGroup> kit_groups = collect_official_mixing_kit_groups(excluded_config_indices);
-        const OfficialMixingKitGroup* kit_group = find_complete_official_mixing_kit(kit_groups);
         auto physical_of_config = [this](int config_idx) {
             if (config_idx < 0)
                 return -1;
@@ -2928,26 +2930,33 @@ void MixedFilamentDialog::run_color_match()
             return it == m_physical_config_indices.end() ? -1 : int(it - m_physical_config_indices.begin());
         };
 
-        if (kit_group) {
-            const Slic3r::ColorDecomposeRecipeResult recipe = Slic3r::lookup_standard_recipe(
-                target_rgb, Slic3r::ColorDecomposeRecipeMode::CMYKW, kDecomposePlaPaletteType);
-            if (recipe.valid) {
-                for (const auto& comp : recipe.components) {
-                    const std::string color_hex = decompose_normalize_color_hex(comp.color_hex);
-                    const auto component = std::find_if(official_components.begin(), official_components.end(),
-                        [&](const DecomposeOfficialComponent& official) { return official.color_hex == color_hex; });
-                    if (component == official_components.end()) {
-                        result = {};
-                        break;
-                    }
-                    const int phys = physical_of_config(kit_group->config_indices[size_t(component - official_components.begin())]);
-                    if (phys < 0) {
-                        result = {};
-                        break;
-                    }
-                    result.components.push_back((unsigned int)(phys + 1));
-                    result.ratios.push_back(comp.ratio);
+        const Slic3r::ColorDecomposeRecipeResult recipe = Slic3r::lookup_standard_recipe(
+            target_rgb, Slic3r::ColorDecomposeRecipeMode::CMYKW, kDecomposePlaPaletteType);
+        std::vector<size_t> recipe_slots;
+        if (recipe.valid) {
+            for (const auto& comp : recipe.components) {
+                const std::string color_hex = decompose_normalize_color_hex(comp.color_hex);
+                const auto component = std::find_if(official_components.begin(), official_components.end(),
+                    [&](const DecomposeOfficialComponent& official) { return official.color_hex == color_hex; });
+                if (component == official_components.end()) {
+                    recipe_slots.clear();
+                    break;
                 }
+                recipe_slots.push_back(size_t(component - official_components.begin()));
+            }
+        }
+        const OfficialMixingKitGroup* kit_group = (recipe_slots.size() >= 2 && recipe_slots.size() == recipe.components.size())
+            ? find_official_mixing_kit_with_slots(kit_groups, recipe_slots) : nullptr;
+
+        if (kit_group) {
+            for (size_t i = 0; i < recipe_slots.size(); ++i) {
+                const int phys = physical_of_config(kit_group->config_indices[recipe_slots[i]]);
+                if (phys < 0) {
+                    result = {};
+                    break;
+                }
+                result.components.push_back((unsigned int)(phys + 1));
+                result.ratios.push_back(recipe.components[i].ratio);
             }
             if (result.components.size() < 2 || result.ratios.size() != result.components.size())
                 result = {};

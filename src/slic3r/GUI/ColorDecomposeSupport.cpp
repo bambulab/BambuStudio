@@ -536,6 +536,22 @@ const OfficialMixingKitGroup* find_complete_official_mixing_kit(const std::vecto
     return best;
 }
 
+const OfficialMixingKitGroup* find_official_mixing_kit_with_slots(const std::vector<OfficialMixingKitGroup>& groups,
+                                                                  const std::vector<size_t>& slots)
+{
+    const OfficialMixingKitGroup* best = nullptr;
+    for (const OfficialMixingKitGroup& group : groups) {
+        const bool has_all = std::all_of(slots.begin(), slots.end(), [&group](size_t slot) {
+            return slot < group.config_indices.size() && group.config_indices[slot] >= 0;
+        });
+        if (!has_all)
+            continue;
+        if (!best || official_kit_diameter_rank(group.diameter) < official_kit_diameter_rank(best->diameter))
+            best = &group;
+    }
+    return best;
+}
+
 OfficialMixingKitAddPlan plan_official_mixing_kit_addition(size_t reserve_slots,
                                                            const std::set<size_t>& protected_indices)
 {
