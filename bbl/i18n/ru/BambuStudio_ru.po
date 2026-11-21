@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio 2.0.2 Public Release\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-20 09:44+0800\n"
+"POT-Creation-Date: 2026-11-21 17:56+0800\n"
 "PO-Revision-Date: 2025-04-22 16:37+0700\n"
 "Last-Translator: \n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -7893,6 +7893,12 @@ msgstr "Если установить температуру камеры ниж
 msgid "Failed to start printing job"
 msgstr "Не удалось запустить задание на печать"
 
+msgid "Continue taking"
+msgstr ""
+
+msgid "Continue loading"
+msgstr ""
+
 msgid "Active operations"
 msgstr "Активные операции"
 
@@ -12052,8 +12058,11 @@ msgstr "Высота модели"
 msgid "Network error"
 msgstr "Ошибка сети"
 
-msgid "Unknown error"
-msgstr "Неизвестная ошибка"
+msgid "No details available"
+msgstr ""
+
+msgid "Failed to load more details"
+msgstr ""
 
 msgid "Recent Helio Runs"
 msgstr "Последние запуски Helio"
@@ -13939,6 +13948,12 @@ msgstr "Переключить режим просмотра прямой тра
 msgid "Current camera is abnormal"
 msgstr "Текущая камера работает некорректно"
 
+msgid "Camera preparing, please try again later..."
+msgstr "Подготовка камеры, пожалуйста, повторите попытку позже..."
+
+msgid "Printer camera is malfunctioning."
+msgstr "Камера принтера работает некорректно."
+
 msgid "Loading failed. Please check the network and try again."
 msgstr "Не удалось загрузить. Проверьте сеть и повторите попытку."
 
@@ -13948,12 +13963,6 @@ msgstr "Видеотрансляция временно приостановле
 # ??? было Трансляция с видеокамеры временно отключена из-за длительного отсутствия печати.
 msgid "Temporarily closed because there is no printing for a while."
 msgstr "Видеотрансляция временно приостановлена из-за длительного отсутствия печати."
-
-msgid "Camera preparing, please try again later..."
-msgstr "Подготовка камеры, пожалуйста, повторите попытку позже..."
-
-msgid "Printer camera is malfunctioning."
-msgstr "Камера принтера работает некорректно."
 
 msgid "Problem occurred. Please update the printer firmware and try again."
 msgstr "Возникла проблема. Обновите прошивку принтера и повторите попытку."
@@ -16167,8 +16176,8 @@ msgid "Filament %s is not configured for the current nozzle settings. Please cha
 msgstr "Филамент %s не настроен для текущих параметров сопла. Перед использованием замените сопло или филамент."
 
 #, c-format, boost-format
-msgid "Filament %s has no %s nozzle in the nozzle settings. Please add that nozzle type before use."
-msgstr "Для филамента %s в настройках сопел отсутствует сопло %s. Перед использованием добавьте этот тип сопла."
+msgid "Filament %s uses a %s nozzle, which is not available on this printer. Add it or select an available nozzle."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Filament %s has no nozzle in the nozzle settings that fits it. Please add that nozzle type before use."
@@ -17127,9 +17136,6 @@ msgstr "Проверьте, соответствуют ли требуемые �
 
 msgid "Current printer firmware does not yet support large flushing volumes. The flushing volume set in the slicer may be limited."
 msgstr "Текущая версия прошивки принтера пока не поддерживает большие объёмы промывки. Объём промывки, заданный в слайсере, может быть ограничен."
-
-msgid "Filament not loaded. Loading will start automatically before printing."
-msgstr "Филамент не загружен. Загрузка начнётся автоматически перед печатью."
 
 #, c-format, boost-format
 msgid "The current firmware supports a maximum of %s materials. You can either reduce the number of materials to %s or fewer on the Preparation Page, or try updating the firmware. If you are still restricted after the update, please wait for subsequent firmware support."
@@ -20362,8 +20368,8 @@ msgstr "Нагрев"
 msgid "Unmapped"
 msgstr "Не сопоставлено"
 
-msgid "The current nozzle diameter is incompatible with the printer"
-msgstr "Текущий диаметр сопла несовместим с принтером"
+msgid "Nozzle diameter mismatch after filament synchronization"
+msgstr ""
 
 msgid "Set nozzle count"
 msgstr "Установить количество сопел"
@@ -21559,6 +21565,19 @@ msgid ""
 msgstr ""
 "Надёжный результат с первой попытки\n"
 "Меньше постоянного контроля — более предсказуемый результат. Например, небольшая ферма, печатающая детали из PETG, избегает неожиданных сбоев на шестом часу печати и выпускает партии по графику."
+
+#~ msgid "Unknown error"
+#~ msgstr "Неизвестная ошибка"
+
+#, c-format, boost-format
+#~ msgid "Filament %s has no %s nozzle in the nozzle settings. Please add that nozzle type before use."
+#~ msgstr "Для филамента %s в настройках сопел отсутствует сопло %s. Перед использованием добавьте этот тип сопла."
+
+#~ msgid "Filament not loaded. Loading will start automatically before printing."
+#~ msgstr "Филамент не загружен. Загрузка начнётся автоматически перед печатью."
+
+#~ msgid "The current nozzle diameter is incompatible with the printer"
+#~ msgstr "Текущий диаметр сопла несовместим с принтером"
 
 #~ msgid "slot"
 #~ msgstr "Слот"

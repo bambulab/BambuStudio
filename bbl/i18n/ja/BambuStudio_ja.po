@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-20 09:44+0800\n"
+"POT-Creation-Date: 2026-11-21 17:56+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -7797,6 +7797,12 @@ msgstr "チャンバー温度を40°C未満に設定すると、チャンバー�
 msgid "Failed to start printing job"
 msgstr "造形ジョブを開始できませんでした。"
 
+msgid "Continue taking"
+msgstr ""
+
+msgid "Continue loading"
+msgstr ""
+
 msgid "Active operations"
 msgstr "実行中の操作"
 
@@ -11892,8 +11898,11 @@ msgstr "モデルの高さ"
 msgid "Network error"
 msgstr "ネットワークエラー"
 
-msgid "Unknown error"
-msgstr "不明なエラー"
+msgid "No details available"
+msgstr ""
+
+msgid "Failed to load more details"
+msgstr ""
 
 msgid "Recent Helio Runs"
 msgstr "最近の Helio 実行履歴"
@@ -13763,6 +13772,12 @@ msgstr "ライブカメラビューを切り替え"
 msgid "Current camera is abnormal"
 msgstr "現在のカメラが異常です"
 
+msgid "Camera preparing, please try again later..."
+msgstr "カメラを準備中です。後でもう一度お試しください..."
+
+msgid "Printer camera is malfunctioning."
+msgstr "プリンタのカメラが正常に動作していません。"
+
 msgid "Loading failed. Please check the network and try again."
 msgstr "読み込みに失敗しました。ネットワーク接続を確認して、もう一度お試しください。"
 
@@ -13771,12 +13786,6 @@ msgstr "しばらく操作がなかったため、一時的に閉じられまし
 
 msgid "Temporarily closed because there is no printing for a while."
 msgstr "しばらく印刷が行われなかったため、一時的に閉じられました。"
-
-msgid "Camera preparing, please try again later..."
-msgstr "カメラを準備中です。後でもう一度お試しください..."
-
-msgid "Printer camera is malfunctioning."
-msgstr "プリンタのカメラが正常に動作していません。"
 
 msgid "Problem occurred. Please update the printer firmware and try again."
 msgstr "問題が発生しました。プリンタのファームウェアを更新し、再試行してください。"
@@ -15972,8 +15981,8 @@ msgid "Filament %s is not configured for the current nozzle settings. Please cha
 msgstr "フィラメント%sは現在のノズル設定用に設定されていません。使用前にノズルまたはフィラメントを変更してください。"
 
 #, c-format, boost-format
-msgid "Filament %s has no %s nozzle in the nozzle settings. Please add that nozzle type before use."
-msgstr "フィラメント%sには、ノズル設定に%sノズルがありません。使用前にそのノズル種類を追加してください。"
+msgid "Filament %s uses a %s nozzle, which is not available on this printer. Add it or select an available nozzle."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Filament %s has no nozzle in the nozzle settings that fits it. Please add that nozzle type before use."
@@ -16911,9 +16920,6 @@ msgstr "必要なノズル径とフロー速度が現在の表示内容と一致
 
 msgid "Current printer firmware does not yet support large flushing volumes. The flushing volume set in the slicer may be limited."
 msgstr "現在のプリンターファームウェアは、大きなフラッシュ量にはまだ対応していません。スライサーで設定されたフラッシュ量は制限される可能性があります。"
-
-msgid "Filament not loaded. Loading will start automatically before printing."
-msgstr "フィラメントがロードされていません。造形前にロードが自動的に開始されます。"
 
 #, c-format, boost-format
 msgid "The current firmware supports a maximum of %s materials. You can either reduce the number of materials to %s or fewer on the Preparation Page, or try updating the firmware. If you are still restricted after the update, please wait for subsequent firmware support."
@@ -20067,8 +20073,8 @@ msgstr "加熱"
 msgid "Unmapped"
 msgstr "未マッピング"
 
-msgid "The current nozzle diameter is incompatible with the printer"
-msgstr "現在のノズル径はプリンターと互換性がありません"
+msgid "Nozzle diameter mismatch after filament synchronization"
+msgstr ""
 
 msgid "Set nozzle count"
 msgstr "ノズル数を設定"
@@ -21260,6 +21266,19 @@ msgid ""
 msgstr ""
 "一発成功の信頼性\n"
 "見守りの手間を減らし、より予測可能な造形を実現。例：PETG 部品を小規模ファームで運用する場合でも、「6時間目で失敗」といった不意打ちを避け、バッチを計画どおりに進められます。"
+
+#~ msgid "Unknown error"
+#~ msgstr "不明なエラー"
+
+#, c-format, boost-format
+#~ msgid "Filament %s has no %s nozzle in the nozzle settings. Please add that nozzle type before use."
+#~ msgstr "フィラメント%sには、ノズル設定に%sノズルがありません。使用前にそのノズル種類を追加してください。"
+
+#~ msgid "Filament not loaded. Loading will start automatically before printing."
+#~ msgstr "フィラメントがロードされていません。造形前にロードが自動的に開始されます。"
+
+#~ msgid "The current nozzle diameter is incompatible with the printer"
+#~ msgstr "現在のノズル径はプリンターと互換性がありません"
 
 #~ msgid "slot"
 #~ msgstr "スロット"

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-20 09:44+0800\n"
+"POT-Creation-Date: 2026-11-21 17:56+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -7797,6 +7797,12 @@ msgstr "Cuando establezca la temperatura de la cámara por debajo de 40 ℃, el 
 msgid "Failed to start printing job"
 msgstr "No se pudo iniciar la impresión"
 
+msgid "Continue taking"
+msgstr ""
+
+msgid "Continue loading"
+msgstr ""
+
 msgid "Active operations"
 msgstr "Operaciones activas"
 
@@ -11901,8 +11907,11 @@ msgstr "Altura del modelo"
 msgid "Network error"
 msgstr "Error de red"
 
-msgid "Unknown error"
-msgstr "Error desconocido"
+msgid "No details available"
+msgstr ""
+
+msgid "Failed to load more details"
+msgstr ""
 
 msgid "Recent Helio Runs"
 msgstr "Recientes carreras de Helio"
@@ -13781,6 +13790,12 @@ msgstr "Cambiar vista de la cámara en vivo"
 msgid "Current camera is abnormal"
 msgstr "El estado de la cámara actual es anómalo"
 
+msgid "Camera preparing, please try again later..."
+msgstr "Preparando la cámara, inténtalo de nuevo más tarde..."
+
+msgid "Printer camera is malfunctioning."
+msgstr "La cámara de la impresora funciona mal."
+
 msgid "Loading failed. Please check the network and try again."
 msgstr "Carga fallida. Comprueba la red e inténtalo de nuevo."
 
@@ -13789,12 +13804,6 @@ msgstr "Cerrado temporalmente porque no ha habido actividad durante un tiempo."
 
 msgid "Temporarily closed because there is no printing for a while."
 msgstr "Cerrado temporalmente porque hace tiempo que no se imprime."
-
-msgid "Camera preparing, please try again later..."
-msgstr "Preparando la cámara, inténtalo de nuevo más tarde..."
-
-msgid "Printer camera is malfunctioning."
-msgstr "La cámara de la impresora funciona mal."
 
 msgid "Problem occurred. Please update the printer firmware and try again."
 msgstr "Se ha producido un problema. Actualice el firmware de la impresora e inténtelo de nuevo."
@@ -15997,8 +16006,8 @@ msgid "Filament %s is not configured for the current nozzle settings. Please cha
 msgstr "El filamento %s no está configurado para los ajustes actuales de la boquilla. Cambia la boquilla o el filamento antes de usarlo."
 
 #, c-format, boost-format
-msgid "Filament %s has no %s nozzle in the nozzle settings. Please add that nozzle type before use."
-msgstr "El filamento %s no tiene ninguna boquilla %s en los ajustes de la boquilla. Añade ese tipo de boquilla antes de usarlo."
+msgid "Filament %s uses a %s nozzle, which is not available on this printer. Add it or select an available nozzle."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Filament %s has no nozzle in the nozzle settings that fits it. Please add that nozzle type before use."
@@ -16944,9 +16953,6 @@ msgstr "Por favor, verifique si el diámetro de la boquilla y la tasa de flujo r
 
 msgid "Current printer firmware does not yet support large flushing volumes. The flushing volume set in the slicer may be limited."
 msgstr "El firmware actual de la impresora aún no admite grandes volúmenes de purga. El volumen de purga configurado en el slicer puede estar limitado."
-
-msgid "Filament not loaded. Loading will start automatically before printing."
-msgstr "Filamento no cargado. La carga se iniciará automáticamente antes de imprimir."
 
 #, c-format, boost-format
 msgid "The current firmware supports a maximum of %s materials. You can either reduce the number of materials to %s or fewer on the Preparation Page, or try updating the firmware. If you are still restricted after the update, please wait for subsequent firmware support."
@@ -20120,8 +20126,8 @@ msgstr "Calor"
 msgid "Unmapped"
 msgstr "Sin asignar"
 
-msgid "The current nozzle diameter is incompatible with the printer"
-msgstr "El diámetro actual de la boquilla es incompatible con la impresora"
+msgid "Nozzle diameter mismatch after filament synchronization"
+msgstr ""
 
 msgid "Set nozzle count"
 msgstr "Establecer número de boquillas"
@@ -21314,6 +21320,19 @@ msgid ""
 msgstr ""
 "Fiabilidad a la primera\n"
 "Menos supervisión, resultados más predecibles. Ejemplo: una pequeña granja que procesa piezas de PETG evita sorpresas de \"fallo a la hora 6\" y mantiene los lotes según lo previsto."
+
+#~ msgid "Unknown error"
+#~ msgstr "Error desconocido"
+
+#, c-format, boost-format
+#~ msgid "Filament %s has no %s nozzle in the nozzle settings. Please add that nozzle type before use."
+#~ msgstr "El filamento %s no tiene ninguna boquilla %s en los ajustes de la boquilla. Añade ese tipo de boquilla antes de usarlo."
+
+#~ msgid "Filament not loaded. Loading will start automatically before printing."
+#~ msgstr "Filamento no cargado. La carga se iniciará automáticamente antes de imprimir."
+
+#~ msgid "The current nozzle diameter is incompatible with the printer"
+#~ msgstr "El diámetro actual de la boquilla es incompatible con la impresora"
 
 #~ msgid "slot"
 #~ msgstr "Ranura"

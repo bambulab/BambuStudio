@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-20 09:44+0800\n"
+"POT-Creation-Date: 2026-11-21 17:56+0800\n"
 "PO-Revision-Date: 2026-07-28 13:17+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -7784,6 +7784,12 @@ msgstr "当您设置的腔温低于40℃时，腔温控制将不会启动。并�
 msgid "Failed to start printing job"
 msgstr "发起打印任务失败"
 
+msgid "Continue taking"
+msgstr ""
+
+msgid "Continue loading"
+msgstr ""
+
 msgid "Active operations"
 msgstr "本设备正在进行以下操作"
 
@@ -8762,10 +8768,10 @@ msgstr "其他颜色"
 
 #, c-format, boost-format
 msgid "External Spool %d"
-msgstr ""
+msgstr "外挂料盘 %d"
 
 msgid "External Spool"
-msgstr ""
+msgstr "外挂料盘"
 
 #, c-format, boost-format
 msgid "Slot %d"
@@ -8791,7 +8797,7 @@ msgstr "无耗材"
 
 #, c-format, boost-format
 msgid "Note: %s"
-msgstr ""
+msgstr "备注：%s"
 
 msgid "Loading G-codes"
 msgstr "正在加载G-code"
@@ -8899,7 +8905,7 @@ msgid "Details"
 msgstr "详情"
 
 msgid "Total usage"
-msgstr ""
+msgstr "用量共计"
 
 msgid "Percent"
 msgstr "百分比"
@@ -9028,7 +9034,7 @@ msgid "save %2% filament changes but use %1%g more filament."
 msgstr "可节省 %2% 耗材更换次数，但会多用 %1%g 耗材。"
 
 msgid "Compared to a printer with one nozzle, "
-msgstr ""
+msgstr "相较于单头打印机"
 
 msgid "Set to Optimal"
 msgstr "设置为最优"
@@ -11875,8 +11881,11 @@ msgstr "模型高度"
 msgid "Network error"
 msgstr "网络错误"
 
-msgid "Unknown error"
-msgstr "未知错误。"
+msgid "No details available"
+msgstr ""
+
+msgid "Failed to load more details"
+msgstr ""
 
 msgid "Recent Helio Runs"
 msgstr "最近的 Helio 运行记录"
@@ -13748,6 +13757,12 @@ msgstr "切换实时摄像头画面"
 msgid "Current camera is abnormal"
 msgstr "当前摄像头异常"
 
+msgid "Camera preparing, please try again later..."
+msgstr "相机准备中，请稍后重试..."
+
+msgid "Printer camera is malfunctioning."
+msgstr "打印机摄像头异常。"
+
 msgid "Loading failed. Please check the network and try again."
 msgstr "加载失败。请检查网络后重试。"
 
@@ -13756,12 +13771,6 @@ msgstr "长时间无操作，监控已关闭。"
 
 msgid "Temporarily closed because there is no printing for a while."
 msgstr "因有一段时间未打印，暂时关闭。"
-
-msgid "Camera preparing, please try again later..."
-msgstr "相机准备中，请稍后重试..."
-
-msgid "Printer camera is malfunctioning."
-msgstr "打印机摄像头异常。"
 
 msgid "Problem occurred. Please update the printer firmware and try again."
 msgstr "遇到问题，请更新打印机固件并重试"
@@ -15954,8 +15963,8 @@ msgid "Filament %s is not configured for the current nozzle settings. Please cha
 msgstr "%s 耗材配置不支持当前喷嘴设置，请更换喷嘴或耗材后使用。"
 
 #, c-format, boost-format
-msgid "Filament %s has no %s nozzle in the nozzle settings. Please add that nozzle type before use."
-msgstr "喷嘴设置中没有 %s 耗材对应的 %s 喷嘴，请添加对应喷嘴类型后使用。"
+msgid "Filament %s uses a %s nozzle, which is not available on this printer. Add it or select an available nozzle."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Filament %s has no nozzle in the nozzle settings that fits it. Please add that nozzle type before use."
@@ -19031,6 +19040,9 @@ msgid ""
 "This filament is not recommended for support base. \n"
 "Are you sure to use it for support base? \n"
 msgstr ""
+"不建议将该耗材用作支撑主体。\n"
+"您确定要用它作为支撑主体吗？\n"
+""
 
 msgid "When enabling ironing, We recommend the following settings:"
 msgstr "启用熨烫功能时，我们推荐配置以下参数："
@@ -20056,8 +20068,8 @@ msgstr "加热"
 msgid "Unmapped"
 msgstr "未匹配"
 
-msgid "The current nozzle diameter is incompatible with the printer"
-msgstr "当前喷嘴直径与打印机不兼容。"
+msgid "Nozzle diameter mismatch after filament synchronization"
+msgstr ""
 
 msgid "Set nozzle count"
 msgstr "设置喷嘴数量"
@@ -20199,7 +20211,7 @@ msgid "Sync Printer Information"
 msgstr "同步打印机信息"
 
 msgid "The printer model and settings in this 3MF file don't match the target printer. Do you want to adapt these slicing settings for the target printer?"
-msgstr ""
+msgstr "3MF 文件中的打印机型号和设置与目标打印机不一致。是否将切片配置迁移至目标打印机？"
 
 msgid "The printer model and settings in this 3MF file don't match the connected printer. Do you want to adapt these slicing settings for this printer?"
 msgstr "3MF 文件中的打印机型号和设置与当前连接的设备不一致。是否将切片配置迁移至当前连接的打印机？"
@@ -20217,28 +20229,28 @@ msgid "3MF File Settings"
 msgstr "3MF文件配置"
 
 msgid "Target Printer"
-msgstr ""
+msgstr "目标打印机"
 
 msgid "Connected Printer"
 msgstr "连接的打印机"
 
 msgid "Target Nozzle"
-msgstr ""
+msgstr "目标喷嘴"
 
 #, c-format, boost-format
 msgid "%s (only supported)"
 msgstr "%s （仅支持）"
 
 msgid "Target printer"
-msgstr ""
+msgstr "目标打印机"
 
 #, c-format, boost-format
 msgid "%s supports up to %d nozzles. Please reduce the matched nozzles and keep only %d to continue."
-msgstr ""
+msgstr "%s 最多支持 %d 个喷嘴。请减少已匹配喷嘴，仅保留 %d 个后继续。"
 
 #, c-format, boost-format
 msgid "%s doesn't support %s nozzles. Switched to %s nozzle."
-msgstr ""
+msgstr "%s 不支持 %s 喷嘴，已切换成 %s 喷嘴。"
 
 msgid "Don't show this again when opening 3MF files"
 msgstr "打开3mf文件时不再显示弹窗"
@@ -21245,6 +21257,16 @@ msgid ""
 msgstr ""
 "一次成功的可靠性\n"
 "更少盯机，更可预测的产出。例如：小型打印农场打印 PETG 零件可降低意外失败的概率，让批次按计划推进。"
+
+#~ msgid "Unknown error"
+#~ msgstr "未知错误。"
+
+#, c-format, boost-format
+#~ msgid "Filament %s has no %s nozzle in the nozzle settings. Please add that nozzle type before use."
+#~ msgstr "喷嘴设置中没有 %s 耗材对应的 %s 喷嘴，请添加对应喷嘴类型后使用。"
+
+#~ msgid "The current nozzle diameter is incompatible with the printer"
+#~ msgstr "当前喷嘴直径与打印机不兼容。"
 
 #~ msgid "slot"
 #~ msgstr "槽"

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-20 09:44+0800\n"
+"POT-Creation-Date: 2026-11-21 17:56+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -7791,6 +7791,12 @@ msgstr "Si la température de la chambre en dessous de 40 ℃, le contrôle de l
 msgid "Failed to start printing job"
 msgstr "Échec du lancement de l'impression"
 
+msgid "Continue taking"
+msgstr ""
+
+msgid "Continue loading"
+msgstr ""
+
 msgid "Active operations"
 msgstr "Opérations en cours"
 
@@ -11893,8 +11899,11 @@ msgstr "Hauteur du modèle"
 msgid "Network error"
 msgstr "Erreur réseau"
 
-msgid "Unknown error"
-msgstr "Erreur inconnue"
+msgid "No details available"
+msgstr ""
+
+msgid "Failed to load more details"
+msgstr ""
 
 msgid "Recent Helio Runs"
 msgstr "Dernières Exécutions Helio"
@@ -13769,6 +13778,12 @@ msgstr "Basculer vers la vue de la caméra en direct"
 msgid "Current camera is abnormal"
 msgstr "La caméra actuelle est anormale"
 
+msgid "Camera preparing, please try again later..."
+msgstr "Préparation de la caméra, veuillez réessayer plus tard..."
+
+msgid "Printer camera is malfunctioning."
+msgstr "La caméra de l'imprimante ne fonctionne pas correctement."
+
 msgid "Loading failed. Please check the network and try again."
 msgstr "Échec du chargement. Veuillez vérifier votre connexion réseau et réessayer."
 
@@ -13777,12 +13792,6 @@ msgstr "Fermé temporairement car il n'y a pas d'activité pendant un certain te
 
 msgid "Temporarily closed because there is no printing for a while."
 msgstr "Fermé temporairement car il n'y a pas eu d'impression depuis un certain temps."
-
-msgid "Camera preparing, please try again later..."
-msgstr "Préparation de la caméra, veuillez réessayer plus tard..."
-
-msgid "Printer camera is malfunctioning."
-msgstr "La caméra de l'imprimante ne fonctionne pas correctement."
 
 msgid "Problem occurred. Please update the printer firmware and try again."
 msgstr "Un problème est survenu. Veuillez mettre à jour le firmware de l'imprimante et réessayer."
@@ -15983,8 +15992,8 @@ msgid "Filament %s is not configured for the current nozzle settings. Please cha
 msgstr "Le filament %s n'est pas configuré pour les paramètres de buse actuels. Veuillez changer la buse ou le filament avant utilisation."
 
 #, c-format, boost-format
-msgid "Filament %s has no %s nozzle in the nozzle settings. Please add that nozzle type before use."
-msgstr "Le filament %s n'a pas de buse %s dans les paramètres de buse. Veuillez ajouter ce type de buse avant utilisation."
+msgid "Filament %s uses a %s nozzle, which is not available on this printer. Add it or select an available nozzle."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Filament %s has no nozzle in the nozzle settings that fits it. Please add that nozzle type before use."
@@ -16926,9 +16935,6 @@ msgstr "Veuillez vérifier si le diamètre et le débit requis de la buse corres
 
 msgid "Current printer firmware does not yet support large flushing volumes. The flushing volume set in the slicer may be limited."
 msgstr "Le firmware actuel de l'imprimante ne prend pas encore en charge les grands volumes de purge. Le volume de purge défini dans le logiciel de découpe peut être limité."
-
-msgid "Filament not loaded. Loading will start automatically before printing."
-msgstr "Filament non chargé. Le chargement démarrera automatiquement avant l'impression."
 
 #, c-format, boost-format
 msgid "The current firmware supports a maximum of %s materials. You can either reduce the number of materials to %s or fewer on the Preparation Page, or try updating the firmware. If you are still restricted after the update, please wait for subsequent firmware support."
@@ -20100,8 +20106,8 @@ msgstr "Chauffe"
 msgid "Unmapped"
 msgstr "Non mappé"
 
-msgid "The current nozzle diameter is incompatible with the printer"
-msgstr "Le diamètre actuel de la buse est incompatible avec l'imprimante"
+msgid "Nozzle diameter mismatch after filament synchronization"
+msgstr ""
 
 msgid "Set nozzle count"
 msgstr "Définir le nombre de buses"
@@ -21296,6 +21302,19 @@ msgid ""
 msgstr ""
 "Fiabilité Garantie du Premier Coup\n"
 "Moins de surveillance, une production plus prévisible. Exemple : une petite exploitation agricole produisant des pièces en PETG évite les mauvaises surprises \"panne au bout de 6 h\" et respecte les délais de production."
+
+#~ msgid "Unknown error"
+#~ msgstr "Erreur inconnue"
+
+#, c-format, boost-format
+#~ msgid "Filament %s has no %s nozzle in the nozzle settings. Please add that nozzle type before use."
+#~ msgstr "Le filament %s n'a pas de buse %s dans les paramètres de buse. Veuillez ajouter ce type de buse avant utilisation."
+
+#~ msgid "Filament not loaded. Loading will start automatically before printing."
+#~ msgstr "Filament non chargé. Le chargement démarrera automatiquement avant l'impression."
+
+#~ msgid "The current nozzle diameter is incompatible with the printer"
+#~ msgstr "Le diamètre actuel de la buse est incompatible avec l'imprimante"
 
 #~ msgid "slot"
 #~ msgstr "emplacement"

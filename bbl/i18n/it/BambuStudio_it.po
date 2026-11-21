@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-20 09:44+0800\n"
+"POT-Creation-Date: 2026-11-21 17:56+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -7802,6 +7802,12 @@ msgstr "Quando si imposta una temperatura della camera inferiore a 40℃, il con
 msgid "Failed to start printing job"
 msgstr "Impossibile avviare il processo di stampa"
 
+msgid "Continue taking"
+msgstr ""
+
+msgid "Continue loading"
+msgstr ""
+
 msgid "Active operations"
 msgstr "Operazioni attive"
 
@@ -11904,8 +11910,11 @@ msgstr "Altezza modello"
 msgid "Network error"
 msgstr "Errore di rete"
 
-msgid "Unknown error"
-msgstr "Errore sconosciuto"
+msgid "No details available"
+msgstr ""
+
+msgid "Failed to load more details"
+msgstr ""
 
 msgid "Recent Helio Runs"
 msgstr "Esecuzioni Helio Recenti"
@@ -13782,6 +13791,12 @@ msgstr "Cambia la visualizzazione della telecamera in diretta"
 msgid "Current camera is abnormal"
 msgstr "La telecamera attualmente in uso presenta un'anomalia"
 
+msgid "Camera preparing, please try again later..."
+msgstr "Preparazione della telecamera in corso, riprova più tardi..."
+
+msgid "Printer camera is malfunctioning."
+msgstr "La fotocamera della stampante non funziona correttamente."
+
 msgid "Loading failed. Please check the network and try again."
 msgstr "Caricamento non riuscito. Verificare la connessione di rete e riprovare."
 
@@ -13790,12 +13805,6 @@ msgstr "Chiuso temporaneamente perché non ci sono attività programmate per un 
 
 msgid "Temporarily closed because there is no printing for a while."
 msgstr "Chiuso temporaneamente, nessuna stampa in corso da tempo"
-
-msgid "Camera preparing, please try again later..."
-msgstr "Preparazione della telecamera in corso, riprova più tardi..."
-
-msgid "Printer camera is malfunctioning."
-msgstr "La fotocamera della stampante non funziona correttamente."
 
 msgid "Problem occurred. Please update the printer firmware and try again."
 msgstr "Si è verificato un problema. Aggiornare il firmware della stampante e riprovare."
@@ -15998,8 +16007,8 @@ msgid "Filament %s is not configured for the current nozzle settings. Please cha
 msgstr "Il filamento %s non è configurato per le impostazioni del nozzle corrente. Prima dell'uso, sostituire il nozzle o il filamento."
 
 #, c-format, boost-format
-msgid "Filament %s has no %s nozzle in the nozzle settings. Please add that nozzle type before use."
-msgstr "Il filamento %s non presenta il nozzle %s nelle impostazioni del nozzle. Specificare il tipo di nozzle prima dell'uso."
+msgid "Filament %s uses a %s nozzle, which is not available on this printer. Add it or select an available nozzle."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Filament %s has no nozzle in the nozzle settings that fits it. Please add that nozzle type before use."
@@ -16939,9 +16948,6 @@ msgstr "Verifica se il diametro del nozzle richiesto e il flusso corrispondono a
 
 msgid "Current printer firmware does not yet support large flushing volumes. The flushing volume set in the slicer may be limited."
 msgstr "Il firmware attuale della stampante non supporta ancora volumi di spurgo elevati. Il volume di spurgo impostato nello slicer potrebbe essere limitato."
-
-msgid "Filament not loaded. Loading will start automatically before printing."
-msgstr "Filamento non caricato. Il caricamento inizierà automaticamente prima della stampa."
 
 #, c-format, boost-format
 msgid "The current firmware supports a maximum of %s materials. You can either reduce the number of materials to %s or fewer on the Preparation Page, or try updating the firmware. If you are still restricted after the update, please wait for subsequent firmware support."
@@ -20111,8 +20117,8 @@ msgstr "Calore"
 msgid "Unmapped"
 msgstr "Non mappato"
 
-msgid "The current nozzle diameter is incompatible with the printer"
-msgstr "Il diametro attuale del nozzle non è compatibile con la stampante"
+msgid "Nozzle diameter mismatch after filament synchronization"
+msgstr ""
 
 msgid "Set nozzle count"
 msgstr "Imposta il numero di nozzle"
@@ -21301,6 +21307,19 @@ msgid ""
 msgstr ""
 "Affidabilità al Primo Tentativo\n"
 "Meno supervisione, risultati più prevedibili. Ad esempio: una piccola produzione che stampa parti in PETG evita sorprese tipo \"fallimento alla sesta ora\" e mantiene i lotti nei tempi previsti."
+
+#~ msgid "Unknown error"
+#~ msgstr "Errore sconosciuto"
+
+#, c-format, boost-format
+#~ msgid "Filament %s has no %s nozzle in the nozzle settings. Please add that nozzle type before use."
+#~ msgstr "Il filamento %s non presenta il nozzle %s nelle impostazioni del nozzle. Specificare il tipo di nozzle prima dell'uso."
+
+#~ msgid "Filament not loaded. Loading will start automatically before printing."
+#~ msgstr "Filamento non caricato. Il caricamento inizierà automaticamente prima della stampa."
+
+#~ msgid "The current nozzle diameter is incompatible with the printer"
+#~ msgstr "Il diametro attuale del nozzle non è compatibile con la stampante"
 
 #~ msgid ""
 #~ "When using soluble material for the support, We recommend the following settings:\n"

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-20 09:44+0800\n"
+"POT-Creation-Date: 2026-11-21 17:56+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -7789,6 +7789,12 @@ msgstr "Ha a kamra hőmérsékletét 40 ℃-nál alacsonyabbra állítod, a kamr
 msgid "Failed to start printing job"
 msgstr "Nem sikerült elindítani a nyomtatási feladatot"
 
+msgid "Continue taking"
+msgstr ""
+
+msgid "Continue loading"
+msgstr ""
+
 msgid "Active operations"
 msgstr "Aktív műveletek"
 
@@ -11893,8 +11899,11 @@ msgstr "Modellmagasság"
 msgid "Network error"
 msgstr "Hálózati hiba"
 
-msgid "Unknown error"
-msgstr "Ismeretlen hiba"
+msgid "No details available"
+msgstr ""
+
+msgid "Failed to load more details"
+msgstr ""
 
 msgid "Recent Helio Runs"
 msgstr "Legutóbbi Helio-eredmények"
@@ -13773,6 +13782,12 @@ msgstr "Élő kameranézet váltása"
 msgid "Current camera is abnormal"
 msgstr "Az aktuális kamera hibásan működik"
 
+msgid "Camera preparing, please try again later..."
+msgstr "A kamera előkészítése folyamatban van. Próbálja újra később..."
+
+msgid "Printer camera is malfunctioning."
+msgstr "A nyomtató kamerája hibásan működik."
+
 msgid "Loading failed. Please check the network and try again."
 msgstr "A betöltés sikertelen. Ellenőrizze a hálózatot, és próbálja újra."
 
@@ -13781,12 +13796,6 @@ msgstr "Ideiglenesen bezárult, mert egy ideig nem volt tevékenység."
 
 msgid "Temporarily closed because there is no printing for a while."
 msgstr "Ideiglenesen bezárva, mert egy ideje nem volt nyomtatás."
-
-msgid "Camera preparing, please try again later..."
-msgstr "A kamera előkészítése folyamatban van. Próbálja újra később..."
-
-msgid "Printer camera is malfunctioning."
-msgstr "A nyomtató kamerája hibásan működik."
 
 msgid "Problem occurred. Please update the printer firmware and try again."
 msgstr "Probléma történt. Frissítse a nyomtató firmware-ét, és próbálja újra."
@@ -15991,8 +16000,8 @@ msgid "Filament %s is not configured for the current nozzle settings. Please cha
 msgstr "A(z) %s filament nincs konfigurálva a jelenlegi fúvókabeállításokhoz. Használat előtt kérjük, cseréld ki a fúvókát vagy a filamentet."
 
 #, c-format, boost-format
-msgid "Filament %s has no %s nozzle in the nozzle settings. Please add that nozzle type before use."
-msgstr "A fúvókabeállításokban nincs a(z) %s filamenthez tartozó %s fúvóka. Kérjük, használat előtt add hozzá ezt a fúvókatípust."
+msgid "Filament %s uses a %s nozzle, which is not available on this printer. Add it or select an available nozzle."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Filament %s has no nozzle in the nozzle settings that fits it. Please add that nozzle type before use."
@@ -16932,9 +16941,6 @@ msgstr "Kérjük, ellenőrizd, hogy a fúvókaátmérő és áramlási sebesség
 
 msgid "Current printer firmware does not yet support large flushing volumes. The flushing volume set in the slicer may be limited."
 msgstr "A nyomtató jelenlegi firmware-e még nem támogatja a nagy öblítési mennyiségeket. A szeletelőben beállított öblítési mennyiség korlátozott lehet."
-
-msgid "Filament not loaded. Loading will start automatically before printing."
-msgstr "A filament nincs betöltve. A betöltés automatikusan elindul a nyomtatás előtt."
 
 #, c-format, boost-format
 msgid "The current firmware supports a maximum of %s materials. You can either reduce the number of materials to %s or fewer on the Preparation Page, or try updating the firmware. If you are still restricted after the update, please wait for subsequent firmware support."
@@ -20108,8 +20114,8 @@ msgstr "Fűtés"
 msgid "Unmapped"
 msgstr "Nincs hozzárendelve"
 
-msgid "The current nozzle diameter is incompatible with the printer"
-msgstr "A jelenlegi fúvókaátmérő nem kompatibilis a nyomtatóval"
+msgid "Nozzle diameter mismatch after filament synchronization"
+msgstr ""
 
 msgid "Set nozzle count"
 msgstr "Fúvókaszám beállítása"
@@ -21305,6 +21311,19 @@ msgid ""
 msgstr ""
 "Elsőre megbízható\n"
 "Kevesebb figyelem, kiszámíthatóbb eredmények. Példa: egy kis műhely, amely PETG tárgyakat gyárt, elkerülheti a „6. órában le kell állítani“ meglepetéseket, és tartani tudja a határidőket."
+
+#~ msgid "Unknown error"
+#~ msgstr "Ismeretlen hiba"
+
+#, c-format, boost-format
+#~ msgid "Filament %s has no %s nozzle in the nozzle settings. Please add that nozzle type before use."
+#~ msgstr "A fúvókabeállításokban nincs a(z) %s filamenthez tartozó %s fúvóka. Kérjük, használat előtt add hozzá ezt a fúvókatípust."
+
+#~ msgid "Filament not loaded. Loading will start automatically before printing."
+#~ msgstr "A filament nincs betöltve. A betöltés automatikusan elindul a nyomtatás előtt."
+
+#~ msgid "The current nozzle diameter is incompatible with the printer"
+#~ msgstr "A jelenlegi fúvókaátmérő nem kompatibilis a nyomtatóval"
 
 #~ msgid "slot"
 #~ msgstr "filamentnyílás"

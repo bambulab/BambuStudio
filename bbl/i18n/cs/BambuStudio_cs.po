@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-20 09:44+0800\n"
+"POT-Creation-Date: 2026-11-21 17:56+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Jakub Hencl <jakub.hencl@seznam.cz>\n"
 "Language-Team: \n"
@@ -7849,6 +7849,12 @@ msgstr "Pokud nastavíte teplotu komory pod 40℃, regulace teploty komory se ne
 msgid "Failed to start printing job"
 msgstr "Nepodařilo se spustit tiskovou úlohu"
 
+msgid "Continue taking"
+msgstr ""
+
+msgid "Continue loading"
+msgstr ""
+
 msgid "Active operations"
 msgstr ""
 
@@ -11962,7 +11968,10 @@ msgstr ""
 msgid "Network error"
 msgstr ""
 
-msgid "Unknown error"
+msgid "No details available"
+msgstr ""
+
+msgid "Failed to load more details"
 msgstr ""
 
 msgid "Recent Helio Runs"
@@ -13850,6 +13859,12 @@ msgstr ""
 msgid "Current camera is abnormal"
 msgstr ""
 
+msgid "Camera preparing, please try again later..."
+msgstr ""
+
+msgid "Printer camera is malfunctioning."
+msgstr "Kamera tiskárny nefunguje správně."
+
 msgid "Loading failed. Please check the network and try again."
 msgstr ""
 
@@ -13858,12 +13873,6 @@ msgstr "Dočasně uzavřeno z důvodu nečinnosti."
 
 msgid "Temporarily closed because there is no printing for a while."
 msgstr "Dočasně uzavřeno, protože po určitou dobu neprobíhal tisk."
-
-msgid "Camera preparing, please try again later..."
-msgstr ""
-
-msgid "Printer camera is malfunctioning."
-msgstr "Kamera tiskárny nefunguje správně."
 
 msgid "Problem occurred. Please update the printer firmware and try again."
 msgstr "Došlo k problému. Aktualizujte firmware tiskárny a zkuste to znovu."
@@ -16010,7 +16019,7 @@ msgid "Filament %s is not configured for the current nozzle settings. Please cha
 msgstr ""
 
 #, c-format, boost-format
-msgid "Filament %s has no %s nozzle in the nozzle settings. Please add that nozzle type before use."
+msgid "Filament %s uses a %s nozzle, which is not available on this printer. Add it or select an available nozzle."
 msgstr ""
 
 #, c-format, boost-format
@@ -16961,9 +16970,6 @@ msgid "Please check if the required nozzle diameter and flow rate match the curr
 msgstr "Zkontrolujte, zda požadovaný průměr trysky a průtok odpovídají aktuálnímu zobrazení."
 
 msgid "Current printer firmware does not yet support large flushing volumes. The flushing volume set in the slicer may be limited."
-msgstr ""
-
-msgid "Filament not loaded. Loading will start automatically before printing."
 msgstr ""
 
 #, c-format, boost-format
@@ -20151,7 +20157,7 @@ msgstr "Zahřát"
 msgid "Unmapped"
 msgstr "Nezmapováno"
 
-msgid "The current nozzle diameter is incompatible with the printer"
+msgid "Nozzle diameter mismatch after filament synchronization"
 msgstr ""
 
 msgid "Set nozzle count"

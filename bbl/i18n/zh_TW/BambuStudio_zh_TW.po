@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-20 09:44+0800\n"
+"POT-Creation-Date: 2026-11-21 17:56+0800\n"
 "PO-Revision-Date: 2026-05-07 16:00+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -7779,6 +7779,12 @@ msgstr "當您設定的腔溫低於40℃時，腔溫控制將不會啟動。並�
 msgid "Failed to start printing job"
 msgstr "發起列印任務失敗"
 
+msgid "Continue taking"
+msgstr ""
+
+msgid "Continue loading"
+msgstr ""
+
 msgid "Active operations"
 msgstr "作用中的操作"
 
@@ -11870,8 +11876,11 @@ msgstr "模型高度"
 msgid "Network error"
 msgstr "網絡錯誤"
 
-msgid "Unknown error"
-msgstr "未知錯誤"
+msgid "No details available"
+msgstr ""
+
+msgid "Failed to load more details"
+msgstr ""
 
 msgid "Recent Helio Runs"
 msgstr "最近的 Helio 執行記錄"
@@ -13741,6 +13750,12 @@ msgstr "切換即時相機畫面"
 msgid "Current camera is abnormal"
 msgstr "目前相機異常"
 
+msgid "Camera preparing, please try again later..."
+msgstr "攝影機準備中，請稍後再試..."
+
+msgid "Printer camera is malfunctioning."
+msgstr "印表機攝像頭異常。"
+
 msgid "Loading failed. Please check the network and try again."
 msgstr "載入失敗。請檢查網路後再試一次。"
 
@@ -13749,12 +13764,6 @@ msgstr "長時間無操作，監控已關閉。"
 
 msgid "Temporarily closed because there is no printing for a while."
 msgstr "因有一段時間未列印，暫時關閉。"
-
-msgid "Camera preparing, please try again later..."
-msgstr "攝影機準備中，請稍後再試..."
-
-msgid "Printer camera is malfunctioning."
-msgstr "印表機攝像頭異常。"
 
 msgid "Problem occurred. Please update the printer firmware and try again."
 msgstr "發生問題。請更新印表機韌體後再試一次。"
@@ -15951,8 +15960,8 @@ msgid "Filament %s is not configured for the current nozzle settings. Please cha
 msgstr "線材 %s 未針對目前噴頭設定進行設定。請在使用前變更噴頭或線材。"
 
 #, c-format, boost-format
-msgid "Filament %s has no %s nozzle in the nozzle settings. Please add that nozzle type before use."
-msgstr "線材 %s 在噴頭設定中沒有 %s 噴頭。請在使用前新增該噴頭類型。"
+msgid "Filament %s uses a %s nozzle, which is not available on this printer. Add it or select an available nozzle."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Filament %s has no nozzle in the nozzle settings that fits it. Please add that nozzle type before use."
@@ -16892,9 +16901,6 @@ msgstr "請確認所需噴嘴直徑和流量是否和當前顯示一致。"
 
 msgid "Current printer firmware does not yet support large flushing volumes. The flushing volume set in the slicer may be limited."
 msgstr "目前的印表機韌體尚不支援大沖刷量。切片軟體中設定的沖刷量可能會受到限制。"
-
-msgid "Filament not loaded. Loading will start automatically before printing."
-msgstr "線材未進料。將在列印前自動開始進料。"
 
 #, c-format, boost-format
 msgid "The current firmware supports a maximum of %s materials. You can either reduce the number of materials to %s or fewer on the Preparation Page, or try updating the firmware. If you are still restricted after the update, please wait for subsequent firmware support."
@@ -20057,8 +20063,8 @@ msgstr "加熱"
 msgid "Unmapped"
 msgstr "未對映"
 
-msgid "The current nozzle diameter is incompatible with the printer"
-msgstr "目前的噴頭直徑與印表機不相容"
+msgid "Nozzle diameter mismatch after filament synchronization"
+msgstr ""
 
 msgid "Set nozzle count"
 msgstr "設定噴頭數量"
@@ -21244,6 +21250,19 @@ msgid ""
 msgstr ""
 "一次成功的可靠性\n"
 "更少盯機，更可預測的產出。例如：小型列印農場列印 PETG 零件可降低意外失敗的機率，讓批次按計劃推進。"
+
+#~ msgid "Unknown error"
+#~ msgstr "未知錯誤"
+
+#, c-format, boost-format
+#~ msgid "Filament %s has no %s nozzle in the nozzle settings. Please add that nozzle type before use."
+#~ msgstr "線材 %s 在噴頭設定中沒有 %s 噴頭。請在使用前新增該噴頭類型。"
+
+#~ msgid "Filament not loaded. Loading will start automatically before printing."
+#~ msgstr "線材未進料。將在列印前自動開始進料。"
+
+#~ msgid "The current nozzle diameter is incompatible with the printer"
+#~ msgstr "目前的噴頭直徑與印表機不相容"
 
 #~ msgid "slot"
 #~ msgstr "槽位"

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-20 09:44+0800\n"
+"POT-Creation-Date: 2026-11-21 17:56+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -7802,6 +7802,12 @@ msgstr "Când setați temperatura camerei sub 40℃, controlul temperaturii came
 msgid "Failed to start printing job"
 msgstr "Nu s-a putut porni lucrarea de imprimare"
 
+msgid "Continue taking"
+msgstr ""
+
+msgid "Continue loading"
+msgstr ""
+
 msgid "Active operations"
 msgstr "Operațiuni active"
 
@@ -11912,8 +11918,11 @@ msgstr "Înălțimea modelului"
 msgid "Network error"
 msgstr "Eroare de rețea"
 
-msgid "Unknown error"
-msgstr "Eroare necunoscută"
+msgid "No details available"
+msgstr ""
+
+msgid "Failed to load more details"
+msgstr ""
 
 msgid "Recent Helio Runs"
 msgstr "Rulări Helio recente"
@@ -13797,6 +13806,12 @@ msgstr "Comutați la vizualizarea camerei principale în timp real"
 msgid "Current camera is abnormal"
 msgstr "Camera curentă funcționează anormal"
 
+msgid "Camera preparing, please try again later..."
+msgstr "Camera se pregătește, încercați din nou mai târziu..."
+
+msgid "Printer camera is malfunctioning."
+msgstr "Camera imprimantei funcționează defectuos."
+
 msgid "Loading failed. Please check the network and try again."
 msgstr "Încărcare eșuată. Vă rugăm să verificați rețeaua și să încercați din nou."
 
@@ -13805,12 +13820,6 @@ msgstr "Închis temporar deoarece nu se desfășoară activități pentru o peri
 
 msgid "Temporarily closed because there is no printing for a while."
 msgstr "Închis temporar deoarece nu se imprimă pentru o perioadă."
-
-msgid "Camera preparing, please try again later..."
-msgstr "Camera se pregătește, încercați din nou mai târziu..."
-
-msgid "Printer camera is malfunctioning."
-msgstr "Camera imprimantei funcționează defectuos."
 
 msgid "Problem occurred. Please update the printer firmware and try again."
 msgstr "A apărut o problemă. Vă rugăm să actualizați firmware-ul imprimantei și să încercați din nou."
@@ -16019,8 +16028,8 @@ msgid "Filament %s is not configured for the current nozzle settings. Please cha
 msgstr "Filamentul %s nu este configurat pentru setările curente ale duzei. Vă rugăm să schimbați duza sau filamentul înainte de utilizare."
 
 #, c-format, boost-format
-msgid "Filament %s has no %s nozzle in the nozzle settings. Please add that nozzle type before use."
-msgstr "Pentru filamentul %s nu există nicio duză%s în setările duzelor. Vă rugăm să adăugați tipul respectiv de duză înainte de utilizare."
+msgid "Filament %s uses a %s nozzle, which is not available on this printer. Add it or select an available nozzle."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Filament %s has no nozzle in the nozzle settings that fits it. Please add that nozzle type before use."
@@ -16966,9 +16975,6 @@ msgstr "Verificați dacă diametrul necesar al duzei și debitul corespund afiș
 
 msgid "Current printer firmware does not yet support large flushing volumes. The flushing volume set in the slicer may be limited."
 msgstr "Firmware-ul actual al imprimantei nu acceptă încă volume mari de purjare. Volumul de purjare setat în programul de feliere poate fi limitat."
-
-msgid "Filament not loaded. Loading will start automatically before printing."
-msgstr "Filamentul nu este încărcat. Încărcarea va începe automat înainte de imprimare."
 
 #, c-format, boost-format
 msgid "The current firmware supports a maximum of %s materials. You can either reduce the number of materials to %s or fewer on the Preparation Page, or try updating the firmware. If you are still restricted after the update, please wait for subsequent firmware support."
@@ -20141,8 +20147,8 @@ msgstr "Încălzire"
 msgid "Unmapped"
 msgstr "Nu este mapat"
 
-msgid "The current nozzle diameter is incompatible with the printer"
-msgstr "Diametrul actual al duzei este incompatibil cu imprimanta"
+msgid "Nozzle diameter mismatch after filament synchronization"
+msgstr ""
 
 msgid "Set nozzle count"
 msgstr "Setați numărul de duze"
@@ -21337,6 +21343,19 @@ msgid ""
 msgstr ""
 "Fiabilitate de la prima încercare\n"
 "Mai puțină supraveghere, rezultate mai previzibile. Exemplu: o fermă mică care produce piese PETG evită surprizele de tip „defecțiune la ora 6” și menține loturile la timp."
+
+#~ msgid "Unknown error"
+#~ msgstr "Eroare necunoscută"
+
+#, c-format, boost-format
+#~ msgid "Filament %s has no %s nozzle in the nozzle settings. Please add that nozzle type before use."
+#~ msgstr "Pentru filamentul %s nu există nicio duză%s în setările duzelor. Vă rugăm să adăugați tipul respectiv de duză înainte de utilizare."
+
+#~ msgid "Filament not loaded. Loading will start automatically before printing."
+#~ msgstr "Filamentul nu este încărcat. Încărcarea va începe automat înainte de imprimare."
+
+#~ msgid "The current nozzle diameter is incompatible with the printer"
+#~ msgstr "Diametrul actual al duzei este incompatibil cu imprimanta"
 
 #~ msgid ""
 #~ "When using soluble material for the support, We recommend the following settings:\n"

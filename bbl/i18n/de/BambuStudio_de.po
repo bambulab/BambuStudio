@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-20 09:44+0800\n"
+"POT-Creation-Date: 2026-11-21 17:56+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -7793,6 +7793,12 @@ msgstr "Wenn Sie die Kammertemperatur unter 40 °C einstellen, wird die Kammerte
 msgid "Failed to start printing job"
 msgstr "Druckauftrag konnte nicht gestartet werden"
 
+msgid "Continue taking"
+msgstr ""
+
+msgid "Continue loading"
+msgstr ""
+
 msgid "Active operations"
 msgstr "Aktive Operationen"
 
@@ -11897,8 +11903,11 @@ msgstr "Modellhöhe"
 msgid "Network error"
 msgstr "Netzwerkfehler"
 
-msgid "Unknown error"
-msgstr "Unbekannter Fehler"
+msgid "No details available"
+msgstr ""
+
+msgid "Failed to load more details"
+msgstr ""
 
 msgid "Recent Helio Runs"
 msgstr "Kürzliche Helio-Durchläufe"
@@ -13777,6 +13786,12 @@ msgstr "Ansicht der Live-View-Kamera umschalten"
 msgid "Current camera is abnormal"
 msgstr "Die aktuelle Kamera ist fehlerhaft"
 
+msgid "Camera preparing, please try again later..."
+msgstr "Die Kamera wird vorbereitet. Bitte versuchen Sie es später erneut..."
+
+msgid "Printer camera is malfunctioning."
+msgstr "Die Druckerkamera funktioniert nicht richtig."
+
 msgid "Loading failed. Please check the network and try again."
 msgstr "Das Laden ist fehlgeschlagen. Bitte überprüfen Sie Ihre Netzwerkverbindung und versuchen Sie es erneut."
 
@@ -13785,12 +13800,6 @@ msgstr "Vorübergehend geschlossen, da für eine Weile keine Aktivitäten stattf
 
 msgid "Temporarily closed because there is no printing for a while."
 msgstr "Vorübergehend geschlossen, da seit einiger Zeit nicht mehr gedruckt wurde."
-
-msgid "Camera preparing, please try again later..."
-msgstr "Die Kamera wird vorbereitet. Bitte versuchen Sie es später erneut..."
-
-msgid "Printer camera is malfunctioning."
-msgstr "Die Druckerkamera funktioniert nicht richtig."
 
 msgid "Problem occurred. Please update the printer firmware and try again."
 msgstr "Es ist ein Problem aufgetreten. Bitte aktualisieren Sie die Drucker-Firmware und versuchen Sie es erneut."
@@ -15993,8 +16002,8 @@ msgid "Filament %s is not configured for the current nozzle settings. Please cha
 msgstr "Filament %s ist nicht für die aktuellen Düseneinstellungen konfiguriert. Bitte wechseln Sie vor Gebrauch die Düse oder das Filament aus."
 
 #, c-format, boost-format
-msgid "Filament %s has no %s nozzle in the nozzle settings. Please add that nozzle type before use."
-msgstr "Für Filament %s ist in den Düseneinstellungen keine Düse %s vorhanden. Bitte fügen Sie vor Gebrauch den entsprechenden Düsentyp hinzu."
+msgid "Filament %s uses a %s nozzle, which is not available on this printer. Add it or select an available nozzle."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Filament %s has no nozzle in the nozzle settings that fits it. Please add that nozzle type before use."
@@ -16938,9 +16947,6 @@ msgstr "Bitte überprüfen Sie, ob der erforderliche Düsendurchmesser und die D
 
 msgid "Current printer firmware does not yet support large flushing volumes. The flushing volume set in the slicer may be limited."
 msgstr "Die aktuelle Drucker-Firmware unterstützt noch keine großen Spülvolumina. Das im Slicer eingestellte Spülvolumen kann begrenzt sein."
-
-msgid "Filament not loaded. Loading will start automatically before printing."
-msgstr "Filament nicht geladen. Das Laden beginnt automatisch vor dem Drucken."
 
 #, c-format, boost-format
 msgid "The current firmware supports a maximum of %s materials. You can either reduce the number of materials to %s or fewer on the Preparation Page, or try updating the firmware. If you are still restricted after the update, please wait for subsequent firmware support."
@@ -20116,8 +20122,8 @@ msgstr "Heizung"
 msgid "Unmapped"
 msgstr "Nicht zugeordnet"
 
-msgid "The current nozzle diameter is incompatible with the printer"
-msgstr "Der aktuelle Düsendurchmesser ist mit dem Drucker nicht kompatibel"
+msgid "Nozzle diameter mismatch after filament synchronization"
+msgstr ""
 
 msgid "Set nozzle count"
 msgstr "Düsenanzahl festlegen"
@@ -21312,6 +21318,19 @@ msgid ""
 msgstr ""
 "Zuverlässigkeit auf Anhieb\n"
 "Weniger Überwachung, vorhersagbarere Ausgabe. Beispiel: Eine kleine Farm, die PETG-Teile druckt, vermeidet Überraschungen wie \"Ausfall in Stunde 6\" und hält Chargen im Zeitplan."
+
+#~ msgid "Unknown error"
+#~ msgstr "Unbekannter Fehler"
+
+#, c-format, boost-format
+#~ msgid "Filament %s has no %s nozzle in the nozzle settings. Please add that nozzle type before use."
+#~ msgstr "Für Filament %s ist in den Düseneinstellungen keine Düse %s vorhanden. Bitte fügen Sie vor Gebrauch den entsprechenden Düsentyp hinzu."
+
+#~ msgid "Filament not loaded. Loading will start automatically before printing."
+#~ msgstr "Filament nicht geladen. Das Laden beginnt automatisch vor dem Drucken."
+
+#~ msgid "The current nozzle diameter is incompatible with the printer"
+#~ msgstr "Der aktuelle Düsendurchmesser ist mit dem Drucker nicht kompatibel"
 
 #~ msgid "slot"
 #~ msgstr "Slot"

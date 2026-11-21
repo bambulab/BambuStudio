@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-20 09:44+0800\n"
+"POT-Creation-Date: 2026-11-21 17:56+0800\n"
 "PO-Revision-Date: 2025-10-16 12:27+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -7791,6 +7791,12 @@ msgstr "Oda sıcaklığını 40℃'nin altına ayarladığında, oda sıcaklığ
 msgid "Failed to start printing job"
 msgstr "Yazdırma işi başlatılamadı."
 
+msgid "Continue taking"
+msgstr ""
+
+msgid "Continue loading"
+msgstr ""
+
 msgid "Active operations"
 msgstr "Etkin işlemler"
 
@@ -11895,8 +11901,11 @@ msgstr "Model Yüksekliği"
 msgid "Network error"
 msgstr "Ağ hatası"
 
-msgid "Unknown error"
-msgstr "Bilinmeyen hata"
+msgid "No details available"
+msgstr ""
+
+msgid "Failed to load more details"
+msgstr ""
 
 msgid "Recent Helio Runs"
 msgstr "Son Helio Çalıştırmaları"
@@ -13777,6 +13786,12 @@ msgstr "Canlı kamera görüntüsünü değiştir"
 msgid "Current camera is abnormal"
 msgstr "Mevcut kamerada sorun var"
 
+msgid "Camera preparing, please try again later..."
+msgstr "Kamera hazırlanıyor, lütfen daha sonra tekrar deneyin..."
+
+msgid "Printer camera is malfunctioning."
+msgstr "Yazıcının kamerası arızalı."
+
 msgid "Loading failed. Please check the network and try again."
 msgstr "Yükleme başarısız oldu. Lütfen ağ bağlantısını kontrol et ve tekrar dene."
 
@@ -13785,12 +13800,6 @@ msgstr "Bir süredir işlem yapılmadığı için geçici olarak kapatıldı."
 
 msgid "Temporarily closed because there is no printing for a while."
 msgstr "Bir süredir yazdırma yapılmadığı için geçici olarak kapatıldı."
-
-msgid "Camera preparing, please try again later..."
-msgstr "Kamera hazırlanıyor, lütfen daha sonra tekrar deneyin..."
-
-msgid "Printer camera is malfunctioning."
-msgstr "Yazıcının kamerası arızalı."
 
 msgid "Problem occurred. Please update the printer firmware and try again."
 msgstr "Bir sorun oluştu. Lütfen yazıcının ürün yazılımını güncelle ve tekrar dene."
@@ -15993,8 +16002,8 @@ msgid "Filament %s is not configured for the current nozzle settings. Please cha
 msgstr "Filament %s mevcut püskürtme ucu ayarları için yapılandırılmamış. Lütfen kullanmadan önce püskürtme ucunu veya filamenti değiştirin."
 
 #, c-format, boost-format
-msgid "Filament %s has no %s nozzle in the nozzle settings. Please add that nozzle type before use."
-msgstr "Filament %s için püskürtme ucu ayarlarında %s püskürtme ucu bulunmuyor. Lütfen kullanmadan önce bu püskürtme ucu tipini ekleyin."
+msgid "Filament %s uses a %s nozzle, which is not available on this printer. Add it or select an available nozzle."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Filament %s has no nozzle in the nozzle settings that fits it. Please add that nozzle type before use."
@@ -16940,9 +16949,6 @@ msgstr "Lütfen gerekli püskürtme ucu çapı ve akış hızının mevcut ekran
 
 msgid "Current printer firmware does not yet support large flushing volumes. The flushing volume set in the slicer may be limited."
 msgstr "Mevcut yazıcı ürün yazılımı henüz yüksek tahliye hacimlerini desteklemiyor. Dilimleme yazılımında ayarlanan tahliye hacmi sınırlı olabilir."
-
-msgid "Filament not loaded. Loading will start automatically before printing."
-msgstr "Filament yüklü değil. Yükleme, baskıdan önce otomatik olarak başlayacak."
 
 #, c-format, boost-format
 msgid "The current firmware supports a maximum of %s materials. You can either reduce the number of materials to %s or fewer on the Preparation Page, or try updating the firmware. If you are still restricted after the update, please wait for subsequent firmware support."
@@ -20110,8 +20116,8 @@ msgstr "Isı"
 msgid "Unmapped"
 msgstr "Eşleştirilmemiş"
 
-msgid "The current nozzle diameter is incompatible with the printer"
-msgstr "Mevcut püskürtme ucu çapı yazıcıyla uyumlu değil"
+msgid "Nozzle diameter mismatch after filament synchronization"
+msgstr ""
 
 msgid "Set nozzle count"
 msgstr "Püskürtme ucu sayısını ayarla"
@@ -21306,6 +21312,19 @@ msgid ""
 msgstr ""
 "İlk Seferde Başarı Güvenilirliği\n"
 "Daha az gözetim, daha öngörülebilir sonuçlar. Örnek: PETG parçaları üreten küçük bir yazıcı çiftliği, \"6. saatte baskının başarısız olması\" gibi sürprizlerden kaçınır ve partileri programa uygun şekilde tamamlar."
+
+#~ msgid "Unknown error"
+#~ msgstr "Bilinmeyen hata"
+
+#, c-format, boost-format
+#~ msgid "Filament %s has no %s nozzle in the nozzle settings. Please add that nozzle type before use."
+#~ msgstr "Filament %s için püskürtme ucu ayarlarında %s püskürtme ucu bulunmuyor. Lütfen kullanmadan önce bu püskürtme ucu tipini ekleyin."
+
+#~ msgid "Filament not loaded. Loading will start automatically before printing."
+#~ msgstr "Filament yüklü değil. Yükleme, baskıdan önce otomatik olarak başlayacak."
+
+#~ msgid "The current nozzle diameter is incompatible with the printer"
+#~ msgstr "Mevcut püskürtme ucu çapı yazıcıyla uyumlu değil"
 
 #~ msgid "slot"
 #~ msgstr "yuva"

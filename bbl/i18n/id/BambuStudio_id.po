@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-20 09:44+0800\n"
+"POT-Creation-Date: 2026-11-21 17:56+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -7800,6 +7800,12 @@ msgstr "Ketika Anda mengatur suhu ruangan di bawah 40℃, kontrol suhu ruangan t
 msgid "Failed to start printing job"
 msgstr "Gagal memulai pekerjaan cetak"
 
+msgid "Continue taking"
+msgstr ""
+
+msgid "Continue loading"
+msgstr ""
+
 msgid "Active operations"
 msgstr "Operasi aktif"
 
@@ -11898,8 +11904,11 @@ msgstr "Tinggi Model"
 msgid "Network error"
 msgstr "Kesalahan jaringan"
 
-msgid "Unknown error"
-msgstr "Kesalahan tidak diketahui"
+msgid "No details available"
+msgstr ""
+
+msgid "Failed to load more details"
+msgstr ""
 
 msgid "Recent Helio Runs"
 msgstr "Proses Helio Terbaru"
@@ -13777,6 +13786,12 @@ msgstr "Beralih tampilan kamera langsung"
 msgid "Current camera is abnormal"
 msgstr "Kamera saat ini tidak normal"
 
+msgid "Camera preparing, please try again later..."
+msgstr "Kamera sedang disiapkan, silakan coba lagi nanti..."
+
+msgid "Printer camera is malfunctioning."
+msgstr "Kamera printer bermasalah."
+
 msgid "Loading failed. Please check the network and try again."
 msgstr "Gagal memuat. Silakan periksa jaringan dan coba lagi."
 
@@ -13785,12 +13800,6 @@ msgstr "Ditutup sementara karena tidak ada operasi untuk sementara waktu."
 
 msgid "Temporarily closed because there is no printing for a while."
 msgstr "Ditutup sementara karena tidak ada pencetakan untuk sementara waktu."
-
-msgid "Camera preparing, please try again later..."
-msgstr "Kamera sedang disiapkan, silakan coba lagi nanti..."
-
-msgid "Printer camera is malfunctioning."
-msgstr "Kamera printer bermasalah."
 
 msgid "Problem occurred. Please update the printer firmware and try again."
 msgstr "Terjadi masalah. Harap perbarui firmware printer dan coba lagi."
@@ -15987,8 +15996,8 @@ msgid "Filament %s is not configured for the current nozzle settings. Please cha
 msgstr "Filamen %s tidak dikonfigurasi untuk pengaturan nosel saat ini. Ganti nosel atau filamen sebelum digunakan."
 
 #, c-format, boost-format
-msgid "Filament %s has no %s nozzle in the nozzle settings. Please add that nozzle type before use."
-msgstr "Filamen %s tidak memiliki nosel %s dalam pengaturan nosel. Tambahkan jenis nosel tersebut sebelum digunakan."
+msgid "Filament %s uses a %s nozzle, which is not available on this printer. Add it or select an available nozzle."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Filament %s has no nozzle in the nozzle settings that fits it. Please add that nozzle type before use."
@@ -16934,9 +16943,6 @@ msgstr "Harap periksa apakah diameter nosel dan laju aliran yang diperlukan sesu
 
 msgid "Current printer firmware does not yet support large flushing volumes. The flushing volume set in the slicer may be limited."
 msgstr "Firmware printer saat ini belum mendukung volume pembilasan yang besar. Volume pembilasan yang diatur di pemotong mungkin dibatasi."
-
-msgid "Filament not loaded. Loading will start automatically before printing."
-msgstr "Filamen tidak dimuat. Pemuatan akan dimulai secara otomatis sebelum pencetakan."
 
 #, c-format, boost-format
 msgid "The current firmware supports a maximum of %s materials. You can either reduce the number of materials to %s or fewer on the Preparation Page, or try updating the firmware. If you are still restricted after the update, please wait for subsequent firmware support."
@@ -20103,8 +20109,8 @@ msgstr "Pemanasan"
 msgid "Unmapped"
 msgstr "Tidak Cocok"
 
-msgid "The current nozzle diameter is incompatible with the printer"
-msgstr "Diameter nosel saat ini tidak kompatibel dengan printer"
+msgid "Nozzle diameter mismatch after filament synchronization"
+msgstr ""
 
 msgid "Set nozzle count"
 msgstr "Atur jumlah nosel"
@@ -21299,6 +21305,19 @@ msgid ""
 msgstr ""
 "Keandalan Tepat di Percobaan Pertama \n"
 "Lebih sedikit pengawasan, hasil yang lebih terprediksi. Contoh: fasilitas print farm kecil yang mencetak komponen PETG menghindari kejutan 'gagal pada jam ke-6' dan menjaga produksi tetap sesuai jadwal."
+
+#~ msgid "Unknown error"
+#~ msgstr "Kesalahan tidak diketahui"
+
+#, c-format, boost-format
+#~ msgid "Filament %s has no %s nozzle in the nozzle settings. Please add that nozzle type before use."
+#~ msgstr "Filamen %s tidak memiliki nosel %s dalam pengaturan nosel. Tambahkan jenis nosel tersebut sebelum digunakan."
+
+#~ msgid "Filament not loaded. Loading will start automatically before printing."
+#~ msgstr "Filamen tidak dimuat. Pemuatan akan dimulai secara otomatis sebelum pencetakan."
+
+#~ msgid "The current nozzle diameter is incompatible with the printer"
+#~ msgstr "Diameter nosel saat ini tidak kompatibel dengan printer"
 
 #~ msgid ""
 #~ "When using soluble material for the support, We recommend the following settings:\n"

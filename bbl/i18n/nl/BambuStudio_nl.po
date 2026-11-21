@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-20 09:44+0800\n"
+"POT-Creation-Date: 2026-11-21 17:56+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -7793,6 +7793,12 @@ msgstr "Als u de kamertemperatuur instelt op minder dan 40℃, wordt de kamertem
 msgid "Failed to start printing job"
 msgstr "Afdruktaak niet gestart"
 
+msgid "Continue taking"
+msgstr ""
+
+msgid "Continue loading"
+msgstr ""
+
 msgid "Active operations"
 msgstr "Actieve bewerkingen"
 
@@ -11897,8 +11903,11 @@ msgstr "Modelhoogte"
 msgid "Network error"
 msgstr "Netwerkfout"
 
-msgid "Unknown error"
-msgstr "Onbekende fout"
+msgid "No details available"
+msgstr ""
+
+msgid "Failed to load more details"
+msgstr ""
 
 msgid "Recent Helio Runs"
 msgstr "Recente Helio uitvoeringen"
@@ -13777,6 +13786,12 @@ msgstr "Live-cameraweergave wisselen"
 msgid "Current camera is abnormal"
 msgstr "De huidige camera functioneert niet naar behoren"
 
+msgid "Camera preparing, please try again later..."
+msgstr "De camera wordt voorbereid, probeer het later opnieuw..."
+
+msgid "Printer camera is malfunctioning."
+msgstr "De printercamera werkt niet goed."
+
 msgid "Loading failed. Please check the network and try again."
 msgstr "Laden mislukt. Controleer het netwerk en probeer het opnieuw."
 
@@ -13785,12 +13800,6 @@ msgstr "Tijdelijk gesloten omdat er tijdelijk geen activiteit zal zijn."
 
 msgid "Temporarily closed because there is no printing for a while."
 msgstr "Tijdelijk gesloten omdat er een tijdje niet geprint hoeft te worden."
-
-msgid "Camera preparing, please try again later..."
-msgstr "De camera wordt voorbereid, probeer het later opnieuw..."
-
-msgid "Printer camera is malfunctioning."
-msgstr "De printercamera werkt niet goed."
 
 msgid "Problem occurred. Please update the printer firmware and try again."
 msgstr "Er is een probleem opgetreden. Werk de printerfirmware bij en probeer het opnieuw."
@@ -15995,8 +16004,8 @@ msgid "Filament %s is not configured for the current nozzle settings. Please cha
 msgstr "Filament %s is niet geconfigureerd voor de huidige nozzle-instellingen. Vervang vóór gebruik de nozzle of het filament."
 
 #, c-format, boost-format
-msgid "Filament %s has no %s nozzle in the nozzle settings. Please add that nozzle type before use."
-msgstr "Filament %s heeft geen %s nozzle in de nozzle-instellingen. Voeg dat nozzletype vóór gebruik toe."
+msgid "Filament %s uses a %s nozzle, which is not available on this printer. Add it or select an available nozzle."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Filament %s has no nozzle in the nozzle settings that fits it. Please add that nozzle type before use."
@@ -16936,9 +16945,6 @@ msgstr "Controleer of de vereiste nozzle diameter en doorvoersnelheid overeenkom
 
 msgid "Current printer firmware does not yet support large flushing volumes. The flushing volume set in the slicer may be limited."
 msgstr "De huidige printerfirmware ondersteunt nog geen grote doorspoelvolumes. Het in de slicer ingestelde doorspoelvolume kan beperkt zijn."
-
-msgid "Filament not loaded. Loading will start automatically before printing."
-msgstr "Filament niet geladen. Het laden begint automatisch vóór het afdrukken."
 
 #, c-format, boost-format
 msgid "The current firmware supports a maximum of %s materials. You can either reduce the number of materials to %s or fewer on the Preparation Page, or try updating the firmware. If you are still restricted after the update, please wait for subsequent firmware support."
@@ -20114,8 +20120,8 @@ msgstr "Warmte"
 msgid "Unmapped"
 msgstr "Niet gekoppeld"
 
-msgid "The current nozzle diameter is incompatible with the printer"
-msgstr "De huidige nozzlediameter is niet compatibel met de printer"
+msgid "Nozzle diameter mismatch after filament synchronization"
+msgstr ""
 
 msgid "Set nozzle count"
 msgstr "Aantal nozzles instellen"
@@ -21310,6 +21316,19 @@ msgid ""
 msgstr ""
 "Betrouwbaarheid in één keer goed\n"
 "Minder toezicht, voorspelbaardere output. Voorbeeld: een kleine boerderij die PETG-onderdelen produceert, voorkomt verrassingen zoals 'falen na 6 uur' en houdt batches op schema."
+
+#~ msgid "Unknown error"
+#~ msgstr "Onbekende fout"
+
+#, c-format, boost-format
+#~ msgid "Filament %s has no %s nozzle in the nozzle settings. Please add that nozzle type before use."
+#~ msgstr "Filament %s heeft geen %s nozzle in de nozzle-instellingen. Voeg dat nozzletype vóór gebruik toe."
+
+#~ msgid "Filament not loaded. Loading will start automatically before printing."
+#~ msgstr "Filament niet geladen. Het laden begint automatisch vóór het afdrukken."
+
+#~ msgid "The current nozzle diameter is incompatible with the printer"
+#~ msgstr "De huidige nozzlediameter is niet compatibel met de printer"
 
 #~ msgid "slot"
 #~ msgstr "sleuf"

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-20 09:44+0800\n"
+"POT-Creation-Date: 2026-11-21 17:56+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -7800,6 +7800,12 @@ msgstr "Khi bạn đặt nhiệt độ buồng in dưới 40℃, chức năng ki
 msgid "Failed to start printing job"
 msgstr "Không thể bắt đầu lệnh in"
 
+msgid "Continue taking"
+msgstr ""
+
+msgid "Continue loading"
+msgstr ""
+
 msgid "Active operations"
 msgstr "Hoạt động đang diễn ra"
 
@@ -11898,8 +11904,11 @@ msgstr "Chiều cao mô hình"
 msgid "Network error"
 msgstr "Lỗi mạng"
 
-msgid "Unknown error"
-msgstr "Lỗi không xác định"
+msgid "No details available"
+msgstr ""
+
+msgid "Failed to load more details"
+msgstr ""
 
 msgid "Recent Helio Runs"
 msgstr "Các lần chạy Helio gần đây"
@@ -13777,6 +13786,12 @@ msgstr "Chuyển chế độ xem trực tiếp từ camera"
 msgid "Current camera is abnormal"
 msgstr "Camera hiện tại đang hoạt động bất thường"
 
+msgid "Camera preparing, please try again later..."
+msgstr "Camera đang trong quá trình chuẩn bị, vui lòng thử lại sau..."
+
+msgid "Printer camera is malfunctioning."
+msgstr "Camera máy in đang gặp trục trặc."
+
 msgid "Loading failed. Please check the network and try again."
 msgstr "Tải thất bại. Vui lòng kiểm tra mạng và thử lại."
 
@@ -13785,12 +13800,6 @@ msgstr "Đóng tạm thời vì không có thao tác nào trong một thời gia
 
 msgid "Temporarily closed because there is no printing for a while."
 msgstr "Đóng tạm thời vì không có lệnh in nào trong một thời gian."
-
-msgid "Camera preparing, please try again later..."
-msgstr "Camera đang trong quá trình chuẩn bị, vui lòng thử lại sau..."
-
-msgid "Printer camera is malfunctioning."
-msgstr "Camera máy in đang gặp trục trặc."
 
 msgid "Problem occurred. Please update the printer firmware and try again."
 msgstr "Đã xảy ra vấn đề. Vui lòng cập nhật firmware máy in và thử lại."
@@ -15991,8 +16000,8 @@ msgid "Filament %s is not configured for the current nozzle settings. Please cha
 msgstr "Sợi nhựa %s chưa được cấu hình cho các thiết lập vòi phun hiện tại. Vui lòng thay vòi phun hoặc sợi nhựa trước khi sử dụng."
 
 #, c-format, boost-format
-msgid "Filament %s has no %s nozzle in the nozzle settings. Please add that nozzle type before use."
-msgstr "Sợi nhựa %s không có vòi phun %s trong phần cài đặt vòi phun. Vui lòng thêm loại vòi phun đó trước khi sử dụng."
+msgid "Filament %s uses a %s nozzle, which is not available on this printer. Add it or select an available nozzle."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Filament %s has no nozzle in the nozzle settings that fits it. Please add that nozzle type before use."
@@ -16938,9 +16947,6 @@ msgstr "Vui lòng kiểm tra xem đường kính vòi phun và tốc độ lưu 
 
 msgid "Current printer firmware does not yet support large flushing volumes. The flushing volume set in the slicer may be limited."
 msgstr "Firmware hiện tại của máy in chưa hỗ trợ thể tích xả nhựa lớn. Thể tích xả nhựa được thiết lập trong phần mềm phân lát có thể bị giới hạn."
-
-msgid "Filament not loaded. Loading will start automatically before printing."
-msgstr "Chưa nạp sợi nhựa. Quá trình nạp nhựa sẽ tự động bắt đầu trước khi in."
 
 #, c-format, boost-format
 msgid "The current firmware supports a maximum of %s materials. You can either reduce the number of materials to %s or fewer on the Preparation Page, or try updating the firmware. If you are still restricted after the update, please wait for subsequent firmware support."
@@ -20107,8 +20113,8 @@ msgstr "Làm nóng"
 msgid "Unmapped"
 msgstr "Chưa ánh xạ"
 
-msgid "The current nozzle diameter is incompatible with the printer"
-msgstr "Đường kính vòi phun hiện tại không tương thích với máy in"
+msgid "Nozzle diameter mismatch after filament synchronization"
+msgstr ""
 
 msgid "Set nozzle count"
 msgstr "Đặt số lượng vòi phun"
@@ -21303,6 +21309,19 @@ msgid ""
 msgstr ""
 "Độ tin cậy thành công ngay lần đầu\n"
 "Giảm bớt việc phải theo dõi liên tục, tăng tính dự đoán được của kết quả đầu ra. Ví dụ: một cụm máy in nhỏ in các bộ phận bằng PETG sẽ tránh được những sự cố bất ngờ như \"hỏng hóc sau 6 giờ\" và đảm bảo các lô sản phẩm được hoàn tất đúng tiến độ."
+
+#~ msgid "Unknown error"
+#~ msgstr "Lỗi không xác định"
+
+#, c-format, boost-format
+#~ msgid "Filament %s has no %s nozzle in the nozzle settings. Please add that nozzle type before use."
+#~ msgstr "Sợi nhựa %s không có vòi phun %s trong phần cài đặt vòi phun. Vui lòng thêm loại vòi phun đó trước khi sử dụng."
+
+#~ msgid "Filament not loaded. Loading will start automatically before printing."
+#~ msgstr "Chưa nạp sợi nhựa. Quá trình nạp nhựa sẽ tự động bắt đầu trước khi in."
+
+#~ msgid "The current nozzle diameter is incompatible with the printer"
+#~ msgstr "Đường kính vòi phun hiện tại không tương thích với máy in"
 
 #~ msgid "slot"
 #~ msgstr "khe"

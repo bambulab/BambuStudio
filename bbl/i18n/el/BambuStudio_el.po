@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-20 09:44+0800\n"
+"POT-Creation-Date: 2026-11-21 17:56+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -7801,6 +7801,12 @@ msgstr "Όταν ρυθμίζετε τη θερμοκρασία θαλάμου �
 msgid "Failed to start printing job"
 msgstr "Αποτυχία έναρξης εργασίας εκτύπωσης"
 
+msgid "Continue taking"
+msgstr ""
+
+msgid "Continue loading"
+msgstr ""
+
 msgid "Active operations"
 msgstr "Ενεργές λειτουργίες"
 
@@ -11905,8 +11911,11 @@ msgstr "Ύψος μοντέλου"
 msgid "Network error"
 msgstr "Σφάλμα δικτύου"
 
-msgid "Unknown error"
-msgstr "Άγνωστο σφάλμα"
+msgid "No details available"
+msgstr ""
+
+msgid "Failed to load more details"
+msgstr ""
 
 msgid "Recent Helio Runs"
 msgstr "Πρόσφατες εκτελέσεις Helio"
@@ -13787,6 +13796,12 @@ msgstr "Εναλλαγή προβολής κάμερας ζωντανής προ
 msgid "Current camera is abnormal"
 msgstr "Η τρέχουσα κάμερα δεν λειτουργεί κανονικά"
 
+msgid "Camera preparing, please try again later..."
+msgstr "Η κάμερα προετοιμάζεται, προσπαθήστε ξανά αργότερα..."
+
+msgid "Printer camera is malfunctioning."
+msgstr "Η κάμερα του εκτυπωτή παρουσιάζει δυσλειτουργία."
+
 msgid "Loading failed. Please check the network and try again."
 msgstr "Η φόρτωση απέτυχε. Ελέγξτε το δίκτυο και προσπαθήστε ξανά."
 
@@ -13795,12 +13810,6 @@ msgstr "Προσωρινά κλειστό επειδή δεν υπάρχει λ�
 
 msgid "Temporarily closed because there is no printing for a while."
 msgstr "Προσωρινά κλειστό επειδή δεν υπάρχει εκτύπωση για κάποιο χρονικό διάστημα."
-
-msgid "Camera preparing, please try again later..."
-msgstr "Η κάμερα προετοιμάζεται, προσπαθήστε ξανά αργότερα..."
-
-msgid "Printer camera is malfunctioning."
-msgstr "Η κάμερα του εκτυπωτή παρουσιάζει δυσλειτουργία."
 
 msgid "Problem occurred. Please update the printer firmware and try again."
 msgstr "Παρουσιάστηκε πρόβλημα. Ενημερώστε το υλικολογισμικό του εκτυπωτή και προσπαθήστε ξανά."
@@ -16005,8 +16014,8 @@ msgid "Filament %s is not configured for the current nozzle settings. Please cha
 msgstr "Το νήμα %s δεν έχει διαμορφωθεί για τις τρέχουσες ρυθμίσεις ακροφυσίου. Αλλάξτε το ακροφύσιο ή το νήμα πριν από τη χρήση."
 
 #, c-format, boost-format
-msgid "Filament %s has no %s nozzle in the nozzle settings. Please add that nozzle type before use."
-msgstr "Το νήμα %s δεν έχει το ακροφύσιο %s στις ρυθμίσεις ακροφυσίου. Προσθέστε αυτόν τον τύπο ακροφυσίου πριν από τη χρήση."
+msgid "Filament %s uses a %s nozzle, which is not available on this printer. Add it or select an available nozzle."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Filament %s has no nozzle in the nozzle settings that fits it. Please add that nozzle type before use."
@@ -16952,9 +16961,6 @@ msgstr "Ελέγξτε αν η απαιτούμενη διάμετρος ακρ�
 
 msgid "Current printer firmware does not yet support large flushing volumes. The flushing volume set in the slicer may be limited."
 msgstr "Το τρέχον υλικολογισμικό του εκτυπωτή δεν υποστηρίζει ακόμη μεγάλους όγκους έκπλυσης. Ο όγκος έκπλυσης που έχει οριστεί στον τεμαχιστή ενδέχεται να είναι περιορισμένος."
-
-msgid "Filament not loaded. Loading will start automatically before printing."
-msgstr "Το νήμα δεν φορτώθηκε. Η φόρτωση θα ξεκινήσει αυτόματα πριν από την εκτύπωση."
 
 #, c-format, boost-format
 msgid "The current firmware supports a maximum of %s materials. You can either reduce the number of materials to %s or fewer on the Preparation Page, or try updating the firmware. If you are still restricted after the update, please wait for subsequent firmware support."
@@ -20124,8 +20130,8 @@ msgstr "Θέρμανση"
 msgid "Unmapped"
 msgstr "Χωρίς χαρτογράφηση"
 
-msgid "The current nozzle diameter is incompatible with the printer"
-msgstr "Η διάμετρος του τρέχοντος ακροφυσίου δεν είναι συμβατή με τον εκτυπωτή"
+msgid "Nozzle diameter mismatch after filament synchronization"
+msgstr ""
 
 msgid "Set nozzle count"
 msgstr "Ορισμός αριθμού ακροφυσίων"
@@ -21320,6 +21326,19 @@ msgid ""
 msgstr ""
 "Αξιοπιστία με την πρώτη\n"
 "Λιγότερη ταλαιπωρία, πιο προβλέψιμη απόδοση. Παράδειγμα: μια μικρή εταιρεία που εκτυπώνει τμήματα PETG αποφεύγει τις εκπλήξεις που προκαλούνται από «αστοχίες την 6η ώρα» και διατηρεί τις παρτίδες εντός χρονοδιαγράμματος."
+
+#~ msgid "Unknown error"
+#~ msgstr "Άγνωστο σφάλμα"
+
+#, c-format, boost-format
+#~ msgid "Filament %s has no %s nozzle in the nozzle settings. Please add that nozzle type before use."
+#~ msgstr "Το νήμα %s δεν έχει το ακροφύσιο %s στις ρυθμίσεις ακροφυσίου. Προσθέστε αυτόν τον τύπο ακροφυσίου πριν από τη χρήση."
+
+#~ msgid "Filament not loaded. Loading will start automatically before printing."
+#~ msgstr "Το νήμα δεν φορτώθηκε. Η φόρτωση θα ξεκινήσει αυτόματα πριν από την εκτύπωση."
+
+#~ msgid "The current nozzle diameter is incompatible with the printer"
+#~ msgstr "Η διάμετρος του τρέχοντος ακροφυσίου δεν είναι συμβατή με τον εκτυπωτή"
 
 #~ msgid "slot"
 #~ msgstr "υποδοχή"

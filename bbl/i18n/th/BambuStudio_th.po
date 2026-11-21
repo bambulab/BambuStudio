@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-20 09:44+0800\n"
+"POT-Creation-Date: 2026-11-21 17:56+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -7799,6 +7799,12 @@ msgstr "เมื่อคุณตั้งอุณหภูมิห้อง
 msgid "Failed to start printing job"
 msgstr "เริ่มงานพิมพ์ล้มเหลว"
 
+msgid "Continue taking"
+msgstr ""
+
+msgid "Continue loading"
+msgstr ""
+
 msgid "Active operations"
 msgstr "การดำเนินการที่กำลังทำงานอยู่"
 
@@ -11897,8 +11903,11 @@ msgstr "ความสูงของโมเดล"
 msgid "Network error"
 msgstr "ข้อผิดพลาดเครือข่าย"
 
-msgid "Unknown error"
-msgstr "ข้อผิดพลาดที่ไม่รู้จัก"
+msgid "No details available"
+msgstr ""
+
+msgid "Failed to load more details"
+msgstr ""
 
 msgid "Recent Helio Runs"
 msgstr "การรัน Helio ล่าสุด"
@@ -13776,6 +13785,12 @@ msgstr "สลับมุมมองกล้องเรียลไทม์
 msgid "Current camera is abnormal"
 msgstr "กล้องปัจจุบันทำงานผิดปกติ"
 
+msgid "Camera preparing, please try again later..."
+msgstr "กำลังเตรียมกล้อง โปรดลองอีกครั้งในภายหลัง..."
+
+msgid "Printer camera is malfunctioning."
+msgstr "กล้องของเครื่องพิมพ์ทำงานผิดปกติ"
+
 msgid "Loading failed. Please check the network and try again."
 msgstr "โหลดไม่สำเร็จ โปรดตรวจสอบเครือข่ายแล้วลองอีกครั้ง"
 
@@ -13784,12 +13799,6 @@ msgstr "ปิดชั่วคราวเนื่องจากไม่ม
 
 msgid "Temporarily closed because there is no printing for a while."
 msgstr "ปิดชั่วคราวเนื่องจากไม่มีการพิมพ์มาระยะหนึ่งแล้ว"
-
-msgid "Camera preparing, please try again later..."
-msgstr "กำลังเตรียมกล้อง โปรดลองอีกครั้งในภายหลัง..."
-
-msgid "Printer camera is malfunctioning."
-msgstr "กล้องของเครื่องพิมพ์ทำงานผิดปกติ"
 
 msgid "Problem occurred. Please update the printer firmware and try again."
 msgstr "เกิดปัญหา โปรดอัปเดตเฟิร์มแวร์เครื่องพิมพ์แล้วลองอีกครั้ง"
@@ -15988,8 +15997,8 @@ msgid "Filament %s is not configured for the current nozzle settings. Please cha
 msgstr "เส้นวัสดุ %s ยังไม่ได้กำหนดค่าสำหรับการตั้งค่าหัวฉีดปัจจุบัน โปรดเปลี่ยนหัวฉีดหรือเส้นวัสดุก่อนใช้งาน"
 
 #, c-format, boost-format
-msgid "Filament %s has no %s nozzle in the nozzle settings. Please add that nozzle type before use."
-msgstr "เส้นวัสดุ %s ไม่มีหัวฉีด %s ในการตั้งค่าหัวฉีด โปรดเพิ่มหัวฉีดนั้นก่อนใช้งาน"
+msgid "Filament %s uses a %s nozzle, which is not available on this printer. Add it or select an available nozzle."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Filament %s has no nozzle in the nozzle settings that fits it. Please add that nozzle type before use."
@@ -16935,9 +16944,6 @@ msgstr "โปรดตรวจสอบว่าเส้นผ่านศู
 
 msgid "Current printer firmware does not yet support large flushing volumes. The flushing volume set in the slicer may be limited."
 msgstr "เฟิร์มแวร์เครื่องพิมพ์ปัจจุบันยังไม่รองรับการล้างด้วยจำนวนมาก ปริมาณการล้างที่ตั้งไว้ในตัวตัดแบ่งอาจถูกจำกัด"
-
-msgid "Filament not loaded. Loading will start automatically before printing."
-msgstr "เส้นวัสดุไม่ได้ถูกป้อนเข้า การป้อนวัสดุเข้าจะเริ่มโดยอัตโนมัติก่อนการพิมพ์"
 
 #, c-format, boost-format
 msgid "The current firmware supports a maximum of %s materials. You can either reduce the number of materials to %s or fewer on the Preparation Page, or try updating the firmware. If you are still restricted after the update, please wait for subsequent firmware support."
@@ -20104,8 +20110,8 @@ msgstr "ทำความร้อน"
 msgid "Unmapped"
 msgstr "ไม่ได้จับคู่"
 
-msgid "The current nozzle diameter is incompatible with the printer"
-msgstr "เส้นผ่านศูนย์กลางหัวฉีดปัจจุบันไม่เข้ากันกับเครื่องพิมพ์"
+msgid "Nozzle diameter mismatch after filament synchronization"
+msgstr ""
 
 msgid "Set nozzle count"
 msgstr "ตั้งค่าจำนวนหัวฉีด"
@@ -21300,6 +21306,19 @@ msgid ""
 msgstr ""
 "ความน่าเชื่อถือแบบสำเร็จตั้งแต่ครั้งแรก\n"
 "ไม่ต้องคอยเฝ้า ได้ผลลัพธ์ที่คาดเดาได้มากขึ้น ตัวอย่าง: ฟาร์มพิมพ์ขนาดเล็กที่ผลิตชิ้นส่วน PETG สามารถหลีกเลี่ยงปัญหา 'งานเสียในชั่วโมงที่ 6' และส่งมอบงานได้ตรงตามกำหนด"
+
+#~ msgid "Unknown error"
+#~ msgstr "ข้อผิดพลาดที่ไม่รู้จัก"
+
+#, c-format, boost-format
+#~ msgid "Filament %s has no %s nozzle in the nozzle settings. Please add that nozzle type before use."
+#~ msgstr "เส้นวัสดุ %s ไม่มีหัวฉีด %s ในการตั้งค่าหัวฉีด โปรดเพิ่มหัวฉีดนั้นก่อนใช้งาน"
+
+#~ msgid "Filament not loaded. Loading will start automatically before printing."
+#~ msgstr "เส้นวัสดุไม่ได้ถูกป้อนเข้า การป้อนวัสดุเข้าจะเริ่มโดยอัตโนมัติก่อนการพิมพ์"
+
+#~ msgid "The current nozzle diameter is incompatible with the printer"
+#~ msgstr "เส้นผ่านศูนย์กลางหัวฉีดปัจจุบันไม่เข้ากันกับเครื่องพิมพ์"
 
 #~ msgid "slot"
 #~ msgstr "ช่อง"
