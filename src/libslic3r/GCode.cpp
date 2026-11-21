@@ -3676,7 +3676,12 @@ void GCode::export_layer_filaments(GCodeProcessorResult* result)
     std::vector<int>prev_filament(m_config.nozzle_diameter.size(), -1);
     for (size_t idx = 0; idx < m_sorted_layer_filaments.size(); ++idx) {
         for (auto f : m_sorted_layer_filaments[idx]) {
+            // per-layer remapping in update_layer_related_config() can leave filament_map empty/short
+            if (f < 0 || static_cast<size_t>(f) >= filament_map.size())
+                continue;
             int extruder_idx = filament_map[f] - 1;
+            if (extruder_idx < 0 || static_cast<size_t>(extruder_idx) >= prev_filament.size())
+                continue;
             if (prev_filament[extruder_idx] != -1 && f != prev_filament[extruder_idx]) {
                 std::pair<int, int> from_to_pair = { prev_filament[extruder_idx],f };
                 auto iter = result->filament_change_count_map.find(from_to_pair);
@@ -8537,6 +8542,12 @@ void GCode::update_layer_related_config(int layer_id){
     auto volume_map = group_result->get_volume_map(layer_id);
     auto nozzle_map = group_result->get_nozzle_map(layer_id);
 
+    // An empty map means "no data for this layer" (layer_id beyond the computed nozzle
+    // maps). Keep the last valid config instead of clearing it: downstream consumers
+    // (export_layer_filaments, gcode templates) index these without a size check.
+    if (extruder_map.empty()) extruder_map = m_config.filament_map.values;
+    if (volume_map.empty()) volume_map = m_config.filament_volume_map.values;
+    if (nozzle_map.empty()) nozzle_map = m_config.filament_nozzle_map.values;
     m_config.filament_map.values = extruder_map;
     m_config.filament_volume_map.values = volume_map;
     m_config.filament_nozzle_map.values = nozzle_map;
