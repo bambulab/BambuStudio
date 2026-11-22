@@ -161,3 +161,52 @@ TEST_CASE("Raster arrange keeps spacing and avoids fixed objects", "[Arrange][Ra
             if (items[i].bed_idx == items[j].bed_idx)
                 CHECK(intersection_ex(offset_ex(placed(items[i]), scaled(0.5)), offset_ex(placed(items[j]), scaled(0.5))).empty());
 }
+
+TEST_CASE("Raster arrange keeps support areas on the bed and free of other objects", "[Arrange][Raster]")
+{
+    // 40 x 40 mm blocks whose supports may cover a 15 mm band on their right side.
+    const Points bed = square_bed(150.);
+    for (double distance : {0., 2.5}) {
+        ArrangePolygons items;
+        for (int i = 0; i < 6; ++i) {
+            ArrangePolygon ap = item(ExPolygon(rect(40., 40.)));
+            Polygon band = rect(15., 40.);
+            band.translate(scaled(27.5), 0);
+            ap.support_area = {ExPolygon(band)};
+            ap.inflation    = coord_t(scaled(distance / 2.));
+            items.push_back(ap);
+        }
+        ArrangeParams p    = raster_params();
+        p.min_obj_distance = scaled(distance);
+        arrange(items, {}, bed, p);
+        check_valid(items, bed);
+        const Polygons bed_poly{Polygon(bed)};
+        for (size_t i = 0; i < items.size(); ++i) {
+            REQUIRE(items[i].bed_idx >= 0);
+            ArrangePolygon supp = items[i];
+            supp.footprint      = supp.support_area;
+            CHECK(diff_ex(placed(supp), bed_poly).empty());
+            for (size_t j = 0; j < items.size(); ++j)
+                if (i != j && items[j].bed_idx == items[i].bed_idx)
+                    CHECK(area(intersection_ex(placed(supp), placed(items[j]))) < scaled(0.01) * scaled(0.01));
+        }
+    }
+}
+
+TEST_CASE("Raster arrange puts tall objects on the same plate", "[Arrange][Raster]")
+{
+    // Four tall and four short blocks, four blocks per plate. Grouping them by height prints
+    // 50 + 5 mm of layers instead of 50 + 50 mm.
+    const Points    bed = square_bed(100.);
+    ArrangePolygons items;
+    for (int i = 0; i < 8; ++i) {
+        items.push_back(item(ExPolygon(rect(45., 45.))));
+        items.back().height = i % 2 == 0 ? 50. : 5.;
+    }
+    arrange(items, {}, bed, raster_params());
+    REQUIRE(plates_used(items) == 2);
+    check_valid(items, bed);
+    for (const ArrangePolygon &a : items)
+        for (const ArrangePolygon &b : items)
+            if (a.bed_idx == b.bed_idx) CHECK(a.height == b.height);
+}

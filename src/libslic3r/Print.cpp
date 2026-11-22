@@ -2175,6 +2175,16 @@ std::map<ObjectID, unsigned int> getObjectExtruderMap(const Print& print) {
 }
 
 // Slicing process, running at a background thread.
+void Print::process_supports_only()
+{
+    for (PrintObject *obj : m_objects)
+        obj->slice();
+    tbb::parallel_for(tbb::blocked_range<int>(0, int(m_objects.size())), [this](const tbb::blocked_range<int> &range) {
+        for (int i = range.begin(); i < range.end(); ++i)
+            m_objects[i]->generate_support_material();
+    });
+}
+
 void Print::process(std::unordered_map<std::string, long long>* slice_time, bool use_cache)
 {
     long long start_time = 0, end_time = 0;

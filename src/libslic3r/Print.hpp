@@ -922,6 +922,9 @@ public:
     ApplyStatus         apply(const Model &model, DynamicPrintConfig config, bool extruder_applied = false) override;
 
     void                process(std::unordered_map<std::string, long long>* slice_time = nullptr, bool use_cache = false) override;
+    // Only slice the objects and generate their supports, e.g. to find out where the supports of an
+    // object will be before arranging it. Nothing else is processed, G-code can not be exported.
+    void                process_supports_only();
     // Exports G-code into a file name based on the path_template, returns the file path of the generated G-code file.
     // If preview_data is not null, the preview_data is filled in for the G-code visualization (not used by the command line Slic3r).
     std::string         export_gcode(const std::string& path_template, GCodeProcessorResult* result, ThumbnailsGeneratorCallback thumbnail_cb = nullptr);

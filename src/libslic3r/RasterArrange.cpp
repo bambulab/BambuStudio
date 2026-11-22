@@ -350,12 +350,15 @@ struct Strategy {
     // irregular parts tends to drop parts into the valleys between their neighbours, which can
     // leave less room than a plain grid; packing the boxes yields such grids.
     bool             boxes = false;
+    // Treat all rotations of tier 1 like the original orientation.
+    bool             any_angle = false;
 };
 
 struct BinResult {
     std::vector<Placement> placed;
     double                 area = 0.;
     long long              pile_area = 0; // bbox of the pile in cells^2
+    double                 tour = 0.;     // nearest neighbour tour through the objects, cells (travel per layer)
     int                    strategy = -1;
 };
 
@@ -395,7 +398,22 @@ private:
     BinResult pack_bin(const Strategy &st, const Occupancy &hard, const Occupancy *soft,
                        const std::vector<const ArrangePolygon *> &fixed_members, int sidx) const;
     void   align_pile(BinResult &res, const Occupancy &hard, const Occupancy *soft) const;
-    std::vector<Strategy> make_strategies(const std::vector<int> &remaining) const;
+    const Raster &rasters_of(const Strategy &st, const Placement &p) const;
+    std::vector<Strategy> make_strategies(const std::vector<int> &remaining, bool tall_first, bool any_angle) const;
+
+    // A complete assignment of the items to plates.
+    struct Plan {
+        std::vector<std::pair<int, BinResult>> bins;  // plate index, placements
+        std::vector<int>                       gravity;
+        int       unplaced  = 0;
+        int       last_bin  = -1;
+        double    layers    = 0.;   // sum of the plate heights (tallest object of every plate), mm
+        long long pile_area = 0;    // sum of the pile bounding boxes, cells^2
+        double    tour      = 0.;   // sum of the travel tours of the plates, cells
+        bool      better_than(const Plan &o) const;
+    };
+    Plan   pack_all(const std::vector<int> &items, bool tall_first, bool any_angle, bool report) const;
+    double height_class(int item) const { return std::floor(m_items[m_data[item].idx].height / 2.); }
 
     double target_x() const { return m_params.align_center.x() * m_W; }
     double target_y() const { return m_params.align_center.y() * m_H; }
@@ -430,9 +448,20 @@ void Nester::setup_grid()
     m_bed_occ.rebuild();
 }
 
-ExPolygons Nester::world_shape(const ArrangePolygon &ap) const
+// Footprint plus the area its supports may cover, in local coordinates.
+static ExPolygons nesting_shape(const ArrangePolygon &ap)
 {
     ExPolygons shape = ap.footprint.empty() ? ExPolygons{ap.poly} : ap.footprint;
+    if (!ap.support_area.empty()) {
+        append(shape, ap.support_area);
+        shape = union_ex(shape);
+    }
+    return shape;
+}
+
+ExPolygons Nester::world_shape(const ArrangePolygon &ap) const
+{
+    ExPolygons shape = nesting_shape(ap);
     for (ExPolygon &e : shape) {
         e.rotate(ap.rotation);
         e.translate(ap.translation.x(), ap.translation.y());
@@ -463,11 +492,12 @@ void Nester::prepare_items()
         const ArrangePolygon &ap = m_items[i];
         ItemData &d = m_data[i];
         d.idx = int(i);
-        ExPolygons shape = ap.footprint.empty() ? ExPolygons{ap.poly} : ap.footprint;
+        ExPolygons shape = nesting_shape(ap);
         if (!m_params.allow_nesting_in_holes || ap.is_virt_object)
             for (ExPolygon &e : shape) e.holes.clear();
         d.shape = union_ex(shape);
-        for (const ExPolygon &e : d.shape) d.area += e.area();
+        // the object itself counts for filling a plate, not the room kept for its supports
+        for (const ExPolygon &e : ap.footprint.empty() ? ExPolygons{ap.poly} : ap.footprint) d.area += e.area();
         double infl = std::max(double(ap.inflation), MIN_SEPARATION);
         // Rasterization adds up to half a cell diagonal of extra clearance around every object. With
         // automatic spacing and no support/brim margin, let that absorb part of the default 1 mm
@@ -495,8 +525,13 @@ void Nester::prepare_items()
         if (fixed_rot) {
             J.push_back({int(i), r0, 0});
         } else if (m_params.allow_rotations) {
-            for (int k = 0; k < 12; ++k) J.push_back({int(i), r0 + k * 30. * deg, 0});
-            for (int k = 0; k < 4; ++k) J.push_back({int(i), mab + k * 90. * deg, 0});
+            // Quarter turns keep the part aligned with the infill and wall directions it was prepared with;
+            // other angles change its infill paths and printing time, so they are only used where no
+            // quarter turn fits (unless they save plates, see run()).
+            for (int k = 0; k < 4; ++k) J.push_back({int(i), r0 + k * 90. * deg, 0});
+            for (int k = 0; k < 12; ++k)
+                if (k % 3 != 0) J.push_back({int(i), r0 + k * 30. * deg, 1});
+            for (int k = 0; k < 4; ++k) J.push_back({int(i), mab + k * 90. * deg, 1});
         } else if (m_params.align_to_y_axis && (bw > bh * 1.1 || bh > bw * 1.1)) {
             // long side along Y, original orientation as fallback
             const double ay = mab + (bw > bh ? 90. * deg : 0.);
@@ -715,6 +750,11 @@ bool Nester::compatible(const ArrangePolygon &ap, const std::vector<const Arrang
     return true;
 }
 
+const Raster &Nester::rasters_of(const Strategy &st, const Placement &p) const
+{
+    return st.boxes ? m_data[p.item].boxes[p.raster] : m_data[p.item].rasters[p.raster];
+}
+
 BinResult Nester::pack_bin(const Strategy &st, const Occupancy &hard_in, const Occupancy *soft_in,
                            const std::vector<const ArrangePolygon *> &fixed_members, int sidx) const
 {
@@ -739,11 +779,12 @@ BinResult Nester::pack_bin(const Strategy &st, const Occupancy &hard_in, const O
             double best = std::numeric_limits<double>::max();
             for (int ri = 0; ri < int(rasters.size()); ++ri) {
                 const Raster &r = rasters[ri];
-                if (r.tier > tier_found) continue;
+                const int tier = st.any_angle && r.tier == 1 ? 0 : r.tier;
+                if (tier > tier_found) continue;
                 int X, Y; double sc;
                 if (find(occ, r, st.gravity, pile, target_x(), target_y(), X, Y, sc)) {
-                    if (r.tier < tier_found || sc < best) {
-                        tier_found = r.tier; best = sc; best_r = ri; bX = X; bY = Y;
+                    if (tier < tier_found || sc < best) {
+                        tier_found = tier; best = sc; best_r = ri; bX = X; bY = Y;
                     }
                 }
             }
@@ -760,6 +801,28 @@ BinResult Nester::pack_bin(const Strategy &st, const Occupancy &hard_in, const O
     }
     if (!res.placed.empty())
         res.pile_area = (long long)(pile[2] - pile[0]) * (pile[3] - pile[1]);
+    // Travel between the objects of a layer: nearest neighbour tour through their centres.
+    const size_t n = res.placed.size();
+    if (n > 1 && n <= 200) {
+        std::vector<Vec2d> c(n);
+        for (size_t k = 0; k < n; ++k) {
+            const Raster &r = rasters_of(st, res.placed[k]);
+            c[k] = Vec2d(res.placed[k].X + 0.5 * r.w, res.placed[k].Y + 0.5 * r.h);
+        }
+        std::vector<char> visited(n, 0);
+        size_t cur = 0;
+        visited[0] = 1;
+        for (size_t step = 1; step < n; ++step) {
+            size_t next = 0;
+            double dmin = std::numeric_limits<double>::max();
+            for (size_t k = 0; k < n; ++k)
+                if (!visited[k] && (c[k] - c[cur]).squaredNorm() < dmin) { dmin = (c[k] - c[cur]).squaredNorm(); next = k; }
+            res.tour += std::sqrt(dmin);
+            visited[next] = 1;
+            cur = next;
+        }
+        res.tour += (c[cur] - c[0]).norm();
+    }
     return res;
 }
 
@@ -823,12 +886,15 @@ void Nester::align_pile(BinResult &res, const Occupancy &hard, const Occupancy *
     }
 }
 
-std::vector<Strategy> Nester::make_strategies(const std::vector<int> &remaining) const
+std::vector<Strategy> Nester::make_strategies(const std::vector<int> &remaining, bool tall_first, bool any_angle) const
 {
-    auto prio_then = [this](auto key) {
-        return [this, key](int a, int b) {
+    // tall_first: place the tallest objects first, so that they end up on the same plate and the
+    // following plates only contain short objects (fewer layers in total, i.e. less printing time).
+    auto prio_then = [this, tall_first](auto key) {
+        return [this, key, tall_first](int a, int b) {
             const int pa = m_items[m_data[a].idx].priority, pb = m_items[m_data[b].idx].priority;
             if (pa != pb) return pa > pb;
+            if (tall_first && height_class(a) != height_class(b)) return height_class(a) > height_class(b);
             return key(a, b);
         };
     };
@@ -859,7 +925,9 @@ std::vector<Strategy> Nester::make_strategies(const std::vector<int> &remaining)
             std::vector<int> o = orders.front();
             for (int s = 0; s < int(o.size()) / 3 + 1; ++s) {
                 const int i = int(rng() % o.size()), j = int(rng() % o.size());
-                if (m_items[m_data[o[i]].idx].priority == m_items[m_data[o[j]].idx].priority) std::swap(o[i], o[j]);
+                if (m_items[m_data[o[i]].idx].priority == m_items[m_data[o[j]].idx].priority &&
+                    (!tall_first || height_class(o[i]) == height_class(o[j])))
+                    std::swap(o[i], o[j]);
             }
             bool dup = false;
             for (const auto &e : orders) if (e == o) { dup = true; break; }
@@ -889,23 +957,24 @@ std::vector<Strategy> Nester::make_strategies(const std::vector<int> &remaining)
                     out.push_back({orders[o], g, true});
         }
     }
+    for (Strategy &st : out) st.any_angle = any_angle;
     return out;
 }
 
-void Nester::run()
+bool Nester::Plan::better_than(const Plan &o) const
 {
-    auto t0 = std::chrono::steady_clock::now();
-    setup_grid();
-    prepare_items();
+    if (unplaced != o.unplaced) return unplaced < o.unplaced;
+    if (last_bin != o.last_bin) return last_bin < o.last_bin;
+    // Same number of plates: the fewest layers in total, then the shortest travels between the objects.
+    if (std::abs(layers - o.layers) > 0.5) return layers < o.layers;
+    if (std::abs(tour - o.tour) > 1e-3 * std::max(tour, o.tour)) return tour < o.tour;
+    return pile_area < o.pile_area;
+}
 
-    for (ArrangePolygon &ap : m_items) ap.bed_idx = UNARRANGED;
-
-    std::vector<int> remaining;
-    for (size_t i = 0; i < m_data.size(); ++i) {
-        if (m_data[i].fits_empty) remaining.push_back(int(i));
-        else BOOST_LOG_TRIVIAL(warning) << "raster arrange: " << m_items[i].name << " does not fit the bed";
-    }
-
+Nester::Plan Nester::pack_all(const std::vector<int> &items, bool tall_first, bool any_angle, bool report) const
+{
+    Plan plan;
+    std::vector<int> remaining = items;
     int max_fixed_bed = -1;
     for (const ArrangePolygon &ex : m_excludes) max_fixed_bed = std::max(max_fixed_bed, ex.bed_idx);
 
@@ -916,6 +985,7 @@ void Nester::run()
         Occupancy hard = m_bed_occ;
         std::unique_ptr<Occupancy> soft;
         std::vector<const ArrangePolygon *> fixed_members;
+        double fixed_height = 0.;
         for (const ArrangePolygon &ex : m_excludes) {
             if (ex.bed_idx != bin) continue;
             double infl = std::max(double(ex.inflation), MIN_SEPARATION);
@@ -927,6 +997,7 @@ void Nester::run()
                 for (ExPolygon &e : shape) e.holes.clear();
             stamp_shape(hard, shape, infl);
             fixed_members.push_back(&ex);
+            if (!ex.is_virt_object) fixed_height = std::max(fixed_height, ex.height);
         }
         hard.rebuild();
         if (!m_params.nonprefered_regions.empty()) {
@@ -936,21 +1007,26 @@ void Nester::run()
             soft->rebuild();
         }
 
-        std::vector<Strategy> strategies = make_strategies(remaining);
+        std::vector<Strategy> strategies = make_strategies(remaining, tall_first, any_angle);
         std::vector<BinResult> results(strategies.size());
         tbb::parallel_for(tbb::blocked_range<size_t>(0, strategies.size(), 1), [&](const tbb::blocked_range<size_t> &range) {
             for (size_t k = range.begin(); k < range.end(); ++k)
                 results[k] = pack_bin(strategies[k], hard, soft.get(), fixed_members, int(k));
         });
 
-        // Most placed area wins; among equal fills the most compact pile.
+        // Most placed area wins; among equal fills the shortest travel between the objects of a layer,
+        // then the most compact pile.
         int best = -1;
         for (int k = 0; k < int(results.size()); ++k) {
             if (results[k].placed.empty()) continue;
             if (best < 0) { best = k; continue; }
             const BinResult &a = results[k], &b = results[best];
             const double eps = 1e-6 * std::max(a.area, b.area);
-            if (a.area > b.area + eps || (std::abs(a.area - b.area) <= eps && a.pile_area < b.pile_area))
+            if (a.area > b.area + eps) { best = k; continue; }
+            if (std::abs(a.area - b.area) > eps) continue;
+            if (std::abs(a.tour - b.tour) > 1e-3 * std::max(a.tour, b.tour)) {
+                if (a.tour < b.tour) best = k;
+            } else if (a.pile_area < b.pile_area)
                 best = k;
         }
         if (best < 0) {
@@ -963,6 +1039,71 @@ void Nester::run()
         if (m_params.do_final_align) align_pile(res, hard, soft.get());
 
         std::vector<char> done(m_data.size(), 0);
+        double height = fixed_height;
+        for (const Placement &p : res.placed) {
+            done[p.item] = 1;
+            height = std::max(height, m_items[m_data[p.item].idx].height);
+        }
+        remaining.erase(std::remove_if(remaining.begin(), remaining.end(), [&done](int i) { return done[i] != 0; }), remaining.end());
+        plan.layers += height;
+        plan.pile_area += res.pile_area;
+        plan.tour += res.tour;
+        plan.last_bin = bin;
+        plan.gravity.push_back(strategies[best].gravity);
+        if (report && m_params.progressind)
+            m_params.progressind(unsigned(total - remaining.size()), m_items[m_data[res.placed.back().item].idx].name);
+        plan.bins.emplace_back(bin, std::move(res));
+    }
+    plan.unplaced = int(remaining.size());
+    return plan;
+}
+
+void Nester::run()
+{
+    auto t0 = std::chrono::steady_clock::now();
+    setup_grid();
+    prepare_items();
+
+    for (ArrangePolygon &ap : m_items) ap.bed_idx = UNARRANGED;
+
+    std::vector<int> items;
+    double hmin = std::numeric_limits<double>::max(), hmax = 0.;
+    for (size_t i = 0; i < m_data.size(); ++i) {
+        if (!m_data[i].fits_empty) {
+            BOOST_LOG_TRIVIAL(warning) << "raster arrange: " << m_items[i].name << " does not fit the bed";
+            continue;
+        }
+        items.push_back(int(i));
+        hmin = std::min(hmin, m_items[i].height);
+        hmax = std::max(hmax, m_items[i].height);
+    }
+
+    // Fewest plates first, then the shortest printing time: fewest layers over all plates, objects kept
+    // in their orientation (up to quarter turns), short travels between the objects of a layer.
+    Plan plan = pack_all(items, false, false, true);
+    bool tall_first = false;
+    // More than one plate and objects of different heights: also try to put the tall objects together.
+    // Printing time grows with the number of layers of every plate, not only with the material.
+    if (plan.bins.size() > 1 && hmax - hmin > 2. && !stopped()) {
+        Plan tall = pack_all(items, true, false, false);
+        BOOST_LOG_TRIVIAL(info) << "raster arrange: plates " << plan.last_bin + 1 << " / " << tall.last_bin + 1 << ", total height "
+                                << plan.layers << " / " << tall.layers << " mm (area first / tall first)";
+        if (!stopped() && tall.better_than(plan)) { plan = std::move(tall); tall_first = true; }
+    }
+    // Arbitrary angles only where they save a plate or layers.
+    if (m_params.allow_rotations && plan.bins.size() > 1 && !stopped()) {
+        Plan any = pack_all(items, tall_first, true, false);
+        BOOST_LOG_TRIVIAL(info) << "raster arrange: plates " << plan.last_bin + 1 << " / " << any.last_bin + 1
+                                << " (quarter turns / any angle)";
+        const bool saves = any.unplaced != plan.unplaced ? any.unplaced < plan.unplaced :
+                           any.last_bin != plan.last_bin ? any.last_bin < plan.last_bin :
+                                                           any.layers < plan.layers - 0.5;
+        if (!stopped() && saves) plan = std::move(any);
+    }
+
+    for (size_t b = 0; b < plan.bins.size(); ++b) {
+        const int bin = plan.bins[b].first;
+        const BinResult &res = plan.bins[b].second;
         for (const Placement &p : res.placed) {
             const ItemData &d = m_data[p.item];
             const Raster &r = d.rasters[p.raster];
@@ -973,14 +1114,10 @@ void Nester::run()
             ap.translation = Vec2crd(coord_t(std::llround(m_ox + p.X * m_s - r.minx)),
                                      coord_t(std::llround(m_oy + p.Y * m_s - r.miny)));
             ap.bed_idx = bin;
-            done[p.item] = 1;
             if (m_params.on_packed) m_params.on_packed(ap);
         }
-        remaining.erase(std::remove_if(remaining.begin(), remaining.end(), [&done](int i) { return done[i] != 0; }), remaining.end());
-
-        BOOST_LOG_TRIVIAL(info) << "raster arrange: plate " << bin << " got " << res.placed.size() << " items with strategy " << best
-                                << " (gravity " << strategies[best].gravity << "), " << remaining.size() << " left";
-        if (m_params.progressind) m_params.progressind(unsigned(total - remaining.size()), res.placed.empty() ? std::string() : m_items[m_data[res.placed.back().item].idx].name);
+        BOOST_LOG_TRIVIAL(info) << "raster arrange: plate " << bin << " got " << res.placed.size() << " items with strategy "
+                                << res.strategy << " (gravity " << plan.gravity[b] << ")";
     }
 
     BOOST_LOG_TRIVIAL(info) << "raster arrange: " << m_items.size() << " items, cell " << unscale_(m_s) << "mm, took "

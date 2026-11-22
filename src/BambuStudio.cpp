@@ -5911,6 +5911,10 @@ int CLI::run(int argc, char **argv)
                 }
 
                 arrangement::update_arrange_params(arrange_cfg, m_print_config, selected);
+                if (arrange_cfg.use_raster_nester && !arrange_cfg.is_seq_print) {
+                    update_support_areas(selected, m_print_config);
+                    update_support_areas(unselected, m_print_config);
+                }
                 arrangement::update_selected_items_inflation(selected, m_print_config, arrange_cfg);
                 arrangement::update_unselected_items_inflation(unselected, m_print_config, arrange_cfg);
 
@@ -6332,6 +6336,10 @@ int CLI::run(int argc, char **argv)
                 }
 
                 arrangement::update_arrange_params(arrange_cfg, m_print_config, selected);
+                if (arrange_cfg.use_raster_nester && !arrange_cfg.is_seq_print) {
+                    update_support_areas(selected, m_print_config);
+                    update_support_areas(unselected, m_print_config);
+                }
                 arrangement::update_selected_items_inflation(selected, m_print_config, arrange_cfg);
                 arrangement::update_unselected_items_inflation(unselected, m_print_config, arrange_cfg);
 

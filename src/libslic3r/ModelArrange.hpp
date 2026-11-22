@@ -92,6 +92,12 @@ template<>
 arrangement::ArrangePolygon get_arrange_poly(ModelInstance* inst, const DynamicPrintConfig& config);
 
 ArrangePolygon get_instance_arrange_poly(ModelInstance* instance, const DynamicPrintConfig& config);
+
+// For the raster nester: replace the estimated support areas of the items which may get supports by
+// the top view of the supports the slicer really generates for them (slicing and support generation
+// only, results are cached). Call before update_selected_items_inflation().
+void update_support_areas(ArrangePolygons &items, const DynamicPrintConfig &config, std::function<bool()> stop = {},
+                          std::function<void(const std::string &name)> progress = {});
 }
 
 #endif // MODELARRANGE_HPP
