@@ -7696,6 +7696,9 @@ msgstr ""
 msgid "Filament Buffer"
 msgstr ""
 
+msgid "E1 Air Purifier"
+msgstr ""
+
 msgid "Optional Drying Module"
 msgstr ""
 

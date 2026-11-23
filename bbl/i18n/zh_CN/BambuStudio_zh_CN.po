@@ -7896,6 +7896,9 @@ msgstr "版本："
 msgid "Filament Buffer"
 msgstr "供料缓冲器"
 
+msgid "E1 Air Purifier"
+msgstr "E1 空气净化器"
+
 msgid "Optional Drying Module"
 msgstr "选配烘干模块"
 

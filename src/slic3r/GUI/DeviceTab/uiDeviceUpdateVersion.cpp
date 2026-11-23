@@ -21,6 +21,8 @@ using namespace Slic3r::GUI;
 static void _firmware_product_name_translation_markers()
 {
     L("Filament Buffer");
+    L("Filament Track Switch");
+    L("E1 Air Purifier");
     L("Optional Drying Module");
     L("Drying Module");
     L("Dry Module");
