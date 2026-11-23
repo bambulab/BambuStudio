@@ -25084,6 +25084,9 @@ int Plater::load_project(wxString const &filename2,
 
     // Take the Undo / Redo snapshot.
     reset();
+    // The previous document has been discarded. Its explicit dirty latch must not cross this
+    // project boundary; restore paths establish their own dirty state below.
+    set_plater_dirty(false);
 
     Plater::TakeSnapshot snapshot(this, "Load Project", UndoRedo::SnapshotType::ProjectSeparator);
 
