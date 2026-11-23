@@ -69,7 +69,8 @@
         "200",
         "200"
     ],
-    "ironing_flow": "24%",
+    "ironing_flow": "23%",
+    "ironing_inset": "0.25",
     "ironing_spacing": "0.19",
     "ironing_speed": "40",
     "monotonic_travel_into_wall": "45.0",
