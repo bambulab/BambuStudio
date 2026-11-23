@@ -205,6 +205,7 @@ namespace Slic3r {
             private:
                 void delete_wipe_tower();
                 void render_legend_color_arr_recommen(float window_padding, bool is_show_left_right_result);
+                void render_legend_filament_group_card(float window_padding);
 
             protected:
                 bool m_legend_enabled{ true };
