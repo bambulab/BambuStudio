@@ -3945,7 +3945,7 @@ namespace Slic3r
                 std::string x = ImGui::ColorMarkerStart + std::string("X: ") + ImGui::ColorMarkerEnd;
                 std::string y = ImGui::ColorMarkerStart + std::string("Y: ") + ImGui::ColorMarkerEnd;
                 std::string z = ImGui::ColorMarkerStart + std::string("Z: ") + ImGui::ColorMarkerEnd;
-                std::string nozzle = ImGui::ColorMarkerStart + std::string("nozzle: ") + ImGui::ColorMarkerEnd;
+                std::string nozzle = ImGui::ColorMarkerStart + (_u8L("Nozzle") + ": ") + ImGui::ColorMarkerEnd;
                 // Filament view only: 1-based filament id, same "label: value" spacing as nozzle.
                 std::string filament = ImGui::ColorMarkerStart + (_u8L("Filament") + ": ") + ImGui::ColorMarkerEnd;
                 std::string height = ImGui::ColorMarkerStart + _u8L("Height: ") + ImGui::ColorMarkerEnd;

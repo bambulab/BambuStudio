@@ -1667,7 +1667,7 @@ wxWindow *PreferencesDialog::create_3d_tab()
                                                  "show_shells_in_preview");
 
     auto item_show_objects = create_item_checkbox(_L("Show Objects color scheme in preview"), scrolled,
-        _L("Color preview toolpaths by object. Disabled by default. This does not calculate center of gravity."),
+        _L("Color preview toolpaths by object. Disabled by default."),
         50, "show_objects_in_preview");
 
     auto item_show_heat_soak_area = create_item_checkbox(_L("Show Thermal Preconditioning Area"), scrolled,
