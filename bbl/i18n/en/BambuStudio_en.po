@@ -10956,6 +10956,29 @@ msgstr "Mesh preparation failed."
 msgid "Mesh Boolean"
 msgstr "Mesh Boolean"
 
+msgid "The selected models need repair before a Boolean operation can be performed."
+msgstr "The selected models need repair before a Boolean operation can be performed."
+
+#. TRN: A model name in quotation marks, followed by "Repair now" or "Repaired" in the Mesh Boolean repair list.
+#, boost-format
+msgid "\"%1%\""
+msgstr "\"%1%\""
+
+msgid "Repair now"
+msgstr "Repair now"
+
+msgid "Repaired"
+msgstr "Repaired"
+
+msgid "The selected part changed before repair could be applied."
+msgstr "The selected part changed before repair could be applied."
+
+msgid "The repaired mesh is empty."
+msgstr "The repaired mesh is empty."
+
+msgid "The repaired mesh still has open or non-manifold edges."
+msgstr "The repaired mesh still has open or non-manifold edges."
+
 msgid "- Object mode: Please select at least two objects."
 msgstr ""
 

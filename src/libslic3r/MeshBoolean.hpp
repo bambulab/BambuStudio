@@ -11,6 +11,13 @@ namespace Slic3r {
 
 namespace MeshBoolean {
 
+// Cheap operand preflight using cached stats. Other mesh diagnostics are not
+// reasons to offer a repair here; the backend still validates its actual input.
+inline bool has_operand_edge_defects(const TriangleMeshStats &stats)
+{
+    return stats.open_edges != 0 || stats.non_manifold_edges != 0;
+}
+
 using EigenMesh = std::pair<Eigen::MatrixXd, Eigen::MatrixXi>;
 
 TriangleMesh eigen_to_triangle_mesh(const EigenMesh &emesh);

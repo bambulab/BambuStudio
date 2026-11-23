@@ -59,3 +59,9 @@ if (MSVC)
     target_link_options(libslic3r_cut_mesh_tests PRIVATE /FORCE:UNRESOLVED)
 endif()
 add_test(libslic3r_cut_mesh_tests libslic3r_cut_mesh_tests ${CATCH_EXTRA_ARGS})
+
+# Keep the mesh boolean regressions runnable without the legacy full suite.
+add_executable(libslic3r_meshboolean_tests cut_mesh_catch_main.cpp test_meshboolean.cpp)
+target_link_libraries(libslic3r_meshboolean_tests PRIVATE test_common libslic3r)
+set_property(TARGET libslic3r_meshboolean_tests PROPERTY FOLDER "tests")
+add_test(NAME libslic3r_meshboolean_tests COMMAND libslic3r_meshboolean_tests "[MeshBoolean]" ${CATCH_EXTRA_ARGS})

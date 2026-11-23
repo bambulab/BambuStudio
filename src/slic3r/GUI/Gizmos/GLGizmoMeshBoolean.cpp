@@ -10,6 +10,10 @@
 #include "slic3r/GUI/format.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/NotificationManager.hpp"
+#include "slic3r/GUI/Widgets/ProgressDialog.hpp"
+#include "slic3r/Utils/FixModelByWin10.hpp"
+#include "libslic3r/Utils.hpp"
+#include "libslic3r/Win10ModelRepair.hpp"
 #include "libslic3r/CSGMesh/CSGMesh.hpp"
 #include "libslic3r/CSGMesh/ModelToCSGMesh.hpp"
 #include "libslic3r/CSGMesh/PerformCSGMeshBooleans.hpp"
@@ -19,9 +23,12 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 #endif
 #include <imgui/imgui_internal.h>
+#include <wx/progdlg.h>
 #include <algorithm>
+#include <cfloat>
 #include <chrono>
 #include <map>
+#include <type_traits>
 #include <unordered_set>
 #include <memory>
 #include "libslic3r/Log.hpp"
@@ -213,15 +220,6 @@ namespace {
                 return acc;
         }
         return std::nullopt;
-    }
-
-    template <class T>
-    static bool is_equal_ignore_order(std::vector<T> a, std::vector<T> b)
-    {
-        if (a.size() != b.size()) return false;
-        std::sort(a.begin(), a.end());
-        std::sort(b.begin(), b.end());
-        return a == b;
     }
 
     static bool check_if_active()
@@ -521,37 +519,25 @@ void VolumeListManager::sort_volumes_by_type(std::vector<unsigned int>& volume_i
     });
 }
 
-bool VolumeListManager::selection_changed(const Selection& selection){
-    std::vector<unsigned int> cur_volumes;
-    const Selection::IndicesList& volume_idxs = selection.get_volume_idxs();
-    for (unsigned int vol_idx : volume_idxs) {
-        cur_volumes.push_back(vol_idx);
-    }
-
-    // First check: indices changed?
-    if (!is_equal_ignore_order(m_working_volumes, cur_volumes)) {
-        return true;
-    }
-
-    // Second check: indices same but volumes were replaced (undo/redo case)
-    // Verify that all cached volume indices still point to valid volumes
-    // After undo/redo, GLVolume pointers may be invalidated even if indices match
-    for (unsigned int idx : m_working_volumes) {
-        const GLVolume* glv = selection.get_volume(idx);
-        if (!glv) {
-            // Volume index no longer valid - undo/redo occurred
-            return true;
+void VolumeListManager::remap_indices(const IndexMap& old_to_new)
+{
+    const auto remap = [&old_to_new](auto& indices) {
+        using Indices = std::decay_t<decltype(indices)>;
+        Indices remapped;
+        for (unsigned int index : indices) {
+            const auto it = old_to_new.find(index);
+            if (it != old_to_new.end()) remapped.insert(remapped.end(), it->second);
         }
-
-        ModelVolume* mv = get_model_volume(*glv, selection.get_model()->objects);
-        if (!mv) {
-            // ModelVolume pointer invalid - undo/redo occurred
-            return true;
-        }
-    }
-
-    return false;
+        indices = std::move(remapped);
+    };
+    remap(m_working_volumes);
+    remap(m_a_list_volumes);
+    remap(m_b_list_volumes);
+    remap(m_selected_objects);
+    remap(m_selected_a_objects);
+    remap(m_selected_b_objects);
 }
+
 void VolumeListManager::init_part_mode_lists(const Selection& selection) {
     clear_all();
     if (selection.volumes_count() < 1) return;
@@ -1907,18 +1893,25 @@ GLGizmoMeshBoolean::GLGizmoMeshBoolean(GLCanvas3D& parent, unsigned int sprite_i
     m_ui = std::make_unique<MeshBooleanUI>();
     m_ui->set_volume_manager(&m_volume_manager);
     m_ui->set_warning_manager(&m_warning_manager);
+    m_ui->on_refresh_operands = [this]() {
+        // The tabs, lists and Entity Only checkbox have already drawn this frame.
+        sync_panel_settings();
+        update_operand_status(collect_operands());
+    };
+
+    m_ui->on_repair_part = [this](ObjectID object, ObjectID volume) { queue_part_repair(object, volume); };
+    m_ui->is_operation_busy = [this]() { return is_operation_busy(); };
 
     // Setup UI callbacks
     m_ui->on_execute_mesh_boolean = [this]() {
         execute_mesh_boolean();
     };
     m_ui->on_reset_operation = [this]() {
-        const Selection& selection = m_parent.get_selection();
         size_t cur_snapshot_time = wxGetApp().plater()->get_active_snapshot_time();
         if(cur_snapshot_time < m_last_snapshot_time) return;
+        m_repaired_volume_ids.clear();
         wxGetApp().plater()->undo_redo_to(m_last_snapshot_time);
         init_volume_manager();
-        m_volume_manager.update_obj_lists(selection);
         restore_list_color_overrides();
         apply_color_overrides_for_mode(m_ui->get_selected_operation());
         m_warning_manager.clear_warnings();
@@ -1943,7 +1936,8 @@ GLGizmoMeshBoolean::GLGizmoMeshBoolean(GLCanvas3D& parent, unsigned int sprite_i
             }
         }
 
-        // Refresh object caches after list changes
+        // Refresh object caches after list changes.
+        m_scene_selection = selected_scene_indices(m_parent.get_selection());
         m_volume_manager.update_obj_lists(m_parent.get_selection());
 
         // Handle color overrides - refresh them after list changes
@@ -1995,7 +1989,9 @@ GLGizmoMeshBoolean::~GLGizmoMeshBoolean()
 
 bool GLGizmoMeshBoolean::gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down, bool alt_down, bool control_down)
 {
-    // Only handle events when the gizmo is active
+    if (m_state != EState::On) return false;
+    if (is_operation_busy()) return true;
+    if (!sync_volume_manager()) return false;
 
         const Selection& selection = m_parent.get_selection();
         const GLVolume* clicked_volume = get_first_hovered_gl_volume(m_parent);
@@ -2082,6 +2078,8 @@ bool GLGizmoMeshBoolean::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
                     selection_ref.add_object((unsigned int)clicked_volume->object_idx(), /*as_single_selection*/false);
                 }
 
+                m_scene_selection = selected_scene_indices(selection_ref);
+                m_volume_manager.update_obj_lists(selection_ref);
                 // Re-apply color overrides so newly added indices get list colors immediately
                 apply_color_overrides_for_mode(m_operation_mode);
                 refresh_canvas();
@@ -2228,6 +2226,7 @@ bool GLGizmoMeshBoolean::on_init()
 
 bool GLGizmoMeshBoolean::on_is_activable() const
 {
+    if (m_repair_refreshing && m_state == EState::On) return true;
     const Selection& selection = m_parent.get_selection();
     if (selection.is_empty())
         return false;
@@ -2289,7 +2288,10 @@ void GLGizmoMeshBoolean::on_render()
 
 void GLGizmoMeshBoolean::on_set_state()
 {
-
+    ++m_repair_revision;
+    m_repaired_volume_ids.clear();
+    m_scene_selection.clear();
+    m_scene_dirty = true;
     m_warning_manager.clear_warnings();
     m_kept_result_objects.clear();
     if (m_state == EState::On) {
@@ -2311,10 +2313,10 @@ void GLGizmoMeshBoolean::on_set_state()
         } else {
             apply_part_visibility(selection);
         }
-        if (m_ui) m_ui->set_target_mode(m_target_mode);
+        m_ui->set_target_mode(m_target_mode);
+        m_ui->set_native_repair_available(is_win10_model_repair_available());
 
         init_volume_manager();
-        m_volume_manager.update_obj_lists(selection);
 
         // Apply color override immediately based on operation mode
         apply_color_overrides_for_mode(m_operation_mode);
@@ -2343,6 +2345,9 @@ void GLGizmoMeshBoolean::on_set_state()
 // Closing by assigning m_state skips on_set_state(), so run its Off cleanup here.
 void GLGizmoMeshBoolean::close_from_render()
 {
+    ++m_repair_revision;
+    m_repaired_volume_ids.clear();
+    m_scene_selection.clear();
     m_kept_result_objects.clear();
     restore_list_color_overrides();
     m_volume_manager.clear_all();
@@ -2363,22 +2368,10 @@ CommonGizmosDataID GLGizmoMeshBoolean::on_get_requirements() const
 
 void GLGizmoMeshBoolean::on_render_input_window(float x, float y, float bottom_limit)
 {
-    // Delegate to UI layer, but handle gizmo state changes here
-    const Selection &sel = m_parent.get_selection();
-    m_target_mode = update_cur_mode(sel);
-    if (sel.get_content().empty() || m_target_mode == BooleanTargetMode::Unknown) {
+    if (m_repair_refreshing) return;
+    if (!sync_volume_manager()) {
         close_from_render();
         return;
-    }
-    // Rebuild lists and color/visibility when selection changes (undo/redo)
-    if (m_volume_manager.selection_changed(sel)) {
-        init_volume_manager();
-        m_volume_manager.update_obj_lists(sel);
-        restore_list_color_overrides();
-        apply_color_overrides_for_mode(m_operation_mode);
-        // Set visibility
-        if (m_target_mode == BooleanTargetMode::Object) apply_object_visibility(sel);
-        else apply_part_visibility(sel);
     }
 
     bool has_any_items = !m_volume_manager.get_working_list().empty()
@@ -2395,11 +2388,14 @@ void GLGizmoMeshBoolean::on_render_input_window(float x, float y, float bottom_l
         return;
     }
 
-    // Manage ImGui window lifecycle (Gizmo's responsibility)
-    y = std::min(y, bottom_limit - ImGui::GetWindowHeight());
+    // Use this panel's previous height, not the currently active ImGui window's.
+    if (const auto* window = ImGui::FindWindowByName("MeshBoolean"))
+        y = std::clamp(y, 0.0f, std::max(0.0f, bottom_limit - window->Size.y));
+    ImGui::SetNextWindowSizeConstraints(ImVec2(0.0f, 0.0f), ImVec2(FLT_MAX, std::max(1.0f, bottom_limit)));
 
     static float last_y = 0.0f;
     static float last_w = 0.0f;
+    static float last_h = 0.0f;
 
     const float currt_scale = m_parent.get_scale();
     ImGuiWrapper::push_toolbar_style(currt_scale);
@@ -2416,30 +2412,18 @@ void GLGizmoMeshBoolean::on_render_input_window(float x, float y, float bottom_l
 
         m_ui->render_content(m_parent, GLGizmoBase::m_imgui, GLGizmoBase::m_is_dark_mode);
 
-        if (m_keep_original_models != m_ui->get_keep_original_models() ||
-            m_entity_only != m_ui->get_entity_only() ||
-            m_operation_mode != m_ui->get_selected_operation()){
-            m_warning_manager.clear_warnings();
-        }
-
-        // Get updated values from UI
-        m_operation_mode = m_ui->get_selected_operation();
-        m_target_mode = m_ui->get_target_mode();
-        m_keep_original_models = m_ui->get_keep_original_models();
-        m_entity_only = m_ui->get_entity_only();
-        m_preserve_color = m_ui->get_preserve_color();
     }
 
     // Close ImGui window (Gizmo's responsibility)
     float win_w = ImGui::GetWindowWidth();
-    if (last_w != win_w || last_y != y) {
+    float win_h = ImGui::GetWindowHeight();
+    if (last_w != win_w || last_h != win_h || last_y != y) {
         // ask canvas for another frame to render the window in the correct position
         m_imgui->set_requires_extra_frame();
         refresh_canvas();
-        if (last_w != win_w)
-            last_w = win_w;
-        if (last_y != y)
-            last_y = y;
+        last_w = win_w;
+        last_h = win_h;
+        last_y = y;
     }
 
     GizmoImguiEnd();
@@ -2486,13 +2470,78 @@ void GLGizmoMeshBoolean::render_selected_bounding_boxes()
     }
 }
 
-void GLGizmoMeshBoolean::init_volume_manager(){
+void GLGizmoMeshBoolean::init_volume_manager()
+{
     const Selection& selection = m_parent.get_selection();
     if (m_target_mode == BooleanTargetMode::Part) m_volume_manager.init_part_mode_lists(selection);
     else m_volume_manager.init_object_mode_lists(selection);
+    m_volume_manager.update_obj_lists(selection);
+    m_scene_selection = selected_scene_indices(selection);
+    m_scene_dirty = false;
 }
 
+GLGizmoMeshBoolean::SceneIndices GLGizmoMeshBoolean::selected_scene_indices(const Selection& selection)
+{
+    SceneIndices indices;
+    for (unsigned int index : selection.get_volume_idxs()) {
+        if (const GLVolume* volume = selection.get_volume(index))
+            indices.emplace(volume->geometry_id, index);
+    }
+    return indices;
+}
 
+bool GLGizmoMeshBoolean::same_scene_ids(const SceneIndices& a, const SceneIndices& b)
+{
+    return a.size() == b.size() && std::equal(a.begin(), a.end(), b.begin(),
+        [](const auto& lhs, const auto& rhs) { return lhs.first == rhs.first; });
+}
+
+VolumeListManager::IndexMap GLGizmoMeshBoolean::remap_scene_indices(const SceneIndices& before, const SceneIndices& after,
+                                                                  ObjectID old_volume, ObjectID new_volume)
+{
+    VolumeListManager::IndexMap remapped;
+    for (const auto& [geometry, index] : before) {
+        auto key = geometry;
+        if (old_volume.valid() && key.first == old_volume.id)
+            key.first = new_volume.id;
+        const auto it = after.find(key);
+        if (it != after.end()) remapped.emplace(index, it->second);
+    }
+    return remapped;
+}
+
+bool GLGizmoMeshBoolean::sync_volume_manager()
+{
+    const Selection& selection = m_parent.get_selection();
+    const BooleanTargetMode mode = update_cur_mode(selection);
+    if (mode == BooleanTargetMode::Unknown || selection.get_content().empty()) return false;
+
+    const auto& selected = selection.get_volume_idxs();
+    if (!m_scene_dirty && m_target_mode == mode && m_scene_selection.size() == selected.size() &&
+        std::all_of(m_scene_selection.begin(), m_scene_selection.end(), [&](const auto& entry) {
+            const auto& [id, index] = entry;
+            const GLVolume* volume = selection.get_volume(index);
+            return volume && volume->geometry_id == id && selected.count(index) != 0;
+        })) return true;
+
+    SceneIndices current = selected_scene_indices(selection);
+    if (mode != m_target_mode || !same_scene_ids(m_scene_selection, current)) {
+        m_target_mode = mode;
+        init_volume_manager();
+    } else {
+        // A reload without a selection change should not replace the user's A/B groups.
+        if (m_scene_selection != current)
+            m_volume_manager.remap_indices(remap_scene_indices(m_scene_selection, current));
+        m_scene_selection = std::move(current);
+        m_volume_manager.update_obj_lists(selection);
+        m_scene_dirty = false;
+    }
+    restore_list_color_overrides();
+    apply_color_overrides_for_mode(m_operation_mode);
+    if (mode == BooleanTargetMode::Object) apply_object_visibility(selection);
+    else apply_part_visibility(selection);
+    return true;
+}
 
 void GLGizmoMeshBoolean::on_change_color_mode(bool is_dark)
 {
@@ -2507,6 +2556,10 @@ void GLGizmoMeshBoolean::on_change_color_mode(bool is_dark)
 void GLGizmoMeshBoolean::on_load(cereal::BinaryInputArchive &ar)
 {
     ar(m_enable, m_operation_mode, m_target_mode, m_keep_original_models, m_entity_only);
+    m_ui->set_entity_only(m_entity_only);
+    ++m_repair_revision;
+    m_scene_dirty = true;
+    m_ui->set_native_repair_available(is_win10_model_repair_available());
 }
 
 void GLGizmoMeshBoolean::on_save(cereal::BinaryOutputArchive &ar) const
@@ -2514,9 +2567,310 @@ void GLGizmoMeshBoolean::on_save(cereal::BinaryOutputArchive &ar) const
     ar(m_enable, m_operation_mode, m_target_mode, m_keep_original_models, m_entity_only);
 }
 
+void GLGizmoMeshBoolean::sync_panel_settings()
+{
+    if (m_keep_original_models != m_ui->get_keep_original_models() ||
+        m_entity_only != m_ui->get_entity_only() ||
+        m_operation_mode != m_ui->get_selected_operation())
+        m_warning_manager.clear_warnings();
+
+    m_operation_mode = m_ui->get_selected_operation();
+    m_keep_original_models = m_ui->get_keep_original_models();
+    m_entity_only = m_ui->get_entity_only();
+    m_preserve_color = m_ui->get_preserve_color();
+}
+
+GLGizmoMeshBoolean::Operands GLGizmoMeshBoolean::collect_operands() const
+{
+    const Selection& selection = m_parent.get_selection();
+    const auto collect = [&](const std::vector<unsigned int>& indices) {
+        std::vector<Operand> result;
+        result.reserve(indices.size());
+        for (const unsigned int index : indices) {
+            const GLVolume* gl_volume = selection.get_volume(index);
+            if (!gl_volume || gl_volume->is_wipe_tower || gl_volume->is_extrusion_path)
+                continue;
+            const ModelVolume* volume = get_model_volume(*gl_volume, selection.get_model()->objects);
+            if (volume && gl_volume->geometry_id.first == volume->id().id && !volume->mesh().empty() &&
+                (!m_entity_only || volume->is_model_part()))
+                result.push_back({volume, gl_volume});
+        }
+        return result;
+    };
+
+    if (m_operation_mode == MeshBooleanOperation::Difference)
+        return {collect(m_volume_manager.get_list_a()), collect(m_volume_manager.get_list_b())};
+    if (m_operation_mode == MeshBooleanOperation::Union || m_operation_mode == MeshBooleanOperation::Intersection)
+        return {collect(m_volume_manager.get_working_list()), {}};
+    return {};
+}
+
+const std::string* GLGizmoMeshBoolean::operand_count_error(const Operands& operands) const
+{
+    if (m_operation_mode == MeshBooleanOperation::Difference)
+        return operands.a.empty() || operands.b.empty() ? &MeshBooleanWarnings::MIN_VOLUMES_DIFFERENCE : nullptr;
+    if (operands.a.size() < 2)
+        return m_operation_mode == MeshBooleanOperation::Union ? &MeshBooleanWarnings::MIN_VOLUMES_UNION :
+                                                                &MeshBooleanWarnings::MIN_VOLUMES_INTERSECTION;
+    if (m_operation_mode == MeshBooleanOperation::Intersection && m_target_mode == BooleanTargetMode::Object) {
+        const ModelObject* first = operands.a.front().volume->get_object();
+        if (std::all_of(operands.a.begin(), operands.a.end(),
+                        [first](const Operand& operand) { return operand.volume->get_object() == first; }))
+            return &MeshBooleanWarnings::MIN_OBJECTS_INTERSECTION;
+    }
+    return nullptr;
+}
+
+void GLGizmoMeshBoolean::update_operand_status(const Operands& operands)
+{
+    std::vector<MeshBooleanRepairRow> rows;
+    std::set<ObjectID> listed;
+    for (const auto* group : {&operands.a, &operands.b}) {
+        for (const auto& operand : *group) {
+            const ModelVolume& volume = *operand.volume;
+            const bool defective = MeshBoolean::has_operand_edge_defects(volume.mesh().stats());
+            // A part may occur in more than one GL instance; repair its source mesh only once.
+            if ((!defective && !m_repaired_volume_ids.count(volume.id())) || !listed.insert(volume.id()).second)
+                continue;
+            const ModelObject& object = *volume.get_object();
+            std::string name = volume.name;
+            if (m_target_mode == BooleanTargetMode::Object) {
+                name = object.name;
+                if (object.volumes.size() > 1 && !volume.name.empty())
+                    name += " / " + volume.name;
+            }
+            rows.push_back({object.id(), volume.id(), std::move(name), defective});
+        }
+    }
+    const auto* count_error = operand_count_error(operands);
+    m_ui->set_operand_status(count_error ? *count_error : std::string{}, std::move(rows));
+}
+
+void GLGizmoMeshBoolean::queue_part_repair(ObjectID object_id, ObjectID volume_id)
+{
+    if (m_state != EState::On || is_operation_busy()) return;
+    m_repair_busy = true;
+    const size_t revision = m_repair_revision;
+    // Native dialogs yield to wx; do not start one inside an ImGui frame.
+    wxGetApp().CallAfter([owner = this, revision, object_id, volume_id] {
+        auto* plater = wxGetApp().plater();
+        auto* canvas = plater && !wxGetApp().is_closing() ? plater->get_view3D_canvas3D() : nullptr;
+        if (canvas && canvas->get_gizmos_manager().get_gizmo(GLGizmosManager::MeshBoolean) == owner)
+            owner->repair_part(revision, object_id, volume_id);
+    });
+    refresh_canvas();
+}
+
+void GLGizmoMeshBoolean::repair_part(size_t revision, ObjectID object_id, ObjectID volume_id)
+{
+    ScopeGuard done([this] {
+        m_repair_busy = false;
+        refresh_canvas();
+    });
+    const auto start = std::chrono::steady_clock::now();
+    auto* plater = wxGetApp().plater();
+    TriangleMeshStats diagnostic_stats;
+    const auto fields = [&](const char* result) {
+        return KV(log_key::object_id, object_id.id) + KV(log_key::volume_id, volume_id.id) +
+               KV(log_key::open_edges, diagnostic_stats.open_edges) +
+               KV(log_key::non_manifold_edges, diagnostic_stats.non_manifold_edges) + KV(log_key::ret, result) +
+               KV(log_key::elapsed_ms, std::chrono::duration_cast<std::chrono::milliseconds>(
+                       std::chrono::steady_clock::now() - start).count());
+    };
+    const auto in_session = [&] {
+        return !wxGetApp().is_closing() && m_state == EState::On && revision == m_repair_revision &&
+               m_parent.get_gizmos_manager().get_current() == this;
+    };
+    const auto fail = [&](const char* result, const wxString& message) {
+        BOOST_LOG_TRIVIAL(error) << fields(result) << "mesh boolean operand repair failed";
+        if (in_session()) show_error(plater, message);
+    };
+
+    if (!in_session()) {
+        BOOST_LOG_TRIVIAL(warning) << fields("stale_session") << "discarded deferred mesh boolean repair";
+        return;
+    }
+    if (m_async_job_running || m_object_union_job_running || !plater->get_ui_job_worker().is_idle()) {
+        fail("busy", _L("Another mesh boolean operation is running. Please try again after it finishes."));
+        return;
+    }
+    if (!is_win10_model_repair_available()) {
+        m_ui->set_native_repair_available(false);
+        BOOST_LOG_TRIVIAL(warning) << fields("repair_unavailable") << "native mesh repair unavailable; showing third-party guidance";
+        return;
+    }
+
+    struct Target {
+        int object_index;
+        int volume_index;
+        ModelVolume* volume;
+    };
+    const auto resolve_target = [&]() -> std::optional<Target> {
+        if (!in_session() || !sync_volume_manager()) return {};
+        const auto operands = collect_operands();
+        for (const auto* group : {&operands.a, &operands.b}) {
+            for (const auto& operand : *group) {
+                ModelObject* object = operand.volume->get_object();
+                if (object->id() == object_id && operand.volume->id() == volume_id &&
+                    MeshBoolean::has_operand_edge_defects(operand.volume->mesh().stats())) {
+                    const int index = operand.gl_volume->volume_idx();
+                    return Target{operand.gl_volume->object_idx(), index, object->volumes[index]};
+                }
+            }
+        }
+        return {};
+    };
+    const auto original = resolve_target();
+    if (!original) {
+        BOOST_LOG_TRIVIAL(warning) << fields("operand_missing") << "discarded repair for a non-participating or valid mesh";
+        return;
+    }
+    diagnostic_stats = original->volume->mesh().stats();
+    BOOST_LOG_TRIVIAL(info) << fields("started") << "mesh boolean operand repair started";
+
+    const auto original_mesh = original->volume->get_mesh_shared_ptr();
+    const auto paint_timestamps = [](const ModelVolume& v) {
+        return std::array{v.supported_facets.timestamp(), v.seam_facets.timestamp(),
+                          v.mmu_segmentation_facets.timestamp(), v.fuzzy_skin_facets.timestamp()};
+    };
+    const auto original_paint = paint_timestamps(*original->volume);
+    const size_t snapshot_time = plater->get_active_snapshot_time();
+    const SceneIndices original_selection = selected_scene_indices(m_parent.get_selection());
+    const auto selection_mode = m_parent.get_selection().get_mode();
+    // Save the working list, A/B groups and highlighted items against stable IDs
+    // before either modal dialog can yield to scene refreshes.
+    VolumeListManager lists = m_volume_manager;
+    const auto& gl_volumes = m_parent.get_volumes().volumes;
+    const auto scene_indices = [&gl_volumes] {
+        SceneIndices indices;
+        for (unsigned int i = 0; i < gl_volumes.size(); ++i)
+            indices.emplace(gl_volumes[i]->geometry_id, i);
+        return indices;
+    };
+    const SceneIndices before = scene_indices();
+    const auto unchanged_target = [&]() -> std::optional<Target> {
+        auto target = resolve_target();
+        if (!target || target->volume->get_mesh_shared_ptr() != original_mesh ||
+            paint_timestamps(*target->volume) != original_paint ||
+            plater->get_active_snapshot_time() != snapshot_time ||
+            !same_scene_ids(original_selection, selected_scene_indices(m_parent.get_selection())) ||
+            m_async_job_running || m_object_union_job_running || !plater->get_ui_job_worker().is_idle())
+            return {};
+        return target;
+    };
+
+    PaintKeepPrepared prepared;
+    std::shared_ptr<const TriangleMesh> convex_hull;
+    try {
+        const ModelVolume& source = *original->volume;
+        if (source.is_mm_painted() || source.is_fdm_support_painted() || source.is_seam_painted() ||
+            source.is_fuzzy_skin_facets_painted()) {
+            if (!wxGetApp().confirm_mesh_paint_warning()) {
+                BOOST_LOG_TRIVIAL(info) << fields("paint_declined") << "mesh boolean operand repair canceled";
+                return;
+            }
+        }
+
+        const auto target = unchanged_target();
+        if (!target) {
+            fail("operand_changed", _L("The selected part changed before repair could be applied."));
+            return;
+        }
+
+        // The progress dialog runs a nested event loop. Only the isolated copy (including
+        // the original transforms needed for paint reprojection) is passed to the SDK.
+        Model scratch_model;
+        ModelObject& scratch = *scratch_model.add_object(*target->volume->get_object());
+        const int volume_idx = target->volume_index;
+        const wxString subject = wxString::Format(_L("Repair object: %s"), from_u8(scratch.volumes[volume_idx]->name));
+        std::string result;
+        bool completed;
+        {
+            ProgressDialog dialog(_L("Repairing model object"), "", 100, find_toplevel_parent(plater),
+                                  wxPD_AUTO_HIDE | wxPD_APP_MODAL | wxPD_CAN_ABORT | wxPD_SHOW_PERCENT);
+            completed = fix_model_by_win10_sdk_gui(scratch, volume_idx, dialog, subject, result);
+        }
+        if (!completed) {
+            BOOST_LOG_TRIVIAL(info) << fields("canceled") << "mesh boolean operand repair canceled";
+            return;
+        }
+        if (!result.empty()) {
+            fail("sdk_failed", _L("Repair failed.") + wxS("\n") + from_u8(result));
+            return;
+        }
+
+        const ModelVolume& repaired = *scratch.volumes[volume_idx];
+        diagnostic_stats = repaired.mesh().stats();
+        if (repaired.mesh().empty()) {
+            fail("empty_result", _L("The repaired mesh is empty."));
+            return;
+        }
+        if (MeshBoolean::has_operand_edge_defects(diagnostic_stats)) {
+            fail("result_has_edge_defects", _L("The repaired mesh still has open or non-manifold edges."));
+            return;
+        }
+        prepared.mesh = repaired.mesh();
+        copy_facets_annotation(repaired.supported_facets, prepared.supported);
+        copy_facets_annotation(repaired.seam_facets, prepared.seam);
+        copy_facets_annotation(repaired.mmu_segmentation_facets, prepared.mmu);
+        copy_facets_annotation(repaired.fuzzy_skin_facets, prepared.fuzzy);
+        convex_hull = repaired.get_convex_hull_shared_ptr();
+    } catch (...) {
+        // The SDK diagnostic can include temporary paths. Display it to the user, not in the log.
+        fail("exception", _L("Repair failed.") + wxS("\n") + from_u8(Slic3r::current_exception_message()));
+        return;
+    }
+
+    const auto target = unchanged_target();
+    if (!target) {
+        fail("operand_changed", _L("The selected part changed before repair could be applied."));
+        return;
+    }
+
+    Selection& selection = m_parent.get_selection();
+    std::vector<std::pair<size_t, size_t>> selected;
+    selected.reserve(original_selection.size());
+    for (const auto& entry : original_selection) selected.push_back(entry.first);
+
+    Plater::TakeSnapshot snapshot(plater, _u8L("Repairing model object"));
+    m_repair_refreshing = true;
+    ScopeGuard refreshing([this] { m_repair_refreshing = false; });
+    ModelVolume& volume = *target->volume;
+    volume.commit_mesh_keep_paint(std::move(prepared));
+    volume.set_convex_hull_shared_ptr(convex_hull);
+    volume.invalidate_convex_hull_2d();
+    volume.set_new_unique_id();
+    volume.get_object()->invalidate_bounding_box();
+    const ObjectID repaired_id = volume.id();
+    m_repaired_volume_ids.insert(repaired_id);
+
+    restore_list_color_overrides();
+    plater->changed_mesh(target->object_index);
+    lists.remap_indices(remap_scene_indices(before, scene_indices(), volume_id, repaired_id));
+    m_volume_manager = std::move(lists);
+    for (auto& id : selected)
+        if (id.first == volume_id.id) id.first = repaired_id.id;
+    std::sort(selected.begin(), selected.end());
+    selection.set_deserialized(selection_mode, selected);
+    m_parent.get_gizmos_manager().update_data();
+    m_volume_manager.update_obj_lists(selection);
+    m_scene_selection = selected_scene_indices(selection);
+    m_scene_dirty = false;
+    apply_color_overrides_for_mode(m_operation_mode);
+    if (m_target_mode == BooleanTargetMode::Object) apply_object_visibility(selection);
+    else apply_part_visibility(selection);
+    if (auto* obj_list = plater->sidebar().obj_list()) {
+        obj_list->update_item_error_icon(target->object_index, target->volume_index);
+        obj_list->update_info_items(target->object_index);
+        obj_list->update_selections();
+    }
+    update_operand_status(collect_operands());
+    BOOST_LOG_TRIVIAL(info) << fields("success") << KV(log_key::new_volume_id, repaired_id.id)
+                            << "mesh boolean operand repair committed";
+}
+
 // ========================================================================================
 // GLGizmoMeshBoolean ASYNC JOB IMPLEMENTATION
-// Only compiled when USE_ASYNC_BOOLEAN_MODE = 1
 // ========================================================================================
 #if USE_ASYNC_BOOLEAN_MODE
 
@@ -2528,39 +2882,35 @@ static std::string non_solid_part_warning(const std::vector<const ModelVolume *>
 {
     for (const ModelVolume *v : volumes) {
         const TriangleMeshStats &stats = v->mesh().stats();
-        if (stats.open_edges == 0 && stats.non_manifold_edges == 0)
+        if (!MeshBoolean::has_operand_edge_defects(stats))
             continue;
-        BOOST_LOG_TRIVIAL(warning) << KV(log_key::open_edges, stats.open_edges)
+        BOOST_LOG_TRIVIAL(warning) << KV(log_key::object_id, v->get_object()->id().id)
+                                   << KV(log_key::volume_id, v->id().id)
+                                   << KV(log_key::open_edges, stats.open_edges)
                                    << KV(log_key::non_manifold_edges, stats.non_manifold_edges)
-                                   << "mesh boolean refused, part is not a closed manifold mesh: " << v->name;
+                                   << "shortcut mesh boolean refused an operand with edge defects";
         return _u8L("Unable to perform boolean operation on model meshes. You may fix the meshes and try again.") + " " +
                Slic3r::format(_u8L("Reason: part \"%1%\" does not bound a volume."), v->name);
     }
     return {};
 }
 
-BooleanJobData::VolumeData GLGizmoMeshBoolean::prepare_volume_data(
-    const BooleanOperationEngine::VolumeInfo& vol_info) const
+BooleanJobData::VolumeData GLGizmoMeshBoolean::prepare_volume_data(const Operand& operand)
 {
+    const ModelVolume& volume = *operand.volume;
     BooleanJobData::VolumeData data;
-
-    // Deep copy mesh data (critical for thread safety)
-    data.mesh = vol_info.model_volume->mesh();
-    data.mesh.transform(vol_info.transformation, true);  // Pre-apply transformation
-
-    // Copy transformation matrix
-    data.transformation = vol_info.transformation;
-
-    // Save IDs for later locating the original volumes
-    data.volume_id = vol_info.model_volume->id();
-    data.object_id = vol_info.model_volume->get_object()->id();
-    data.object_index = vol_info.object_index;
-    data.name = vol_info.model_volume->name;
-
+    data.transformation = operand.gl_volume->get_instance_transformation().get_matrix() *
+                          operand.gl_volume->get_volume_transformation().get_matrix();
+    data.mesh = volume.mesh();
+    data.mesh.transform(data.transformation, true);
+    data.volume_id = volume.id();
+    data.object_id = volume.get_object()->id();
+    data.object_index = operand.gl_volume->object_idx();
+    data.name = volume.name;
     return data;
 }
 
-BooleanJobData GLGizmoMeshBoolean::prepare_job_data()
+BooleanJobData GLGizmoMeshBoolean::prepare_job_data(Operands operands)
 {
     BooleanJobData job_data;
     const Selection& selection = m_parent.get_selection();
@@ -2603,73 +2953,32 @@ BooleanJobData GLGizmoMeshBoolean::prepare_job_data()
         }
     }
 
-    // Prepare volume data (deep copy for thread safety)
-    // Helper: Filter volumes - remove empty meshes and non-model-parts if entity_only
-    auto filter_volumes = [&](std::vector<BooleanOperationEngine::VolumeInfo>& vols) {
-        vols.erase(std::remove_if(vols.begin(), vols.end(),
-            [&](const BooleanOperationEngine::VolumeInfo& info) {
-                if (!info.model_volume || info.model_volume->mesh().empty())
-                    return true;
-                if (job_data.settings.entity_only && !info.model_volume->is_model_part())
-                    return true;
-                return false;
-            }), vols.end());
+    // Keep the existing operand order (which also controls result frames).
+    const auto prepare_group = [](std::vector<Operand>& group, auto& output) {
+        std::sort(group.begin(), group.end(), [](const Operand& a, const Operand& b) {
+            if (a.volume->is_model_part() != b.volume->is_model_part())
+                return a.volume->is_model_part();
+            return a.volume->id() < b.volume->id();
+        });
+        output.reserve(group.size());
+        for (const Operand& operand : group)
+            output.push_back(prepare_volume_data(operand));
     };
+    const bool difference = m_operation_mode == MeshBooleanOperation::Difference;
+    job_data.total_steps = difference ? operands.a.size() * operands.b.size() : operands.a.size();
+    prepare_group(operands.a, job_data.volumes_a);
+    prepare_group(operands.b, job_data.volumes_b);
 
-    // Helper: Collect unique object IDs from volumes (for Object mode deletion)
-    auto collect_object_ids = [&](const std::vector<BooleanOperationEngine::VolumeInfo>& vols, std::set<ObjectID>& object_ids) {
-        for (const auto& vol : vols) {
-            if (vol.model_volume) {
-                ModelObject* obj = vol.model_volume->get_object();
-                if (obj) {
-                    object_ids.insert(obj->id());
-                }
-            }
-        }
-    };
-
-    std::vector<BooleanOperationEngine::VolumeInfo> volumes_a;
-    if (m_operation_mode == MeshBooleanOperation::Difference) {
-        // Difference mode: prepare A and B groups
-        volumes_a = m_boolean_engine.prepare_volumes(
-            m_volume_manager.get_list_a(), selection);
-        auto volumes_b = m_boolean_engine.prepare_volumes(
-            m_volume_manager.get_list_b(), selection);
-
-        filter_volumes(volumes_a);
-        filter_volumes(volumes_b);
-
-        for (const auto& vol : volumes_a) {
-            job_data.volumes_a.push_back(prepare_volume_data(vol));
-        }
-        for (const auto& vol : volumes_b) {
-            job_data.volumes_b.push_back(prepare_volume_data(vol));
-        }
-
-        job_data.total_steps = volumes_a.size() * volumes_b.size();
-    } else {
-        // Union/Intersection mode: only use A group
-        volumes_a = m_boolean_engine.prepare_volumes(
-            m_volume_manager.get_working_list(), selection);
-
-        filter_volumes(volumes_a);
-
-        for (const auto& vol : volumes_a) {
-            job_data.volumes_a.push_back(prepare_volume_data(vol));
-        }
-
-        job_data.total_steps = volumes_a.size();
-    }
-
+    const auto& volumes_a = operands.a;
     // Result frames, matching apply_boolean_result_from_job(): part mode maps each result
     // through its operand's baked world matrix; object mode builds a new object carrying
     // instance 0 of the first operand's object, with the source volume's own matrix.
-    const ModelObject *first_object = volumes_a.empty() ? nullptr : volumes_a.front().model_volume->get_object();
+    const ModelObject *first_object = volumes_a.empty() ? nullptr : volumes_a.front().volume->get_object();
     const Transform3d first_instance = (first_object && !first_object->instances.empty() && first_object->instances[0]) ?
         first_object->instances[0]->get_transformation().get_matrix() : Transform3d::Identity();
     for (size_t i = 0; i < volumes_a.size(); ++i)
         job_data.volumes_a[i].result_frame = m_target_mode == BooleanTargetMode::Object ?
-            Transform3d(first_instance * volumes_a[i].model_volume->get_transformation().get_matrix()) :
+            Transform3d(first_instance * volumes_a[i].volume->get_transformation().get_matrix()) :
             job_data.volumes_a[i].transformation;
 
     // Operand paint for the worker. The difference subtrahend B leaves no paint, and the
@@ -2677,22 +2986,22 @@ BooleanJobData GLGizmoMeshBoolean::prepare_job_data()
     // everything prints in one filament: the result keeps its own filament.
     if (job_data.settings.preserve_color) {
         bool any_paint = false, mixed_filament = false;
-        const int first_filament = volumes_a.empty() ? 0 : volumes_a.front().model_volume->extruder_id();
+        const int first_filament = volumes_a.empty() ? 0 : volumes_a.front().volume->extruder_id();
         for (const auto &vol : volumes_a) {
-            const ModelVolume *mv = vol.model_volume;
+            const ModelVolume *mv = vol.volume;
             any_paint      |= mv->is_mm_painted() || mv->is_fdm_support_painted() || mv->is_seam_painted() || mv->is_fuzzy_skin_facets_painted();
             mixed_filament |= mv->extruder_id() != first_filament;
         }
         if (any_paint || mixed_filament) {
-            for (const auto &vol : volumes_a) {
-                const ModelVolume *mv = vol.model_volume;
+            for (size_t i = 0; i < volumes_a.size(); ++i) {
+                const ModelVolume *mv = volumes_a[i].volume;
                 auto paint  = std::make_shared<PaintKeepPrepared>();
                 paint->mesh = mv->mesh();
                 copy_facets_annotation(mv->supported_facets,        paint->supported);
                 copy_facets_annotation(mv->seam_facets,             paint->seam);
                 copy_facets_annotation(mv->mmu_segmentation_facets, paint->mmu);
                 copy_facets_annotation(mv->fuzzy_skin_facets,       paint->fuzzy);
-                job_data.paint_operands.push_back({ std::move(paint), vol.transformation, mv->extruder_id() });
+                job_data.paint_operands.push_back({ std::move(paint), job_data.volumes_a[i].transformation, mv->extruder_id() });
             }
         }
     }
@@ -3184,15 +3493,36 @@ void GLGizmoMeshBoolean::set_async_progress(float percent, const std::string& st
 
 void GLGizmoMeshBoolean::execute_mesh_boolean()
 {
-    if (m_state != EState::On)
+    if (m_state != EState::On || m_async_job_running || m_repair_busy || !sync_volume_manager())
         return;
     if (m_object_union_job_running) {
         m_warning_manager.add_warning(_u8L("Another mesh boolean operation is running. Please try again after it finishes."));
         return;
     }
-    Plater::TakeSnapshot Snap(wxGetApp().plater(), "Bool execution");
-
-    const Selection& selection = m_parent.get_selection();
+    // Recheck the current inputs before copying meshes, queuing work or taking a snapshot.
+    const auto started = std::chrono::steady_clock::now();
+    Operands operands = collect_operands();
+    update_operand_status(operands);
+    for (const auto* group : {&operands.a, &operands.b}) {
+        for (const auto& operand : *group) {
+            const ModelVolume& volume = *operand.volume;
+            const auto& stats = volume.mesh().stats();
+            if (!MeshBoolean::has_operand_edge_defects(stats))
+                continue;
+            BOOST_LOG_TRIVIAL(warning) << KV(log_key::object_id, volume.get_object()->id().id)
+                                       << KV(log_key::volume_id, volume.id().id)
+                                       << KV(log_key::open_edges, stats.open_edges)
+                                       << KV(log_key::non_manifold_edges, stats.non_manifold_edges)
+                                       << KV(log_key::ret, "defective_operand")
+                                       << KV(log_key::elapsed_ms, std::chrono::duration_cast<std::chrono::milliseconds>(
+                                              std::chrono::steady_clock::now() - started).count())
+                                       << "mesh boolean panel refused an operand with edge defects";
+            refresh_canvas();
+            return;
+        }
+    }
+    if (m_warning_manager.has_errors_for_mode(m_operation_mode))
+        return;
 
     // Validate operation
     std::string validation_error = m_boolean_engine.validate_operation(m_operation_mode, m_volume_manager);
@@ -3201,6 +3531,14 @@ void GLGizmoMeshBoolean::execute_mesh_boolean()
         return;
     }
 
+    if (const auto* error = operand_count_error(operands)) {
+        m_warning_manager.add_warning(*error);
+        return;
+    }
+
+    Plater::TakeSnapshot snapshot(wxGetApp().plater(), "Bool execution");
+#if !USE_ASYNC_BOOLEAN_MODE
+    const Selection& selection = m_parent.get_selection();
     // Prepare settings
     BooleanOperationSettings settings;
     settings.keep_original_models = m_keep_original_models;
@@ -3232,21 +3570,6 @@ void GLGizmoMeshBoolean::execute_mesh_boolean()
         }
     }
 
-
-    // Validate A/B/Working lists. Only rebuild if indices are stale (e.g., after undo/redo).
-    auto lists_valid = [&](const std::vector<unsigned int>& vec) -> bool {
-        for (unsigned int idx : vec) if (selection.get_volume(idx) == nullptr) return false;
-        return true;
-    };
-    bool valid = lists_valid(m_volume_manager.get_working_list()) &&
-                 lists_valid(m_volume_manager.get_list_a()) &&
-                 lists_valid(m_volume_manager.get_list_b());
-    if (!valid) {
-        m_volume_manager.clear_all();
-        init_volume_manager();
-    }
-
-#if !USE_ASYNC_BOOLEAN_MODE
     // ==== SYNCHRONOUS EXECUTION MODE ====
     auto perform_current_operation = [&](MeshBooleanOperation mode) {
         ModelObject* current_model_object = m_c->selection_info() ? m_c->selection_info()->model_object() : nullptr;
@@ -3325,31 +3648,7 @@ void GLGizmoMeshBoolean::execute_mesh_boolean()
     perform_current_operation(m_operation_mode);
 #else
     // ==== ASYNCHRONOUS EXECUTION MODE ====
-    // Prepare Job data (deep copy all data in UI thread)
-    BooleanJobData job_data = prepare_job_data();
-
-    // Validate after filtering (same as sync mode)
-    if (m_operation_mode == MeshBooleanOperation::Difference) {
-        if (job_data.volumes_a.empty() || job_data.volumes_b.empty()) {
-            m_warning_manager.add_warning(MeshBooleanWarnings::MIN_VOLUMES_DIFFERENCE);
-            return;
-        }
-    } else if (job_data.volumes_a.size() < 2) {
-        m_warning_manager.add_warning(m_operation_mode == MeshBooleanOperation::Union ?
-            MeshBooleanWarnings::MIN_VOLUMES_UNION : MeshBooleanWarnings::MIN_VOLUMES_INTERSECTION);
-        return;
-    }
-
-    // job_data only holds copies of the operand meshes, look the volumes up for their stats.
-    std::vector<const ModelVolume *> operands;
-    for (const auto *list : {&job_data.volumes_a, &job_data.volumes_b})
-        for (const BooleanJobData::VolumeData &vd : *list)
-            if (const ModelVolume *mv = get_model_volume(vd.volume_id, m_parent.get_model()->objects))
-                operands.push_back(mv);
-    if (const std::string warning = non_solid_part_warning(operands); !warning.empty()) {
-        m_warning_manager.add_warning(warning);
-        return;
-    }
+    BooleanJobData job_data = prepare_job_data(std::move(operands));
 
     // Store job data for progress tracking
     m_current_job_data = std::make_shared<BooleanJobData>(job_data);
@@ -3516,7 +3815,7 @@ bool GLGizmoMeshBoolean::run_object_union_async(ModelObject *object)
 
     if (object == nullptr || object->instances.empty() || object->instances.front() == nullptr)
         return false;
-    if (m_async_job_running || m_object_union_job_running) {
+    if (is_operation_busy()) {
         notify(NotificationManager::NotificationLevel::WarningNotificationLevel,
                _u8L("Another mesh boolean operation is running. Please try again after it finishes."));
         return false;

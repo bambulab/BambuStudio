@@ -11050,6 +11050,29 @@ msgstr "網格準備失敗。"
 msgid "Mesh Boolean"
 msgstr "布林運算"
 
+msgid "The selected models need repair before a Boolean operation can be performed."
+msgstr "選取的模型尚未修復，無法進行布林運算，請修復後再進行布林運算。"
+
+#. TRN: A model name in quotation marks, followed by "Repair now" or "Repaired" in the Mesh Boolean repair list.
+#, boost-format
+msgid "\"%1%\""
+msgstr "“%1%”"
+
+msgid "Repair now"
+msgstr "立即修復"
+
+msgid "Repaired"
+msgstr "已修復"
+
+msgid "The selected part changed before repair could be applied."
+msgstr "選取的零件已變更，未套用修復結果。"
+
+msgid "The repaired mesh is empty."
+msgstr "修復後的網格為空。"
+
+msgid "The repaired mesh still has open or non-manifold edges."
+msgstr "修復後的網格仍有開放邊或非流形邊。"
+
 msgid "- Object mode: Please select at least two objects."
 msgstr "- 物件模式：請至少選擇兩個物件。"
 

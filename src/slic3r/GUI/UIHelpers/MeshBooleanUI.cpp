@@ -1,6 +1,7 @@
 #include "MeshBooleanUI.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoMeshBoolean.hpp"
 #include "slic3r/GUI/GLCanvas3D.hpp"
+#include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/Selection.hpp"
 #include "slic3r/GUI/ImGuiWrapper.hpp"
 #include "slic3r/GUI/GLTexture.hpp"
@@ -123,7 +124,7 @@ void MeshBooleanUI::render_content(GLCanvas3D& parent, ImGuiWrapper* imgui, bool
 
     draw_only_entity_checkbox();
 
-    // Warnings and errors
+    if (on_refresh_operands) on_refresh_operands();
     draw_warnings();
 
     // Separator line
@@ -165,20 +166,21 @@ bool MeshBooleanUI::draw_operation_mode_tabs()
     // Center tab strip
     set_centered_cursor_x(total_width);
 
+    const bool can_edit = !is_operation_busy || !is_operation_busy();
     ImGui::BeginGroup();
-    if (draw_tab_button("union", _u8L("Union").c_str(), m_operation_mode == MeshBooleanOperation::Union, ImVec2(max_tab_length, m_computed_tab_height), true, 0)) {
+    if (draw_tab_button("union", _u8L("Union").c_str(), m_operation_mode == MeshBooleanOperation::Union, ImVec2(max_tab_length, m_computed_tab_height), can_edit, 0)) {
         m_operation_mode = MeshBooleanOperation::Union;
         clicked_any = true;
         if (on_apply_color_overrides) on_apply_color_overrides(m_operation_mode);
     }
     ImGui::SameLine(0, 0);
-    if (draw_tab_button("intersection", _u8L("Intersection").c_str(), m_operation_mode == MeshBooleanOperation::Intersection, ImVec2(max_tab_length, m_computed_tab_height), true, 1)) {
+    if (draw_tab_button("intersection", _u8L("Intersection").c_str(), m_operation_mode == MeshBooleanOperation::Intersection, ImVec2(max_tab_length, m_computed_tab_height), can_edit, 1)) {
         m_operation_mode = MeshBooleanOperation::Intersection;
         clicked_any = true;
         if (on_apply_color_overrides) on_apply_color_overrides(m_operation_mode);
     }
     ImGui::SameLine(0, 0);
-    if (draw_tab_button("difference", _u8L("Difference").c_str(), m_operation_mode == MeshBooleanOperation::Difference, ImVec2(max_tab_length, m_computed_tab_height), true, 2)) {
+    if (draw_tab_button("difference", _u8L("Difference").c_str(), m_operation_mode == MeshBooleanOperation::Difference, ImVec2(max_tab_length, m_computed_tab_height), can_edit, 2)) {
         m_operation_mode = MeshBooleanOperation::Difference;
         clicked_any = true;
         if (on_apply_color_overrides) on_apply_color_overrides(m_operation_mode);
@@ -264,7 +266,7 @@ void MeshBooleanUI::draw_control_buttons()
 {
     if (!m_parent || !m_volume_manager || !m_warning_manager) return;
 
-    bool b_async_working_or_cancelling = is_async_busy ? is_async_busy() : false;
+    const bool busy = is_operation_busy && is_operation_busy();
     float window_content_width = ImGui::GetWindowWidth();
 
     // Calculate layout dimensions
@@ -281,7 +283,7 @@ void MeshBooleanUI::draw_control_buttons()
 
     // Position and render checkbox
     ImGui::SetCursorPosX(checkbox_pos_x);
-    render_checkbox(_L("Keep original models"), m_keep_original_models, !b_async_working_or_cancelling);
+    render_checkbox(_L("Keep original models"), m_keep_original_models, !busy);
 
     // Position button group (right-aligned within control width)
     ImGui::SameLine(0, 0);
@@ -305,7 +307,7 @@ void MeshBooleanUI::draw_control_buttons()
     if (m_operation_mode == MeshBooleanOperation::Difference) {
         bool has_a_selection = false;
         bool has_b_selection = false;
-        bool not_processing = !b_async_working_or_cancelling;
+        bool not_processing = !busy;
 
         for (unsigned int volume_idx : m_volume_manager->get_selected_objects()) {
             if (std::find(m_volume_manager->get_list_a().begin(), m_volume_manager->get_list_a().end(), volume_idx) != m_volume_manager->get_list_a().end()) has_a_selection = true;
@@ -337,7 +339,7 @@ void MeshBooleanUI::draw_control_buttons()
         ImGui::SameLine(0, MeshBooleanConfig::ICON_SPACING);
     }
 
-    if (operation_button("delete", m_delete_light_icon_id, m_delete_dark_icon_id, m_delete_hover_icon_id, m_delete_inactive_icon_id, m_delete_hover_icon_id, has_selection && !b_async_working_or_cancelling)) {
+    if (operation_button("delete", m_delete_light_icon_id, m_delete_dark_icon_id, m_delete_hover_icon_id, m_delete_inactive_icon_id, m_delete_hover_icon_id, has_selection && !busy)) {
         if (on_delete_selected) {
             bool delete_successful = on_delete_selected();
             if (delete_successful && on_apply_color_overrides) {
@@ -351,7 +353,7 @@ void MeshBooleanUI::draw_control_buttons()
     // when off, the result is a plain single-color mesh. Edit-time preview always uses
     // A/B (or working-list) set colors regardless of this checkbox.
     ImGui::SetCursorPosX(checkbox_pos_x);
-    render_checkbox(_L("Keep all painting"), m_preserve_color, !b_async_working_or_cancelling);
+    render_checkbox(_L("Keep all painting"), m_preserve_color, !busy);
     if (ImGui::IsItemHovered()) {
         const std::string tip = _u8L("Includes color, seam, support and fuzzy skin painting. If unchecked, all painting will be removed from the result.");
         if (m_imgui)
@@ -437,7 +439,7 @@ void MeshBooleanUI::draw_action_buttons()
     ImGui::SameLine(0, button_spacing);
 
     // Cancel/Reset button - context sensitive
-    bool cancel_enabled = true; // Always enabled
+    bool cancel_enabled = async_is_busy || !is_operation_busy || !is_operation_busy();
 
     // Determine button text based on async state (reuse already calculated text)
     auto button_text = async_is_busy ? _L("Cancel") : _L("Reset");
@@ -455,7 +457,7 @@ void MeshBooleanUI::draw_action_buttons()
     }
     // Note: Cancel and Reset buttons now use default button colors (no red highlighting)
 
-    if (m_imgui->button((button_text + "##btn").c_str(), reset_cancel_button_width, 0.0f)) {
+    if (m_imgui->button((button_text + "##btn").c_str(), reset_cancel_button_width, 0.0f) && cancel_enabled) {
         if (is_cancel) {
             if (on_cancel_async_operation) on_cancel_async_operation();
         } else {
@@ -476,7 +478,7 @@ void MeshBooleanUI::draw_action_buttons()
 
 void MeshBooleanUI::draw_only_entity_checkbox()
 {
-    bool b_async_working_or_cancelling = is_async_busy ? is_async_busy() : false;
+    const bool busy = is_operation_busy && is_operation_busy();
 
     // Check if there is non-entity in the current lists
     bool has_non_entity = has_non_entity_in_current_lists();
@@ -493,7 +495,7 @@ void MeshBooleanUI::draw_only_entity_checkbox()
     ImGui::BeginGroup();
 
     bool previous_entity_only = m_entity_only;
-    render_checkbox(_L("Entity Only"), m_entity_only, !b_async_working_or_cancelling);
+    render_checkbox(_L("Entity Only"), m_entity_only, !busy);
 
     // Get checkbox bounding box for proper alignment
     ImVec2  checkbox_size = ImGui::GetItemRectSize();
@@ -1148,7 +1150,8 @@ void MeshBooleanUI::set_centered_cursor_x(float width) const
 
 bool MeshBooleanUI::compute_ok_enabled()
 {
-    if (!m_volume_manager || !m_warning_manager) return false;
+    if (!m_volume_manager || !m_warning_manager || !m_operand_count_error.empty() || m_has_defects ||
+        (is_operation_busy && is_operation_busy())) return false;
 
     // Base validation by mode using minimal strategy
     bool enabled = false;
@@ -1163,11 +1166,6 @@ bool MeshBooleanUI::compute_ok_enabled()
             enabled = m_volume_manager->validate_for_difference();
             break;
         default: enabled = false; break;
-    }
-
-    // Async state - disable if busy
-    if (is_async_enabled && is_async_enabled() && is_async_busy) {
-        enabled = enabled && !is_async_busy();
     }
 
     // Error warnings present → disable OK
@@ -1223,9 +1221,18 @@ std::set<size_t> MeshBooleanUI::groups_to_selected_indices(
     return out;
 }
 
+void MeshBooleanUI::set_operand_status(std::string count_error, std::vector<MeshBooleanRepairRow> rows)
+{
+    m_operand_count_error = std::move(count_error);
+    m_has_defects = std::any_of(rows.begin(), rows.end(), [](const auto& row) { return row.needs_repair; });
+    m_repair_rows = std::move(rows);
+}
+
 void MeshBooleanUI::draw_warnings()
 {
     if (!m_warning_manager || !m_volume_manager || !m_imgui) return;
+
+    if (m_has_defects) draw_repair_warning();
 
     auto current_warnings = m_warning_manager->get_warnings_for_current_mode(m_operation_mode);
     if (!current_warnings.empty()) {
@@ -1233,11 +1240,125 @@ void MeshBooleanUI::draw_warnings()
             m_warning_icon_id, m_error_icon_id, m_imgui, m_computed_icon_size_display);
     } else {
         auto hints = m_warning_manager->get_inline_hints_for_state(m_operation_mode, *m_volume_manager);
+        if (hints.empty() && !m_operand_count_error.empty())
+            hints.push_back({m_operand_count_error, WarningSeverity::Warning});
         if (!hints.empty()) {
             m_warning_manager->render_warnings_list(hints, m_computed_control_width,
                 m_warning_icon_id, m_error_icon_id, m_imgui, m_computed_icon_size_display);
         }
     }
+}
+
+// Underlined green link text, wrapped at wrap_width like other ImGui text. Returns true when clicked while enabled.
+static bool draw_link(const std::string& text, float wrap_width, bool enabled)
+{
+    const ImU32 color = enabled ? ImGui::GetColorU32(ImGuiWrapper::COL_BAMBU) : ImGui::GetColorU32(ImGuiCol_TextDisabled);
+    ImGui::PushStyleColor(ImGuiCol_Text, color);
+    ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + wrap_width);
+    ImGui::TextUnformatted(text.data(), text.data() + text.size());
+    ImGui::PopTextWrapPos();
+    ImGui::PopStyleColor();
+
+    // Underline every line, breaking where ImGui wrapped the text.
+    ImFont* font = ImGui::GetFont();
+    const float line_height = ImGui::GetFontSize();
+    const char* const end = text.data() + text.size();
+    ImVec2 start(ImGui::GetItemRectMin().x, ImGui::GetItemRectMin().y + line_height - 2.0f);
+    for (const char* line = text.data(); line < end; start.y += line_height) {
+        const char* line_end = font->CalcWordWrapPositionA(line_height / font->FontSize, line, end, wrap_width);
+        if (line_end == line) // Too narrow for a word: ImGui still draws one character per line.
+            line_end += ImTextCountUtf8BytesFromChar(line, end);
+        ImGui::GetWindowDrawList()->AddLine(start, ImVec2(start.x + ImGui::CalcTextSize(line, line_end).x, start.y), color);
+        for (line = line_end; line < end && ImCharIsBlankA(*line); ++line) {}
+    }
+
+    if (!enabled || !ImGui::IsItemHovered())
+        return false;
+    ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+    return ImGui::IsMouseClicked(ImGuiMouseButton_Left);
+}
+
+void MeshBooleanUI::draw_repair_warning()
+{
+    static constexpr char repair_website[] = "https://www.formware.co/onlinestlrepair";
+    const std::string message = _u8L("The selected models need repair before a Boolean operation can be performed.");
+    // TRN: A model name in quotation marks, followed by "Repair now" or "Repaired" in the Mesh Boolean repair list.
+    const std::string quoted_name = _u8L("\"%1%\"");
+    const std::string repair_now = _u8L("Repair now");
+    const std::string repaired = _u8L("Repaired");
+    // Same third-party repair guidance as the model info panel.
+    const std::string tips = _u8L("Tips:");
+    const std::string instructions = _u8L("To repair the model, please use a third-party tool before importing it into Bambu Studio, such as ");
+    const std::string website_link = std::string(repair_website) + ".";
+
+    const auto& style = ImGui::GetStyle();
+    const float padding = ImGui::GetFontSize() * 0.5f;
+    // The box spans the lists above it; every line below the message starts where its text starts.
+    const float width = m_computed_list_width;
+    const float icon_size = m_error_icon_id ? m_computed_icon_size_display : 0.0f;
+    const float icon_space = m_error_icon_id ? icon_size + style.ItemSpacing.x : 0.0f;
+    const float gap = style.ItemSpacing.y;
+    const auto text_height = [](const std::string& text, float wrap) { return ImGui::CalcTextSize(text.c_str(), nullptr, false, wrap).y; };
+    float text_width = width - 2.0f * padding - icon_space;
+    float height = 2.0f * padding + std::max(icon_size, text_height(message, text_width));
+    if (m_native_repair_available)
+        height += static_cast<float>(m_repair_rows.size()) * (gap + ImGui::GetTextLineHeight());
+    else
+        height += 3.0f * gap + text_height(tips, text_width) + text_height(instructions, text_width) + text_height(website_link, text_width);
+    const float max_height = 2.0f * padding + 8.0f * ImGui::GetTextLineHeightWithSpacing();
+    if (height > max_height)
+        text_width -= style.ScrollbarSize; // A long list scrolls; keep its text clear of the scrollbar.
+
+    set_centered_cursor_x(width);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(padding, padding));
+    ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, MeshBooleanConfig::ROUNDING_BUTTON);
+    ImGui::PushStyleColor(ImGuiCol_ChildBg, m_is_dark_mode ? IM_COL32(66, 39, 39, 255) : IM_COL32(255, 239, 239, 255));
+    ImGui::PushStyleColor(ImGuiCol_Border, m_is_dark_mode ? IM_COL32(155, 78, 78, 255) : IM_COL32(241, 172, 172, 255));
+    if (ImGui::BeginChild("##operand_repair", ImVec2(width, std::min(height + 1.0f, max_height)), true)) {
+        const float text_x = ImGui::GetCursorPosX() + icon_space;
+        if (m_error_icon_id) {
+            ImGui::Image(m_error_icon_id, ImVec2(icon_size, icon_size));
+            ImGui::SameLine(text_x);
+        }
+        m_imgui->error_text_wrapped(message.c_str(), text_width);
+
+        if (m_native_repair_available) {
+            // One line per model: "name" followed by the Repair now link, or by a gray Repaired once fixed.
+            const ImVec4 name_color = ImGuiWrapper::to_ImVec4(ColorRGB::ERROR_COLOR());
+            const bool enabled = !is_operation_busy || !is_operation_busy();
+            const float quotes_width = ImGui::CalcTextSize((GUI::format(quoted_name, "") + " ").c_str()).x;
+            for (const auto& row : m_repair_rows) {
+                const std::string& status = row.needs_repair ? repair_now : repaired;
+                // Shorten a long name so that its status stays on the same line.
+                const std::string name = ellipsize_text_imgui(row.name, text_width - quotes_width - ImGui::CalcTextSize(status.c_str()).x);
+                ImGui::SetCursorPosX(text_x);
+                ImGui::TextColored(name_color, "%s", (GUI::format(quoted_name, name) + " ").c_str());
+                if (name != row.name && ImGui::IsItemHovered())
+                    m_imgui->tooltip(row.name, ImGui::GetFontSize() * 20.0f);
+                ImGui::SameLine(0.0f, 0.0f);
+                if (!row.needs_repair)
+                    ImGui::TextDisabled("%s", repaired.c_str());
+                else if (draw_link(repair_now, text_width, enabled) && on_repair_part)
+                    on_repair_part(row.object_id, row.volume_id);
+            }
+        } else {
+            ImGui::SetCursorPosX(text_x);
+            m_imgui->error_text_wrapped(tips.c_str(), text_width);
+            ImGui::SetCursorPosX(text_x);
+            m_imgui->text_wrapped(instructions.c_str(), text_width);
+            ImGui::SetCursorPosX(text_x);
+            if (draw_link(website_link, text_width, true)) {
+                wxGetApp().CallAfter([] {
+                    if (!wxGetApp().is_closing())
+                        wxGetApp().open_browser_with_warning_dialog(repair_website);
+                });
+            }
+        }
+    }
+    ImGui::EndChild();
+    ImGui::PopStyleColor(2);
+    ImGui::PopStyleVar(2);
+    ImGui::Spacing();
 }
 
 void MeshBooleanUI::draw_separator()
