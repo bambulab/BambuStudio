@@ -5,14 +5,13 @@
     "from": "system",
     "setting_id": "GFSG99_26",
     "instantiation": "true",
+    "additional_cooling_fan_speed": [
+        "10"
+    ],
     "filament_change_length": [
         "0"
     ],
     "filament_change_length_nc": [
-        "0"
-    ],
-    "filament_cooling_before_tower": [
-        "0",
         "0"
     ],
     "filament_idle_travel_cooling_enabled": "0",

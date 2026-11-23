@@ -5,6 +5,9 @@
     "from": "system",
     "setting_id": "GFSC00_48",
     "instantiation": "true",
+    "additional_cooling_fan_speed": [
+        "10"
+    ],
     "chamber_temperatures": [
         "60"
     ],
@@ -15,10 +18,6 @@
         "0"
     ],
     "filament_change_length_nc": [
-        "0"
-    ],
-    "filament_cooling_before_tower": [
-        "0",
         "0"
     ],
     "filament_flow_ratio": [

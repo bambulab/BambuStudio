@@ -5,6 +5,9 @@
     "from": "system",
     "setting_id": "GFSG96_30",
     "instantiation": "true",
+    "additional_cooling_fan_speed": [
+        "10"
+    ],
     "filament_change_length": [
         "0"
     ],

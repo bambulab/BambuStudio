@@ -5,6 +5,9 @@
     "from": "system",
     "setting_id": "GFSG00_37",
     "instantiation": "true",
+    "additional_cooling_fan_speed": [
+        "10"
+    ],
     "fan_min_speed": [
         "20"
     ],
