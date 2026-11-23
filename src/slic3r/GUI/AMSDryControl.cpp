@@ -61,12 +61,8 @@ static std::string get_humidity_level_img_path(int humidity_percent)
         hum_level = 1;
     }
 
-    if (wxGetApp().dark_mode()) {
-        return "hum_level" + std::to_string(hum_level) + "_no_num_light";
-    } else {
-        return "hum_level" + std::to_string(hum_level) + "_no_num_light";
-    }
-
+    const std::string mode_suffix = wxGetApp().dark_mode() ? "_no_num_dark" : "_no_num_light";
+    return "hum_level" + std::to_string(hum_level) + mode_suffix;
 }
 
 // AMS with both dryable and non-dryable zones (e.g. AMS 3H): the whole device is shown with a badge per zone

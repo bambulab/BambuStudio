@@ -524,6 +524,7 @@ public:
 
 public:
     void set_humidity_level(int level);
+    bool Show(bool show = true) override;
     void msw_rescale();
 
 private:

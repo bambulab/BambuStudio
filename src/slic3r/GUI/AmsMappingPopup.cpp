@@ -1621,7 +1621,8 @@ AmsHumidityTipPopup::AmsHumidityTipPopup(wxWindow* parent)
     m_staticText->SetFont(::Label::Head_24);
 
     humidity_level_list = new AmsHumidityLevelList(this);
-    curr_humidity_img = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("hum_level1_light", this, 132), wxDefaultPosition, wxSize(FromDIP(132), FromDIP(132)), 0);
+    const std::string mode_string = wxGetApp().dark_mode() ? "_dark" : "_light";
+    curr_humidity_img = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("hum_level1" + mode_string, this, 132), wxDefaultPosition, wxSize(FromDIP(132), FromDIP(132)), 0);
 
     m_staticText_note = new Label(this, _L("Please change the desiccant when it is too wet. The indicator may not represent accurately in following cases : when the lid is open or the desiccant pack is changed. it take hours to absorb the moisture, low temperatures also slow down the process."));
     m_staticText_note->SetMinSize(wxSize(FromDIP(680), -1));
@@ -1665,6 +1666,15 @@ AmsHumidityTipPopup::AmsHumidityTipPopup(wxWindow* parent)
 
     Bind(wxEVT_PAINT, &AmsHumidityTipPopup::paintEvent, this);
     wxGetApp().UpdateDarkUIWin(this);
+}
+
+bool AmsHumidityTipPopup::Show(bool show)
+{
+    if (show) {
+        wxGetApp().UpdateDarkUIWin(this);
+        msw_rescale();
+    }
+    return PopupWindow::Show(show);
 }
 
 void AmsHumidityTipPopup::set_humidity_level(int level)

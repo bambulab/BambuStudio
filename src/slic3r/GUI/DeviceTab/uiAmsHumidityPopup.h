@@ -42,6 +42,7 @@ public:
 
     std::string get_owner_ams_id() const { return m_ams_id; }
 
+    bool Show(bool show = true) override;
     void msw_rescale();
 
 private:
