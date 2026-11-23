@@ -912,14 +912,12 @@ void AMSSettingArrangeAMSOrder::Update(const MachineObject* obj)
 
     const bool was_shown = IsShown();
     Show(show);
-#ifdef __WXOSX__
     if (was_shown != show) {
         if (wxWindow* top = wxGetTopLevelParent(this)) {
             top->Layout();
             top->Fit();
         }
     }
-#endif
 }
 
 void AMSSettingArrangeAMSOrder::OnBtnRearrangeClicked(wxCommandEvent& event)
