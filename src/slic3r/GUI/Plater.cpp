@@ -5115,7 +5115,7 @@ void Sidebar::init_filament_combo(PlaterPresetComboBox **combo, const int filame
     // DiameterButtonPanel builds from Button directly -- but drawn as two independent text runs
     // (see its definition) so the flow-type text can use a smaller font than the diameter.
     auto *nozzle_label = new NozzleChipButton(*combo);
-    nozzle_label->SetTextColorNormal(ThemeColor::TextMuted);
+    nozzle_label->SetTextColorNormal(ThemeColor::TextMutedBright);
     // Rounded-corner rendering (SetCornerRadius below) clears its offscreen bitmap
     // using the widget's native background colour, separate from the StateColor fill
     // -- override it too so no trace of the inherited grey-ish parent background
@@ -5489,7 +5489,7 @@ void Sidebar::priv::refresh_filament_nozzle_label(size_t idx, int filament_idx)
     const wxString type_text = diameter.empty() ? wxString() :
         (is_tpu285 ? DevNozzle::GetNozzleVolumeTypeStr(type) : wxString::FromUTF8(DevNozzle::ToNozzleVolumeShortString(type)));
     label->SetChipTexts(diameter_text, type_text, is_tpu285);
-    label->SetTextColorNormal(is_incompatible ? ThemeColor::Danger : ThemeColor::TextMuted);
+    label->SetTextColorNormal(is_incompatible ? ThemeColor::Danger : ThemeColor::TextMutedBright);
     reposition_filament_nozzle_indicator(idx);
 }
 

@@ -1,5 +1,6 @@
 #include "NozzleChipButton.hpp"
 #include "Label.hpp"
+#include "StateColor.hpp"
 
 #include <algorithm>
 
@@ -82,7 +83,8 @@ void NozzleChipButton::paintEvent(wxPaintEvent & /*evt*/)
     const int    baseline     = (size.GetHeight() - tall_h) / 2 + (tall_h - tall_descent);
 
     int x = std::max(0, (size.GetWidth() - content_w) / 2);
-    dc.SetTextForeground(m_text_color);
+    // Resolved every paint, not cached, so a live light/dark toggle takes effect immediately.
+    dc.SetTextForeground(StateColor::darkModeColorFor(m_text_color));
     if (!m_diameter.IsEmpty()) {
         dc.SetFont(Label::Body_13);
         dc.DrawText(m_diameter, x, baseline - (diameter_h - diameter_descent));
