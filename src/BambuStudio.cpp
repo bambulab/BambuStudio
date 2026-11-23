@@ -5666,6 +5666,21 @@ int CLI::run(int argc, char **argv)
         if (const auto *hotend_as_extruder = m_print_config.option<ConfigOptionBool>("handle_hotend_as_extruder"))
             source_hotend_as_extruder = hotend_as_extruder->value;
 
+        // Slice/upload sets filament_prime_volume to 45 (see the plate loop below). That
+        // assignment happens after this check, so estimate the downward_check tower with
+        // the same volume. The project values stay unchanged for the earlier placement pass.
+        DynamicPrintConfig downward_tower_config = m_print_config;
+        const bool downward_prime_volume_45 = is_bbl_3mf && load_filament_count == 0
+            && !(m_config.has("no_check") && m_config.opt_bool("no_check"));
+        if (downward_prime_volume_45) {
+            // set filament_prime_volume to 45 when uploading
+            ConfigOptionFloats *filament_prime_volume_option = m_print_config.option<ConfigOptionFloats>("filament_prime_volume");
+            int                 temp_count                   = filament_prime_volume_option->values.size();
+            for (int temp_index = 0; temp_index < temp_count; temp_index++) {
+                filament_prime_volume_option->values[temp_index] = 45.f;
+            }
+        }
+
         // Multi-diameter: each distinct diameter needs its own nozzle. A machine whose
         // mounted-nozzle capacity is smaller than the diameters actually used cannot print it.
         if (multi_nozzle_diameter_mode_enabled(m_print_config)) {
@@ -7796,16 +7811,6 @@ int CLI::run(int argc, char **argv)
                         //BOOST_LOG_TRIVIAL(info) << boost::format("print_volume {%1%,%2%,%3%}->{%4%, %5%, %6%}, has %7% printables") % print_volume.min(0) % print_volume.min(1)
                         //    % print_volume.min(2) % print_volume.max(0) % print_volume.max(1) % print_volume.max(2) % count << std::endl;
 #endif
-                        if (is_bbl_3mf && !no_check && load_filament_count == 0)
-                        {
-                            //set filament_prime_volume to 45 when uploading
-                            ConfigOptionFloats *filament_prime_volume_option = m_print_config.option<ConfigOptionFloats>("filament_prime_volume");
-                            int temp_count = filament_prime_volume_option->values.size();
-                            for (int temp_index = 0; temp_index < temp_count; temp_index++)
-                            {
-                                filament_prime_volume_option->values[temp_index] = 45.f;
-                            }
-                        }
                         DynamicPrintConfig new_print_config = m_print_config;
                         new_print_config.apply(*part_plate->config());
                         new_print_config.apply(m_extra_config, true);
