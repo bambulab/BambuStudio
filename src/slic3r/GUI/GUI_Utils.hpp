@@ -379,14 +379,9 @@ public:
     using DPIAware<wxDialog>::DPIAware;
 
 public:
-    bool can_end_modal() const
-    {
-        return dialogStackForceEnd || dialogStack.empty() || dialogStack.front() == this;
-    }
-
     void EndModal(int retCode) override
     {
-        if (!can_end_modal()) {
+        if (!dialogStackForceEnd && !dialogStack.empty() && dialogStack.front() != this) {
             // This is a bug in wxWidgets
             // when the dialog is not top modal dialog, EndModal() just hide dialog without quit
             // the modal event loop. And the modal event loop blocks us from bottom widgets.

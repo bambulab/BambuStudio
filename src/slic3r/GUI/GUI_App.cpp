@@ -1641,7 +1641,6 @@ IMPLEMENT_APP(GUI_App)
 //GUI_App::GUI_App(EAppMode mode)
 GUI_App::GUI_App()
     : wxApp()
-    , m_ping_bind_timer(this)
     //, m_app_mode(mode)
     , m_app_mode(EAppMode::Editor)
     , m_em_unit(10)
@@ -1650,7 +1649,6 @@ GUI_App::GUI_App()
 	, m_removable_drive_manager(std::make_unique<RemovableDriveManager>())
 	, m_other_instance_message_handler(std::make_unique<OtherInstanceMessageHandler>())
 {
-    Bind(wxEVT_TIMER, [this](wxTimerEvent&) { process_ping_bind_actions(); }, m_ping_bind_timer.GetId());
     perf_mark("Application started");
 
     {
@@ -1699,7 +1697,6 @@ void GUI_App::shutdown()
 
     if (m_is_recreating_gui) return;
     set_closing(true);
-    cancel_ping_binds();
     if (m_home_gl_timer.IsRunning())
         m_home_gl_timer.Stop();
     BOOST_LOG_TRIVIAL(info) << "exit";
@@ -2519,15 +2516,8 @@ void GUI_App::init_networking_callbacks()
                 if (is_closing())
                     return;
 
-                wxWeakRef<PingCodeBindDialog> dialog(m_ping_code_binding_dialog);
-                auto request = dialog ? dialog->bind_request() : nullptr;
-                run_after_ping_bind([this, user_id, msg, dialog, request] {
-                    if (m_user_manager && m_agent && user_id == m_agent->get_user_id()) {
-                        const bool notify = dialog && dialog.get() == m_ping_code_binding_dialog &&
-                                            dialog->bind_request() == request;
-                        m_user_manager->parse_json(msg, notify);
-                    }
-                });
+                //check user
+                if (m_user_manager && user_id == m_agent->get_user_id()) { this->m_user_manager->parse_json(msg); }
 
             });
         };
@@ -3073,12 +3063,6 @@ bool GUI_App::OnInit()
 
 int GUI_App::OnExit()
 {
-    set_closing(true);
-    m_ping_bind_timer.Stop();
-    cancel_ping_binds();
-    m_ping_bind_actions.clear();
-    // Join before deleting NetworkAgent or any of its account data.
-    m_ping_bind_task.reset();
 #ifdef __APPLE__
     UnRegisterMacPowerCallBack();
 #endif
@@ -5166,10 +5150,6 @@ void GUI_App::request_login(bool show_user_info)
 
 void GUI_App::get_login_info()
 {
-    if (!m_processing_ping_bind_actions && (m_ping_bind_task || !m_ping_bind_actions.empty())) {
-        run_after_ping_bind([this] { get_login_info(); });
-        return;
-    }
     if (m_agent) {
         if (m_agent->is_user_login()) {
             std::string login_cmd = m_agent->build_login_cmd();
@@ -5542,10 +5522,6 @@ void GUI_App::request_user_login(int online_login)
 
 void GUI_App::request_user_logout()
 {
-    if (!m_processing_ping_bind_actions && (m_ping_bind_task || !m_ping_bind_actions.empty())) {
-        run_after_ping_bind([this] { request_user_logout(); }, true);
-        return;
-    }
     m_homepage_server_connect_failed = false;
     sync_left_server_connect_status();
 
@@ -6029,26 +6005,20 @@ void GUI_App::handle_script_message(std::string msg)
         if (j.contains("command")) {
             wxString cmd = j["command"];
             if (cmd == "user_login") {
-                run_after_ping_bind([this, login_info = j.dump()] {
-                    if (m_agent) {
-                        m_agent->change_user(login_info);
-                        if (m_agent->is_user_login())
-                            request_user_login(1);
+                if (m_agent) {
+                    m_agent->change_user(j.dump());
+                    if (m_agent->is_user_login()) {
+                        request_user_login(1);
                     }
-                }, true);
+                }
             }
             if (cmd == "user_ticket_login") {
                 std::string ticket = j["data"]["ticket"];
                 TicketLoginTask::perform_async(ticket, [this](TicketLoginTask::Result result) {
-                    if (result.status != TicketLoginTask::Status::Success)
-                        return;
-                    run_after_ping_bind([this, login_info = std::move(result.login_info)] {
-                        if (m_agent) {
-                            m_agent->change_user(login_info);
-                            if (m_agent->is_user_login())
-                                request_user_login(1);
-                        }
-                    }, true);
+                    if (m_agent && result.status == TicketLoginTask::Status::Success) {
+                        m_agent->change_user(result.login_info);
+                        if (m_agent->is_user_login()) { request_user_login(1); }
+                    }
                 });
             }
         }
@@ -6871,11 +6841,10 @@ void GUI_App::show_check_privacy_dlg(wxCommandEvent& evt)
     privacy_dlg.Bind(EVT_PRIVACY_UPDATE_CANCEL, [this](wxCommandEvent &e) {
             app_config->set_bool("privacy_update_checked", false);
             app_config->save();
-            run_after_ping_bind([this] {
-                report_consent_common(false, "studio_privacy_policy_enable", "SoftwarePrivacy");
-                if (m_agent)
-                    m_agent->user_logout();
-            }, true);
+            report_consent_common(false, "studio_privacy_policy_enable", "SoftwarePrivacy");
+            if (m_agent) {
+                m_agent->user_logout();
+            }
         });
 
     privacy_dlg.set_text(privacy_version_info.description);
@@ -8830,99 +8799,6 @@ std::string GUI_App::url_encode(std::string value) {
     return Http::url_encode(value);
 }
 
-std::shared_ptr<PingBindRequest> GUI_App::start_ping_bind(std::string ping_code)
-{
-    if (is_closing() || !m_agent ||
-        std::any_of(m_ping_bind_actions.begin(), m_ping_bind_actions.end(),
-                    [](const auto& action) { return action.changes_account; }))
-        return {};
-
-    auto request = std::make_shared<PingBindRequest>();
-    m_ping_bind_actions.push_back({request, [this, request, ping_code = std::move(ping_code)] {
-        if (!m_agent || !m_agent->is_user_login()) {
-            request->completed.store(true);
-            return;
-        }
-        m_ping_bind_task = std::make_unique<PingBindTask>(
-            [agent = m_agent, ping_code] {
-                return agent->ping_bind(ping_code);
-            }, request);
-    }});
-    if (!m_ping_bind_timer.IsRunning())
-        m_ping_bind_timer.Start(100);
-    return request;
-}
-
-void GUI_App::cancel_ping_binds()
-{
-    if (m_ping_bind_task)
-        m_ping_bind_task->cancel();
-    for (auto& action : m_ping_bind_actions) {
-        if (action.request) {
-            action.request->cancel();
-            action.request->completed.store(true);
-        }
-    }
-}
-
-void GUI_App::run_after_ping_bind(std::function<void()> action, bool changes_account)
-{
-    if (is_closing())
-        return;
-    if (!wxIsMainThread()) {
-        CallAfter([this, action = std::move(action), changes_account]() mutable {
-            run_after_ping_bind(std::move(action), changes_account);
-        });
-        return;
-    }
-    if (changes_account) {
-        cancel_ping_binds();
-        if (m_ping_code_binding_dialog)
-            m_ping_code_binding_dialog->EndModal(wxCLOSE);
-    }
-    if (!m_ping_bind_task && m_ping_bind_actions.empty() && !m_processing_ping_bind_actions) {
-        action();
-        return;
-    }
-    m_ping_bind_actions.push_back({nullptr, std::move(action), changes_account});
-    if (!m_ping_bind_timer.IsRunning())
-        m_ping_bind_timer.Start(100);
-}
-
-void GUI_App::process_ping_bind_actions()
-{
-    if (is_closing() || m_processing_ping_bind_actions)
-        return;
-    m_processing_ping_bind_actions = true;
-    ScopeGuard reset([this] {
-        m_processing_ping_bind_actions = false;
-        if (!m_ping_bind_task && m_ping_bind_actions.empty())
-            m_ping_bind_timer.Stop();
-    });
-    if (m_ping_bind_task) {
-        if (!m_ping_bind_task->completed())
-            return;
-        m_ping_bind_task.reset();
-    }
-    while (!m_ping_bind_task && !m_ping_bind_actions.empty() && !is_closing()) {
-        auto action = std::move(m_ping_bind_actions.front());
-        m_ping_bind_actions.pop_front();
-        if (action.request && action.request->canceled.load()) {
-            action.request->completed.store(true);
-            continue;
-        }
-        try {
-            if (action.changes_account && m_ping_code_binding_dialog)
-                m_ping_code_binding_dialog->EndModal(wxCLOSE);
-            action.run();
-        } catch (...) {
-            if (action.request)
-                action.request->completed.store(true);
-            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
-        }
-    }
-}
-
 void GUI_App::popup_ping_bind_dialog()
 {
     if (m_ping_code_binding_dialog == nullptr) {
@@ -8935,9 +8811,9 @@ void GUI_App::popup_ping_bind_dialog()
 void GUI_App::remove_ping_bind_dialog()
 {
     if (m_ping_code_binding_dialog != nullptr) {
-        auto* dialog = m_ping_code_binding_dialog;
+        m_ping_code_binding_dialog->Destroy();
+        delete m_mall_publish_dialog;
         m_ping_code_binding_dialog = nullptr;
-        dialog->Destroy();
     }
 }
 

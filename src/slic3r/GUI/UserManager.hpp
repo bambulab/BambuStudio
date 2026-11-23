@@ -29,7 +29,7 @@ public:
     ~UserManager();
 
     void set_agent(NetworkAgent* agent);
-    int parse_json(std::string payload, bool notify_pin_dialog = true);
+    int parse_json(std::string payload);
 };
 } // namespace Slic3r
 

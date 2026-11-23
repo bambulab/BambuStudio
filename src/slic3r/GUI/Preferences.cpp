@@ -551,23 +551,20 @@ wxBoxSizer *PreferencesDialog::create_item_region_combobox(wxString title, wxWin
                 combobox->SetSelection(current_region);
                 return;
             } else {
-                wxGetApp().run_after_ping_bind([region = region.ToStdString()] {
-                    auto& app = wxGetApp();
-                    app.request_user_logout();
-                    app.app_config->set("region", region);
-                    app.update_log_sink_region();
-                    if (NetworkAgent* agent = app.getAgent())
-                        agent->set_country_code(app.app_config->get_country_code());
-                    app.update_publish_status();
-                }, true);
+                wxGetApp().request_user_logout();
+                config->set("region", region.ToStdString());
+                wxGetApp().update_log_sink_region();
+                auto area = config->get_country_code();
+                if (agent) {
+                    agent->set_country_code(area);
+                }
                 EndModal(wxID_CANCEL);
             }
         } else {
             config->set("region", region.ToStdString());
             wxGetApp().update_log_sink_region();
-            wxGetApp().update_publish_status();
         }
-
+        wxGetApp().update_publish_status();
         //e.Skip();
     });
 
@@ -1916,28 +1913,48 @@ wxWindow *PreferencesDialog::create_developer_tab()
         }
 
         case wxID_YES: {
+            // bbs  domain changed
             auto param = get_select_radio(1);
-            wxGetApp().run_after_ping_bind([param] {
-                auto& app = wxGetApp();
-                AppConfig* config = app.app_config;
-                if (param == "dev_host")
-                    config->set("iot_environment", ENV_DEV_HOST);
-                else if (param == "qa_host")
-                    config->set("iot_environment", ENV_QAT_HOST);
-                else if (param == "pre_host")
-                    config->set("iot_environment", ENV_PRE_HOST);
-                else if (param == "product_host")
-                    config->set("iot_environment", ENV_PRODUCT_HOST);
-                app.update_publish_status();
-                if (NetworkAgent* agent = app.getAgent()) {
-                    app.request_user_logout();
-                    agent->set_country_code(config->get_country_code());
+
+            std::map<wxString, wxString> iot_environment_map;
+            iot_environment_map["dev_host"] = ENV_DEV_HOST;
+            iot_environment_map["qa_host"]  = ENV_QAT_HOST;
+            iot_environment_map["pre_host"] = ENV_PRE_HOST;
+            iot_environment_map["product_host"] = ENV_PRODUCT_HOST;
+
+            //if (iot_environment_map[param] != m_iot_environment_def) {
+            if (true) {
+                NetworkAgent* agent = wxGetApp().getAgent();
+                if (param == "dev_host") {
+                    app_config->set("iot_environment", ENV_DEV_HOST);
                 }
-                config->save();
-            }, true);
-            ConfirmBeforeSendDialog confirm_dlg(this, wxID_ANY, _L("Warning"), ConfirmBeforeSendDialog::ButtonStyle::ONLY_CONFIRM);
-            confirm_dlg.update_text(_L("Switch cloud environment, Please login again!"));
-            confirm_dlg.on_show();
+                else if (param == "qa_host") {
+                    app_config->set("iot_environment", ENV_QAT_HOST);
+                }
+                else if (param == "pre_host") {
+                    app_config->set("iot_environment", ENV_PRE_HOST);
+                }
+                else if (param == "product_host") {
+                    app_config->set("iot_environment", ENV_PRODUCT_HOST);
+                }
+
+
+                wxGetApp().update_publish_status();
+
+                AppConfig* config = GUI::wxGetApp().app_config;
+                std::string country_code = config->get_country_code();
+                if (agent) {
+                    wxGetApp().request_user_logout();
+                    agent->set_country_code(country_code);
+                }
+                ConfirmBeforeSendDialog confirm_dlg(this, wxID_ANY, _L("Warning"), ConfirmBeforeSendDialog::ButtonStyle::ONLY_CONFIRM);
+                confirm_dlg.update_text(_L("Switch cloud environment, Please login again!"));
+                confirm_dlg.on_show();
+            }
+
+            // bbs  backup
+            //app_config->set("backup_interval", std::string(m_backup_interval_time.mb_str()));
+            app_config->save();
             Slic3r::set_backup_interval(boost::lexical_cast<long>(app_config->get("backup_interval")));
 
             this->Close();

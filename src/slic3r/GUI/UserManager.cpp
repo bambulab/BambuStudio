@@ -27,7 +27,7 @@ void UserManager::set_agent(NetworkAgent* agent)
     m_agent = agent;
 }
 
-int UserManager::parse_json(std::string payload, bool notify_pin_dialog)
+int UserManager::parse_json(std::string payload)
 {
     bool restored_json = false;
     json j;
@@ -54,8 +54,10 @@ int UserManager::parse_json(std::string payload, bool notify_pin_dialog)
                 DeviceManager* dev = GUI::wxGetApp().getDeviceManager();
                 if (!dev) { return -1; }
 
-                if (notify_pin_dialog && GUI::wxGetApp().m_ping_code_binding_dialog && GUI::wxGetApp().m_ping_code_binding_dialog->IsShown()) {
-                    GUI::wxGetApp().m_ping_code_binding_dialog->notify_bind_success();
+                if (GUI::wxGetApp().m_ping_code_binding_dialog && GUI::wxGetApp().m_ping_code_binding_dialog->IsShown()) {
+                    GUI::wxGetApp().m_ping_code_binding_dialog->EndModal(wxCLOSE);
+                    GUI::MessageDialog msgdialog(nullptr, _L("Log in successful."), "", wxAPPLY | wxOK);
+                    msgdialog.ShowModal();
                 }
                 dev->update_user_machine_list_info([dev, dev_id](bool parsed) {
                     if (parsed) {
