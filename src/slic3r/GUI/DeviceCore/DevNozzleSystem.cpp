@@ -391,6 +391,10 @@ DevFirmwareVersionInfo DevNozzle::GetFirmwareInfo() const
     const auto& nozzle_rack = m_nozzle_rack.lock();
     if (nozzle_rack)
     {
+        if (nozzle_rack->IsDirectConnectedRack() && m_addr_id.has_value())
+        {
+            return nozzle_rack->GetNozzleFirmwareInfo(*m_addr_id);
+        }
         if (IsOnRack())
         {
             return nozzle_rack->GetNozzleFirmwareInfo(m_nozzle_id);
