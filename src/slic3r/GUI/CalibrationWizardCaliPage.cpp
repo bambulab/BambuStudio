@@ -166,6 +166,7 @@ void CalibrationCaliPage::clear_last_job_status()
 
 void CalibrationCaliPage::update(MachineObject* obj)
 {
+    const bool device_changed = curr_obj != obj;
     curr_obj = obj;
     if (this->IsShown()) {
         if (obj) {
@@ -189,7 +190,7 @@ void CalibrationCaliPage::update(MachineObject* obj)
     // enable calibration when finished
     bool enable_cali = false;
     if (obj) {
-        if (obj->GetExtderSystem()->GetCurrentExtderId() != m_cur_extruder_id) {
+        if (device_changed || obj->GetExtderSystem()->GetCurrentExtderId() != m_cur_extruder_id) {
             m_cur_extruder_id = obj->GetExtderSystem()->GetCurrentExtderId();
             set_cali_img();
         }
