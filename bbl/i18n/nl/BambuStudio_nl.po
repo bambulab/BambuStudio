@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-21 17:56+0800\n"
+"POT-Creation-Date: 2026-11-23 12:06+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -7905,6 +7905,9 @@ msgstr "Versie"
 msgid "Filament Buffer"
 msgstr ""
 
+msgid "E1 Air Purifier"
+msgstr ""
+
 msgid "Optional Drying Module"
 msgstr ""
 
@@ -8487,11 +8490,14 @@ msgstr "De plug-in is niet geïnstalleerd. Controleer of deze is geblokkeerd of 
 msgid "click here to see more info"
 msgstr "klik hier voor meer informatie"
 
+msgid "In use"
+msgstr "In gebruik"
+
 msgid "Edit nozzle"
 msgstr "Nozzle bewerken"
 
-msgid "In use"
-msgstr "In gebruik"
+msgid "AMS"
+msgstr "AMS"
 
 msgid "This side has no nozzle. Click Edit to add one."
 msgstr ""
@@ -8539,9 +8545,6 @@ msgstr "Informatie over de hotend is onbekend. Vernieuw de informatie over de no
 
 msgid "Nozzle diameter mismatch. This nozzle cannot be used."
 msgstr "Nozzlediameter komt niet overeen. Deze nozzle kan niet worden gebruikt."
-
-msgid "AMS"
-msgstr "AMS"
 
 msgid "Dynamic flow calibration"
 msgstr "Dynamische flow kalibratie"

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-21 17:56+0800\n"
+"POT-Creation-Date: 2026-11-23 12:06+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -7911,6 +7911,9 @@ msgstr "เวอร์ชัน:"
 msgid "Filament Buffer"
 msgstr ""
 
+msgid "E1 Air Purifier"
+msgstr ""
+
 msgid "Optional Drying Module"
 msgstr ""
 
@@ -8493,11 +8496,14 @@ msgstr "ติดตั้งปลั๊กอินล้มเหลว โ�
 msgid "click here to see more info"
 msgstr "คลิกที่นี่เพื่อดูข้อมูลเพิ่มเติม"
 
+msgid "In use"
+msgstr "กำลังใช้งาน"
+
 msgid "Edit nozzle"
 msgstr "แก้ไขหัวฉีด"
 
-msgid "In use"
-msgstr "กำลังใช้งาน"
+msgid "AMS"
+msgstr ""
 
 msgid "This side has no nozzle. Click Edit to add one."
 msgstr ""
@@ -8545,9 +8551,6 @@ msgstr "ไม่ทราบข้อมูลชุดหัวพิมพ์
 
 msgid "Nozzle diameter mismatch. This nozzle cannot be used."
 msgstr "ขนาดเส้นผ่านศูนย์กลางหัวฉีดไม่ตรงกัน หัวฉีดนี้ไม่สามารถใช้งานได้"
-
-msgid "AMS"
-msgstr ""
 
 msgid "Dynamic flow calibration"
 msgstr "การปรับเทียบพลศาสตร์การไหล"

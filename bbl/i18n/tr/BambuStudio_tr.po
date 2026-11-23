@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-21 17:56+0800\n"
+"POT-Creation-Date: 2026-11-23 12:06+0800\n"
 "PO-Revision-Date: 2025-10-16 12:27+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -7903,6 +7903,9 @@ msgstr "Sürüm:"
 msgid "Filament Buffer"
 msgstr ""
 
+msgid "E1 Air Purifier"
+msgstr ""
+
 msgid "Optional Drying Module"
 msgstr ""
 
@@ -8485,11 +8488,14 @@ msgstr "Eklenti yüklenemedi. Lütfen antivirüs yazılımı tarafından engelle
 msgid "click here to see more info"
 msgstr "Daha fazla bilgi için buraya tıkla."
 
+msgid "In use"
+msgstr "Kullanımda"
+
 msgid "Edit nozzle"
 msgstr "Püskürtme ucunu düzenle"
 
-msgid "In use"
-msgstr "Kullanımda"
+msgid "AMS"
+msgstr "AMS"
 
 msgid "This side has no nozzle. Click Edit to add one."
 msgstr ""
@@ -8537,9 +8543,6 @@ msgstr "Hotend bilgileri bilinmiyor. Lütfen kullanmadan önce püskürtme ucu b
 
 msgid "Nozzle diameter mismatch. This nozzle cannot be used."
 msgstr "Püskürtme ucu çapı uyuşmuyor. Bu püskürtme ucu kullanılamaz."
-
-msgid "AMS"
-msgstr "AMS"
 
 msgid "Dynamic flow calibration"
 msgstr "Dinamik akış kalibrasyonu"

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-21 17:56+0800\n"
+"POT-Creation-Date: 2026-11-23 12:06+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Jakub Hencl <jakub.hencl@seznam.cz>\n"
 "Language-Team: \n"
@@ -7961,6 +7961,9 @@ msgstr "Verze:"
 msgid "Filament Buffer"
 msgstr ""
 
+msgid "E1 Air Purifier"
+msgstr ""
+
 msgid "Optional Drying Module"
 msgstr ""
 
@@ -8543,11 +8546,14 @@ msgstr "Nepodařilo se nainstalovat zásuvný modul. Zkontrolujte, zda nebyl blo
 msgid "click here to see more info"
 msgstr "klikněte zde pro více informací"
 
+msgid "In use"
+msgstr ""
+
 msgid "Edit nozzle"
 msgstr ""
 
-msgid "In use"
-msgstr ""
+msgid "AMS"
+msgstr "AMS"
 
 msgid "This side has no nozzle. Click Edit to add one."
 msgstr ""
@@ -8595,9 +8601,6 @@ msgstr ""
 
 msgid "Nozzle diameter mismatch. This nozzle cannot be used."
 msgstr ""
-
-msgid "AMS"
-msgstr "AMS"
 
 msgid "Dynamic flow calibration"
 msgstr "Kalibrace dynamiky toku"

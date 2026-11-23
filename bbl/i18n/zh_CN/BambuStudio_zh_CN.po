@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-21 17:56+0800\n"
+"POT-Creation-Date: 2026-11-23 12:06+0800\n"
 "PO-Revision-Date: 2026-07-28 13:17+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -4782,7 +4782,7 @@ msgid "There many parts of the software that come from community contributions, 
 msgstr "软件中有很多部分来自于社区贡献，因此我们不便逐一列出他们，作为替代，他们将在相应的代码注释中被介绍。"
 
 msgid "Privacy Policy"
-msgstr "隐私协议"
+msgstr "隐私政策"
 
 msgid "Terms of Use"
 msgstr "使用条款"
@@ -7785,10 +7785,10 @@ msgid "Failed to start printing job"
 msgstr "发起打印任务失败"
 
 msgid "Continue taking"
-msgstr ""
+msgstr "仍然取用"
 
 msgid "Continue loading"
-msgstr ""
+msgstr "仍然进料"
 
 msgid "Active operations"
 msgstr "本设备正在进行以下操作"
@@ -8481,11 +8481,14 @@ msgstr "安装插件失败。请检查是否被杀毒软件屏蔽或删除。"
 msgid "click here to see more info"
 msgstr "点击这里查看更多信息"
 
+msgid "In use"
+msgstr "使用中"
+
 msgid "Edit nozzle"
 msgstr "设置喷嘴"
 
-msgid "In use"
-msgstr "使用中"
+msgid "AMS"
+msgstr "AMS"
 
 msgid "This side has no nozzle. Click Edit to add one."
 msgstr "此侧没有喷嘴。点击其卡片上的“编辑”即可添加。"
@@ -8533,9 +8536,6 @@ msgstr "热端信息未知。请在使用前刷新喷嘴信息。"
 
 msgid "Nozzle diameter mismatch. This nozzle cannot be used."
 msgstr "喷嘴直径不匹配。此喷嘴无法使用。"
-
-msgid "AMS"
-msgstr "AMS"
 
 msgid "Dynamic flow calibration"
 msgstr "动态流量校准"
@@ -8778,7 +8778,7 @@ msgstr "外挂料盘"
 
 #, c-format, boost-format
 msgid "Slot %d"
-msgstr ""
+msgstr "第%d槽"
 
 msgid "Filament Manager"
 msgstr "耗材管理"
@@ -11885,10 +11885,10 @@ msgid "Network error"
 msgstr "网络错误"
 
 msgid "No details available"
-msgstr ""
+msgstr "未知详细信息"
 
 msgid "Failed to load more details"
-msgstr ""
+msgstr "无法加载更多详细信息"
 
 msgid "Recent Helio Runs"
 msgstr "最近的 Helio 运行记录"
@@ -15967,7 +15967,7 @@ msgstr "%s 耗材配置不支持当前喷嘴设置，请更换喷嘴或耗材后
 
 #, c-format, boost-format
 msgid "Filament %s uses a %s nozzle, which is not available on this printer. Add it or select an available nozzle."
-msgstr ""
+msgstr "耗材 %s 使用的 %s 喷嘴在当前打印机上不可用。请添加该喷嘴或选择已有喷嘴。"
 
 #, c-format, boost-format
 msgid "Filament %s has no nozzle in the nozzle settings that fits it. Please add that nozzle type before use."
@@ -19045,7 +19045,6 @@ msgid ""
 msgstr ""
 "不建议将该耗材用作支撑主体。\n"
 "您确定要用它作为支撑主体吗？\n"
-""
 
 msgid "When enabling ironing, We recommend the following settings:"
 msgstr "启用熨烫功能时，我们推荐配置以下参数："
@@ -20072,7 +20071,7 @@ msgid "Unmapped"
 msgstr "未匹配"
 
 msgid "Nozzle diameter mismatch after filament synchronization"
-msgstr ""
+msgstr "耗材同步后喷嘴直径信息不一致"
 
 msgid "Set nozzle count"
 msgstr "设置喷嘴数量"
@@ -21166,7 +21165,7 @@ msgid ""
 "Did you know that you can use more wall loops and higher sparse infill density to improve the strength of the model?"
 msgstr ""
 "提高强度\n"
-"您知道吗？您可以使用更多的墙层数和更高的疏散填充密度来提高模型的强度。"
+"您知道吗？您可以使用更多的墙层数和更高的稀疏填充密度来提高模型的强度。"
 
 #: resources/data/hints.ini: [hint:When need to print with the printer door
 #: opened]

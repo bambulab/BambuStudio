@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-21 17:56+0800\n"
+"POT-Creation-Date: 2026-11-23 12:06+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -7914,6 +7914,9 @@ msgstr "Versiune:"
 msgid "Filament Buffer"
 msgstr ""
 
+msgid "E1 Air Purifier"
+msgstr ""
+
 msgid "Optional Drying Module"
 msgstr ""
 
@@ -8496,11 +8499,14 @@ msgstr "Instalarea pluginului a eșuat. Verificați dacă este blocat sau șters
 msgid "click here to see more info"
 msgstr "click aici pentru a vedea mai multe informații"
 
+msgid "In use"
+msgstr "În uz"
+
 msgid "Edit nozzle"
 msgstr "Editează duza"
 
-msgid "In use"
-msgstr "În uz"
+msgid "AMS"
+msgstr ""
 
 msgid "This side has no nozzle. Click Edit to add one."
 msgstr ""
@@ -8548,9 +8554,6 @@ msgstr "Informațiile despre hotend sunt necunoscute. Vă rugăm să actualizaț
 
 msgid "Nozzle diameter mismatch. This nozzle cannot be used."
 msgstr "Nepotrivire a diametrului duzei. Această duză nu poate fi utilizată."
-
-msgid "AMS"
-msgstr ""
 
 msgid "Dynamic flow calibration"
 msgstr "Calibrare dinamică a debitului"

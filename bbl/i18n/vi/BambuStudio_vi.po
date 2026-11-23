@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-21 17:56+0800\n"
+"POT-Creation-Date: 2026-11-23 12:06+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -7912,6 +7912,9 @@ msgstr "Phiên bản:"
 msgid "Filament Buffer"
 msgstr ""
 
+msgid "E1 Air Purifier"
+msgstr ""
+
 msgid "Optional Drying Module"
 msgstr ""
 
@@ -8494,11 +8497,14 @@ msgstr "Không thể cài đặt plug-in. Vui lòng kiểm tra xem nó có bị 
 msgid "click here to see more info"
 msgstr "nhấp vào đây để xem thêm thông tin"
 
+msgid "In use"
+msgstr "Đang sử dụng"
+
 msgid "Edit nozzle"
 msgstr "Chỉnh sửa vòi phun"
 
-msgid "In use"
-msgstr "Đang sử dụng"
+msgid "AMS"
+msgstr ""
 
 msgid "This side has no nozzle. Click Edit to add one."
 msgstr ""
@@ -8546,9 +8552,6 @@ msgstr "Thông tin về đầu nung hiện chưa rõ. Vui lòng làm mới thôn
 
 msgid "Nozzle diameter mismatch. This nozzle cannot be used."
 msgstr "Đường kính vòi phun không khớp. Vòi phun này không thể sử dụng được."
-
-msgid "AMS"
-msgstr ""
 
 msgid "Dynamic flow calibration"
 msgstr "Hiệu chuẩn động cho lưu lượng"

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio 2.0.2 Public Release\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-21 17:56+0800\n"
+"POT-Creation-Date: 2026-11-23 12:06+0800\n"
 "PO-Revision-Date: 2025-04-22 16:37+0700\n"
 "Last-Translator: \n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -8005,6 +8005,9 @@ msgstr "Версия:"
 msgid "Filament Buffer"
 msgstr ""
 
+msgid "E1 Air Purifier"
+msgstr ""
+
 msgid "Optional Drying Module"
 msgstr ""
 
@@ -8591,11 +8594,14 @@ msgstr "Не удалось установить плагин. Пожалуйс�
 msgid "click here to see more info"
 msgstr "Нажмите здесь, чтобы узнать больше"
 
+msgid "In use"
+msgstr "Используется"
+
 msgid "Edit nozzle"
 msgstr "Редактировать сопло"
 
-msgid "In use"
-msgstr "Используется"
+msgid "AMS"
+msgstr "АСПП"
 
 msgid "This side has no nozzle. Click Edit to add one."
 msgstr ""
@@ -8643,9 +8649,6 @@ msgstr "Данные о хотенде неизвестны. Перед испо
 
 msgid "Nozzle diameter mismatch. This nozzle cannot be used."
 msgstr "Несоответствие диаметра сопла. Это сопло нельзя использовать."
-
-msgid "AMS"
-msgstr "АСПП"
 
 msgid "Dynamic flow calibration"
 msgstr "Калибровка динамики потока"

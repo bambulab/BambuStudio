@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-21 17:56+0800\n"
+"POT-Creation-Date: 2026-11-23 12:06+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -7898,6 +7898,9 @@ msgstr "Version:"
 msgid "Filament Buffer"
 msgstr ""
 
+msgid "E1 Air Purifier"
+msgstr ""
+
 msgid "Optional Drying Module"
 msgstr ""
 
@@ -8480,11 +8483,14 @@ msgstr "Det gick inte att installera insticksprogrammet. Kontrollera om den är 
 msgid "click here to see more info"
 msgstr "Klicka här för att se mer information"
 
+msgid "In use"
+msgstr "Används"
+
 msgid "Edit nozzle"
 msgstr "Redigera nozzle"
 
-msgid "In use"
-msgstr "Används"
+msgid "AMS"
+msgstr "AMS"
 
 msgid "This side has no nozzle. Click Edit to add one."
 msgstr ""
@@ -8532,9 +8538,6 @@ msgstr "Information om hotend är okänd. Uppdatera informationen om nozzle för
 
 msgid "Nozzle diameter mismatch. This nozzle cannot be used."
 msgstr "Nozzle-diametern stämmer inte överens. Denna nozzle kan inte användas."
-
-msgid "AMS"
-msgstr "AMS"
 
 msgid "Dynamic flow calibration"
 msgstr "Dynamisk flödeskalibrering"

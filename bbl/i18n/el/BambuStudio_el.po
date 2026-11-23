@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-21 17:56+0800\n"
+"POT-Creation-Date: 2026-11-23 12:06+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -7913,6 +7913,9 @@ msgstr "Έκδοση:"
 msgid "Filament Buffer"
 msgstr ""
 
+msgid "E1 Air Purifier"
+msgstr ""
+
 msgid "Optional Drying Module"
 msgstr ""
 
@@ -8495,11 +8498,14 @@ msgstr "Αποτυχία εγκατάστασης του προσθέτου. Ε�
 msgid "click here to see more info"
 msgstr "κάντε κλικ εδώ για να δείτε περισσότερες πληροφορίες"
 
+msgid "In use"
+msgstr "Σε χρήση"
+
 msgid "Edit nozzle"
 msgstr "Επεξεργασία ακροφυσίου"
 
-msgid "In use"
-msgstr "Σε χρήση"
+msgid "AMS"
+msgstr ""
 
 msgid "This side has no nozzle. Click Edit to add one."
 msgstr ""
@@ -8547,9 +8553,6 @@ msgstr "Οι πληροφορίες για το θερμό άκρο δεν εί�
 
 msgid "Nozzle diameter mismatch. This nozzle cannot be used."
 msgstr "Ασυμφωνία διαμέτρου ακροφυσίου. Αυτό το ακροφύσιο δεν μπορεί να χρησιμοποιηθεί."
-
-msgid "AMS"
-msgstr ""
 
 msgid "Dynamic flow calibration"
 msgstr "Βαθμονόμηση δυναμικής ροής"
