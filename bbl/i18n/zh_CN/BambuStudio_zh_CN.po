@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-23 12:06+0800\n"
+"POT-Creation-Date: 2026-11-23 19:25+0800\n"
 "PO-Revision-Date: 2026-07-28 13:17+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -5237,9 +5237,6 @@ msgstr ""
 "1. 请确保 Pin 码输入正确。\n"
 "2. 确认打印机和 Bambu Studio 的区域设置一致。"
 
-msgid "Log in successful."
-msgstr "登录成功"
-
 msgid "Log in printer"
 msgstr "登录打印机"
 
@@ -5276,6 +5273,9 @@ msgstr "请检查当前系统服务状态"
 
 msgid "Error code"
 msgstr "错误代码"
+
+msgid "Log in successful."
+msgstr "登录成功"
 
 msgid "Log out printer"
 msgstr "登出打印机"
@@ -9009,6 +9009,9 @@ msgstr "切换到静音模式"
 msgid "Switch to normal mode"
 msgstr "切换到普通模式"
 
+msgid "Tips: Current grouping of slice result is not optimal. With the optimal grouping, "
+msgstr "提示：当前材料分组不是最优结果。如果使用最优分组"
+
 #, boost-format
 msgid "save %1%g more filament and %2% more filament changes"
 msgstr "可多节省 %1%g 耗材和 %2% 次换料"
@@ -9021,8 +9024,8 @@ msgstr "可多节省 %1%g 耗材但是增加 %2% 次换料"
 msgid "save %2% more filament changes but use %1%g more filament"
 msgstr "可节省 %2% 次换料，但会多用 %1%g 耗材"
 
-msgid "Tips: Current grouping of slice result is not optimal. With the optimal grouping, "
-msgstr "提示：当前材料分组不是最优结果。如果使用最优分组"
+msgid "Compared to a printer with one nozzle, "
+msgstr "相较于单头打印机"
 
 #, boost-format
 msgid "save %1%g filament and %2% filament changes."
@@ -9036,17 +9039,26 @@ msgstr "可节省 %1%g 耗材，但增加 %2% 次换料。"
 msgid "save %2% filament changes but use %1%g more filament."
 msgstr "可节省 %2% 耗材更换次数，但会多用 %1%g 耗材。"
 
-msgid "Compared to a printer with one nozzle, "
-msgstr "相较于单头打印机"
+msgid "Automatically re-slice according to the optimal filament grouping, and the grouping results will be displayed after slicing."
+msgstr "将会自动根据最优耗材分组重新切片，分组结果将会在切片后展示。"
 
 msgid "Set to Optimal"
 msgstr "设置为最优"
 
-msgid "Automatically re-slice according to the optimal filament grouping, and the grouping results will be displayed after slicing."
-msgstr "将会自动根据最优耗材分组重新切片，分组结果将会在切片后展示。"
-
 msgid "Regroup filament"
 msgstr "重新分组"
+
+msgid "Please place filaments on the printer based on grouping result."
+msgstr "请按上述分组结果到打印机放置耗材"
+
+msgid "Filament Grouping"
+msgstr "耗材分组"
+
+msgid "Why this grouping"
+msgstr "为什么这样分组"
+
+msgid "AMS nozzle"
+msgstr "AMS 喷嘴"
 
 msgid "Height: "
 msgstr "层高: "
@@ -17192,8 +17204,8 @@ msgstr "始终在预览视图选项卡中显示或不显示壳。如果更改值
 msgid "Show Objects color scheme in preview"
 msgstr "在预览中显示对象颜色方案"
 
-msgid "Color preview toolpaths by object. Disabled by default. This does not calculate center of gravity."
-msgstr "按对象为预览走线着色。默认关闭。不会计算重心。"
+msgid "Color preview toolpaths by object. Disabled by default."
+msgstr "按对象预览GCode路径颜色。默认禁用。"
 
 msgid "Show Thermal Preconditioning Area"
 msgstr "显示热床保温区域"
@@ -17501,6 +17513,12 @@ msgstr "选择/移除打印机（系统预设）"
 
 msgid "Create printer"
 msgstr "创建打印机"
+
+msgid "Saved in single-diameter mode. Switch to single-diameter mode to use it."
+msgstr "已保存为单口径模式。请切换至单口径模式以使用。"
+
+msgid "Saved in multi-diameter mode. Switch to multi-diameter mode to use it."
+msgstr "已保存为多口径模式。请切换到多口径模式以使用。"
 
 msgid "The selected preset is null!"
 msgstr "选择的预设为空！"
@@ -21260,6 +21278,9 @@ msgstr ""
 "一次成功的可靠性\n"
 "更少盯机，更可预测的产出。例如：小型打印农场打印 PETG 零件可降低意外失败的概率，让批次按计划推进。"
 
+#~ msgid "Color preview toolpaths by object. Disabled by default. This does not calculate center of gravity."
+#~ msgstr "按对象为预览走线着色。默认关闭。不会计算重心。"
+
 #~ msgid "Unknown error"
 #~ msgstr "未知错误。"
 
@@ -21346,18 +21367,6 @@ msgstr ""
 
 #~ msgid "This side has no nozzle. Click Edit on its card to add one."
 #~ msgstr "此侧没有喷嘴。点击其卡片上的“编辑”即可添加。"
-
-#~ msgid "Filament Grouping"
-#~ msgstr "耗材分组"
-
-#~ msgid "Why this grouping"
-#~ msgstr "为什么这样分组"
-
-#~ msgid "AMS nozzle"
-#~ msgstr "AMS 喷嘴"
-
-#~ msgid "Please place filaments on the printer based on grouping result."
-#~ msgstr "请按上述分组结果到打印机放置耗材"
 
 #~ msgid "Current grouping of slice result is not optimal."
 #~ msgstr "当前材料分组不是最优结果。"

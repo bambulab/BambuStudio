@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-23 12:06+0800\n"
+"POT-Creation-Date: 2026-11-23 19:25+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -5225,9 +5225,6 @@ msgstr ""
 "1. Győződj meg arról, hogy a PIN-kód helyesen van megadva.\n"
 "2. Ellenőrizd, hogy a nyomtató és a Bambu Studio régióbeállításai megegyeznek-e."
 
-msgid "Log in successful."
-msgstr "Sikeres bejelentkezés."
-
 msgid "Log in printer"
 msgstr "Bejelentkezés a nyomtatóra"
 
@@ -5264,6 +5261,9 @@ msgstr "Ellenőrzi az aktuális rendszerszolgáltatások állapotát"
 
 msgid "Error code"
 msgstr "Hibakód"
+
+msgid "Log in successful."
+msgstr "Sikeres bejelentkezés."
 
 msgid "Log out printer"
 msgstr "Kijelentkezés a nyomtatóról"
@@ -9014,6 +9014,9 @@ msgstr "Váltás csendes módra"
 msgid "Switch to normal mode"
 msgstr "Váltás normál módra"
 
+msgid "Tips: Current grouping of slice result is not optimal. With the optimal grouping, "
+msgstr ""
+
 #, boost-format
 msgid "save %1%g more filament and %2% more filament changes"
 msgstr ""
@@ -9026,7 +9029,7 @@ msgstr ""
 msgid "save %2% more filament changes but use %1%g more filament"
 msgstr ""
 
-msgid "Tips: Current grouping of slice result is not optimal. With the optimal grouping, "
+msgid "Compared to a printer with one nozzle, "
 msgstr ""
 
 #, boost-format
@@ -9041,17 +9044,26 @@ msgstr ""
 msgid "save %2% filament changes but use %1%g more filament."
 msgstr ""
 
-msgid "Compared to a printer with one nozzle, "
-msgstr ""
+msgid "Automatically re-slice according to the optimal filament grouping, and the grouping results will be displayed after slicing."
+msgstr "Automatikus újraszeletelés az optimális filamentcsoportosítás szerint, a szeletelés után megjelenik a csoportosítás eredménye."
 
 msgid "Set to Optimal"
 msgstr "Optimálisra állítva"
 
-msgid "Automatically re-slice according to the optimal filament grouping, and the grouping results will be displayed after slicing."
-msgstr "Automatikus újraszeletelés az optimális filamentcsoportosítás szerint, a szeletelés után megjelenik a csoportosítás eredménye."
-
 msgid "Regroup filament"
 msgstr "Filament átcsoportosítása"
+
+msgid "Please place filaments on the printer based on grouping result."
+msgstr "Kérjük, a csoportosítási eredmény alapján helyezd a filamenteket a nyomtatóba."
+
+msgid "Filament Grouping"
+msgstr "Filamentcsoportosítás"
+
+msgid "Why this grouping"
+msgstr "Miért van ez a csoportosítás"
+
+msgid "AMS nozzle"
+msgstr "AMS-fúvóka"
 
 msgid "Height: "
 msgstr "Magasság: "
@@ -17231,7 +17243,7 @@ msgstr "Az előnézeti nézet lapon mindig jelenítse meg a héjakat, vagy ne je
 msgid "Show Objects color scheme in preview"
 msgstr ""
 
-msgid "Color preview toolpaths by object. Disabled by default. This does not calculate center of gravity."
+msgid "Color preview toolpaths by object. Disabled by default."
 msgstr ""
 
 msgid "Show Thermal Preconditioning Area"
@@ -17539,6 +17551,12 @@ msgstr "Nyomtatók kiválasztása/eltávolítása (rendszerbeállítások)"
 
 msgid "Create printer"
 msgstr "Nyomtató létrehozása"
+
+msgid "Saved in single-diameter mode. Switch to single-diameter mode to use it."
+msgstr ""
+
+msgid "Saved in multi-diameter mode. Switch to multi-diameter mode to use it."
+msgstr ""
 
 msgid "The selected preset is null!"
 msgstr "A kiválasztott beállítás nulla!"
@@ -21405,18 +21423,6 @@ msgstr ""
 
 #~ msgid "This side has no nozzle. Click Edit on its card to add one."
 #~ msgstr "Ezen az oldalon nincs fúvóka. Fúvóka hozzáadásához kattintson a kártyáján a Szerkesztés gombra."
-
-#~ msgid "Filament Grouping"
-#~ msgstr "Filamentcsoportosítás"
-
-#~ msgid "Why this grouping"
-#~ msgstr "Miért van ez a csoportosítás"
-
-#~ msgid "AMS nozzle"
-#~ msgstr "AMS-fúvóka"
-
-#~ msgid "Please place filaments on the printer based on grouping result."
-#~ msgstr "Kérjük, a csoportosítási eredmény alapján helyezd a filamenteket a nyomtatóba."
 
 #~ msgid "Current grouping of slice result is not optimal."
 #~ msgstr "A szeletelés jelenlegi csoportosítása nem optimális."

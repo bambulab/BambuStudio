@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-23 12:06+0800\n"
+"POT-Creation-Date: 2026-11-23 19:25+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -5243,9 +5243,6 @@ msgstr ""
 "1. Upewnij się, że kod PIN został wpisany poprawnie.\n"
 "2. Potwierdź, że ustawienia regionu drukarki i Bambu Studio są zgodne."
 
-msgid "Log in successful."
-msgstr "Zalogowano pomyślnie."
-
 msgid "Log in printer"
 msgstr "Zaloguj się do drukarki"
 
@@ -5282,6 +5279,9 @@ msgstr "Sprawdź status bieżących usług systemowych"
 
 msgid "Error code"
 msgstr "Kod błędu"
+
+msgid "Log in successful."
+msgstr "Zalogowano pomyślnie."
 
 msgid "Log out printer"
 msgstr "Wyloguj drukarkę"
@@ -9036,6 +9036,9 @@ msgstr "Przełącz na tryb cichy"
 msgid "Switch to normal mode"
 msgstr "Przełącz na tryb normalny"
 
+msgid "Tips: Current grouping of slice result is not optimal. With the optimal grouping, "
+msgstr ""
+
 #, boost-format
 msgid "save %1%g more filament and %2% more filament changes"
 msgstr ""
@@ -9048,7 +9051,7 @@ msgstr ""
 msgid "save %2% more filament changes but use %1%g more filament"
 msgstr ""
 
-msgid "Tips: Current grouping of slice result is not optimal. With the optimal grouping, "
+msgid "Compared to a printer with one nozzle, "
 msgstr ""
 
 #, boost-format
@@ -9063,17 +9066,26 @@ msgstr ""
 msgid "save %2% filament changes but use %1%g more filament."
 msgstr ""
 
-msgid "Compared to a printer with one nozzle, "
-msgstr ""
+msgid "Automatically re-slice according to the optimal filament grouping, and the grouping results will be displayed after slicing."
+msgstr "Automatyczne ponowne cięcie zgodnie z optymalnym grupowaniem filamentu, wyniki grupowania będą wyświetlane po cięciu."
 
 msgid "Set to Optimal"
 msgstr "Ustaw na optymalne"
 
-msgid "Automatically re-slice according to the optimal filament grouping, and the grouping results will be displayed after slicing."
-msgstr "Automatyczne ponowne cięcie zgodnie z optymalnym grupowaniem filamentu, wyniki grupowania będą wyświetlane po cięciu."
-
 msgid "Regroup filament"
 msgstr "Zmień grupowanie filamentu"
+
+msgid "Please place filaments on the printer based on grouping result."
+msgstr "Umieść filamenty w drukarce zgodnie z wynikiem grupowania."
+
+msgid "Filament Grouping"
+msgstr "Grupowanie filamentów"
+
+msgid "Why this grouping"
+msgstr "Dlaczego tak jest zgrupowane"
+
+msgid "AMS nozzle"
+msgstr "Dysza AMS"
 
 msgid "Height: "
 msgstr "Wysokość: "
@@ -17266,7 +17278,7 @@ msgstr "Zawsze wyświetlaj powłoki lub nie w zakładce podglądu. Jeśli zmieni
 msgid "Show Objects color scheme in preview"
 msgstr ""
 
-msgid "Color preview toolpaths by object. Disabled by default. This does not calculate center of gravity."
+msgid "Color preview toolpaths by object. Disabled by default."
 msgstr ""
 
 msgid "Show Thermal Preconditioning Area"
@@ -17574,6 +17586,12 @@ msgstr "Wybierz/Usuń drukarki (ustawienia systemowe)"
 
 msgid "Create printer"
 msgstr "Utwórz drukarkę"
+
+msgid "Saved in single-diameter mode. Switch to single-diameter mode to use it."
+msgstr ""
+
+msgid "Saved in multi-diameter mode. Switch to multi-diameter mode to use it."
+msgstr ""
 
 msgid "The selected preset is null!"
 msgstr "Wybrane ustawienie jest puste!"
@@ -21449,18 +21467,6 @@ msgstr ""
 
 #~ msgid "This side has no nozzle. Click Edit on its card to add one."
 #~ msgstr "Po tej stronie nie ma dyszy. Kliknij przycisk „Edytuj” na jej karcie, aby ją dodać."
-
-#~ msgid "Filament Grouping"
-#~ msgstr "Grupowanie filamentów"
-
-#~ msgid "Why this grouping"
-#~ msgstr "Dlaczego tak jest zgrupowane"
-
-#~ msgid "AMS nozzle"
-#~ msgstr "Dysza AMS"
-
-#~ msgid "Please place filaments on the printer based on grouping result."
-#~ msgstr "Umieść filamenty w drukarce zgodnie z wynikiem grupowania."
 
 #~ msgid "Current grouping of slice result is not optimal."
 #~ msgstr "Aktualne grupowanie wyników cięcia nie jest optymalne."

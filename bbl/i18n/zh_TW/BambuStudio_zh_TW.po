@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-23 12:06+0800\n"
+"POT-Creation-Date: 2026-11-23 19:25+0800\n"
 "PO-Revision-Date: 2026-05-07 16:00+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -5233,9 +5233,6 @@ msgstr ""
 "1. 請確保 Pin 碼輸入正確。\n"
 "2. 確認印表機和 Bambu Studio 的區域設定一致。"
 
-msgid "Log in successful."
-msgstr "登入成功"
-
 msgid "Log in printer"
 msgstr "登入印表機"
 
@@ -5272,6 +5269,9 @@ msgstr "請檢查當前系統服務狀態"
 
 msgid "Error code"
 msgstr "錯誤程式碼"
+
+msgid "Log in successful."
+msgstr "登入成功"
 
 msgid "Log out printer"
 msgstr "登出印表機"
@@ -9004,6 +9004,9 @@ msgstr "切換到靜音模式"
 msgid "Switch to normal mode"
 msgstr "切換到普通模式"
 
+msgid "Tips: Current grouping of slice result is not optimal. With the optimal grouping, "
+msgstr ""
+
 #, boost-format
 msgid "save %1%g more filament and %2% more filament changes"
 msgstr ""
@@ -9016,7 +9019,7 @@ msgstr ""
 msgid "save %2% more filament changes but use %1%g more filament"
 msgstr ""
 
-msgid "Tips: Current grouping of slice result is not optimal. With the optimal grouping, "
+msgid "Compared to a printer with one nozzle, "
 msgstr ""
 
 #, boost-format
@@ -9031,17 +9034,26 @@ msgstr ""
 msgid "save %2% filament changes but use %1%g more filament."
 msgstr ""
 
-msgid "Compared to a printer with one nozzle, "
-msgstr ""
+msgid "Automatically re-slice according to the optimal filament grouping, and the grouping results will be displayed after slicing."
+msgstr "將會自動根據最優耗材分組重新切片，分組結果將會在切片後展示。"
 
 msgid "Set to Optimal"
 msgstr "設定為最優"
 
-msgid "Automatically re-slice according to the optimal filament grouping, and the grouping results will be displayed after slicing."
-msgstr "將會自動根據最優耗材分組重新切片，分組結果將會在切片後展示。"
-
 msgid "Regroup filament"
 msgstr "重新分組"
+
+msgid "Please place filaments on the printer based on grouping result."
+msgstr "請按上述分組結果到印表機放置耗材"
+
+msgid "Filament Grouping"
+msgstr "耗材分組"
+
+msgid "Why this grouping"
+msgstr "為什麼這樣分組"
+
+msgid "AMS nozzle"
+msgstr "AMS 噴頭"
 
 msgid "Height: "
 msgstr "層高: "
@@ -17191,7 +17203,7 @@ msgstr "在預覽檢視標籤中是否總是顯示外殼。若您變更此值，
 msgid "Show Objects color scheme in preview"
 msgstr ""
 
-msgid "Color preview toolpaths by object. Disabled by default. This does not calculate center of gravity."
+msgid "Color preview toolpaths by object. Disabled by default."
 msgstr ""
 
 msgid "Show Thermal Preconditioning Area"
@@ -17499,6 +17511,12 @@ msgstr "選擇/移除印表機（系統預設）"
 
 msgid "Create printer"
 msgstr "建立印表機"
+
+msgid "Saved in single-diameter mode. Switch to single-diameter mode to use it."
+msgstr ""
+
+msgid "Saved in multi-diameter mode. Switch to multi-diameter mode to use it."
+msgstr ""
 
 msgid "The selected preset is null!"
 msgstr "選擇的預設為空！"
@@ -21346,18 +21364,6 @@ msgstr ""
 
 #~ msgid "This side has no nozzle. Click Edit on its card to add one."
 #~ msgstr "此側沒有噴頭。按一下其卡片上的「編輯」以新增。"
-
-#~ msgid "Filament Grouping"
-#~ msgstr "耗材分組"
-
-#~ msgid "Why this grouping"
-#~ msgstr "為什麼這樣分組"
-
-#~ msgid "AMS nozzle"
-#~ msgstr "AMS 噴頭"
-
-#~ msgid "Please place filaments on the printer based on grouping result."
-#~ msgstr "請按上述分組結果到印表機放置耗材"
 
 #~ msgid "Current grouping of slice result is not optimal."
 #~ msgstr "當前材料分組不是最優結果。"

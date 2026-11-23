@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-23 12:06+0800\n"
+"POT-Creation-Date: 2026-11-23 19:25+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -5236,9 +5236,6 @@ msgstr ""
 "1. Asigurați-vă că codul PIN este introdus corect.\n"
 "2. Confirmați că setările de regiune ale imprimantei și Bambu Studio sunt consecvente."
 
-msgid "Log in successful."
-msgstr "Conectare reușită."
-
 msgid "Log in printer"
 msgstr "Conectați-vă la imprimantă"
 
@@ -5275,6 +5272,9 @@ msgstr "Verificați starea serviciilor de sistem curente"
 
 msgid "Error code"
 msgstr "Cod de eroare"
+
+msgid "Log in successful."
+msgstr "Conectare reușită."
 
 msgid "Log out printer"
 msgstr "Deconectare imprimantă"
@@ -9027,6 +9027,9 @@ msgstr "Comutați la modul silențios"
 msgid "Switch to normal mode"
 msgstr "Comutați la modul normal"
 
+msgid "Tips: Current grouping of slice result is not optimal. With the optimal grouping, "
+msgstr ""
+
 #, boost-format
 msgid "save %1%g more filament and %2% more filament changes"
 msgstr ""
@@ -9039,7 +9042,7 @@ msgstr ""
 msgid "save %2% more filament changes but use %1%g more filament"
 msgstr ""
 
-msgid "Tips: Current grouping of slice result is not optimal. With the optimal grouping, "
+msgid "Compared to a printer with one nozzle, "
 msgstr ""
 
 #, boost-format
@@ -9054,17 +9057,26 @@ msgstr ""
 msgid "save %2% filament changes but use %1%g more filament."
 msgstr ""
 
-msgid "Compared to a printer with one nozzle, "
-msgstr ""
+msgid "Automatically re-slice according to the optimal filament grouping, and the grouping results will be displayed after slicing."
+msgstr "Refeliere automată în funcție de gruparea optimă a filamentelor, iar rezultatele grupării vor fi afișate după feliere."
 
 msgid "Set to Optimal"
 msgstr "Setați la Optimal"
 
-msgid "Automatically re-slice according to the optimal filament grouping, and the grouping results will be displayed after slicing."
-msgstr "Refeliere automată în funcție de gruparea optimă a filamentelor, iar rezultatele grupării vor fi afișate după feliere."
-
 msgid "Regroup filament"
 msgstr "Regrupare filament"
+
+msgid "Please place filaments on the printer based on grouping result."
+msgstr "Vă rugăm să plasați filamentele pe imprimantă în funcție de rezultatul grupării."
+
+msgid "Filament Grouping"
+msgstr "Gruparea filamentelor"
+
+msgid "Why this grouping"
+msgstr "De ce această grupare"
+
+msgid "AMS nozzle"
+msgstr "Duză AMS"
 
 msgid "Height: "
 msgstr "Înălţime: "
@@ -17265,7 +17277,7 @@ msgstr "Afișează întotdeauna învelișurile sau nu în fila de previzualizare
 msgid "Show Objects color scheme in preview"
 msgstr ""
 
-msgid "Color preview toolpaths by object. Disabled by default. This does not calculate center of gravity."
+msgid "Color preview toolpaths by object. Disabled by default."
 msgstr ""
 
 msgid "Show Thermal Preconditioning Area"
@@ -17573,6 +17585,12 @@ msgstr "Selectare/eliminare imprimante (presetări de sistem)"
 
 msgid "Create printer"
 msgstr "Creați o imprimantă"
+
+msgid "Saved in single-diameter mode. Switch to single-diameter mode to use it."
+msgstr ""
+
+msgid "Saved in multi-diameter mode. Switch to multi-diameter mode to use it."
+msgstr ""
 
 msgid "The selected preset is null!"
 msgstr "Presetarea selectată este nulă!"
@@ -21433,18 +21451,6 @@ msgstr ""
 
 #~ msgid "This side has no nozzle. Click Edit on its card to add one."
 #~ msgstr "Această parte nu are duză. Faceți clic pe Editează de pe cardul acesteia pentru a adăuga una."
-
-#~ msgid "Filament Grouping"
-#~ msgstr "Gruparea filamentelor"
-
-#~ msgid "Why this grouping"
-#~ msgstr "De ce această grupare"
-
-#~ msgid "AMS nozzle"
-#~ msgstr "Duză AMS"
-
-#~ msgid "Please place filaments on the printer based on grouping result."
-#~ msgstr "Vă rugăm să plasați filamentele pe imprimantă în funcție de rezultatul grupării."
 
 #~ msgid "Current grouping of slice result is not optimal."
 #~ msgstr "Gruparea actuală a rezultatului feliilor nu este optimă."

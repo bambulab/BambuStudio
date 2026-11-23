@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-23 12:06+0800\n"
+"POT-Creation-Date: 2026-11-23 19:25+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -5222,9 +5222,6 @@ msgstr ""
 "1. Se till att PIN-koden är korrekt angiven.\n"
 "2. Bekräfta att inställningarna för printern och Bambu Studio är konsekventa."
 
-msgid "Log in successful."
-msgstr "Inloggningen lyckades."
-
 msgid "Log in printer"
 msgstr "Logga in skrivare"
 
@@ -5261,6 +5258,9 @@ msgstr "Kontrollera status för aktuella systemtjänster"
 
 msgid "Error code"
 msgstr "Felkod"
+
+msgid "Log in successful."
+msgstr "Inloggningen lyckades."
 
 msgid "Log out printer"
 msgstr "Logga ut skrivaren"
@@ -9011,6 +9011,9 @@ msgstr "Ändra till tyst läge"
 msgid "Switch to normal mode"
 msgstr "Ändra till normal läge"
 
+msgid "Tips: Current grouping of slice result is not optimal. With the optimal grouping, "
+msgstr ""
+
 #, boost-format
 msgid "save %1%g more filament and %2% more filament changes"
 msgstr ""
@@ -9023,7 +9026,7 @@ msgstr ""
 msgid "save %2% more filament changes but use %1%g more filament"
 msgstr ""
 
-msgid "Tips: Current grouping of slice result is not optimal. With the optimal grouping, "
+msgid "Compared to a printer with one nozzle, "
 msgstr ""
 
 #, boost-format
@@ -9038,17 +9041,26 @@ msgstr ""
 msgid "save %2% filament changes but use %1%g more filament."
 msgstr ""
 
-msgid "Compared to a printer with one nozzle, "
-msgstr ""
+msgid "Automatically re-slice according to the optimal filament grouping, and the grouping results will be displayed after slicing."
+msgstr "Automatisk bered igen enligt den optimala filament grupperingen, och grupperings resultaten visas efter beredning."
 
 msgid "Set to Optimal"
 msgstr "Ställ in på Optimal"
 
-msgid "Automatically re-slice according to the optimal filament grouping, and the grouping results will be displayed after slicing."
-msgstr "Automatisk bered igen enligt den optimala filament grupperingen, och grupperings resultaten visas efter beredning."
-
 msgid "Regroup filament"
 msgstr "Omgruppera filament"
+
+msgid "Please place filaments on the printer based on grouping result."
+msgstr "Placera filamenten i printern baserat på grupperings resultatet."
+
+msgid "Filament Grouping"
+msgstr "Filament gruppering"
+
+msgid "Why this grouping"
+msgstr "Varför denna gruppering"
+
+msgid "AMS nozzle"
+msgstr "AMS-nozzle"
 
 msgid "Height: "
 msgstr "Höjd: "
@@ -17225,7 +17237,7 @@ msgstr "Visa alltid skal eller inte i förhandsgranskningsvyn. Om du ändrar det
 msgid "Show Objects color scheme in preview"
 msgstr ""
 
-msgid "Color preview toolpaths by object. Disabled by default. This does not calculate center of gravity."
+msgid "Color preview toolpaths by object. Disabled by default."
 msgstr ""
 
 msgid "Show Thermal Preconditioning Area"
@@ -17533,6 +17545,12 @@ msgstr "Välj/ta bort printer(systemet inställningar)"
 
 msgid "Create printer"
 msgstr "Skapa printer"
+
+msgid "Saved in single-diameter mode. Switch to single-diameter mode to use it."
+msgstr ""
+
+msgid "Saved in multi-diameter mode. Switch to multi-diameter mode to use it."
+msgstr ""
 
 msgid "The selected preset is null!"
 msgstr "Den valda förinställningen är noll!"
@@ -21398,18 +21416,6 @@ msgstr ""
 
 #~ msgid "This side has no nozzle. Click Edit on its card to add one."
 #~ msgstr "Den här sidan har ingen nozzle. Klicka på Redigera på dess kort för att lägga till en."
-
-#~ msgid "Filament Grouping"
-#~ msgstr "Filament gruppering"
-
-#~ msgid "Why this grouping"
-#~ msgstr "Varför denna gruppering"
-
-#~ msgid "AMS nozzle"
-#~ msgstr "AMS-nozzle"
-
-#~ msgid "Please place filaments on the printer based on grouping result."
-#~ msgstr "Placera filamenten i printern baserat på grupperings resultatet."
 
 #~ msgid "Current grouping of slice result is not optimal."
 #~ msgstr "Nuvarande gruppering av berednings resultat är inte optimal."

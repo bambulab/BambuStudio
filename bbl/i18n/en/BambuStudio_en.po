@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-23 12:06+0800\n"
+"POT-Creation-Date: 2026-11-23 19:25+0800\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -5172,9 +5172,6 @@ msgid ""
 "2. Confirm that the region settings of the printer and Bambu Studio are consistent."
 msgstr ""
 
-msgid "Log in successful."
-msgstr "Log in successful."
-
 msgid "Log in printer"
 msgstr "Log in printer"
 
@@ -5211,6 +5208,9 @@ msgstr "Check the status of current system services"
 
 msgid "Error code"
 msgstr "Error code"
+
+msgid "Log in successful."
+msgstr "Log in successful."
 
 msgid "Log out printer"
 msgstr "Log out printer"
@@ -8908,6 +8908,9 @@ msgstr "Switch to silent mode"
 msgid "Switch to normal mode"
 msgstr "Switch to normal mode"
 
+msgid "Tips: Current grouping of slice result is not optimal. With the optimal grouping, "
+msgstr ""
+
 #, boost-format
 msgid "save %1%g more filament and %2% more filament changes"
 msgstr ""
@@ -8920,7 +8923,7 @@ msgstr ""
 msgid "save %2% more filament changes but use %1%g more filament"
 msgstr ""
 
-msgid "Tips: Current grouping of slice result is not optimal. With the optimal grouping, "
+msgid "Compared to a printer with one nozzle, "
 msgstr ""
 
 #, boost-format
@@ -8935,16 +8938,25 @@ msgstr ""
 msgid "save %2% filament changes but use %1%g more filament."
 msgstr ""
 
-msgid "Compared to a printer with one nozzle, "
+msgid "Automatically re-slice according to the optimal filament grouping, and the grouping results will be displayed after slicing."
 msgstr ""
 
 msgid "Set to Optimal"
 msgstr ""
 
-msgid "Automatically re-slice according to the optimal filament grouping, and the grouping results will be displayed after slicing."
+msgid "Regroup filament"
 msgstr ""
 
-msgid "Regroup filament"
+msgid "Please place filaments on the printer based on grouping result."
+msgstr ""
+
+msgid "Filament Grouping"
+msgstr ""
+
+msgid "Why this grouping"
+msgstr ""
+
+msgid "AMS nozzle"
 msgstr ""
 
 msgid "Height: "
@@ -16975,7 +16987,7 @@ msgstr ""
 msgid "Show Objects color scheme in preview"
 msgstr ""
 
-msgid "Color preview toolpaths by object. Disabled by default. This does not calculate center of gravity."
+msgid "Color preview toolpaths by object. Disabled by default."
 msgstr ""
 
 msgid "Show Thermal Preconditioning Area"
@@ -17277,6 +17289,12 @@ msgstr "Select/Remove printers(system presets)"
 
 msgid "Create printer"
 msgstr "Create printer"
+
+msgid "Saved in single-diameter mode. Switch to single-diameter mode to use it."
+msgstr ""
+
+msgid "Saved in multi-diameter mode. Switch to multi-diameter mode to use it."
+msgstr ""
 
 msgid "The selected preset is null!"
 msgstr "The selected preset is null!"
