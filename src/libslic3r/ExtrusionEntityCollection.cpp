@@ -6,18 +6,38 @@
 
 namespace Slic3r {
 
+static bool extrusion_role_matches(ExtrusionRole entity_role, ExtrusionRole role)
+{
+    // Transition is filled at interface density but printed with the base filament.
+    if (entity_role == erSupportTransition && role == erSupportMaterial)
+        return true;
+    return entity_role == role;
+}
+
 void filter_by_extrusion_role_in_place(ExtrusionEntitiesPtr &extrusion_entities, ExtrusionRole role)
 {
-	if (role != erMixed) {
-		auto first  = extrusion_entities.begin();
-		auto last   = extrusion_entities.end();
-        extrusion_entities.erase(
-            std::remove_if(first, last, [&role](const ExtrusionEntity* ee) {
-                if((ee->role() == erSupportTransition && role ==erSupportMaterial))
-                    return false;
-                return ee->role() != role; }),
-            last);
-	}
+    if (role == erMixed)
+        return;
+
+    // Removed elements are NOT deleted. A mixed collection is not itself one role:
+    // keep the children that match so an interface path nested beside the base is
+    // still extruded with the interface filament. Pointers stay owned by the source.
+    ExtrusionEntitiesPtr kept;
+    kept.reserve(extrusion_entities.size());
+    for (ExtrusionEntity *ee : extrusion_entities) {
+        const ExtrusionRole entity_role = ee->role();
+        if (extrusion_role_matches(entity_role, role)) {
+            kept.push_back(ee);
+            continue;
+        }
+        if (entity_role != erMixed || !ee->is_collection())
+            continue;
+        auto *collection = static_cast<ExtrusionEntityCollection *>(ee);
+        ExtrusionEntitiesPtr children = collection->entities;
+        filter_by_extrusion_role_in_place(children, role);
+        kept.insert(kept.end(), children.begin(), children.end());
+    }
+    extrusion_entities.swap(kept);
 }
 
 ExtrusionEntityCollection::ExtrusionEntityCollection(const ExtrusionPaths &paths)
