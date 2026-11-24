@@ -2045,7 +2045,7 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
 
     fs::path file_path(path);
     fs::path folder = file_path.parent_path();
-    if (!fs::exists(folder)) {
+    if (!folder.empty() && !fs::exists(folder)) {
         fs::create_directory(folder);
         BOOST_LOG_TRIVIAL(error) << "[WARNING]: the parent path " + PathSanitizer::sanitize(folder) + " is not there, create it!" << std::endl;
     }
@@ -2203,8 +2203,10 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
             PrintStateBase::SlicingInfillHighAccelNoise);
     print->set_done(psGCodeExport);
     //BBS: set enable_label_object
-    result->label_object_enabled = m_enable_label_object;
-    result->support_material_on_wipe_tower = print->support_material_on_wipe_tower();
+    if (result != nullptr) {
+        result->label_object_enabled = m_enable_label_object;
+        result->support_material_on_wipe_tower = print->support_material_on_wipe_tower();
+    }
     // Write the profiler measurements to file
     PROFILE_UPDATE();
     PROFILE_OUTPUT(debug_out_path("gcode-export-profile.txt").c_str());

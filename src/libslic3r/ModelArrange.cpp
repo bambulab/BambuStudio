@@ -19,6 +19,10 @@ arrangement::ArrangePolygons get_arrange_polys(const Model &model, ModelInstance
     for (ModelObject *mo : model.objects)
         for (ModelInstance *minst : mo->instances) {
             minst->get_arrange_polygon(&ap);
+            // The current packer reserves -1 for already unfit items.
+            // Match get_arrange_poly() for valid candidates; empty silhouettes
+            // are skipped by arrange(), so they must remain unarranged.
+            ap.bed_idx = ap.poly.contour.size() >= 3 ? 0 : arrangement::UNARRANGED;
             input.emplace_back(ap);
             instances.emplace_back(minst);
         }
