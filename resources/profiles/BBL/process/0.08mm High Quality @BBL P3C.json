@@ -15,6 +15,7 @@
         "8000",
         "8000"
     ],
+    "elefant_foot_compensation": "0.18",
     "enable_height_slowdown": [
         "0",
         "0",
