@@ -104,6 +104,25 @@ protected:
 };
 
 
+class IroningFlow_Test_Dlg : public DPIDialog
+{
+public:
+    IroningFlow_Test_Dlg(wxWindow* parent, wxWindowID id, Plater* plater);
+    ~IroningFlow_Test_Dlg();
+    void on_dpi_changed(const wxRect& suggested_rect) override;
+
+protected:
+    virtual void on_start(wxCommandEvent& event);
+    Calib_Params m_params;
+
+    TextInput* m_tiStart;
+    TextInput* m_tiEnd;
+    TextInput* m_tiLength;
+    Button* m_btnStart;
+    Plater* m_plater;
+};
+
+
 class Retraction_Test_Dlg : public DPIDialog
 {
 public:

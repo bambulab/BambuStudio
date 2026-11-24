@@ -3899,6 +3899,13 @@ void MainFrame::init_menubar_as_editor()
                 m_retraction_calib_dlg->ShowModal();
             }, "", nullptr,
             [this]() {return m_plater->is_view3D_shown();; }, this);
+        append_menu_item(m_topbar->GetCalibMenu(), wxID_ANY, _L("Ironing flow"), _L("Ironing flow test"),
+            [this](wxCommandEvent&) {
+                if (!m_ironing_flow_dlg)
+                    m_ironing_flow_dlg = new IroningFlow_Test_Dlg((wxWindow*)this, wxID_ANY, m_plater);
+                m_ironing_flow_dlg->ShowModal();
+            }, "", nullptr,
+            [this]() {return m_plater->is_view3D_shown();; }, this);
 
         // Advance calibrations
         auto advance_menu = new wxMenu(); // sub menu
@@ -4023,6 +4030,20 @@ void MainFrame::init_menubar_as_editor()
         [this](wxCommandEvent &) {
             if (!m_retraction_calib_dlg) m_retraction_calib_dlg = new Retraction_Test_Dlg((wxWindow *) this, wxID_ANY, m_plater);
             m_retraction_calib_dlg->ShowModal();
+        },
+        "", nullptr,
+        [this]() {
+            return m_plater->is_view3D_shown();
+            ;
+        },
+        this);
+
+    // Ironing flow
+    append_menu_item(
+        m_calib_menu, wxID_ANY, _L("Ironing flow"), _L("Ironing flow test"),
+        [this](wxCommandEvent &) {
+            if (!m_ironing_flow_dlg) m_ironing_flow_dlg = new IroningFlow_Test_Dlg((wxWindow *) this, wxID_ANY, m_plater);
+            m_ironing_flow_dlg->ShowModal();
         },
         "", nullptr,
         [this]() {
