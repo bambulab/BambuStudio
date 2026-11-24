@@ -16,6 +16,7 @@ interface FooterActionProps {
 interface Props {
   value: string;
   options: string[];
+  isSameOption?: (left: string, right: string) => boolean;
   placeholder?: string;
   disabled?: boolean;
   customInput?: CustomInputProps;
@@ -28,6 +29,7 @@ export function CustomSelectDropdown({
   value,
   options,
   placeholder = '',
+  isSameOption = (left, right) => left === right,
   disabled = false,
   customInput,
   footerAction,
@@ -54,7 +56,7 @@ export function CustomSelectDropdown({
   const hasValue = !!value;
 
   // Edit-mode fallback: if current value is not in options list, show it anyway
-  const showFallback = hasValue && !options.includes(value);
+  const showFallback = hasValue && !options.some((option) => isSameOption(option, value));
 
   const handleSelect = (v: string) => {
     onSelect(v);
@@ -62,7 +64,7 @@ export function CustomSelectDropdown({
   };
 
   const trimmed = inputVal.trim();
-  const isDuplicate = trimmed.length > 0 && options.includes(trimmed);
+  const isDuplicate = trimmed.length > 0 && options.some((option) => isSameOption(option, trimmed));
   const addDisabled = !trimmed || isDuplicate;
 
   const handleAdd = () => {
@@ -144,10 +146,10 @@ export function CustomSelectDropdown({
               <div
                 key={opt}
                 role="option"
-                aria-selected={opt === value}
+                aria-selected={isSameOption(opt, value)}
                 className={[
                   'px-[10px] py-[6px] text-[12px] leading-[19px] cursor-pointer',
-                  opt === value
+                  isSameOption(opt, value)
                     ? 'text-fm-text-strong bg-fm-selected'
                     : 'text-fm-text-strong hover:bg-fm-hover',
                 ].join(' ')}

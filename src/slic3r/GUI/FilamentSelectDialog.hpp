@@ -2,6 +2,7 @@
 #define slic3r_FilamentSelectDialog_hpp_
 
 #include "GUI_Utils.hpp"
+#include "FilamentVendor.hpp"
 #include "DeviceManager.hpp"
 #include "Widgets/Button.hpp"
 #include "Widgets/Label.hpp"
@@ -73,7 +74,7 @@ private:
     std::unordered_map<wxString, wxString>    m_vendors;
     std::unordered_map<wxString, wxString>    m_types;
     std::set<std::string>                     m_printer_names;
-    std::map<wxString, std::vector<wxString>> m_brand_to_aliases;
+    std::map<wxString, std::vector<wxString>, FilamentVendorLess> m_brand_to_aliases;
     std::vector<wxString>                     m_ordered_brands;
     wxString                                  m_checked_alias;
     wxString                                  m_selected_brand;

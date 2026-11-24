@@ -24,6 +24,7 @@
 import type { AmsTray, AmsUnit, PresetVendor, Spool } from './types';
 import { BAMBU_COLORS, formatTypeSeries } from './constants';
 import { canonicalizeHex } from './colors';
+import { sameVendor, matchingVendorItems, vendorKey } from './vendorOptions';
 
 const MAX_NET_WEIGHT_GRAMS = 999_999_999;
 
@@ -44,10 +45,10 @@ function normalizePresetFilamentName(
   if (!value) return fallback;
 
   const aliases = [vendor, vendor.replace(/\s+/g, '')];
-  if (vendor === 'Bambu Lab') aliases.push('Bambu');
+  if (sameVendor(vendor, 'Bambu Lab')) aliases.push('Bambu');
   for (const alias of aliases.filter(Boolean)) {
-    if (value === alias) return fallback;
-    if (value.startsWith(`${alias} `)) {
+    if (sameVendor(value, alias)) return fallback;
+    if (vendorKey(value).startsWith(`${vendorKey(alias)} `)) {
       value = value.substring(alias.length + 1).trim();
       break;
     }
@@ -135,7 +136,7 @@ export function resolveTrayPreset(
   if (!typeName) {
     const fullType = tray.fila_type || '';
     const typeCandidates = new Set<string>();
-    const vendorsForMatch = brandName ? presets.filter((v) => v.name === brandName) : presets;
+    const vendorsForMatch = brandName ? matchingVendorItems(presets, brandName, (v) => v.name) : presets;
     vendorsForMatch.forEach((v) => v.types.forEach((tp) => { if (tp.name) typeCandidates.add(tp.name); }));
     let matchedType = '';
     let seriesRemainder = '';
