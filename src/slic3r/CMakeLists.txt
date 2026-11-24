@@ -840,6 +840,8 @@ endif ()
 if (UNIX AND NOT APPLE)
     list(APPEND SLIC3R_GUI_SOURCES
         GUI/Printer/gstbambusrc.c
+        GUI/GtkFrameSync.cpp
+        GUI/GtkFrameSync.hpp
     )
 endif ()
 
