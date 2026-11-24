@@ -147,7 +147,7 @@ const PACalibResult* PaHistoryFilter::find_by_cali_idx(int cali_idx) const
 bool PaHistoryFilter::matches(const PACalibResult& result) const
 {
     if (m_extruder_id && result.extruder_id != m_extruder_id.value()) return false;
-    if (m_nozzle_volume_type && result.nozzle_volume_type != m_nozzle_volume_type.value()) return false;
+    if (m_nozzle_volume_type && result.has_nozzle_volume_type && result.nozzle_volume_type != m_nozzle_volume_type.value()) return false;
     if (m_cali_idx && result.cali_idx != m_cali_idx.value()) return false;
     if (!m_filament_id.empty() && result.filament_id != m_filament_id) return false;
     if (!m_pa_profile_name.empty() && result.name != m_pa_profile_name) return false;
@@ -166,7 +166,7 @@ static bool row_matches_cover(const PACalibExtruderInfo &req, const PACalibResul
         return true;
     if (req.use_nozzle_diameter && std::abs(row.nozzle_diameter - req.nozzle_diameter) > 1e-3f) return false;
     if (req.use_extruder_id && row.extruder_id != req.extruder_id) return false;
-    if (req.use_nozzle_volume_type && row.nozzle_volume_type != req.nozzle_volume_type) return false;
+    if (req.use_nozzle_volume_type && row.has_nozzle_volume_type && row.nozzle_volume_type != req.nozzle_volume_type) return false;
     if (req.nozzle_pos_id >= 0 && row.nozzle_pos_id != req.nozzle_pos_id) return false;
     if (!req.nozzle_sn.empty() && row.nozzle_sn != req.nozzle_sn) return false;
     return true;
@@ -215,6 +215,7 @@ static float get_number_flexible(const json& j, const std::string& key, float de
 
 void from_json(const json& j, PACalibResult& cali) {
     cali.extruder_id        = j.value("extruder_id", 0);
+    cali.has_nozzle_volume_type = j.contains("nozzle_id");
     cali.nozzle_volume_type = convert_to_nozzle_type(j.value("nozzle_id", "HS00-0.4"));
     cali.tray_id            = j.value("tray_id",0);
     cali.ams_id             = j.value("ams_id",0);
