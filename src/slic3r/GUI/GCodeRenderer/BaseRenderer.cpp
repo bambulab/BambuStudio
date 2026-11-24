@@ -8,6 +8,7 @@
 #include "slic3r/GUI/FilamentGroupPopup.hpp"
 #include "slic3r/GUI/FilamentMapPanel.hpp"
 #include "slic3r/GUI/GLToolbar.hpp"
+#include "slic3r/GUI/UIHelpers/ImGuiFilamentWidgets.hpp"
 #include "slic3r/GUI/DeviceCore/DevUtilBackend.h"
 #include "../DeviceCore/DevConfigUtil.h"
 #include "libslic3r/BuildVolume.hpp"
@@ -1313,6 +1314,7 @@ namespace Slic3r
                 m_support_multi_nozzle_diameter = false;
                 m_ams_nozzle_idx = -1;
                 m_total_nozzle_count = 1;
+                m_color_print_table_height = 0.0f;
                 m_extruder_ids.clear();
                 m_filament_diameters.clear();
                 m_filament_densities.clear();
@@ -1561,11 +1563,22 @@ namespace Slic3r
                 ImDrawList* draw_list = ImGui::GetWindowDrawList();
                 ImVec2 pos_rect = ImGui::GetCursorScreenPos();
                 float window_padding = 4.0f * m_scale;
+                const float ui_scale = ImGui::GetTextLineHeight() / 15.0f;
+                const float table_inset_x = window_padding * 3.0f;
                 float checkbox_offset = 0.0f;
                 draw_list->AddRectFilled(ImVec2(pos_rect.x, pos_rect.y - ImGui::GetStyle().WindowPadding.y),
                     ImVec2(pos_rect.x + ImGui::GetWindowWidth() + ImGui::GetFrameHeight(), pos_rect.y + ImGui::GetFrameHeight() + window_padding * 2.5),
                     ImGui::GetColorU32(ImVec4(0, 0, 0, 0.3)));
-                auto append_item = [icon_size, &imgui, imperial_units, &window_padding, &draw_list, &checkbox_offset, this](
+                auto draw_inset_separator = [table_inset_x](float span_width = 0.0f) {
+                    ImGuiWindow* window = ImGui::GetCurrentWindow();
+                    const float right_x = span_width > 0.0f ? (window->Pos.x + span_width) : (window->Pos.x + window->Size.x);
+                    const ImRect separator(ImVec2(window->Pos.x + table_inset_x, window->DC.CursorPos.y),
+                                           ImVec2(right_x - table_inset_x, window->DC.CursorPos.y + 1.0f));
+                    ImGui::ItemSize(ImVec2(0.0f, 0.0f));
+                    ImGui::ItemAdd(separator, 0);
+                    window->DrawList->AddLine(separator.Min, ImVec2(separator.Max.x, separator.Min.y), ImGui::GetColorU32(ImGuiCol_Separator));
+                };
+                auto append_item = [icon_size, &imgui, imperial_units, &window_padding, &checkbox_offset, this](
                     EItemType type,
                     const Color& color,
                     const std::vector<std::pair<std::string, float>>& columns_offsets,
@@ -1582,26 +1595,27 @@ namespace Slic3r
                         const float cell0_h = ImGui::CalcTextSize(columns_offsets[0].first.c_str()).y;
                         const float offset_y = std::max(0.0f, (row_max_h - cell0_h) * 0.5f);
                         // render icon, shifted with the first cell so it stays level with the filament index
+                        ImDrawList* item_draw_list = ImGui::GetWindowDrawList();
                         ImVec2 pos = ImVec2(ImGui::GetCursorScreenPos().x + window_padding * 3, ImGui::GetCursorScreenPos().y + offset_y);
                         switch (type) {
                         default:
                         case EItemType::Rect: {
-                            draw_list->AddRectFilled({ pos.x + 1.0f * m_scale, pos.y + 3.0f * m_scale }, { pos.x + icon_size - 1.0f * m_scale, pos.y + icon_size + 1.0f * m_scale },
+                            item_draw_list->AddRectFilled({ pos.x + 1.0f * m_scale, pos.y + 3.0f * m_scale }, { pos.x + icon_size - 1.0f * m_scale, pos.y + icon_size + 1.0f * m_scale },
                                 ImGui::GetColorU32({ color[0], color[1], color[2], color[3] }));
                             break;
                         }
                         case EItemType::Circle: {
                             ImVec2 center(0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size + 5.0f));
-                            draw_list->AddCircleFilled(center, 0.5f * icon_size, ImGui::GetColorU32({ color[0], color[1], color[2], color[3] }), 16);
+                            item_draw_list->AddCircleFilled(center, 0.5f * icon_size, ImGui::GetColorU32({ color[0], color[1], color[2], color[3] }), 16);
                             break;
                         }
                         case EItemType::Hexagon: {
                             ImVec2 center(0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size + 5.0f));
-                            draw_list->AddNgonFilled(center, 0.5f * icon_size, ImGui::GetColorU32({ color[0], color[1], color[2], color[3] }), 6);
+                            item_draw_list->AddNgonFilled(center, 0.5f * icon_size, ImGui::GetColorU32({ color[0], color[1], color[2], color[3] }), 6);
                             break;
                         }
                         case EItemType::Line: {
-                            draw_list->AddLine({ pos.x + 1, pos.y + icon_size + 2 }, { pos.x + icon_size - 1, pos.y + 4 }, ImGui::GetColorU32({ color[0], color[1], color[2], color[3] }), 3.0f);
+                            item_draw_list->AddLine({ pos.x + 1, pos.y + icon_size + 2 }, { pos.x + icon_size - 1, pos.y + 4 }, ImGui::GetColorU32({ color[0], color[1], color[2], color[3] }), 3.0f);
                             break;
                         case EItemType::None:
                             break;
@@ -1856,7 +1870,9 @@ namespace Slic3r
                 float single_word_width = imgui.calc_text_size("ABCD").x;
                 float title_width = imgui.calc_text_size(title).x;
                 float spacing = 18.0f * m_scale;
-                ImGui::SameLine(0, (single_word_width + spacing) * 8.0f - title_width);
+                const float title_right_pad = window_padding * 2.0f;
+                const float extra_panel_width = 10.0f * m_scale;
+                ImGui::SameLine(0, (single_word_width + spacing) * 8.0f + std::max(0.0f, extra_panel_width - title_right_pad) - title_width);
                 // BBS support helio
                 std::wstring btn_name;
                 if (m_fold)
@@ -1867,9 +1883,11 @@ namespace Slic3r
                 ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.0f, 0.68f, 0.26f, 1.00f));
                 ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.0f, 0.68f, 0.26f, 0.78f));
                 ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.0f, 0.0f));
-                float button_width = ImGui::CalcTextSize(into_u8(btn_name).c_str()).x;
+                const float button_width = ImGui::CalcTextSize(into_u8(btn_name).c_str()).x;
                 ImGui::SetCursorPosY(8.f);
                 if (ImGui::Button(into_u8(btn_name).c_str(), ImVec2(button_width, 0))) { m_fold = !m_fold; }
+                ImGui::SameLine(0.0f, 0.0f);
+                ImGui::Dummy({ title_right_pad, 0.0f });
                 const float title_row_right = ImGui::GetItemRectMax().x - ImGui::GetWindowPos().x;
                 ImGui::PopStyleColor(3);
                 ImGui::PopStyleVar(1);
@@ -1984,23 +2002,12 @@ namespace Slic3r
                 // 单挤出机多喷嘴及支持多口径模式的机型：耗材丝（ColorPrint）图例改为缩略/详情两种表格，含 "Nozzle"（来自分组结果）与耗时列；
                 // 其他机型保持原布局。
                 const bool use_nozzle_table = (m_single_ext_multi_nozzle || m_support_multi_nozzle_diameter) && group_result && !is_show_left_right_result;
-                if (m_view_type == EViewType::ColorPrint && use_nozzle_table) {
-                    const std::string mode_label = m_color_print_detail ? _u8L("Less") : _u8L("Details");
-                    const float label_width = ImGui::CalcTextSize(mode_label.c_str()).x;
-                    ImGui::SameLine();
-                    ImGui::SetCursorPosX(std::max(ImGui::GetCursorPosX(), title_row_right - label_width));
-                    const ImColor link_color(0, 174, 66, 255);
-                    ImGui::PushStyleColor(ImGuiCol_Text, link_color.Value);
-                    imgui.text(mode_label);
-                    ImGui::PopStyleColor();
-                    ImVec2 line_end = ImGui::GetItemRectMax();
-                    line_end.y -= 2.0f;
-                    ImGui::GetWindowDrawList()->AddLine({ ImGui::GetItemRectMin().x, line_end.y }, line_end, link_color);
-                    if (ImGui::IsMouseHoveringRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), true) && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
-                        m_color_print_detail = !m_color_print_detail;
-                        wxGetApp().plater()->get_current_canvas3D()->request_extra_frame();
-                    }
-                }
+                const bool nozzle_table_detail = m_color_print_detail;
+                const float combo_row_min_x = ImGui::GetItemRectMax().x - ImGui::GetWindowPos().x + ImGui::GetStyle().ItemSpacing.x;
+                const std::string mode_label = nozzle_table_detail ? _u8L("Less") : _u8L("Details");
+                const float mode_label_width = (m_view_type == EViewType::ColorPrint && use_nozzle_table)
+                    ? ImGui::CalcTextSize(mode_label.c_str()).x : 0.0f;
+                const float nozzle_panel_width = std::max(title_row_right, combo_row_min_x + mode_label_width + table_inset_x);
                 std::vector<std::string> labels;
                 std::vector<std::string> times;
                 std::string travel_time;
@@ -2095,10 +2102,19 @@ namespace Slic3r
                     }
                 }
                 // Single-extruder multi-nozzle ColorPrint table. Each column holds one cell per used filament followed by the total row.
+                auto bold_text_width = [&imgui](const std::string& text) {
+                    const bool bold = imgui.push_bold_font();
+                    const float width = ImGui::CalcTextSize(text.c_str()).x;
+                    if (bold)
+                        imgui.pop_bold_font();
+                    return width;
+                };
                 std::vector<std::pair<std::string, std::vector<std::string>>> nozzle_table;
                 std::vector<float> nozzle_table_offsets;
-                bool nozzle_table_scroll = false;
-                float nozzle_table_view_width = 0.0f;
+                bool  nozzle_table_scroll      = false;
+                float nozzle_table_view_width  = 0.0f;
+                float nozzle_table_content_end = 0.0f;
+                const float nozzle_badge_height = std::max(15.0f * ui_scale, ImGui::GetTextLineHeight() + 1.0f * ui_scale);
                 if (m_view_type == EViewType::ColorPrint && use_nozzle_table && !m_extruder_ids.empty()) {
                     auto usage_text = [imperial_units, unit_conver](double used_m, double used_g, bool two_lines) {
                         char buf[64];
@@ -2108,7 +2124,7 @@ namespace Slic3r
                             ::sprintf(buf, two_lines ? "%.2fg\n%.2fm" : "%.2fg / %.2fm", used_g, used_m);
                         return std::string(buf);
                     };
-                    const bool detail = m_color_print_detail;
+                    const bool detail = nozzle_table_detail;
                     const bool show_total_col = (displayed_columns & ~ColumnData::Model) > 0;
                     std::vector<std::string> index_cells, model_cells, support_cells, flushed_cells, tower_cells, total_cells, nozzle_cells, time_cells;
                     for (size_t i = 0; i < m_extruder_ids.size(); ++i) {
@@ -2156,47 +2172,66 @@ namespace Slic3r
                     nozzle_table.push_back({ _u8L("Nozzle"), nozzle_cells });
                     nozzle_table.push_back({ _u8L("Time"), time_cells });
 
-                    // Column starts accumulate the real column widths, so a long value never runs into the next column;
-                    // spare room up to the panel width is spread evenly over the gaps.
-                    auto header_width = [&imgui](const std::string& title) {
-                        const bool bold = imgui.push_bold_font();
-                        const float width = ImGui::CalcTextSize(title.c_str()).x;
-                        if (bold)
-                            imgui.pop_bold_font();
-                        return width;
-                    };
-                    const ImGuiStyle& style = ImGui::GetStyle();
-                    const float column_gap = 2.0f * style.ItemSpacing.x;
-                    // The first column starts at a different x in the header, in the filament rows (after the colour icon, with
-                    // append_item's 20px item spacing) and in the total row (no icon); it ends where the widest of them ends.
-                    const auto& first_cells = nozzle_table.front().second;
-                    float first_column_end = window_padding + style.ItemSpacing.x + header_width(nozzle_table.front().first);
-                    for (size_t row = 0; row + 1 < first_cells.size(); ++row)
-                        first_column_end = std::max(first_column_end, 20.0f * m_scale + icon_size + ImGui::CalcTextSize(first_cells[row].c_str()).x);
-                    first_column_end = std::max(first_column_end, window_padding * 3.0f + ImGui::CalcTextSize(first_cells.back().c_str()).x);
+                    // Size each column from its real header/cell widths; spread spare panel width evenly over the gaps.
+                    const size_t row_count      = m_extruder_ids.size();
+                    const size_t visible_rows   = row_count > 1 ? row_count + 1 : row_count;
+                    // Compact minimum gap so the 7-column detail layout fits inside the default panel width;
+                    // horizontal scrolling activates only when the columns genuinely overflow.
+                    const float min_column_gap  = 10.0f * ui_scale;
+                    const auto& first_cells     = nozzle_table.front().second;
+                    float first_col_width = bold_text_width(nozzle_table.front().first);
+                    for (size_t row = 0; row < row_count; ++row)
+                        first_col_width = std::max(first_col_width, std::max(nozzle_badge_height, ImGui::CalcTextSize(first_cells[row].c_str()).x + 6.0f * ui_scale));
+                    if (row_count > 1)
+                        first_col_width = std::max(first_col_width, ImGui::CalcTextSize(first_cells.back().c_str()).x);
+                    const float first_column_end = table_inset_x + first_col_width;
                     std::vector<float> column_widths;
-                    float natural_width = first_column_end + window_padding * 3.0f;
+                    column_widths.reserve(nozzle_table.size() - 1);
+                    float natural_width = first_column_end + table_inset_x;
                     for (size_t col = 1; col < nozzle_table.size(); ++col) {
-                        float width = header_width(nozzle_table[col].first);
-                        for (const std::string& cell : nozzle_table[col].second)
-                            width = std::max(width, ImGui::CalcTextSize(cell.c_str()).x);
+                        float width = bold_text_width(nozzle_table[col].first);
+                        for (size_t row = 0; row < visible_rows; ++row)
+                            width = std::max(width, ImGui::CalcTextSize(nozzle_table[col].second[row].c_str()).x);
                         column_widths.push_back(width);
-                        natural_width += column_gap + width;
+                        natural_width += min_column_gap + width;
                     }
-                    const float gap = column_gap + std::max(0.0f, title_row_right - natural_width) / static_cast<float>(column_widths.size());
-                    nozzle_table_offsets.assign(1, 0.0f);
+                    const float gap = min_column_gap + std::max(0.0f, nozzle_panel_width - natural_width) / static_cast<float>(column_widths.size());
+                    nozzle_table_offsets.assign(1, table_inset_x);
                     float column_end = first_column_end;
                     for (float width : column_widths) {
                         nozzle_table_offsets.push_back(column_end + gap);
                         column_end += gap + width;
                     }
-                    const float table_width = column_end + window_padding * 3.0f;
-                    // Keep the panel width when the detail columns do not fit; the table scrolls horizontally instead.
-                    nozzle_table_view_width = std::max(title_row_right, ImGui::GetWindowWidth());
-                    nozzle_table_scroll = detail && table_width > nozzle_table_view_width;
-                    // The auto-resized legend only fits new content on the next frame; ask for it so the last column is not clipped meanwhile.
-                    if (!nozzle_table_scroll && table_width > ImGui::GetWindowWidth() + 0.5f)
-                        wxGetApp().plater()->get_current_canvas3D()->request_extra_frame();
+                    nozzle_table_content_end = column_end;
+                    const float table_width = column_end + table_inset_x;
+                    // Keep the panel width at the design baseline; scroll horizontally under the Total row only when columns overflow.
+                    nozzle_table_view_width = nozzle_panel_width;
+                    nozzle_table_scroll = table_width > nozzle_table_view_width + 0.5f;
+                }
+                // Place "Details"/"Less" on the Color Scheme row, right-aligned with the "Time" column (at the panel right inset).
+                if (m_view_type == EViewType::ColorPrint && use_nozzle_table) {
+                    ImGui::SameLine();
+                    const float target_x = nozzle_panel_width - table_inset_x - mode_label_width;
+                    ImGui::SetCursorPosX(std::max(ImGui::GetCursorPosX(), target_x));
+                    const ImColor link_color(0, 174, 66, 255);
+                    ImGui::PushStyleColor(ImGuiCol_Text, link_color.Value);
+                    imgui.text(mode_label);
+                    ImGui::PopStyleColor();
+                    const ImVec2 rect_min = ImGui::GetItemRectMin();
+                    const ImVec2 rect_max = ImGui::GetItemRectMax();
+                    ImVec2 line_end = rect_max;
+                    line_end.y -= 2.0f;
+                    ImGui::GetWindowDrawList()->AddLine({ rect_min.x, line_end.y }, line_end, link_color);
+                    if (ImGui::IsMouseHoveringRect(rect_min, rect_max, true)) {
+                        ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+                        if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+                            m_color_print_detail = !m_color_print_detail;
+                            m_color_print_table_height = 0.0f;
+                            wxGetApp().plater()->get_current_canvas3D()->request_extra_frame();
+                        }
+                    }
+                    ImGui::SameLine(0.0f, 0.0f);
+                    ImGui::Dummy({ table_inset_x, 0.0f });
                 }
                 // extrusion paths section -> title
                 ImGui::Dummy({ window_padding, window_padding });
@@ -2269,23 +2304,48 @@ namespace Slic3r
                 case EViewType::ColorPrint:
                 {
                     if (!nozzle_table.empty()) {
+                        const bool  compact_mode      = !nozzle_table_detail;
+                        const float text_line_h       = ImGui::GetTextLineHeight();
+                        const float line_step         = std::max(text_line_h, 20.0f * ui_scale);
+                        const float table_row_height  = compact_mode ? line_step : 2.0f * line_step;
+                        const float table_row_gap     = 6.0f * ui_scale;
+                        const float default_spacing_y = ImGui::GetStyle().ItemSpacing.y;
+                        const size_t row_count        = m_extruder_ids.size();
                         if (nozzle_table_scroll) {
-                            const float table_height = m_color_print_table_height > 0.0f ? m_color_print_table_height :
-                                                       2.0f * ImGui::GetTextLineHeightWithSpacing() * static_cast<float>(m_extruder_ids.size() + 2);
-                            ImGui::PushStyleVar(ImGuiStyleVar_ScrollbarSize, 6.0f * m_scale);
+                            // ImGui::ScrollbarEx shrinks the horizontal grab rect by 3px vertically on each side once ScrollbarSize >= 8px;
+                            // add 6px so the visible rounded thumb matches the 4px Figma scrollbar (Line 519).
+                            const float scrollbar_grab_h = 4.0f * ui_scale;
+                            const float scrollbar_size   = scrollbar_grab_h + 6.0f;
+                            const float estimated_height =
+                                text_line_h + default_spacing_y + 12.0f * ui_scale
+                                + static_cast<float>(row_count) * (table_row_height + table_row_gap)
+                                + (row_count > 1 ? ((compact_mode ? 6.0f * ui_scale : 0.0f) + 10.0f * ui_scale + table_row_height + table_row_gap) : 0.0f);
+                            const float table_height = m_color_print_table_height > 0.0f ? m_color_print_table_height : estimated_height;
+                            ImGui::PushStyleVar(ImGuiStyleVar_ScrollbarSize, scrollbar_size);
+                            ImGui::PushStyleVar(ImGuiStyleVar_ScrollbarRounding, scrollbar_grab_h * 0.5f);
                             ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
                             ImGui::PushStyleColor(ImGuiCol_ScrollbarBg, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
+                            ImGui::PushStyleColor(ImGuiCol_ScrollbarGrab, ImVec4(1.0f, 1.0f, 1.0f, 0.20f));
+                            ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabHovered, ImVec4(1.0f, 1.0f, 1.0f, 0.40f));
+                            ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabActive, ImVec4(1.0f, 1.0f, 1.0f, 0.55f));
                             // Start the child at the left edge so its rows line up with the non-scrolling layout.
                             ImGui::SetCursorPosX(0.0f);
-                            ImGui::BeginChild("##color_print_table", { nozzle_table_view_width, table_height + ImGui::GetStyle().ScrollbarSize }, false,
+                            ImGui::BeginChild("##color_print_table", { nozzle_table_view_width, table_height + scrollbar_size }, false,
                                               ImGuiWindowFlags_HorizontalScrollbar);
-                            ImGui::Dummy({ window_padding, window_padding });
-                            ImGui::SameLine();
                         }
-                        std::vector<std::pair<std::string, float>> title_offsets;
-                        for (size_t i = 0; i < nozzle_table.size(); ++i)
-                            title_offsets.push_back({ nozzle_table[i].first, nozzle_table_offsets[i] });
-                        append_headers(title_offsets);
+                        const float header_y = ImGui::GetCursorPosY();
+                        float header_h = text_line_h;
+                        for (size_t i = 0; i < nozzle_table.size(); ++i) {
+                            const float col_x = (i + 1 == nozzle_table.size())
+                                ? (nozzle_table_content_end - bold_text_width(nozzle_table[i].first))
+                                : nozzle_table_offsets[i];
+                            ImGui::SetCursorPos(ImVec2(col_x, header_y));
+                            imgui.bold_text(nozzle_table[i].first);
+                            header_h = std::max(header_h, ImGui::GetItemRectSize().y);
+                        }
+                        ImGui::SetCursorPos(ImVec2(nozzle_table_content_end, header_y));
+                        ImGui::Dummy({ table_inset_x, header_h });
+                        draw_inset_separator(nozzle_table_scroll ? 0.0f : nozzle_table_view_width);
                         break;
                     }
                     std::vector<std::string> total_filaments;
@@ -2473,52 +2533,128 @@ namespace Slic3r
                         imgui.text(buf);
                     };
                     if (!nozzle_table.empty()) {
-                        auto row_columns = [&nozzle_table, &nozzle_table_offsets](size_t row) {
-                            std::vector<std::pair<std::string, float>> columns_offsets;
-                            for (size_t col = 0; col < nozzle_table.size(); ++col)
-                                columns_offsets.push_back({ nozzle_table[col].second[row], nozzle_table_offsets[col] });
-                            return columns_offsets;
-                        };
                         // Follow the Figma vertical rhythm (compact: 20px row, detail: 40px row; 6px row gap);
                         // scale with text line height (15px at 100% DPI) because m_scale stays 1.0 on Windows HiDPI.
-                        const bool  compact_mode      = !m_color_print_detail;
-                        const float ui_scale          = ImGui::GetTextLineHeight() / 15.0f;
-                        const float table_row_height  = (compact_mode ? 20.0f : 40.0f) * ui_scale;
+                        const bool  compact_mode      = !nozzle_table_detail;
+                        const float text_line_h       = ImGui::GetTextLineHeight();
+                        const float line_step         = std::max(text_line_h, 20.0f * ui_scale);
+                        const float table_row_height  = compact_mode ? line_step : 2.0f * line_step;
                         const float table_row_gap     = 6.0f * ui_scale;
+                        const float line1_y_off       = (line_step - text_line_h) * 0.5f;
+                        const float line2_y_off       = line_step + line1_y_off;
+                        const float badge_y_off       = (line_step - nozzle_badge_height) * 0.5f;
                         const float default_spacing_y = ImGui::GetStyle().ItemSpacing.y;
+                        const float hover_inset_x     = std::max(0.0f, table_inset_x - 2.0f * ui_scale);
+
+                        auto append_nozzle_row = [&](size_t row, int extruder_idx, bool visible, std::function<void()> callback) {
+                            ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, table_row_gap));
+                            const float row_top_y = ImGui::GetCursorPosY();
+                            if (callback) {
+                                ImGui::SetCursorPos(ImVec2(hover_inset_x, row_top_y));
+                                ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f * m_scale);
+                                ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(hover_inset_x, 0.0f));
+                                ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(1.00f, 0.68f, 0.26f, 0.0f));
+                                ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(1.00f, 0.68f, 0.26f, 0.0f));
+                                ImGui::PushStyleColor(ImGuiCol_BorderActive, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
+                                bool b_menu_item = ImGui::BBLMenuItem(("##nozzle_row_" + std::to_string(extruder_idx)).c_str(), nullptr, false, true, table_row_height);
+                                ImGui::PopStyleVar(2);
+                                ImGui::PopStyleColor(3);
+                                if (b_menu_item)
+                                    callback();
+                            }
+                            const bool dim_text = callback && !visible;
+                            if (dim_text)
+                                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(172 / 255.0f, 172 / 255.0f, 172 / 255.0f, 1.00f));
+
+                            // Column 0: colored swatch badge with centered index for filament rows, plain label for the Total row.
+                            const std::string& col0_text = nozzle_table[0].second[row];
+                            if (extruder_idx >= 0) {
+                                const float badge_w = std::max(nozzle_badge_height, ImGui::CalcTextSize(col0_text.c_str()).x + 6.0f * ui_scale);
+                                ImGui::SetCursorPos(ImVec2(nozzle_table_offsets[0], row_top_y + badge_y_off));
+                                const ImVec2 badge_min = ImGui::GetCursorScreenPos();
+                                const ImVec2 badge_max(badge_min.x + badge_w, badge_min.y + nozzle_badge_height);
+                                ImDrawList* row_draw_list = ImGui::GetWindowDrawList();
+                                const Color& c = m_tools.m_tool_colors[extruder_idx];
+                                const wxColour swatch_color(static_cast<unsigned char>(std::clamp(c[0] * 255.0f, 0.0f, 255.0f)),
+                                                            static_cast<unsigned char>(std::clamp(c[1] * 255.0f, 0.0f, 255.0f)),
+                                                            static_cast<unsigned char>(std::clamp(c[2] * 255.0f, 0.0f, 255.0f)),
+                                                            static_cast<unsigned char>(std::clamp(c[3] * 255.0f, 0.0f, 255.0f)));
+                                if (m_only_gcode_in_preview) {
+                                    ImGuiFilament::draw_color_field(row_draw_list, badge_min, badge_max, { swatch_color }, false);
+                                    ImGuiFilament::draw_index_label(row_draw_list, badge_min, badge_max, col0_text.c_str(), swatch_color, false);
+                                } else {
+                                    const std::string fallback_hex = swatch_color.GetAsString(wxC2S_HTML_SYNTAX).ToStdString();
+                                    ImGuiFilament::draw_filament_icon(row_draw_list, badge_min, badge_max, extruder_idx, fallback_hex.c_str());
+                                }
+                                ImGui::Dummy({ badge_w, nozzle_badge_height });
+                            } else {
+                                ImGui::SetCursorPos(ImVec2(nozzle_table_offsets[0], row_top_y + line1_y_off));
+                                imgui.text(col0_text);
+                            }
+
+                            // Align single-line values (Nozzle, Time, compact usage) with the first line of two-line cells, per Figma;
+                            // right-align the last ("Time") column to match the right-aligned "Details"/"Less" link above.
+                            for (size_t col = 1; col < nozzle_table.size(); ++col) {
+                                const std::string& cell = nozzle_table[col].second[row];
+                                if (cell.empty())
+                                    continue;
+                                const size_t newline_pos = cell.find('\n');
+                                if (newline_pos != std::string::npos) {
+                                    ImGui::SetCursorPos(ImVec2(nozzle_table_offsets[col], row_top_y + line1_y_off));
+                                    imgui.text(cell.substr(0, newline_pos));
+                                    ImGui::SetCursorPos(ImVec2(nozzle_table_offsets[col], row_top_y + line2_y_off));
+                                    imgui.text(cell.substr(newline_pos + 1));
+                                } else {
+                                    const float col_x = (col + 1 == nozzle_table.size())
+                                        ? (nozzle_table_content_end - ImGui::CalcTextSize(cell.c_str()).x)
+                                        : nozzle_table_offsets[col];
+                                    ImGui::SetCursorPos(ImVec2(col_x, row_top_y + line1_y_off));
+                                    imgui.text(cell);
+                                }
+                            }
+
+                            // Reserve exact row height and trailing right margin so both layout and horizontal scroll bounds match table_width.
+                            ImGui::SetCursorPos(ImVec2(nozzle_table_content_end, row_top_y));
+                            ImGui::Dummy({ table_inset_x, table_row_height });
+
+                            if (dim_text)
+                                ImGui::PopStyleColor(1);
+                            ImGui::PopStyleVar(1);
+                        };
+
                         ImGui::SetCursorPosY(ImGui::GetCursorPosY() + std::max(0.0f, 12.0f * ui_scale - default_spacing_y));
                         const size_t row_count = m_extruder_ids.size();
                         for (size_t row = 0; row < row_count; ++row) {
                             const auto extruder_idx = m_extruder_ids[row];
-                            append_item(EItemType::Rect, m_tools.m_tool_colors[extruder_idx], row_columns(row), false, m_tools.m_tool_visibles[extruder_idx], [this, extruder_idx]() {
+                            append_nozzle_row(row, static_cast<int>(extruder_idx), m_tools.m_tool_visibles[extruder_idx], [this, extruder_idx]() {
                                 m_tools.m_tool_visibles[extruder_idx] = !m_tools.m_tool_visibles[extruder_idx];
                                 on_visibility_changed();
-                                }, table_row_height, table_row_gap);
+                                });
                         }
                         if (row_count > 1) {
                             if (compact_mode)
                                 ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 6.0f * ui_scale);
-                            ImGuiWindow* window = ImGui::GetCurrentWindow();
-                            const ImRect separator(ImVec2(window->Pos.x + window_padding * 3, window->DC.CursorPos.y), ImVec2(window->Pos.x + window->Size.x - window_padding * 3, window->DC.CursorPos.y + 1.0f));
-                            ImGui::ItemSize(ImVec2(0.0f, 0.0f));
-                            ImGui::ItemAdd(separator, 0);
-                            window->DrawList->AddLine(separator.Min, ImVec2(separator.Max.x, separator.Min.y), ImGui::GetColorU32(ImGuiCol_Separator));
+                            draw_inset_separator(nozzle_table_scroll ? 0.0f : nozzle_table_view_width);
                             ImGui::SetCursorPosY(ImGui::GetCursorPosY() + std::max(0.0f, 10.0f * ui_scale - default_spacing_y));
-                            append_item(EItemType::None, m_tools.m_tool_colors[0], row_columns(row_count), false, true, nullptr, table_row_height, table_row_gap);
+                            append_nozzle_row(row_count, -1, true, nullptr);
                         }
                         if (nozzle_table_scroll) {
                             const float content_height = ImGui::GetCursorPosY();
                             ImGui::EndChild();
-                            ImGui::PopStyleColor(2);
-                            ImGui::PopStyleVar(1);
+                            ImGui::PopStyleColor(5);
+                            ImGui::PopStyleVar(2);
                             if (std::abs(content_height - m_color_print_table_height) > 0.5f) {
                                 m_color_print_table_height = content_height;
                                 wxGetApp().plater()->get_current_canvas3D()->request_extra_frame();
                             }
-                            ImGui::SetCursorPosY(ImGui::GetCursorPosY() + std::max(0.0f, 12.0f * ui_scale - default_spacing_y));
+                            // Place the bottom divider 3px below the visible 4px thumb (accounting for EndChild's item spacing and ScrollbarEx's 3px bottom pad).
+                            ImGui::SetCursorPosY(ImGui::GetCursorPosY() - default_spacing_y + (3.0f * ui_scale - 3.0f));
                         } else {
                             ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 6.0f * ui_scale);
                         }
+                        // Bottom separator below the Total row (and below the horizontal scrollbar when overflowing), per Figma.
+                        draw_inset_separator(nozzle_table_view_width);
+                        ImGui::SetCursorPosY(ImGui::GetCursorPosY() + std::max(0.0f, 10.0f * ui_scale - default_spacing_y));
                         append_filament_changes_and_cost();
                         break;
                     }
@@ -3098,11 +3234,15 @@ namespace Slic3r
                         append_option_item(item, offsets);
                 }
                 ImGui::Dummy({ window_padding, window_padding });
+                ImGuiWindow* legend_window = ImGui::GetCurrentWindow();
+                const float content_width = std::max(title_row_right, legend_window->DC.CursorMaxPos.x - legend_window->Pos.x);
                 // 单挤出机多喷嘴只在外接 AMS 与固定喷嘴间划分耗材，分组图例仅在接入
                 // AMS（m_ams_nozzle_idx >= 0）时有意义；无外接 AMS 时无可分组，隐藏。
                 if (m_nozzle_nums > 1 || (m_single_ext_multi_nozzle && m_ams_nozzle_idx >= 0))
-                    render_legend_color_arr_recommen(window_padding, is_show_left_right_result);
-                legend_height = ImGui::GetCurrentWindow()->Size.y;
+                    render_legend_color_arr_recommen(window_padding, is_show_left_right_result, content_width);
+                if (std::abs(std::floor(content_width) - legend_window->ContentSize.x) > 1.0f)
+                    wxGetApp().plater()->get_current_canvas3D()->request_extra_frame();
+                legend_height = legend_window->Size.y;
                 imgui.end();
                 ImGui::PopStyleColor(7);
                 ImGui::PopStyleVar(2);
@@ -3248,14 +3388,14 @@ namespace Slic3r
                 }
             }
 
-            void BaseRenderer::render_legend_color_arr_recommen(float window_padding, bool is_show_left_right_result)
+            void BaseRenderer::render_legend_color_arr_recommen(float window_padding, bool is_show_left_right_result, float content_width)
             {
                 const bool skip_grouping = should_skip_filament_grouping(wxGetApp().preset_bundle->full_config());
 
                 // Show the white grouping card (with tips and action links inside) whenever filament grouping is active
                 // and not overridden by dynamic nozzle mapping; otherwise render the dark Figma-styled section below.
                 if (!skip_grouping && !is_show_left_right_result) {
-                    render_legend_filament_group_card(window_padding);
+                    render_legend_filament_group_card(window_padding, content_width);
                     return;
                 }
                 ////BBS Color Arrangement Recommendation
@@ -3345,11 +3485,12 @@ namespace Slic3r
                     ImGui::Dummy({ window_padding, window_padding });
                     ImGuiWindow* window = ImGui::GetCurrentWindow();
                     const float line_y = window->DC.CursorPos.y;
-                    window->DrawList->AddLine(ImVec2(window->Pos.x + window_padding * 3, line_y), ImVec2(window->Pos.x + window->Size.x - window_padding * 3, line_y),
+                    const float panel_width = content_width > 0.0f ? content_width : window->Size.x;
+                    window->DrawList->AddLine(ImVec2(window->Pos.x + window_padding * 3, line_y), ImVec2(window->Pos.x + panel_width - window_padding * 3, line_y),
                                               ImGui::GetColorU32(ImGuiCol_Separator));
                     ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 14.0f * ui_scale);
                     const float text_left = window_padding * 5;
-                    const float parent_width = std::max(ImGui::GetWindowWidth() - 2.0f * text_left, 1.0f);
+                    const float parent_width = std::max(panel_width - 2.0f * text_left, 1.0f);
                     const bool is_optimal_group = tip.kind != FilamentGroupTip::Kind::NotOptimal;
                     if (tip.kind == FilamentGroupTip::Kind::NotOptimal) {
                         const ImVec4 warning_color(240 / 255.0f, 154 / 255.0f, 23 / 255.0f, 1.0f);
@@ -3382,7 +3523,7 @@ namespace Slic3r
                 }
             }
 
-            void BaseRenderer::render_legend_filament_group_card(float window_padding)
+            void BaseRenderer::render_legend_filament_group_card(float window_padding, float content_width)
             {
                 ImGuiWrapper& imgui = *wxGetApp().imgui();
                 auto link_text = [&imgui](const std::string& label, auto&& on_click, bool underline = true) {
@@ -3443,7 +3584,8 @@ namespace Slic3r
                 }
                 const std::string place_tip = _u8L("Please place filaments on the printer based on grouping result.");
                 const std::string tip_text  = tip.kind != FilamentGroupTip::Kind::None ? (tip.lead + tip.saving) : std::string();
-                const float card_inner_width = std::max(ImGui::GetContentRegionAvail().x - 6.0f * window_padding - 2.0f, 1.0f);
+                const float card_width       = content_width > 0.0f ? content_width : ImGui::GetContentRegionAvail().x;
+                const float card_inner_width = std::max(card_width - 6.0f * window_padding - 2.0f, 1.0f);
                 const float place_tip_height = ImGui::CalcTextSize(place_tip.c_str(), nullptr, false, card_inner_width).y;
                 const float tip_text_height  = tip_text.empty() ? 0.0f : ImGui::CalcTextSize(tip_text.c_str(), nullptr, false, card_inner_width).y;
                 const float spacing_y        = ImGui::GetStyle().ItemSpacing.y;
@@ -3455,7 +3597,7 @@ namespace Slic3r
                 ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(1.f, 1.f, 1.f, 1.0f));
                 ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(.15f, .18f, .19f, 1.0f));
                 ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(window_padding * 3, 0));
-                ImGui::BeginChild("#AMS", ImVec2(0, AMS_container_height), true, ImGuiWindowFlags_AlwaysUseWindowPadding);
+                ImGui::BeginChild("#AMS", ImVec2(card_width, AMS_container_height), true, ImGuiWindowFlags_AlwaysUseWindowPadding);
                 {
                     float available_width = ImGui::GetContentRegionAvail().x;
                     float half_width      = available_width * 0.49f;
