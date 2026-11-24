@@ -5,9 +5,6 @@
     "from": "system",
     "setting_id": "GFSB01_46",
     "instantiation": "true",
-    "additional_cooling_fan_speed": [
-        "10"
-    ],
     "chamber_temperatures": [
         "60"
     ],
