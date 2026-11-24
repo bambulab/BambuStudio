@@ -257,6 +257,21 @@ public:
             page->SetFocus();
     }
 
+#ifdef __WXGTK__
+    // GTK never moves the keyboard focus into the children of a container that can take the
+    // focus itself: every Tab pressed inside a page grabbed the focus for the whole notebook,
+    // so Tab could not move between parameter fields. Accept the focus only through the children.
+    bool AcceptsFocus() const override { return false; }
+    bool AcceptsFocusRecursively() const override
+    {
+        for (const wxWindow* child : GetChildren())
+            if (child->AcceptsFocusRecursively())
+                return true;
+        return false;
+    }
+    bool AcceptsFocusFromKeyboard() const override { return AcceptsFocusRecursively(); }
+#endif // __WXGTK__
+
     ButtonsListCtrl* GetBtnsListCtrl() const { return static_cast<ButtonsListCtrl*>(m_bookctrl); }
 
     void UpdateMode()
