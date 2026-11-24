@@ -1144,10 +1144,10 @@ static void remove_multiple_edges_in_vertex(const VD::vertex_type &vertex) {
     }
 }
 
-#if (0)
 // Returns list of ExPolygons for each extruder + 1 for default unpainted regions.
 // It iterates through all nodes on the border between two different colors, and from this point,
 // start selection always left most edges for every node to construct CCW polygons.
+// Returns an empty list when the Voronoi diagram is invalid even after the repair attempt.
 static std::vector<ExPolygons> extract_colored_segments(const std::vector<ColoredLines> &colored_polygons,
                                                         const size_t                     num_extruders,
                                                         const size_t                     layer_idx)
@@ -1163,6 +1163,10 @@ static std::vector<ExPolygons> extract_colored_segments(const std::vector<Colore
 
     Voronoi::VD vd;
     vd.construct_voronoi(colored_lines.begin(), colored_lines.end());
+
+    // The extraction below relies on a valid Voronoi diagram. Let the caller handle the layer otherwise.
+    if (!vd.is_valid())
+        return {};
 
     // First, mark each Voronoi vertex on the input polygon to prevent it from being deleted later.
     for (const Voronoi::VD::cell_type &cell : vd.cells()) {
@@ -1280,7 +1284,6 @@ static std::vector<ExPolygons> extract_colored_segments(const std::vector<Colore
 
     return segmented_expolygons_per_extruder;
 }
-#endif
 
 static void cut_segmented_layers(const std::vector<ExPolygons>        &input_expolygons,
                                  std::vector<std::vector<ExPolygons>> &segmented_regions,
@@ -2314,6 +2317,24 @@ static bool has_layer_only_one_color(const std::vector<ColoredLines> &colored_po
     return true;
 }
 
+// Returns list of ExPolygons for each extruder + 1 for default unpainted regions of one layer.
+// The regions are extracted directly from the Voronoi diagram. The extraction based on MMU_Graph
+// is used only for layers where the Voronoi diagram is invalid even after the repair attempt.
+static std::vector<ExPolygons> extract_colored_segments(const size_t                     layer_idx,
+                                                        const std::vector<ColoredLines> &color_poly,
+                                                        const size_t                     num_extruders,
+                                                        const std::function<void()>     &throw_on_cancel_callback)
+{
+    if (std::vector<ExPolygons> segmented_expolygons_per_extruder = extract_colored_segments(color_poly, num_extruders, layer_idx);
+        !segmented_expolygons_per_extruder.empty())
+        return segmented_expolygons_per_extruder;
+
+    MMU_Graph graph = build_graph(layer_idx, color_poly, throw_on_cancel_callback);
+    remove_multiple_edges_in_vertices(graph, color_poly);
+    graph.remove_nodes_with_one_arc();
+    return extract_colored_segments(graph, num_extruders);
+}
+
 std::vector<std::vector<ExPolygons>> multi_material_segmentation_by_painting(const PrintObject &print_object, const std::function<void()> &throw_on_cancel_callback)
 {
     const size_t                          num_extruders = print_object.print()->config().filament_colour.size();
@@ -2572,11 +2593,7 @@ std::vector<std::vector<ExPolygons>> multi_material_segmentation_by_painting(con
                     // If the whole layer is painted using the same color, it is not needed to construct a Voronoi diagram for the segmentation of this layer.
                     segmented_regions[layer_idx][size_t(color_poly.front().front().color)] = input_for_edge_grid[layer_idx];
                 } else {
-                    MMU_Graph graph = build_graph(layer_idx, color_poly, throw_on_cancel_callback);
-                    remove_multiple_edges_in_vertices(graph, color_poly);
-                    graph.remove_nodes_with_one_arc();
-                    segmented_regions[layer_idx] = extract_colored_segments(graph, num_extruders);
-                    //segmented_regions[layer_idx] = extract_colored_segments(color_poly, num_extruders, layer_idx);
+                    segmented_regions[layer_idx] = extract_colored_segments(layer_idx, color_poly, num_extruders, throw_on_cancel_callback);
                 }
 
 #ifdef MM_SEGMENTATION_DEBUG_REGIONS
@@ -2829,11 +2846,7 @@ std::vector<std::vector<ExPolygons>> fuzzy_skin_segmentation_by_painting(const P
                     // If the whole layer is painted using the same color, it is not needed to construct a Voronoi diagram for the segmentation of this layer.
                     segmented_regions[layer_idx][size_t(color_poly.front().front().color)] = input_expolygons[layer_idx];
                 } else {
-                    MMU_Graph graph = build_graph(layer_idx, color_poly, throw_on_cancel_callback);
-                    remove_multiple_edges_in_vertices(graph, color_poly);
-                    graph.remove_nodes_with_one_arc();
-                    segmented_regions[layer_idx] = extract_colored_segments(graph, num_extruders);
-                    // segmented_regions[layer_idx] = extract_colored_segments(color_poly, num_extruders, layer_idx);
+                    segmented_regions[layer_idx] = extract_colored_segments(layer_idx, color_poly, num_extruders, throw_on_cancel_callback);
                 }
 
 #ifdef MM_SEGMENTATION_DEBUG_REGIONS
