@@ -75,9 +75,9 @@ jobs:
         run: Compress-Archive -Path "${{ github.workspace }}\deps\build\BambuStudio_dep\*" -DestinationPath "${{ github.workspace }}\deps\build\BambuStudio_dep_win64_${{ env.date }}_vs2022.zip"
         shell: pwsh
 
-      # Windows on ARM64/ARM64EC. The windows-11-arm runner ships Visual
-      # Studio 2022 (v17), not 2026, so the generator differs from the x64 job
-      # above. All per-dep arch handling lives in deps/*.cmake and is selected
+      # Windows on ARM64/ARM64EC. The windows-11-arm runner (image
+      # windows-11-vs2026-arm64) ships Visual Studio 2026 (v18), like the x64
+      # job above. All per-dep arch handling lives in deps/*.cmake and is selected
       # automatically from the -A platform (arm64ec = native ARM64 code with
       # the x64-compatible ABI, which is what lets the app load the x64-only
       # Bambu network plugin in-process).
@@ -91,7 +91,7 @@ jobs:
             mkdir ${{ github.workspace }}\deps\build\BambuStudio_dep
             cd "${{ github.workspace }}\deps\build"
             $platform = "${{ inputs.arch }}" -eq "arm64ec" ? "ARM64EC" : "ARM64"
-            cmake ../ -G "Visual Studio 17 2022" -A $platform -DDESTDIR="./BambuStudio_dep" -DCMAKE_BUILD_TYPE=Release -DDEP_DEBUG=OFF
+            cmake ../ -G "Visual Studio 18 2026" -A $platform -DDESTDIR="./BambuStudio_dep" -DCMAKE_BUILD_TYPE=Release -DDEP_DEBUG=OFF
             msbuild /m ALL_BUILD.vcxproj
         shell: pwsh
 
@@ -117,6 +117,17 @@ jobs:
           sudo rm -rf ~/Library/Developer/CoreSimulator/Caches/*
           df -h
 
+      # CMake 3.31.0 for the mac builds, from Kitware's release (checksum checked). It used to come from
+      # `brew extract`, which needs a git clone of homebrew/core that current runners no longer have.
+      - name: Install CMake 3.31.0 on mac
+        if: startsWith(inputs.os, 'macos')
+        run: |
+          curl -fsSL --retry 3 -o "$RUNNER_TEMP/cmake.tar.gz" https://github.com/Kitware/CMake/releases/download/v3.31.0/cmake-3.31.0-macos-universal.tar.gz
+          echo "50d5b9f370e71c8eee87c123b7fb9272caf2bf2b372ea7c9423f10f1cd52813b  $RUNNER_TEMP/cmake.tar.gz" | shasum -a 256 -c -
+          tar -xzf "$RUNNER_TEMP/cmake.tar.gz" -C "$RUNNER_TEMP"
+          echo "$RUNNER_TEMP/cmake-3.31.0-macos-universal/CMake.app/Contents/bin" >> "$GITHUB_PATH"
+          "$RUNNER_TEMP/cmake-3.31.0-macos-universal/CMake.app/Contents/bin/cmake" --version
+
       - name: Build on Mac ${{ inputs.arch }}
         if: inputs.os == 'macos-15-intel'
         working-directory: ${{ github.workspace }}
@@ -124,11 +135,6 @@ jobs:
             brew install automake texinfo nasm yasm x264
             brew uninstall --ignore-dependencies zstd
             brew unlink cmake || true
-            brew tap-new $USER/old-cmake
-            brew extract --version=3.31.0 cmake $USER/old-cmake
-            brew install $USER/old-cmake/cmake@3.31.0
-            brew link --overwrite cmake@3.31.0
-            brew pin cmake@3.31.0
             ./BuildMac.sh -d -x -a x86_64 -t 10.15 -1
             for arch in x86_64; do
                 (cd "${{ github.workspace }}/deps/build/${arch}" && \
@@ -143,11 +149,6 @@ jobs:
             brew install automake texinfo nasm yasm x264
             brew uninstall --ignore-dependencies zstd
             brew unlink cmake || true
-            brew tap-new $USER/old-cmake
-            brew extract --version=3.31.0 cmake $USER/old-cmake
-            brew install $USER/old-cmake/cmake@3.31.0
-            brew link --overwrite cmake@3.31.0
-            brew pin cmake@3.31.0
             ./BuildMac.sh -d -x -a universal -t 10.15 -1
             for arch in arm64 x86_64; do
                 (cd "${{ github.workspace }}/deps/build/${arch}" && \
