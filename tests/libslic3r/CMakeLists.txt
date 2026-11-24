@@ -7,6 +7,7 @@ add_executable(${_TEST_NAME}_tests
 	test_clipper_offset.cpp
 	test_clipper_utils.cpp
 	test_config.cpp
+	test_config_enum_maps.cpp
 	test_elephant_foot_compensation.cpp
 	test_geometry.cpp
 	test_placeholder_parser.cpp
