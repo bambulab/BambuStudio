@@ -38,7 +38,7 @@ while getopts "1dpa:st:xbc:h" opt; do
         echo "   -d: Build deps"
         echo "   -a: Set ARCHITECTURE (arm64 or x86_64 or universal)"
         echo "   -s: Build slicer only"
-        echo "   -t: Specify minimum version of the target platform, default is 10.15"
+        echo "   -t: Specify minimum version of the target platform, default is 10.15 (raised to 11.0 when the SDK's libc++ rejects 10.15)"
         echo "   -x: Use Ninja CMake generator, default is Xcode"
         echo "   -b: Build without reconfiguring CMake"
         echo "   -c: Set CMake build configuration, default is Release"
@@ -75,6 +75,8 @@ if [ -z "$DEPS_CMAKE_GENERATOR" ]; then
   export DEPS_CMAKE_GENERATOR="Unix Makefiles"
 fi
 
+# 10.15 stays the requested default. CMake raises it to 11.0 when this Xcode's
+# libc++ no longer accepts a deployment target below macOS 11.
 if [ -z "$OSX_DEPLOYMENT_TARGET" ]; then
   export OSX_DEPLOYMENT_TARGET="10.15"
 fi

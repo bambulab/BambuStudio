@@ -48,7 +48,9 @@ if(APPLE)
         COMMENT "Stripping FreeType bundled-zlib globals from libfreetype.a (macOS)"
         DEPENDEES install
         ALWAYS 1
-        COMMAND ${CMAKE_COMMAND} -E env bash
+        COMMAND ${CMAKE_COMMAND} -E env
+                MACOSX_DEPLOYMENT_TARGET=${DEP_OSX_TARGET}
+                bash
                 "${CMAKE_CURRENT_LIST_DIR}/strip_libfreetype_zlib.sh"
                 "${DESTDIR}/usr/local/lib/${_ft_lib_name}"
     )
