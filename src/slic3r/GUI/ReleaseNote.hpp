@@ -99,7 +99,7 @@ public:
     bool ShowReleaseNote(std::string content);
     void RunScript(std::string script);
     void on_dpi_changed(const wxRect& suggested_rect) override;
-    void update_version_info(wxString release_note, wxString version);
+    void update_version_info(wxString release_note, wxString version, bool in_app_update = false);
     std::vector<std::string> splitWithStl(std::string str, std::string pattern);
 
     wxStaticBitmap*   m_brand{nullptr};

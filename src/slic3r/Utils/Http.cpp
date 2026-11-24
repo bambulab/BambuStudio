@@ -470,7 +470,8 @@ void Http::priv::http_perform()
 	}
 }
 
-Http::Http(const std::string &url) : p(new priv(url)) {
+Http::Http(const std::string &url, bool use_extra_headers) : p(new priv(url)) {
+    if (!use_extra_headers) return;
 
     std::lock_guard<std::mutex> l(g_mutex);
 	for (auto it = extra_headers.begin(); it != extra_headers.end(); it++)
@@ -549,6 +550,15 @@ Http& Http::auth_basic(const std::string &user, const std::string &password)
     curl_easy_setopt(p->curl, CURLOPT_PASSWORD, password.c_str());
     curl_easy_setopt(p->curl, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
 
+    return *this;
+}
+
+Http& Http::https_only()
+{
+    if (p) {
+        ::curl_easy_setopt(p->curl, CURLOPT_PROTOCOLS, static_cast<long>(CURLPROTO_HTTPS));
+        ::curl_easy_setopt(p->curl, CURLOPT_REDIR_PROTOCOLS, static_cast<long>(CURLPROTO_HTTPS));
+    }
     return *this;
 }
 
@@ -700,9 +710,9 @@ void Http::cancel()
 	if (p) { p->cancel = true; }
 }
 
-Http Http::get(std::string url)
+Http Http::get(std::string url, bool use_extra_headers)
 {
-    return Http{std::move(url)};
+    return Http{std::move(url), use_extra_headers};
 }
 
 Http Http::post(std::string url)

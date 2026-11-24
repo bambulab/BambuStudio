@@ -78,7 +78,7 @@ public:
 
 	// These are the primary constructors that create a HTTP object
 	// for a GET and a POST request respectively.
-	static Http get(std::string url);
+	static Http get(std::string url, bool use_extra_headers = true);
 	static Http post(std::string url);
 	static Http put(std::string url);
 	static Http del(std::string url);
@@ -104,6 +104,8 @@ public:
 	// Sets a maximum size of the data that can be received.
 	// A value of zero sets the default limit, which is is 5MB.
 	Http& size_limit(size_t sizeLimit);
+    // Restrict both requests and redirects to HTTPS.
+    Http& https_only();
 	// Sets a HTTP header field.
 	Http& header(std::string name, const std::string &value);
 	// Removes a header field.
@@ -192,7 +194,7 @@ public:
 
 	static std::string get_filename_from_url(const std::string &url);
 private:
-	Http(const std::string &url);
+	Http(const std::string &url, bool use_extra_headers = true);
 
 	std::unique_ptr<priv> p;
 };
