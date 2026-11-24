@@ -348,7 +348,8 @@ function renderParamList() {
         { label: _t('t285'),                             initialKey: 'eng_plate_temp_initial_layer',       otherKey: 'eng_plate_temp' },
         { label: _t('t286'),                             initialKey: 'hot_plate_temp_initial_layer',       otherKey: 'hot_plate_temp' },
         { label: _t('t287'),                             initialKey: 'textured_plate_temp_initial_layer',  otherKey: 'textured_plate_temp' },
-        { label: _t('t400'),                             initialKey: 'effect_plate_temp_initial_layer',    otherKey: 'effect_plate_temp' },
+        // Hide 3D Effect Plate temperatures from the custom filament wizard.
+        // { label: _t('t400'),                             initialKey: 'effect_plate_temp_initial_layer',    otherKey: 'effect_plate_temp' },
         { label: _t('t288'),                             initialKey: 'nozzle_temperature_initial_layer',   otherKey: 'nozzle_temperature' },
     ];
 

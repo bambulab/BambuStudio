@@ -4988,10 +4988,11 @@ void TabFilament::build_filament_page(const PageShp& page)
         line.append_option(optgroup->get_option("textured_plate_temp"));
         optgroup->append_line(line);
 
-        line = {L("3D Effect Plate"), L("Bed temperature when 3D Effect Plate is installed. Value 0 means the filament does not support to print on the 3D Effect Plate")};
-        line.append_option(optgroup->get_option("effect_plate_temp_initial_layer"));
-        line.append_option(optgroup->get_option("effect_plate_temp"));
-        optgroup->append_line(line);
+        // Hide 3D Effect Plate bed temperatures from the filament settings page.
+        // line = {L("3D Effect Plate"), L("Bed temperature when 3D Effect Plate is installed. Value 0 means the filament does not support to print on the 3D Effect Plate")};
+        // line.append_option(optgroup->get_option("effect_plate_temp_initial_layer"));
+        // line.append_option(optgroup->get_option("effect_plate_temp"));
+        // optgroup->append_line(line);
 
         optgroup->m_on_change = [this, optgroup](t_config_option_key opt_key, boost::any value)
         {
@@ -5451,7 +5452,8 @@ void TabFilament::toggle_options()
         bool support_chamber_temp_control = this->m_preset_bundle->printers.get_edited_preset().config.opt_bool("support_chamber_temp_control");
         toggle_line("chamber_temperatures", support_chamber_temp_control);
 
-        for (auto el : {"supertack_plate_temp", "supertack_plate_temp_initial_layer", "cool_plate_temp", "cool_plate_temp_initial_layer", "eng_plate_temp", "eng_plate_temp_initial_layer", "textured_plate_temp", "textured_plate_temp_initial_layer", "effect_plate_temp", "effect_plate_temp_initial_layer"})
+        // effect_plate_temp / effect_plate_temp_initial_layer stay hidden with the 3D Effect Plate row above.
+        for (auto el : {"supertack_plate_temp", "supertack_plate_temp_initial_layer", "cool_plate_temp", "cool_plate_temp_initial_layer", "eng_plate_temp", "eng_plate_temp_initial_layer", "textured_plate_temp", "textured_plate_temp_initial_layer" /*, "effect_plate_temp", "effect_plate_temp_initial_layer"*/})
             toggle_line(el, is_BBL_printer);
 
         std::string volumetric_speed_cos = m_config->opt_string("volumetric_speed_coefficients", (unsigned int)(m_variant_combo->GetSelection()));
