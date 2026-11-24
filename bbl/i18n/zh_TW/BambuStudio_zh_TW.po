@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-23 19:25+0800\n"
+"POT-Creation-Date: 2026-11-24 12:12+0800\n"
 "PO-Revision-Date: 2026-05-07 16:00+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -11050,22 +11050,20 @@ msgstr "網格準備失敗。"
 msgid "Mesh Boolean"
 msgstr "布林運算"
 
-msgid "The selected models need repair before a Boolean operation can be performed."
-msgstr "選取的模型尚未修復，無法進行布林運算，請修復後再進行布林運算。"
+msgid "- Object mode: Please select at least two objects."
+msgstr "- 物件模式：請至少選擇兩個物件。"
 
-#. TRN: A model name in quotation marks, followed by "Repair now" or "Repaired" in the Mesh Boolean repair list.
-#, boost-format
-msgid "\"%1%\""
-msgstr "“%1%”"
+msgid "- Part mode: Please select one object with at least two meshes."
+msgstr "- 零件模式：請選擇一個包含至少兩個零件的物件。"
 
-msgid "Repair now"
-msgstr "立即修復"
-
-msgid "Repaired"
-msgstr "已修復"
+msgid "Another mesh boolean operation is running. Please try again after it finishes."
+msgstr "另一個網格布林運算正在執行。請待其完成後再試一次。"
 
 msgid "The selected part changed before repair could be applied."
 msgstr "選取的零件已變更，未套用修復結果。"
+
+msgid "Repair failed."
+msgstr "修復失敗。"
 
 msgid "The repaired mesh is empty."
 msgstr "修復後的網格為空。"
@@ -11073,21 +11071,12 @@ msgstr "修復後的網格為空。"
 msgid "The repaired mesh still has open or non-manifold edges."
 msgstr "修復後的網格仍有開放邊或非流形邊。"
 
-msgid "- Object mode: Please select at least two objects."
-msgstr "- 物件模式：請至少選擇兩個物件。"
-
-msgid "- Part mode: Please select one object with at least two meshes."
-msgstr "- 零件模式：請選擇一個包含至少兩個零件的物件。"
-
 msgid "Unable to perform boolean operation on model meshes. You may fix the meshes and try again."
 msgstr "無法對模型網格執行布林運算。您可以修復網格，然後重試。"
 
 #, boost-format
 msgid "Reason: part \"%1%\" does not bound a volume."
 msgstr "原因：零件\"%1%\"沒有封閉一個體積。"
-
-msgid "Another mesh boolean operation is running. Please try again after it finishes."
-msgstr "另一個網格布林運算正在執行。請待其完成後再試一次。"
 
 msgid "Computing..."
 msgstr "正在執行網格布林運算…"
@@ -18964,6 +18953,10 @@ msgstr "對映後"
 msgid "Original"
 msgstr "原專案"
 
+#, c-format, boost-format
+msgid "Plate %d"
+msgstr "盤 %d"
+
 msgid "Filament matching"
 msgstr "線材匹配"
 
@@ -19642,6 +19635,20 @@ msgstr "僅對實體執行布林運算。"
 
 msgid "This object contains non-part components."
 msgstr "該物件包含非實體零件。"
+
+msgid "The selected models need repair before a Boolean operation can be performed."
+msgstr "選取的模型尚未修復，無法進行布林運算，請修復後再進行布林運算。"
+
+#. TRN: A model name in quotation marks, followed by "Repair now" or "Repaired" in the Mesh Boolean repair list.
+#, boost-format
+msgid "\"%1%\""
+msgstr "“%1%”"
+
+msgid "Repair now"
+msgstr "立即修復"
+
+msgid "Repaired"
+msgstr "已修復"
 
 #, boost-format
 msgid "%1%"
@@ -20620,9 +20627,6 @@ msgstr "載入物件失敗。"
 
 msgid "Repairing object by Windows service"
 msgstr "透過Windows服務修復物件"
-
-msgid "Repair failed."
-msgstr "修復失敗。"
 
 msgid "Loading repaired objects"
 msgstr "正在載入修復的物件。"
@@ -27720,9 +27724,6 @@ msgstr ""
 
 #~ msgid "Invalid plate index %d"
 #~ msgstr "無效的盤索引 %d"
-
-#~ msgid "Plate %d"
-#~ msgstr "盤 %d"
 
 #~ msgid "Start printing..."
 #~ msgstr "開始列印..."

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-23 19:25+0800\n"
+"POT-Creation-Date: 2026-11-24 12:12+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -11084,15 +11084,27 @@ msgstr "- Chế độ vật thể: Vui lòng chọn ít nhất hai vật thể."
 msgid "- Part mode: Please select one object with at least two meshes."
 msgstr "- Chế độ bộ phận: Vui lòng chọn một vật thể có ít nhất hai lưới."
 
+msgid "Another mesh boolean operation is running. Please try again after it finishes."
+msgstr "Một thao tác Boolean khác trên lưới đang được thực hiện. Vui lòng thử lại sau khi quá trình hoàn tất."
+
+msgid "The selected part changed before repair could be applied."
+msgstr ""
+
+msgid "Repair failed."
+msgstr "Sửa chữa thất bại."
+
+msgid "The repaired mesh is empty."
+msgstr ""
+
+msgid "The repaired mesh still has open or non-manifold edges."
+msgstr ""
+
 msgid "Unable to perform boolean operation on model meshes. You may fix the meshes and try again."
 msgstr "Không thể thực hiện phép toán boolean trên lưới mô hình. Bạn có thể sửa lưới và thử lại."
 
 #, boost-format
 msgid "Reason: part \"%1%\" does not bound a volume."
 msgstr "Lý do: bộ phận \"%1%\" không tạo thành một thể tích."
-
-msgid "Another mesh boolean operation is running. Please try again after it finishes."
-msgstr "Một thao tác Boolean khác trên lưới đang được thực hiện. Vui lòng thử lại sau khi quá trình hoàn tất."
 
 msgid "Computing..."
 msgstr "Đang tính toán..."
@@ -18993,6 +19005,10 @@ msgstr "Sau khi ánh xạ"
 msgid "Original"
 msgstr "Gốc"
 
+#, c-format, boost-format
+msgid "Plate %d"
+msgstr ""
+
 msgid "Filament matching"
 msgstr "Ghép sợi nhựa"
 
@@ -19669,6 +19685,20 @@ msgstr "Chỉ thực hiện các phép toán Boolean trên thực thể."
 
 msgid "This object contains non-part components."
 msgstr "Vật thể này chứa các thành phần không phải bộ phận."
+
+msgid "The selected models need repair before a Boolean operation can be performed."
+msgstr ""
+
+#. TRN: A model name in quotation marks, followed by "Repair now" or "Repaired" in the Mesh Boolean repair list.
+#, boost-format
+msgid "\"%1%\""
+msgstr ""
+
+msgid "Repair now"
+msgstr ""
+
+msgid "Repaired"
+msgstr ""
 
 #, boost-format
 msgid "%1%"
@@ -20655,9 +20685,6 @@ msgstr "Tải vật thể thất bại."
 
 msgid "Repairing object by Windows service"
 msgstr "Đang sửa chữa vật thể bằng dịch vụ Windows"
-
-msgid "Repair failed."
-msgstr "Sửa chữa thất bại."
 
 msgid "Loading repaired objects"
 msgstr "Đang tải vật thể đã sửa chữa"

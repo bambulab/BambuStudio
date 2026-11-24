@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-23 19:25+0800\n"
+"POT-Creation-Date: 2026-11-24 12:12+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: BambuLab Україна\n"
@@ -11003,15 +11003,27 @@ msgstr ""
 msgid "- Part mode: Please select one object with at least two meshes."
 msgstr ""
 
+msgid "Another mesh boolean operation is running. Please try again after it finishes."
+msgstr ""
+
+msgid "The selected part changed before repair could be applied."
+msgstr ""
+
+msgid "Repair failed."
+msgstr "Ремонт не вдалося."
+
+msgid "The repaired mesh is empty."
+msgstr ""
+
+msgid "The repaired mesh still has open or non-manifold edges."
+msgstr ""
+
 msgid "Unable to perform boolean operation on model meshes. You may fix the meshes and try again."
 msgstr ""
 
 #, boost-format
 msgid "Reason: part \"%1%\" does not bound a volume."
 msgstr "Причина: частина “%1%” не обмежує об’єм."
-
-msgid "Another mesh boolean operation is running. Please try again after it finishes."
-msgstr ""
 
 msgid "Computing..."
 msgstr ""
@@ -18761,6 +18773,10 @@ msgstr ""
 msgid "Original"
 msgstr ""
 
+#, c-format, boost-format
+msgid "Plate %d"
+msgstr ""
+
 msgid "Filament matching"
 msgstr ""
 
@@ -19445,6 +19461,20 @@ msgid "Perform Boolean operations on entities only."
 msgstr ""
 
 msgid "This object contains non-part components."
+msgstr ""
+
+msgid "The selected models need repair before a Boolean operation can be performed."
+msgstr ""
+
+#. TRN: A model name in quotation marks, followed by "Repair now" or "Repaired" in the Mesh Boolean repair list.
+#, boost-format
+msgid "\"%1%\""
+msgstr ""
+
+msgid "Repair now"
+msgstr ""
+
+msgid "Repaired"
 msgstr ""
 
 #, boost-format
@@ -20405,9 +20435,6 @@ msgstr "Не вдалося завантажити об'єкти."
 
 msgid "Repairing object by Windows service"
 msgstr "Відновлення об'єкта службою Windows"
-
-msgid "Repair failed."
-msgstr "Ремонт не вдалося."
 
 msgid "Loading repaired objects"
 msgstr "Завантаження відремонтованих об'єктів"

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-23 19:25+0800\n"
+"POT-Creation-Date: 2026-11-24 12:12+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -11084,15 +11084,27 @@ msgstr "- 객체 모드: 최소 두 개의 객체를 선택하세요."
 msgid "- Part mode: Please select one object with at least two meshes."
 msgstr "- 부품 모드: 메시가 두 개 이상인 객체 하나를 선택하세요."
 
+msgid "Another mesh boolean operation is running. Please try again after it finishes."
+msgstr "다른 메시 부울 연산이 실행 중입니다. 완료되면 다시 시도해 주세요."
+
+msgid "The selected part changed before repair could be applied."
+msgstr ""
+
+msgid "Repair failed."
+msgstr "오류수정 실패"
+
+msgid "The repaired mesh is empty."
+msgstr ""
+
+msgid "The repaired mesh still has open or non-manifold edges."
+msgstr ""
+
 msgid "Unable to perform boolean operation on model meshes. You may fix the meshes and try again."
 msgstr "모델 메시에서 부울 연산을 수행할 수 없습니다. 메시를 수정하고 다시 시도해 보세요."
 
 #, boost-format
 msgid "Reason: part \"%1%\" does not bound a volume."
 msgstr "이유: 파트 \"%1%\"이 볼륨을 바인딩하지 않습니다."
-
-msgid "Another mesh boolean operation is running. Please try again after it finishes."
-msgstr "다른 메시 부울 연산이 실행 중입니다. 완료되면 다시 시도해 주세요."
 
 msgid "Computing..."
 msgstr "계산 중..."
@@ -18991,6 +19003,10 @@ msgstr "매핑 후"
 msgid "Original"
 msgstr "원본"
 
+#, c-format, boost-format
+msgid "Plate %d"
+msgstr ""
+
 msgid "Filament matching"
 msgstr "필라멘트 매칭"
 
@@ -19669,6 +19685,20 @@ msgstr "엔티티에 대해서만 불리언 연산 수행."
 
 msgid "This object contains non-part components."
 msgstr "이 객체에는 비부품 구성 요소가 포함되어 있습니다."
+
+msgid "The selected models need repair before a Boolean operation can be performed."
+msgstr ""
+
+#. TRN: A model name in quotation marks, followed by "Repair now" or "Repaired" in the Mesh Boolean repair list.
+#, boost-format
+msgid "\"%1%\""
+msgstr ""
+
+msgid "Repair now"
+msgstr ""
+
+msgid "Repaired"
+msgstr ""
 
 #, boost-format
 msgid "%1%"
@@ -20655,9 +20685,6 @@ msgstr "객체 불러오기에 실패했습니다."
 
 msgid "Repairing object by Windows service"
 msgstr "Windows 서비스로 객체 복구"
-
-msgid "Repair failed."
-msgstr "오류수정 실패"
 
 msgid "Loading repaired objects"
 msgstr "복구된 객체 불러오기"

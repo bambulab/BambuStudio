@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-23 19:25+0800\n"
+"POT-Creation-Date: 2026-11-24 12:12+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -11083,15 +11083,27 @@ msgstr "- Objectmodus: Selecteer minstens twee objecten."
 msgid "- Part mode: Please select one object with at least two meshes."
 msgstr "- Deelmethode: Selecteer alstublieft één object met minstens twee meshes."
 
+msgid "Another mesh boolean operation is running. Please try again after it finishes."
+msgstr "Er wordt al een andere booleaanse meshbewerking uitgevoerd. Probeer het na afloop opnieuw."
+
+msgid "The selected part changed before repair could be applied."
+msgstr ""
+
+msgid "Repair failed."
+msgstr "Repareren mislukt."
+
+msgid "The repaired mesh is empty."
+msgstr ""
+
+msgid "The repaired mesh still has open or non-manifold edges."
+msgstr ""
+
 msgid "Unable to perform boolean operation on model meshes. You may fix the meshes and try again."
 msgstr "Booleaanse bewerking kan niet worden uitgevoerd op modelnetten. U kunt de mazen repareren en het opnieuw proberen."
 
 #, boost-format
 msgid "Reason: part \"%1%\" does not bound a volume."
 msgstr "Reden: deel \"%1%\" is niet gebonden aan een volume."
-
-msgid "Another mesh boolean operation is running. Please try again after it finishes."
-msgstr "Er wordt al een andere booleaanse meshbewerking uitgevoerd. Probeer het na afloop opnieuw."
 
 msgid "Computing..."
 msgstr "Bezig met berekenen..."
@@ -18993,6 +19005,10 @@ msgstr "Na het toewijzen"
 msgid "Original"
 msgstr "Origineel"
 
+#, c-format, boost-format
+msgid "Plate %d"
+msgstr ""
+
 msgid "Filament matching"
 msgstr "Filamentafstemming"
 
@@ -19676,6 +19692,20 @@ msgstr "Voer alleen Booleaanse bewerkingen uit op entiteiten."
 
 msgid "This object contains non-part components."
 msgstr "Dit object bevat niet-onderdeel componenten."
+
+msgid "The selected models need repair before a Boolean operation can be performed."
+msgstr ""
+
+#. TRN: A model name in quotation marks, followed by "Repair now" or "Repaired" in the Mesh Boolean repair list.
+#, boost-format
+msgid "\"%1%\""
+msgstr ""
+
+msgid "Repair now"
+msgstr ""
+
+msgid "Repaired"
+msgstr ""
 
 #, boost-format
 msgid "%1%"
@@ -20662,9 +20692,6 @@ msgstr "Het is niet gelukt om de objecten te laden."
 
 msgid "Repairing object by Windows service"
 msgstr "Het object repareren middels de Windows Service"
-
-msgid "Repair failed."
-msgstr "Repareren mislukt."
 
 msgid "Loading repaired objects"
 msgstr "Gerepareerde objecten worden geladen"

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-23 19:25+0800\n"
+"POT-Creation-Date: 2026-11-24 12:12+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -11087,15 +11087,27 @@ msgstr "- Modo objeto: Por favor, seleccione al menos dos objetos."
 msgid "- Part mode: Please select one object with at least two meshes."
 msgstr "- Modo de pieza: Por favor, seleccione un objeto con al menos dos mallas."
 
+msgid "Another mesh boolean operation is running. Please try again after it finishes."
+msgstr "Se está ejecutando otra operación booleana de malla. Vuelve a intentarlo cuando finalice."
+
+msgid "The selected part changed before repair could be applied."
+msgstr ""
+
+msgid "Repair failed."
+msgstr "La reparación no ha funcionado."
+
+msgid "The repaired mesh is empty."
+msgstr ""
+
+msgid "The repaired mesh still has open or non-manifold edges."
+msgstr ""
+
 msgid "Unable to perform boolean operation on model meshes. You may fix the meshes and try again."
 msgstr "No se puede realizar una operación booleana en las mallas del modelo. Puede reparar las mallas e intentarlo nuevamente."
 
 #, boost-format
 msgid "Reason: part \"%1%\" does not bound a volume."
 msgstr "Motivo: la parte %1% \"\" no encuadena un volumen."
-
-msgid "Another mesh boolean operation is running. Please try again after it finishes."
-msgstr "Se está ejecutando otra operación booleana de malla. Vuelve a intentarlo cuando finalice."
 
 msgid "Computing..."
 msgstr "Calculando..."
@@ -19001,6 +19013,10 @@ msgstr "Tras el mapeo"
 msgid "Original"
 msgstr ""
 
+#, c-format, boost-format
+msgid "Plate %d"
+msgstr ""
+
 msgid "Filament matching"
 msgstr "Coincidencia de filamentos"
 
@@ -19682,6 +19698,20 @@ msgstr "Realizar operaciones booleanas solo en entidades."
 
 msgid "This object contains non-part components."
 msgstr "Este objeto contiene componentes que no son piezas."
+
+msgid "The selected models need repair before a Boolean operation can be performed."
+msgstr ""
+
+#. TRN: A model name in quotation marks, followed by "Repair now" or "Repaired" in the Mesh Boolean repair list.
+#, boost-format
+msgid "\"%1%\""
+msgstr ""
+
+msgid "Repair now"
+msgstr ""
+
+msgid "Repaired"
+msgstr ""
 
 #, boost-format
 msgid "%1%"
@@ -20668,9 +20698,6 @@ msgstr "Ha fallado la carga de objetos."
 
 msgid "Repairing object by Windows service"
 msgstr "Reparación del objeto por el servicio de Windows"
-
-msgid "Repair failed."
-msgstr "La reparación no ha funcionado."
 
 msgid "Loading repaired objects"
 msgstr "Carga de objetos reparados"

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-23 19:25+0800\n"
+"POT-Creation-Date: 2026-11-24 12:12+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -11076,15 +11076,27 @@ msgstr "- Objektläge: Välj minst två objekt."
 msgid "- Part mode: Please select one object with at least two meshes."
 msgstr "- Delläge: Välj ett objekt med minst två meshes."
 
+msgid "Another mesh boolean operation is running. Please try again after it finishes."
+msgstr "En annan boolesk mesh-operation körs. Försök igen när den är klar."
+
+msgid "The selected part changed before repair could be applied."
+msgstr ""
+
+msgid "Repair failed."
+msgstr "Reparation misslyckades."
+
+msgid "The repaired mesh is empty."
+msgstr ""
+
+msgid "The repaired mesh still has open or non-manifold edges."
+msgstr ""
+
 msgid "Unable to perform boolean operation on model meshes. You may fix the meshes and try again."
 msgstr "Det går inte att utföra booleansk åtgärd på modell meshen. Du kan fixa meshen och försöka igen."
 
 #, boost-format
 msgid "Reason: part \"%1%\" does not bound a volume."
 msgstr "Orsak: del %1% \"\" binder inte en volym."
-
-msgid "Another mesh boolean operation is running. Please try again after it finishes."
-msgstr "En annan boolesk mesh-operation körs. Försök igen när den är klar."
 
 msgid "Computing..."
 msgstr "Beräknar..."
@@ -18983,6 +18995,10 @@ msgstr "Efter mappning"
 msgid "Original"
 msgstr ""
 
+#, c-format, boost-format
+msgid "Plate %d"
+msgstr ""
+
 msgid "Filament matching"
 msgstr "Filamentmatchning"
 
@@ -19664,6 +19680,20 @@ msgstr "Utför booleska operationer enbart på enheter."
 
 msgid "This object contains non-part components."
 msgstr "Detta objekt innehåller komponenter som inte är delar."
+
+msgid "The selected models need repair before a Boolean operation can be performed."
+msgstr ""
+
+#. TRN: A model name in quotation marks, followed by "Repair now" or "Repaired" in the Mesh Boolean repair list.
+#, boost-format
+msgid "\"%1%\""
+msgstr ""
+
+msgid "Repair now"
+msgstr ""
+
+msgid "Repaired"
+msgstr ""
 
 #, boost-format
 msgid "%1%"
@@ -20648,9 +20678,6 @@ msgstr "Misslyckades att ladda objekten."
 
 msgid "Repairing object by Windows service"
 msgstr "Reparerar objekt med Windows service"
-
-msgid "Repair failed."
-msgstr "Reparation misslyckades."
 
 msgid "Loading repaired objects"
 msgstr "Laddar de reparerade objekten"

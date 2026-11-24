@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-23 19:25+0800\n"
+"POT-Creation-Date: 2026-11-24 12:12+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -10838,21 +10838,19 @@ msgstr ""
 msgid "Mesh Boolean"
 msgstr ""
 
-msgid "The selected models need repair before a Boolean operation can be performed."
+msgid "- Object mode: Please select at least two objects."
 msgstr ""
 
-#. TRN: A model name in quotation marks, followed by "Repair now" or "Repaired" in the Mesh Boolean repair list.
-#, possible-boost-format
-msgid "\"%1%\""
+msgid "- Part mode: Please select one object with at least two meshes."
 msgstr ""
 
-msgid "Repair now"
-msgstr ""
-
-msgid "Repaired"
+msgid "Another mesh boolean operation is running. Please try again after it finishes."
 msgstr ""
 
 msgid "The selected part changed before repair could be applied."
+msgstr ""
+
+msgid "Repair failed."
 msgstr ""
 
 msgid "The repaired mesh is empty."
@@ -10861,20 +10859,11 @@ msgstr ""
 msgid "The repaired mesh still has open or non-manifold edges."
 msgstr ""
 
-msgid "- Object mode: Please select at least two objects."
-msgstr ""
-
-msgid "- Part mode: Please select one object with at least two meshes."
-msgstr ""
-
 msgid "Unable to perform boolean operation on model meshes. You may fix the meshes and try again."
 msgstr ""
 
 #, possible-boost-format
 msgid "Reason: part \"%1%\" does not bound a volume."
-msgstr ""
-
-msgid "Another mesh boolean operation is running. Please try again after it finishes."
 msgstr ""
 
 msgid "Computing..."
@@ -18560,6 +18549,10 @@ msgstr ""
 msgid "Original"
 msgstr ""
 
+#, possible-c-format, possible-boost-format
+msgid "Plate %d"
+msgstr ""
+
 msgid "Filament matching"
 msgstr ""
 
@@ -19229,6 +19222,20 @@ msgid "Perform Boolean operations on entities only."
 msgstr ""
 
 msgid "This object contains non-part components."
+msgstr ""
+
+msgid "The selected models need repair before a Boolean operation can be performed."
+msgstr ""
+
+#. TRN: A model name in quotation marks, followed by "Repair now" or "Repaired" in the Mesh Boolean repair list.
+#, possible-boost-format
+msgid "\"%1%\""
+msgstr ""
+
+msgid "Repair now"
+msgstr ""
+
+msgid "Repaired"
 msgstr ""
 
 #, possible-boost-format
@@ -20177,9 +20184,6 @@ msgid "Failed loading objects."
 msgstr ""
 
 msgid "Repairing object by Windows service"
-msgstr ""
-
-msgid "Repair failed."
 msgstr ""
 
 msgid "Loading repaired objects"

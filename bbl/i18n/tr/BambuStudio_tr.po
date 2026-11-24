@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-23 19:25+0800\n"
+"POT-Creation-Date: 2026-11-24 12:12+0800\n"
 "PO-Revision-Date: 2025-10-16 12:27+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -11081,15 +11081,27 @@ msgstr "- Nesne modu: Lütfen en az iki nesne seç."
 msgid "- Part mode: Please select one object with at least two meshes."
 msgstr "- Parça modu: Lütfen en az iki mesh içeren bir nesne seç."
 
+msgid "Another mesh boolean operation is running. Please try again after it finishes."
+msgstr "Başka bir Mesh Boole işlemi devam ediyor. Lütfen işlem tamamlandıktan sonra tekrar deneyin."
+
+msgid "The selected part changed before repair could be applied."
+msgstr ""
+
+msgid "Repair failed."
+msgstr "Onarım başarısız oldu."
+
+msgid "The repaired mesh is empty."
+msgstr ""
+
+msgid "The repaired mesh still has open or non-manifold edges."
+msgstr ""
+
 msgid "Unable to perform boolean operation on model meshes. You may fix the meshes and try again."
 msgstr "Model meshleri üzerinde Boole işlemi gerçekleştirilemiyor. Meshleri düzeltebilir ve tekrar deneyebilirsin."
 
 #, boost-format
 msgid "Reason: part \"%1%\" does not bound a volume."
 msgstr "Neden: \"%1%\" parçası bir hacmi çevrelemiyor."
-
-msgid "Another mesh boolean operation is running. Please try again after it finishes."
-msgstr "Başka bir Mesh Boole işlemi devam ediyor. Lütfen işlem tamamlandıktan sonra tekrar deneyin."
 
 msgid "Computing..."
 msgstr "Hesaplanıyor..."
@@ -18993,6 +19005,10 @@ msgstr "Eşleştirmeden sonra"
 msgid "Original"
 msgstr "Orijinal"
 
+#, c-format, boost-format
+msgid "Plate %d"
+msgstr ""
+
 msgid "Filament matching"
 msgstr "Filament eşleştirme"
 
@@ -19676,6 +19692,20 @@ msgstr "Yalnızca varlıklar üzerinde Boolean işlemleri gerçekleştirin."
 
 msgid "This object contains non-part components."
 msgstr "Bu nesne, parça olmayan bileşenler içermektedir."
+
+msgid "The selected models need repair before a Boolean operation can be performed."
+msgstr ""
+
+#. TRN: A model name in quotation marks, followed by "Repair now" or "Repaired" in the Mesh Boolean repair list.
+#, boost-format
+msgid "\"%1%\""
+msgstr ""
+
+msgid "Repair now"
+msgstr ""
+
+msgid "Repaired"
+msgstr ""
 
 #, boost-format
 msgid "%1%"
@@ -20658,9 +20688,6 @@ msgstr "Nesneler yüklenemedi."
 
 msgid "Repairing object by Windows service"
 msgstr "Nesne Windows hizmetiyle onarılıyor"
-
-msgid "Repair failed."
-msgstr "Onarım başarısız oldu."
 
 msgid "Loading repaired objects"
 msgstr "Onarılan nesneler yükleniyor"

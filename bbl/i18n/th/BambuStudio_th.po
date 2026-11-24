@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-23 19:25+0800\n"
+"POT-Creation-Date: 2026-11-24 12:12+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -11083,15 +11083,27 @@ msgstr "- โหมดวัตถุ: โปรดเลือกวัตถ�
 msgid "- Part mode: Please select one object with at least two meshes."
 msgstr "- โหมดชิ้นส่วน: โปรดเลือกวัตถุหนึ่งชิ้นที่มีอย่างน้อยสองเมช"
 
+msgid "Another mesh boolean operation is running. Please try again after it finishes."
+msgstr "กำลังดำเนินการทำงานเมชบูลีนอื่นอยู่ โปรดลองใหม่อีกครั้งหลังจากเสร็จสิ้น"
+
+msgid "The selected part changed before repair could be applied."
+msgstr ""
+
+msgid "Repair failed."
+msgstr "การซ่อมแซมล้มเหลว"
+
+msgid "The repaired mesh is empty."
+msgstr ""
+
+msgid "The repaired mesh still has open or non-manifold edges."
+msgstr ""
+
 msgid "Unable to perform boolean operation on model meshes. You may fix the meshes and try again."
 msgstr "ไม่สามารถดำเนินการบูลีนกับเมชโมเดล คุณอาจต้องซ่อมแซมเมชแล้วลองอีกครั้ง"
 
 #, boost-format
 msgid "Reason: part \"%1%\" does not bound a volume."
 msgstr "เหตุผล: ชิ้นส่วน \"%1%\" ไม่ปิดล้อมเป็นปริมาตร"
-
-msgid "Another mesh boolean operation is running. Please try again after it finishes."
-msgstr "กำลังดำเนินการทำงานเมชบูลีนอื่นอยู่ โปรดลองใหม่อีกครั้งหลังจากเสร็จสิ้น"
 
 msgid "Computing..."
 msgstr "กำลังประมวลผล..."
@@ -18990,6 +19002,10 @@ msgstr "หลังจับคู่"
 msgid "Original"
 msgstr "ต้นฉบับ"
 
+#, c-format, boost-format
+msgid "Plate %d"
+msgstr ""
+
 msgid "Filament matching"
 msgstr "การจับคู่เส้นวัสดุ"
 
@@ -19666,6 +19682,20 @@ msgstr "ดำเนินการบูลีนกับเอนทิตี
 
 msgid "This object contains non-part components."
 msgstr "วัตถุนี้มีส่วนประกอบที่ไม่ใช่ชิ้นส่วน"
+
+msgid "The selected models need repair before a Boolean operation can be performed."
+msgstr ""
+
+#. TRN: A model name in quotation marks, followed by "Repair now" or "Repaired" in the Mesh Boolean repair list.
+#, boost-format
+msgid "\"%1%\""
+msgstr ""
+
+msgid "Repair now"
+msgstr ""
+
+msgid "Repaired"
+msgstr ""
 
 #, boost-format
 msgid "%1%"
@@ -20652,9 +20682,6 @@ msgstr "โหลดวัตถุล้มเหลว"
 
 msgid "Repairing object by Windows service"
 msgstr "กำลังซ่อมแซมวัตถุด้วยบริการของ Windows"
-
-msgid "Repair failed."
-msgstr "การซ่อมแซมล้มเหลว"
 
 msgid "Loading repaired objects"
 msgstr "กำลังโหลดวัตถุที่ซ่อมแซม"

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-23 19:25+0800\n"
+"POT-Creation-Date: 2026-11-24 12:12+0800\n"
 "PO-Revision-Date: 2026-07-28 13:17+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -9049,7 +9049,7 @@ msgid "Regroup filament"
 msgstr "重新分组"
 
 msgid "Please place filaments on the printer based on grouping result."
-msgstr "请按上述分组结果到打印机放置耗材"
+msgstr "请按上述分组结果到打印机放置耗材。"
 
 msgid "Filament Grouping"
 msgstr "耗材分组"
@@ -11055,34 +11055,26 @@ msgstr "网格准备失败。"
 msgid "Mesh Boolean"
 msgstr "布尔运算"
 
-msgid "The selected models need repair before a Boolean operation can be performed."
-msgstr "选中模型未修复，无法进行布尔运算，请修复后再进行布尔运算。"
-
-#. TRN: A model name in quotation marks, followed by "Repair now" or "Repaired" in the Mesh Boolean repair list.
-#, boost-format
-msgid "\"%1%\""
-msgstr "“%1%”"
-
-msgid "Repair now"
-msgstr "立即修复"
-
-msgid "Repaired"
-msgstr "已修复"
-
-msgid "The selected part changed before repair could be applied."
-msgstr "选中的零件已变化，未应用修复结果。"
-
-msgid "The repaired mesh is empty."
-msgstr "修复后的网格为空。"
-
-msgid "The repaired mesh still has open or non-manifold edges."
-msgstr "修复后的网格仍有开放边或非流形边。"
-
 msgid "- Object mode: Please select at least two objects."
 msgstr "- 对象模式：请至少选择两个对象。"
 
 msgid "- Part mode: Please select one object with at least two meshes."
 msgstr "- 零件模式：请选择一个包含至少两个零件的对象。"
+
+msgid "Another mesh boolean operation is running. Please try again after it finishes."
+msgstr "另一个网格布尔操作正在进行，请在其完成后重试。"
+
+msgid "The selected part changed before repair could be applied."
+msgstr "选中的零件已变化，未应用修复结果。"
+
+msgid "Repair failed."
+msgstr "修复失败。"
+
+msgid "The repaired mesh is empty."
+msgstr "修复后的网格为空。"
+
+msgid "The repaired mesh still has open or non-manifold edges."
+msgstr " 修复后的网格仍有开放边或非流形边。"
 
 msgid "Unable to perform boolean operation on model meshes. You may fix the meshes and try again."
 msgstr "无法对模型网格执行布尔运算。您可以修复网格，然后重试。"
@@ -11090,9 +11082,6 @@ msgstr "无法对模型网格执行布尔运算。您可以修复网格，然后
 #, boost-format
 msgid "Reason: part \"%1%\" does not bound a volume."
 msgstr "原因：零件\"%1%\"没有封闭一个体积。"
-
-msgid "Another mesh boolean operation is running. Please try again after it finishes."
-msgstr "另一个网格布尔操作正在进行，请在其完成后重试。"
 
 msgid "Computing..."
 msgstr "正在执行网格布尔运算…"
@@ -18966,6 +18955,10 @@ msgstr "匹配后"
 msgid "Original"
 msgstr "原项目"
 
+#, c-format, boost-format
+msgid "Plate %d"
+msgstr "第%d盘"
+
 msgid "Filament matching"
 msgstr "耗材匹配"
 
@@ -19646,6 +19639,20 @@ msgstr "仅对实体执行布尔运算。"
 
 msgid "This object contains non-part components."
 msgstr "该对象包含非实体零件。"
+
+msgid "The selected models need repair before a Boolean operation can be performed."
+msgstr "选中模型未修复，无法进行布尔运算，请修复后再进行布尔运算。"
+
+#. TRN: A model name in quotation marks, followed by "Repair now" or "Repaired" in the Mesh Boolean repair list.
+#, boost-format
+msgid "\"%1%\""
+msgstr " “%1%”"
+
+msgid "Repair now"
+msgstr "立即修复"
+
+msgid "Repaired"
+msgstr "已修复"
 
 #, boost-format
 msgid "%1%"
@@ -20626,9 +20633,6 @@ msgstr "加载对象失败。"
 
 msgid "Repairing object by Windows service"
 msgstr "通过Windows服务修复对象"
-
-msgid "Repair failed."
-msgstr "修复失败。"
 
 msgid "Loading repaired objects"
 msgstr "正在加载修复的对象。"
@@ -28425,9 +28429,6 @@ msgstr ""
 
 #~ msgid "Invalid plate index %d"
 #~ msgstr "无效的盘索引 %d"
-
-#~ msgid "Plate %d"
-#~ msgstr "盘 %d"
 
 #~ msgid "Start printing..."
 #~ msgstr "开始打印..."

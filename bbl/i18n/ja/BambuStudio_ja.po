@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-23 19:25+0800\n"
+"POT-Creation-Date: 2026-11-24 12:12+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -11079,15 +11079,27 @@ msgstr "- オブジェクトモード：2つ以上のオブジェクトを選択
 msgid "- Part mode: Please select one object with at least two meshes."
 msgstr "- パーツモード: 2つ以上のメッシュを含む1つのオブジェクトを選択してください。"
 
+msgid "Another mesh boolean operation is running. Please try again after it finishes."
+msgstr "別のメッシュブール演算が実行中です。完了してから再試行してください。"
+
+msgid "The selected part changed before repair could be applied."
+msgstr ""
+
+msgid "Repair failed."
+msgstr "修復が失敗しました"
+
+msgid "The repaired mesh is empty."
+msgstr ""
+
+msgid "The repaired mesh still has open or non-manifold edges."
+msgstr ""
+
 msgid "Unable to perform boolean operation on model meshes. You may fix the meshes and try again."
 msgstr "モデルのメッシュに対してブーリアン演算を実行できません。メッシュを修正して再試行してください。"
 
 #, boost-format
 msgid "Reason: part \"%1%\" does not bound a volume."
 msgstr "理由: パーツ 「%1%」 はボリュームを囲んでいません。"
-
-msgid "Another mesh boolean operation is running. Please try again after it finishes."
-msgstr "別のメッシュブール演算が実行中です。完了してから再試行してください。"
 
 msgid "Computing..."
 msgstr "計算中..."
@@ -18963,6 +18975,10 @@ msgstr "マッピング後"
 msgid "Original"
 msgstr "オリジナル"
 
+#, c-format, boost-format
+msgid "Plate %d"
+msgstr ""
+
 msgid "Filament matching"
 msgstr "フィラメントマッチング"
 
@@ -19633,6 +19649,20 @@ msgstr "ブール演算はエンティティに対してのみ実行されます
 
 msgid "This object contains non-part components."
 msgstr "このオブジェクトには、パーツ以外の要素が含まれています。"
+
+msgid "The selected models need repair before a Boolean operation can be performed."
+msgstr ""
+
+#. TRN: A model name in quotation marks, followed by "Repair now" or "Repaired" in the Mesh Boolean repair list.
+#, boost-format
+msgid "\"%1%\""
+msgstr ""
+
+msgid "Repair now"
+msgstr ""
+
+msgid "Repaired"
+msgstr ""
 
 #, boost-format
 msgid "%1%"
@@ -20615,9 +20645,6 @@ msgstr "オブジェクトをロードできませんでした"
 
 msgid "Repairing object by Windows service"
 msgstr "Windowsサービスでオブジェクトを修復"
-
-msgid "Repair failed."
-msgstr "修復が失敗しました"
 
 msgid "Loading repaired objects"
 msgstr "修復されたオブジェクトをロード"
