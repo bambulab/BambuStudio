@@ -63,3 +63,12 @@ endif()
 set_property(TARGET periodic_modifier_tests PROPERTY FOLDER "tests")
 add_test(periodic_modifier_tests periodic_modifier_tests ${CATCH_EXTRA_ARGS})
 
+add_executable(painted_infill_tests
+    fff_print_tests.cpp
+    test_painted_infill.cpp
+    ${PROJECT_SOURCE_DIR}/src/slic3r/Utils/Http.cpp
+    ${PROJECT_SOURCE_DIR}/src/slic3r/Utils/BBLUtil.cpp
+)
+target_link_libraries(painted_infill_tests test_common libslic3r libcurl OpenSSL::SSL OpenSSL::Crypto)
+set_property(TARGET painted_infill_tests PROPERTY FOLDER "tests")
+add_test(painted_infill_tests painted_infill_tests ${CATCH_EXTRA_ARGS})
