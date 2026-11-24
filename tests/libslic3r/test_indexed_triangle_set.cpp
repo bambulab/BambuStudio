@@ -1,8 +1,16 @@
+#include <cmath>
+#include <cstdint>
 #include <iostream>
 #include <fstream>
+#include <numeric>
+#include <vector>
 #include <catch2/catch.hpp>
 
+#include "libslic3r/Model.hpp"
+#include "libslic3r/PaintReproject.hpp"
+#include "libslic3r/QuadricEdgeCollapse.hpp"
 #include "libslic3r/TriangleMesh.hpp"
+#include "libslic3r/TriangleSelector.hpp"
 
 using namespace Slic3r;
 
@@ -308,4 +316,66 @@ TEST_CASE("Simplified cube should not be empty.", "[its]")
     uint32_t wanted_count = 0;
     its_quadric_edge_collapse(its, wanted_count, &max_error);
     CHECK(!its.indices.empty());
+}
+
+TEST_CASE("QEM reports surviving face provenance", "[its]")
+{
+    auto its = its_make_cube(1., 1., 1.);
+    const size_t original_faces = its.indices.size();
+    std::vector<int32_t> src_face;
+    float max_error = std::numeric_limits<float>::max();
+    its_quadric_edge_collapse(its, /*triangle_count=*/4, &max_error, nullptr, nullptr, &src_face);
+    REQUIRE(src_face.size() == its.indices.size());
+    REQUIRE(its.indices.size() < original_faces);
+    for (int32_t si : src_face) {
+        CHECK(si >= 0);
+        CHECK(size_t(si) < original_faces);
+    }
+}
+
+TEST_CASE("Shell-aware paint transfer keeps interpenetrating shells isolated", "[its][paint]")
+{
+    // Two unit cubes that share volume but not edges: the whole-mesh geometric
+    // slab lets the larger paint state bleed onto the other shell; shell-aware
+    // transfer with a face map must keep each face's own color.
+    indexed_triangle_set a = its_make_cube(1., 1., 1.);
+    indexed_triangle_set b = its_make_cube(1., 1., 1.);
+    for (Vec3f &v : b.vertices)
+        v += Vec3f(0.5f, 0.5f, 0.5f);
+    const size_t a_faces = a.indices.size();
+    its_merge(a, b);
+    REQUIRE(its_number_of_patches(a) == 2);
+
+    TriangleMesh mesh(a);
+    TriangleSelector painted(mesh);
+    for (size_t i = 0; i < a_faces; ++i)
+        painted.set_facet(int(i), EnforcerBlockerType::Extruder1);
+    for (size_t i = a_faces; i < mesh.its.indices.size(); ++i)
+        painted.set_facet(int(i), EnforcerBlockerType::Extruder2);
+
+    PaintKeepPrepared src;
+    REQUIRE(src.mmu.set(painted));
+
+    std::vector<int32_t> identity(mesh.its.indices.size());
+    std::iota(identity.begin(), identity.end(), int32_t(0));
+
+    PaintKeepPrepared dst;
+    REQUIRE(reproject_paint_geometric(
+        mesh, src.supported, src.seam, src.mmu, src.fuzzy,
+        mesh, Transform3d::Identity(),
+        dst.supported, dst.seam, dst.mmu, dst.fuzzy,
+        nullptr, nullptr, nullptr, &identity));
+
+    TriangleSelector result(mesh);
+    result.deserialize(dst.mmu.get_data(), false);
+    const auto &tris = result.get_triangles();
+    REQUIRE(tris.size() >= mesh.its.indices.size());
+    for (size_t i = 0; i < a_faces; ++i) {
+        REQUIRE(!tris[i].is_split());
+        CHECK(tris[i].get_state() == EnforcerBlockerType::Extruder1);
+    }
+    for (size_t i = a_faces; i < mesh.its.indices.size(); ++i) {
+        REQUIRE(!tris[i].is_split());
+        CHECK(tris[i].get_state() == EnforcerBlockerType::Extruder2);
+    }
 }

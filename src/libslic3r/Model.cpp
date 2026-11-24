@@ -3282,7 +3282,8 @@ void ModelVolume::reset_extra_facets() {
 bool ModelVolume::reproject_paint_keep(const TriangleMesh &new_mesh,
                                        PaintKeepPrepared &out,
                                        const std::function<void(int, const char *)> &progress,
-                                       const std::function<bool()> &cancel) const
+                                       const std::function<bool()> &cancel,
+                                       const std::vector<int32_t> *dst_to_src_face) const
 {
     // Repair rebuilds the triangulation in place: the old and new meshes share the
     // volume-local frame, so re-project the four painted annotation layers onto the
@@ -3308,7 +3309,7 @@ bool ModelVolume::reproject_paint_keep(const TriangleMesh &new_mesh,
         this->mmu_segmentation_facets, this->fuzzy_skin_facets,
         new_mesh, Transform3d::Identity(),
         out.supported, out.seam, out.mmu, out.fuzzy,
-        progress, cancel, &dst_world_matrix);
+        progress, cancel, &dst_world_matrix, dst_to_src_face);
 }
 
 void ModelVolume::commit_mesh_keep_paint(PaintKeepPrepared &&prepared)

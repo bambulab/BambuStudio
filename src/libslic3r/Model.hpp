@@ -1058,10 +1058,13 @@ public:
     // reproject_paint_keep fills out's annotation layers from the current mesh/paint
     // onto new_mesh WITHOUT mutating this volume (out.mesh is left untouched); returns
     // false if canceled (out annotations are then unspecified).
+    // dst_to_src_face optionally maps each new_mesh face to a face of this volume's
+    // mesh so multi-shell paint transfer stays within connected components.
     bool                reproject_paint_keep(const TriangleMesh &new_mesh,
                                              PaintKeepPrepared &out,
                                              const std::function<void(int, const char *)> &progress = nullptr,
-                                             const std::function<bool()> &cancel = nullptr) const;
+                                             const std::function<bool()> &cancel = nullptr,
+                                             const std::vector<int32_t> *dst_to_src_face = nullptr) const;
     // Commits a previously computed new mesh and its re-projected paint layers.
     void                commit_mesh_keep_paint(PaintKeepPrepared &&prepared);
     ModelMaterial*      material() const;
