@@ -10,6 +10,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <cstdio>
 
 #include <boost/filesystem.hpp>
 
@@ -18,6 +19,8 @@
 #ifdef __APPLE__
     #include <boost/process/spawn.hpp>
     #include <boost/process/args.hpp>
+    #include <boost/process/handles.hpp>
+    #include <boost/process/io.hpp>
 #endif
 
 #include <wx/stdpaths.h>
@@ -75,7 +78,13 @@ static void start_new_slicer_or_gcodeviewer(const NewSlicerInstanceType instance
 				args.emplace_back("--gcodeviewer");
 			if (instance_type == NewSlicerInstanceType::Slicer && single_instance)
 				args.emplace_back("--single-instance");
-			boost::process::spawn(bin_path, args);
+			// A new instance must not inherit the current instance's printer sockets
+			// or discovery listeners. Preserve standard streams for command-line launches.
+			boost::process::spawn(bin_path, args,
+				boost::process::std_in < stdin,
+				boost::process::std_out > stdout,
+				boost::process::std_err > stderr,
+				boost::process::limit_handles);
 		}
 		catch (const std::exception& ex) {
 			BOOST_LOG_TRIVIAL(error) << "Failed to spawn a new slicer \"" << bin_path.string() << "\": " << ex.what();
