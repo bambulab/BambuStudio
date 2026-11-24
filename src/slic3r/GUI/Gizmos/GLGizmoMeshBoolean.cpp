@@ -1978,11 +1978,13 @@ GLGizmoMeshBoolean::GLGizmoMeshBoolean(GLCanvas3D& parent, unsigned int sprite_i
 
 }
 
-GLGizmoMeshBoolean::~GLGizmoMeshBoolean()
-{
-    restore_list_color_overrides();
-    m_volume_manager.clear_all();
-}
+// Must not touch m_parent here. GLCanvas3D declares m_gizmos before m_volumes and m_selection,
+// so both are already destroyed when the gizmos go. Clearing the color overrides here ran
+// unordered_map::clear() on the destroyed map and freed its nodes a second time whenever the
+// gizmo was still open, e.g. switching language right after a part-mode boolean. The overrides
+// live in the canvas and go with it; closing the gizmo (on_set_state, close_from_render) still
+// restores them.
+GLGizmoMeshBoolean::~GLGizmoMeshBoolean() = default;
 
 
 // ========================== EVENT HANDLING ==========================

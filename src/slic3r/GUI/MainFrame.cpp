@@ -1259,6 +1259,12 @@ void MainFrame::shutdown()
 #endif // _WIN32
 
     if (m_plater != nullptr) {
+        // Footprint for crashes in the deferred canvas and gizmo teardown that follows.
+        if (GLCanvas3D *canvas = m_plater->get_view3D_canvas3D())
+            BOOST_LOG_TRIVIAL(info) << KV(log_key::gizmo, GLGizmosManager::convert_gizmo_type_to_string(
+                                             canvas->get_gizmos_manager().get_current_type()))
+                                    << "tear down canvases";
+
         m_plater->get_ui_job_worker().cancel_all();
         m_plater->stop_jobs();
 
