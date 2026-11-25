@@ -1893,7 +1893,7 @@ FilamentGroupContext build_filament_group_context(
 
     context.machine_info.machine_filament_info = machine_filament_info;
     context.machine_info.nozzle_loaded_filaments = print->get_nozzle_loaded_filament_info();
-    context.machine_info.max_group_size = std::move(group_size);
+    context.machine_info.max_group_size = group_size;
     context.machine_info.master_extruder_id = print_config.master_extruder_id.value - 1;
     context.machine_info.prefer_non_model_filament = prefer_non_model_filament;
 
