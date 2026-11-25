@@ -197,6 +197,8 @@ void AppConfig::set_defaults()
         set("rotate_sensitivity", "medium");
     if (get("show_shells_in_preview").empty())
         set_bool("show_shells_in_preview", true);
+    if (get("show_center_of_gravity_in_preview").empty())
+        set_bool("show_center_of_gravity_in_preview", false);
     if (get("enable_text_styles").empty())
         set_bool("enable_text_styles", false);
     if (get("use_last_fold_state_gcodeview_option_panel").empty())

@@ -345,6 +345,7 @@ namespace Slic3r {
                 if (m_roles.empty())
                     return;
                 render_toolpaths();
+                render_center_of_gravity_marker();
                 //render_shells();
                 render_legend(m_legend_height, canvas_width, canvas_height, right_margin);
                 if (m_user_mode != wxGetApp().get_mode()) {

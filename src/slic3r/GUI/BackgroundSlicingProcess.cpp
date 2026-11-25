@@ -886,13 +886,16 @@ void BackgroundSlicingProcess::finalize_gcode()
         // by the plate's XY origin, causing the model to appear outside the bed.
         const Vec3d origin = m_fff_print->get_plate_origin();
         processor.set_xy_offset(origin(0), origin(1));
-        processor.process_file(m_temp_output_path);
+        processor.process_file(m_temp_output_path, m_fff_print->full_print_config());
         // extract_result() returns GCodeProcessorResult&&. We can't take a local
         // by value (copy constructor is deleted due to mutable std::mutex member),
         // so bind as an rvalue reference and move fields out directly.
         GCodeProcessorResult&& reparsed = processor.extract_result();
-        m_gcode_result->moves      = std::move(reparsed.moves);
-        m_gcode_result->lines_ends = std::move(reparsed.lines_ends);
+        m_gcode_result->lock();
+        // Keep geometry, extrusion state and material inputs together without
+        // replacing printer/nozzle mapping metadata or the sliced result ID.
+        m_gcode_result->update_moves_from(std::move(reparsed));
+        m_gcode_result->unlock();
     }
 
     m_print->set_status(100, _utf8(L("Successfully executed post-processing script")));
