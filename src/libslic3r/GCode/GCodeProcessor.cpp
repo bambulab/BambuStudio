@@ -6306,7 +6306,8 @@ void GCodeProcessor::store_move_vertex(EMoveType type, EMovePathType path_type)
         //BBS: add plate's offset to the rendering vertices
         Vec3f(m_end_position[X] + m_x_offset, m_end_position[Y] + m_y_offset, m_processing_start_custom_gcode ? m_first_layer_height : m_end_position[Z]) + m_extruder_offsets[filament_id],
         Vec3f(m_arc_center(0, 0) + m_x_offset, m_arc_center(1, 0) + m_y_offset, m_arc_center(2, 0)) + m_extruder_offsets[filament_id],
-        m_interpolation_points,
+        // m_interpolation_points keeps the last arc's points until the next G2/G3, so only an arc move takes them
+        (path_type == EMovePathType::Arc_move_cw || path_type == EMovePathType::Arc_move_ccw) ? m_interpolation_points : std::vector<Vec3f>(),
         m_object_label_id,
         m_print_z,
         m_pa_line_calibration,
