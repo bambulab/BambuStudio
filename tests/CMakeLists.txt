@@ -51,6 +51,7 @@ add_subdirectory(fff_print)
 add_subdirectory(fila_manager)
 add_subdirectory(filament_group)
 add_subdirectory(nozzle_inventory)
+add_subdirectory(device_manager)
 add_subdirectory(libslic3r_utils)
 add_subdirectory(alert_dialog_gallery EXCLUDE_FROM_ALL) # interactive, build explicitly
 

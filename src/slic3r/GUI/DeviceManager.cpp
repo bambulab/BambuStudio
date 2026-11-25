@@ -2547,11 +2547,11 @@ void MachineObject::reset()
     printing_speed_mag = 100;
     gcode_file_prepare_percent = 0;
     iot_print_status = "";
-    print_status = "";
+    { std::lock_guard<std::mutex> lock(m_print_state_mutex); print_status = ""; }
     last_mc_print_stage = -1;
     network_wired = false;
     dev_connection_name = "";
-    job_id_ = "";
+    { std::lock_guard<std::mutex> lock(m_print_state_mutex); job_id_ = ""; }
     jobState_ = 0;
     m_plate_index = -1;
     device_cert_installed = false;
@@ -2580,7 +2580,14 @@ void MachineObject::reset()
 
 void MachineObject::set_print_state(std::string status)
 {
+    std::lock_guard<std::mutex> lock(m_print_state_mutex);
     print_status = status;
+}
+
+MachineObject::PrintStateSnapshot MachineObject::get_print_state_snapshot() const
+{
+    std::lock_guard<std::mutex> lock(m_print_state_mutex);
+    return {is_support_wait_sending_finish, job_id_, print_status};
 }
 
 int MachineObject::connect(bool use_openssl)
@@ -3415,15 +3422,18 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
 #pragma endregion
 
 #pragma region print_task
-                    if (jj.contains("gcode_state")) {
-                        this->set_print_state(jj["gcode_state"].get<std::string>());
-                    }
-                    if (jj.contains("job_id")) {
-                        is_support_wait_sending_finish = true;
-                        this->job_id_ = DevJsonValParser::get_longlong_val(jj["job_id"]);
-                    }
-                    else {
-                        is_support_wait_sending_finish = false;
+                    {
+                        std::lock_guard<std::mutex> lock(m_print_state_mutex);
+                        if (jj.contains("gcode_state")) {
+                            print_status = jj["gcode_state"].get<std::string>();
+                        }
+                        if (jj.contains("job_id")) {
+                            is_support_wait_sending_finish = true;
+                            this->job_id_ = DevJsonValParser::get_longlong_val(jj["job_id"]);
+                        }
+                        else {
+                            is_support_wait_sending_finish = false;
+                        }
                     }
 
                     if (jj.contains("subtask_name")) {
@@ -3861,6 +3871,7 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                 } else if (jj["command"].get<std::string>() == "project_prepare") {
                     if (m_agent) {
                         if (jj.contains("job_id")) {
+                            std::lock_guard<std::mutex> lock(m_print_state_mutex);
                             this->job_id_ = DevJsonValParser::get_longlong_val(jj["job_id"]);
                         }
                     }
