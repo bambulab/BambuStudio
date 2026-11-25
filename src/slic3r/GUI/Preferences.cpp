@@ -2171,6 +2171,7 @@ void PreferencesDialog::on_reset_preferences()
         "toolbar_style",
         "show_shells_in_preview",
         "show_objects_in_preview",
+        "show_center_of_gravity_in_preview",
         "enable_step_mesh_setting",
         "import_single_svg_and_split",
         "gamma_correct_in_import_obj",

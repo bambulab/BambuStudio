@@ -19,10 +19,13 @@
 #include "../Utils/HelioDragon.hpp"
 #include <imgui/imgui_internal.h>
 #include <GL/glew.h>
+#include <algorithm>
 #include <chrono>
 #include <map>
 #include <limits>
 #include "libslic3r/Log.hpp"
+#include <cstdio>
+#include <mutex>
 namespace
 {
     std::string get_view_type_string(Slic3r::GUI::gcode::EViewType view_type)
@@ -628,6 +631,15 @@ namespace Slic3r
                         for (const auto& [label, name] : names)
                             m_object_preview.objects.push_back({ label, name, colors.get_color_at(static_cast<float>(label)).get_data() });
                     }
+                    // Capture the rendered plate's coordinate system now; mass is evaluated
+                    // only if the user requests it from the Objects legend.
+                    if (PartPlate* plate = wxGetApp().plater()->get_partplate_list().get_curr_plate(); plate != nullptr)
+                        m_center_of_gravity.plate_origin = plate->get_origin();
+                    const Vec2d bed_size = only_gcode && !gcode_result.printable_area.empty()
+                        ? get_extents(gcode_result.printable_area).size() : build_volume.bounding_volume2d().size();
+                    const double bed_min_size = std::min(bed_size.x(), bed_size.y());
+                    if (bed_min_size > 0.0)
+                        m_center_of_gravity.marker_scale = std::clamp(0.025 * bed_min_size, 3.0, 8.0);
                 }
                 const auto& p_sequential_view = get_sequential_view();
                 if (p_sequential_view) {
@@ -792,6 +804,82 @@ namespace Slic3r
                 //BBS: add mutex for protection of gcode result
                 gcode_result.unlock();
                 wxGetApp().plater()->schedule_background_process();
+            }
+
+            void BaseRenderer::ensure_center_of_gravity()
+            {
+                if (m_center_of_gravity.attempted || m_gcode_result == nullptr)
+                    return;
+
+                // This is the first opted-in Objects request for the loaded preview.
+                // Read the moves and populate their lazy cache under the result lock.
+                const std::lock_guard<const GCodeProcessorResult> lock(*m_gcode_result);
+                if (m_gcode_result->id != m_last_result_id || m_gcode_result->moves.empty())
+                    return;
+
+                m_center_of_gravity.attempted = true;
+                try {
+                    load_center_of_gravity(*m_gcode_result);
+                } catch (const std::exception& e) {
+                    m_center_of_gravity.objects.clear();
+                    m_center_of_gravity.calculation_failed = true;
+                    BOOST_LOG_TRIVIAL(warning) << "Unable to calculate preview center of gravity: " << e.what();
+                }
+            }
+
+            void BaseRenderer::load_center_of_gravity(const GCodeProcessorResult& gcode_result)
+            {
+                const auto& center_of_mass = gcode_result.get_center_of_mass();
+                auto& state = m_center_of_gravity;
+                const auto add_warnings = [&state](const GCodeProcessorResult::MassProperties& properties) {
+                    state.contains_unknown_roles |= properties.contains_unknown_roles;
+                    state.used_default_density |= properties.used_default_density;
+                    state.used_default_filament_diameter |= properties.used_default_filament_diameter;
+                    state.unsupported_flow_override |= properties.unsupported_flow_override;
+                    state.unsupported_volumetric_extrusion |= properties.unsupported_volumetric_extrusion;
+                };
+                const auto add_row = [&state, &add_warnings](std::string name, const Color& color,
+                                                            const GCodeProcessorResult::MassTotals* totals) {
+                    CenterOfGravityObjectState row;
+                    row.name = std::move(name);
+                    row.color = color;
+                    if (totals != nullptr) {
+                        const auto& model = totals->finished_model();
+                        const auto& all = totals->all_spatial_extrusions();
+                        const auto& selected = model.valid() ? model : all;
+                        add_warnings(selected);
+                        if (selected.valid()) {
+                            row.valid = true;
+                            row.world_position = selected.center_of_mass();
+                            row.mass_g = selected.mass_g;
+                            row.uses_all_spatial_extrusions = !model.valid();
+                        }
+                    }
+                    state.objects.emplace_back(std::move(row));
+                };
+
+                double attributed_model_mass = 0.0;
+                state.objects.reserve(m_object_preview.objects.size() + 1);
+                for (const auto& object : m_object_preview.objects) {
+                    const auto it = center_of_mass.by_object.find(object.label_id);
+                    const auto* totals = it == center_of_mass.by_object.end() ? nullptr : &it->second;
+                    add_row(object.name, object.color, totals);
+                    if (totals != nullptr && totals->finished_model().valid())
+                        attributed_model_mass += totals->finished_model().mass_g;
+                }
+
+                const auto& finished_model = center_of_mass.finished_model();
+                const auto& all_extrusions = center_of_mass.all_spatial_extrusions();
+                if (center_of_mass.by_object.empty() && (finished_model.valid() || all_extrusions.valid())) {
+                    // No labeled mass: display one combined estimate, never assign it to a model.
+                    add_row(_u8L("Combined objects"), ::decode_color("#00AE42"), &center_of_mass);
+                    state.combined_fallback = true;
+                } else if (finished_model.valid()) {
+                    const double tolerance = std::max(1e-9, finished_model.mass_g * 1e-6);
+                    state.incomplete_object_attribution = attributed_model_mass + tolerance < finished_model.mass_g;
+                }
+                if (state.objects.empty())
+                    add_warnings(all_extrusions);
             }
 
             void BaseRenderer::set_view_type(EViewType type, bool reset_feature_type_visible)
@@ -1324,6 +1412,7 @@ namespace Slic3r
                 m_plater_extruder.clear();
                 m_contained_in_bed = true;
                 m_config = nullptr;
+                m_center_of_gravity = CenterOfGravityState{};
 
                 if (m_p_extrusions) {
                     m_p_extrusions->reset_ranges();
@@ -1504,6 +1593,74 @@ namespace Slic3r
                     [skip_wipe_tower](const GLVolume& volume) { return !skip_wipe_tower || !volume.is_wipe_tower; });
                 wxGetApp().unbind_shader();
                 glsafe(::glDepthMask(GL_TRUE));
+            }
+
+            void BaseRenderer::render_center_of_gravity_marker()
+            {
+                if (get_view_type() != EViewType::Objects || m_center_of_gravity.objects.empty() ||
+                    !m_show_center_of_gravity || !wxGetApp().app_config->get_bool("show_center_of_gravity_in_preview"))
+                    return;
+
+                const auto& shader = wxGetApp().get_shader("flat");
+                if (shader == nullptr || wxGetApp().plater() == nullptr)
+                    return;
+
+                if (!m_center_of_gravity_marker.is_initialized())
+                    m_center_of_gravity_marker.init_from(diamond(16));
+                if (!m_center_of_gravity_projection.is_initialized())
+                    m_center_of_gravity_projection.init_from(smooth_cylinder(16, 1.0f, 1.0f));
+
+                const std::shared_ptr<GLShaderProgram> previous_shader = wxGetApp().get_current_shader();
+                const GLboolean depth_test_enabled = glIsEnabled(GL_DEPTH_TEST);
+                GLboolean depth_write_enabled = GL_TRUE;
+                glsafe(::glGetBooleanv(GL_DEPTH_WRITEMASK, &depth_write_enabled));
+
+                // Render as an overlay so the marker is still discoverable when the CoG is enclosed
+                // by opaque toolpaths or shell geometry. Do not let the overlay modify the depth buffer.
+                glsafe(::glDisable(GL_DEPTH_TEST));
+                glsafe(::glDepthMask(GL_FALSE));
+                wxGetApp().bind_shader(shader);
+
+                const Camera& camera = wxGetApp().plater()->get_camera();
+                shader->set_uniform("projection_matrix", camera.get_projection_matrix());
+
+                for (const CenterOfGravityObjectState& object : m_center_of_gravity.objects) {
+                    if (!object.valid)
+                        continue;
+
+                    Color projection_color = object.color;
+                    for (size_t channel = 0; channel < 3; ++channel)
+                        projection_color[channel] = std::min(1.0f, 0.35f + 0.65f * projection_color[channel]);
+
+                    const double projection_height = std::max(0.0, object.world_position.z());
+                    if (projection_height > EPSILON) {
+                        const double projection_radius = std::max(0.35, 0.075 * m_center_of_gravity.marker_scale);
+                        const Transform3d projection_transform =
+                            Geometry::translation_transform(Vec3d(object.world_position.x(), object.world_position.y(), 0.0)) *
+                            Geometry::scale_transform(Vec3d(projection_radius, projection_radius, projection_height));
+                        shader->set_uniform("view_model_matrix", camera.get_view_matrix() * projection_transform);
+                        m_center_of_gravity_projection.set_color(projection_color);
+                        m_center_of_gravity_projection.render_geometry();
+                    }
+
+                    // Draw the diamond last so the projection cap never obscures the marker itself.
+                    const Transform3d marker_transform =
+                        Geometry::translation_transform(object.world_position) *
+                        Geometry::scale_transform(Vec3d::Constant(m_center_of_gravity.marker_scale));
+                    shader->set_uniform("view_model_matrix", camera.get_view_matrix() * marker_transform);
+                    m_center_of_gravity_marker.set_color(object.color);
+                    m_center_of_gravity_marker.render_geometry();
+                }
+
+                if (previous_shader != nullptr)
+                    wxGetApp().bind_shader(previous_shader);
+                else
+                    wxGetApp().unbind_shader();
+                glsafe(::glDepthMask(depth_write_enabled));
+                if (depth_test_enabled)
+                    glsafe(::glEnable(GL_DEPTH_TEST));
+                else
+                    glsafe(::glDisable(GL_DEPTH_TEST));
             }
 
             void BaseRenderer::render_slider(int canvas_width, int canvas_height)
@@ -1898,6 +2055,7 @@ namespace Slic3r
                     ImGui::PopStyleVar(2);
                     return;
                 }
+
                 //BBS display Color Scheme
                 ImGui::Dummy({ window_padding, window_padding });
                 ImGui::Dummy({ window_padding, window_padding });
@@ -1983,19 +2141,39 @@ namespace Slic3r
                 pop_combo_style();
                 if (m_view_type == EViewType::Objects) {
                     ImGui::Dummy({window_padding, window_padding});
-                    for (size_t i = 0; i < m_object_preview.objects.size(); ++i) {
-                        const auto& object = m_object_preview.objects[i];
-                        ImGui::Dummy({window_padding, 0.0f});
-                        ImGui::SameLine();
-                        const std::string id = "##object_preview_color_" + std::to_string(i);
-                        ImGui::ColorButton(id.c_str(), ImVec4(object.color[0], object.color[1], object.color[2], object.color[3]),
-                            ImGuiColorEditFlags_NoTooltip | ImGuiColorEditFlags_NoDragDrop,
-                            ImVec2(ImGui::GetTextLineHeight() * 0.7f, ImGui::GetTextLineHeight() * 0.7f));
-                        ImGui::SameLine();
-                        imgui.text(object.name);
+                    ImGui::Dummy({window_padding, 0.0f});
+                    ImGui::SameLine();
+                    auto* config = wxGetApp().app_config;
+                    bool show_cog = config->get_bool("show_center_of_gravity_in_preview");
+                    if (ImGui::Checkbox(_u8L("Show center of gravity").c_str(), &show_cog)) {
+                        config->set_bool("show_center_of_gravity_in_preview", show_cog);
+                        imgui.set_requires_extra_frame();
                     }
+                    if (show_cog && !m_center_of_gravity.attempted) {
+                        ensure_center_of_gravity();
+                        if (m_center_of_gravity.attempted)
+                            imgui.set_requires_extra_frame();
+                    }
+
+                    if (!show_cog || m_center_of_gravity.objects.empty()) {
+                        for (size_t i = 0; i < m_object_preview.objects.size(); ++i) {
+                            const auto& object = m_object_preview.objects[i];
+                            ImGui::Dummy({window_padding, 0.0f});
+                            ImGui::SameLine();
+                            const std::string id = "##object_preview_color_" + std::to_string(i);
+                            ImGui::ColorButton(id.c_str(), ImVec4(object.color[0], object.color[1], object.color[2], object.color[3]),
+                                ImGuiColorEditFlags_NoTooltip | ImGuiColorEditFlags_NoDragDrop,
+                                ImVec2(ImGui::GetTextLineHeight() * 0.7f, ImGui::GetTextLineHeight() * 0.7f));
+                            ImGui::SameLine();
+                            imgui.text(object.name);
+                        }
+                    }
+                    if (show_cog)
+                        render_center_of_gravity_legend(window_padding, imgui);
+                } else {
+                    ImGui::SameLine();
                 }
-                ImGui::SameLine();
+                // Keep this spacer below the Objects table so it cannot widen the auto-sized legend.
                 ImGui::Dummy({ window_padding, window_padding });
                 // data used to properly align items in columns when showing time
                 std::vector<float> offsets;
@@ -3246,6 +3424,101 @@ namespace Slic3r
                 imgui.end();
                 ImGui::PopStyleColor(7);
                 ImGui::PopStyleVar(2);
+            }
+
+            void BaseRenderer::render_center_of_gravity_legend(float window_padding, ImGuiWrapper& imgui)
+            {
+                if (m_center_of_gravity.calculation_failed) {
+                    ImGui::Dummy({ window_padding, window_padding });
+                    imgui.warning_text_wrapped(_u8L("Could not calculate center of gravity. Reload the G-code and try again.").c_str(),
+                        std::max(1.0f, ImGui::GetContentRegionAvail().x - window_padding));
+                    return;
+                }
+                ImGui::Dummy({ window_padding, window_padding });
+                ImGui::Dummy({ window_padding, 0.0f });
+                ImGui::SameLine();
+                if (m_center_of_gravity.objects.empty()) {
+                    imgui.text(_u8L("No center of gravity estimate available."));
+                } else {
+                    imgui.bold_text(_u8L("Object centers of gravity"));
+                    ImGui::SameLine();
+                    const std::string checkbox_label = _u8L("Show markers") + "##center_of_gravity_markers";
+                    if (ImGui::Checkbox(checkbox_label.c_str(), &m_show_center_of_gravity))
+                        imgui.set_requires_extra_frame();
+                }
+
+                ImGui::Dummy({ window_padding, 0.0f });
+                ImGui::SameLine();
+                const ImGuiTableFlags table_flags = ImGuiTableFlags_BordersH | ImGuiTableFlags_RowBg |
+                    ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_NoHostExtendX;
+                if (!m_center_of_gravity.objects.empty() && ImGui::BeginTable("##object_centers_of_gravity", 5, table_flags)) {
+                    ImGui::TableSetupColumn(_u8L("Object").c_str(), ImGuiTableColumnFlags_WidthFixed);
+                    ImGui::TableSetupColumn(_u8L("Mass").c_str(), ImGuiTableColumnFlags_WidthFixed);
+                    ImGui::TableSetupColumn("X (mm)", ImGuiTableColumnFlags_WidthFixed);
+                    ImGui::TableSetupColumn("Y (mm)", ImGuiTableColumnFlags_WidthFixed);
+                    ImGui::TableSetupColumn("Z (mm)", ImGuiTableColumnFlags_WidthFixed);
+                    ImGui::TableHeadersRow();
+
+                    char value[64];
+                    for (size_t index = 0; index < m_center_of_gravity.objects.size(); ++index) {
+                        const CenterOfGravityObjectState& object = m_center_of_gravity.objects[index];
+                        ImGui::TableNextRow();
+                        ImGui::TableSetColumnIndex(0);
+                        const std::string color_id = "##object_cog_color_" + std::to_string(index);
+                        ImGui::ColorButton(color_id.c_str(), ImVec4(object.color[0], object.color[1], object.color[2], object.color[3]),
+                                           ImGuiColorEditFlags_NoTooltip | ImGuiColorEditFlags_NoDragDrop,
+                                           ImVec2(ImGui::GetTextLineHeight() * 0.7f, ImGui::GetTextLineHeight() * 0.7f));
+                        ImGui::SameLine();
+                        imgui.text(object.name);
+
+                        if (!object.valid) {
+                            for (int column = 1; column < 5; ++column) {
+                                ImGui::TableSetColumnIndex(column);
+                                imgui.text("--");
+                            }
+                            continue;
+                        }
+
+                        const Vec3d plate_local_position = object.world_position - m_center_of_gravity.plate_origin;
+                        ImGui::TableSetColumnIndex(1);
+                        std::snprintf(value, sizeof(value), "%.2f g", object.mass_g);
+                        imgui.text(value);
+                        ImGui::TableSetColumnIndex(2);
+                        std::snprintf(value, sizeof(value), "%.2f", plate_local_position.x());
+                        imgui.text(value);
+                        ImGui::TableSetColumnIndex(3);
+                        std::snprintf(value, sizeof(value), "%.2f", plate_local_position.y());
+                        imgui.text(value);
+                        ImGui::TableSetColumnIndex(4);
+                        std::snprintf(value, sizeof(value), "%.2f", plate_local_position.z());
+                        imgui.text(value);
+                    }
+                    ImGui::EndTable();
+                }
+
+                auto render_warning = [&imgui, window_padding](const std::string& warning) {
+                    ImGui::Dummy({ window_padding, 0.0f });
+                    ImGui::SameLine();
+                    const float available_width = std::max(1.0f, ImGui::GetContentRegionAvail().x - window_padding);
+                    imgui.warning_text_wrapped(warning.c_str(), available_width);
+                };
+                if (m_center_of_gravity.combined_fallback)
+                    render_warning(_u8L("Warning: this G-code has no object attribution; only the combined center of gravity is available."));
+                if (m_center_of_gravity.incomplete_object_attribution)
+                    render_warning(_u8L("Warning: some model extrusions could not be assigned to an object."));
+                if (std::any_of(m_center_of_gravity.objects.begin(), m_center_of_gravity.objects.end(),
+                                [](const CenterOfGravityObjectState& object) { return object.uses_all_spatial_extrusions; }))
+                    render_warning(_u8L("Warning: non-model extrusions are included for one or more objects."));
+                if (m_center_of_gravity.contains_unknown_roles)
+                    render_warning(_u8L("Warning: unknown extrusion roles found."));
+                if (m_center_of_gravity.used_default_density)
+                    render_warning(_u8L("Warning: default filament density used."));
+                if (m_center_of_gravity.used_default_filament_diameter)
+                    render_warning(_u8L("Warning: default filament diameter used."));
+                if (m_center_of_gravity.unsupported_flow_override)
+                    render_warning(_u8L("Warning: flow override not included."));
+                if (m_center_of_gravity.unsupported_volumetric_extrusion)
+                    render_warning(_u8L("Warning: volumetric extrusion not included."));
             }
 
             void BaseRenderer::delete_wipe_tower()
