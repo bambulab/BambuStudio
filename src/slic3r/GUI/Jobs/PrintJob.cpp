@@ -500,12 +500,19 @@ void PrintJob::process()
         cloud_error_snapshot.extra = info;
     };
 
-    auto restore_cloud_error_info = [this, &cloud_error_snapshot]() {
-        if (cloud_error_snapshot.valid) {
-            m_plater->update_print_error_info(cloud_error_snapshot.code, cloud_error_snapshot.desc, cloud_error_snapshot.extra);
-        }
+    // update_fn / restore_cloud_error_info can be invoked on the job worker or a plugin
+    // thread; plater UI must only be touched on the main thread.
+    auto report_print_error = [this](int code, std::string desc, std::string info) {
+        wxGetApp().CallAfter([this, code, desc = std::move(desc), info = std::move(info)]() {
+            m_plater->update_print_error_info(code, desc, info);
+        });
     };
 
+    auto restore_cloud_error_info = [this, &cloud_error_snapshot, &report_print_error]() {
+        if (cloud_error_snapshot.valid) {
+            report_print_error(cloud_error_snapshot.code, cloud_error_snapshot.desc, cloud_error_snapshot.extra);
+        }
+    };
 
     auto update_fn = [this,
         &curr_percent,
@@ -515,7 +522,8 @@ void PrintJob::process()
         &get_route_status_msg,
         &map_route_progress,
         &error_desc_for_code,
-        &remember_cloud_error
+        &remember_cloud_error,
+        report_print_error
     ](int stage, int code, std::string info) {
                         wxString msg = get_route_status_msg();
                         m_print_stage = stage;
@@ -562,13 +570,13 @@ void PrintJob::process()
                             if (use_cloud_error_snapshot) {
                                 if (attempt_route == SendAttemptRoute::Cloud) {
                                     remember_cloud_error(code, info);
-                                    m_plater->update_print_error_info(code, error_desc_for_code(code), info);
+                                    report_print_error(code, error_desc_for_code(code), info);
                                 } else {
                                     BOOST_LOG_TRIVIAL(warning) << "print_job: non-cloud attempt error, route=" << static_cast<int>(attempt_route)
                                         << ", code=" << code << ", info=" << info;
                                 }
                             } else {
-                                m_plater->update_print_error_info(code, error_desc_for_code(code), info);
+                                report_print_error(code, error_desc_for_code(code), info);
                             }
                         }
                         else {
@@ -584,10 +592,15 @@ void PrintJob::process()
     DeviceManager* dev = wxGetApp().getDeviceManager();
     MachineObject* obj = dev->get_selected_machine();
 
-    auto wait_fn = [this, curr_percent, &obj](int state, std::string job_info) {
+    auto wait_fn = [this, curr_percent, obj](int state, std::string job_info) {
             BOOST_LOG_TRIVIAL(info) << "print_job: get_job_info = " << job_info;
 
-            if (!obj->is_support_wait_sending_finish) {
+            if (!obj) {
+                BOOST_LOG_TRIVIAL(info) << "print_job: obj is null";
+                return true;
+            }
+
+            if (!obj->get_print_state_snapshot().support_wait_sending_finish) {
                 return true;
             }
 
@@ -605,37 +618,33 @@ void PrintJob::process()
                 ;
             }
 
-            if (obj) {
+            {
                 int time_out = 0;
                 while (time_out < PRINT_JOB_SENDING_TIMEOUT) {
-                    BOOST_LOG_TRIVIAL(trace) << "print_job: obj " << KV(log_key::job_id, obj->job_id_);
-                    if (!obj->job_id_.empty() && obj->job_id_.compare(curr_job_id) == 0) {
-                        BOOST_LOG_TRIVIAL(info) << "print_job: got " << KV(log_key::job_id, obj->job_id_) << "time_out=" << time_out;
+                    // read the fields mutated by parse_json on the main thread via the
+                    // locked snapshot; touching job_id_/print_status directly races with it
+                    auto cur = obj->get_print_state_snapshot();
+                    BOOST_LOG_TRIVIAL(trace) << "print_job: obj " << KV(log_key::job_id, cur.job_id);
+                    if (!cur.job_id.empty() && cur.job_id.compare(curr_job_id) == 0) {
+                        BOOST_LOG_TRIVIAL(info) << "print_job: got " << KV(log_key::job_id, cur.job_id) << "time_out=" << time_out;
                         return true;
                     }
-                    if (obj->is_in_printing_status(obj->print_status)) {
-                        BOOST_LOG_TRIVIAL(info) << "print_job: printer has enter printing status, s = " << obj->print_status;
+                    if (MachineObject::is_in_printing_status(cur.print_status)) {
+                        BOOST_LOG_TRIVIAL(info) << "print_job: printer has enter printing status, s = " << cur.print_status;
                         return true;
                     }
 
                     if (this->was_canceled()) {
-                        BOOST_LOG_TRIVIAL(info) << "print_job: user cancel the job" << obj->job_id_;
+                        BOOST_LOG_TRIVIAL(info) << "print_job: user cancel the job" << cur.job_id;
                         return true;
                     }
 
                     time_out++;
                     boost::this_thread::sleep_for(boost::chrono::milliseconds(1000));
                 }
-                //this->update_status(curr_percent, _L("Print task sending times out."));
-                //m_plater->update_print_error_info(BAMBU_NETWORK_ERR_TIMEOUT, wait_sending_finish.ToStdString(), desc_wait_sending_finish.ToStdString());
-                BOOST_LOG_TRIVIAL(info) << "print_job: timeout, cancel the job" << obj->job_id_;
-                /* handle tiemout */
-                //obj->command_task_cancel(curr_job_id);
-                //return false;
+                BOOST_LOG_TRIVIAL(info) << "print_job: timeout, cancel the job";
                 return true;
             }
-            BOOST_LOG_TRIVIAL(info) << "print_job: obj is null";
-            return true;
     };
 
     struct AccessCodeRefreshState {

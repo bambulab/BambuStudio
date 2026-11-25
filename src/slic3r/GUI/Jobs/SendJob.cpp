@@ -262,7 +262,15 @@ void SendJob::process()
         100  // PrintingStageFinished
     };
 
-    auto update_fn = [this, &msg, &curr_percent, &error_text, StagePercentPoint](int stage, int code, std::string info) {
+    // update_fn can be invoked on the job worker or a plugin thread;
+    // plater UI must only be touched on the main thread.
+    auto report_print_error = [this](int code, std::string desc, std::string info) {
+        wxGetApp().CallAfter([this, code, desc = std::move(desc), info = std::move(info)]() {
+            m_plater->update_print_error_info(code, desc, info);
+        });
+    };
+
+    auto update_fn = [this, &msg, &curr_percent, &error_text, StagePercentPoint, report_print_error](int stage, int code, std::string info) {
                         if (stage == SendingPrintJobStage::PrintingStageCreate) {
                             if (this->connection_type == "lan") {
                                 msg = _L("Sending gcode file over LAN");
@@ -307,16 +315,16 @@ void SendJob::process()
                         //get errors
                         if (code > 100 || code < 0 || stage == BBL::SendingPrintJobStage::PrintingStageERROR) {
                             if (code == BAMBU_NETWORK_ERR_PRINT_WR_FILE_OVER_SIZE || code == BAMBU_NETWORK_ERR_PRINT_SP_FILE_OVER_SIZE) {
-                                m_plater->update_print_error_info(code, DESC_FILE_TOO_LARGE.ToStdString(), info);
+                                report_print_error(code, DESC_FILE_TOO_LARGE.ToStdString(), info);
                             }
                             else if (code == BAMBU_NETWORK_ERR_PRINT_WR_FILE_NOT_EXIST || code == BAMBU_NETWORK_ERR_PRINT_SP_FILE_NOT_EXIST) {
-                                m_plater->update_print_error_info(code, DESC_FAIL_NOT_EXIST.ToStdString(), info);
+                                report_print_error(code, DESC_FAIL_NOT_EXIST.ToStdString(), info);
                             }
                             else if (code == BAMBU_NETWORK_ERR_PRINT_LP_UPLOAD_FTP_FAILED || code == BAMBU_NETWORK_ERR_PRINT_SG_UPLOAD_FTP_FAILED) {
-                                m_plater->update_print_error_info(code, DESC_UPLOAD_FTP_FAILED.ToStdString(), info);
+                                report_print_error(code, DESC_UPLOAD_FTP_FAILED.ToStdString(), info);
                             }
                             else {
-                                m_plater->update_print_error_info(code, DESC_NETWORK_ERROR.ToStdString(), info);
+                                report_print_error(code, DESC_NETWORK_ERROR.ToStdString(), info);
                             }
                         }
                         else {

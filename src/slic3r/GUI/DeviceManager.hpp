@@ -129,6 +129,7 @@ private:
     DeviceManager*    m_manager{ nullptr };
     std::shared_ptr<int> m_token = std::make_shared<int>(1);
     std::mutex m_access_code_refresh_mutex;
+    mutable std::mutex m_print_state_mutex;
     std::string m_access_code_refresh_sequence_id;
     AccessCodeRefreshCallback m_access_code_refresh_callback;
 
@@ -800,6 +801,15 @@ public:
     void reset_update_time();
     void reset();
     static bool is_in_printing_status(std::string status);
+
+    // Thread-safe snapshot of fields mutated by parse_json on the main thread
+    // and polled from job worker threads (e.g. PrintJob wait_fn).
+    struct PrintStateSnapshot {
+        bool        support_wait_sending_finish{false};
+        std::string job_id;
+        std::string print_status;
+    };
+    PrintStateSnapshot get_print_state_snapshot() const;
 
     void set_print_state(std::string status);
 
