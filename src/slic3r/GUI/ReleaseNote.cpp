@@ -2214,19 +2214,30 @@ void InputIpAddressDialog::on_send_retry()
     m_send_job->set_check_mode();
     m_send_job->set_project_name("verify_job");
 
-    m_send_job->on_check_ip_address_fail([this](int result) {
-        this->check_ip_address_failed(result);
+    token_.reset(this, nop_deleter);
+    // These callbacks are invoked on the SendJob worker thread (SendJob::process);
+    // marshal to the main thread before touching the dialog or any wxWindow.
+    m_send_job->on_check_ip_address_fail([w = std::weak_ptr<InputIpAddressDialog>(token_)](int result) {
+        wxGetApp().CallAfter([w, result]() {
+            auto dialog = w.lock();
+            if (!dialog) return;
+            dialog->check_ip_address_failed(result);
+        });
     });
 
-    m_send_job->on_check_ip_address_success([this, ip, str_access_code]() {
+    m_send_job->on_check_ip_address_success([w = std::weak_ptr<InputIpAddressDialog>(token_), ip, str_access_code]() {
         wxString input_str = wxString::Format("%s|%s", ip, str_access_code);
-        auto     event     = wxCommandEvent(EVT_ENTER_IP_ADDRESS);
-        event.SetString(input_str);
-        event.SetEventObject(this);
-        wxPostEvent(this, event);
-        m_result = 0;
+        wxGetApp().CallAfter([w, input_str]() {
+            auto dialog = w.lock();
+            if (!dialog) return;
+            auto event = wxCommandEvent(EVT_ENTER_IP_ADDRESS);
+            event.SetString(input_str);
+            event.SetEventObject(dialog.get());
+            wxPostEvent(dialog.get(), event);
+            dialog->m_result = 0;
 
-        update_test_msg(_L("IP and Access Code Verified! You may close the window"), true);
+            dialog->update_test_msg(_L("IP and Access Code Verified! You may close the window"), true);
+        });
     });
 
     m_send_job->start();
