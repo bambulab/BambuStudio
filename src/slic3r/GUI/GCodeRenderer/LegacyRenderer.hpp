@@ -174,9 +174,10 @@ namespace Slic3r {
                     float layer_time{ 0.0f };
                     unsigned char extruder_id{ 0 };
                     unsigned char cp_color_id{ 0 };
+                    int object_label_id{ -1 };
                     bool m_b_has_effect_layer{ false };
                     std::vector<Sub_Path> sub_paths;
-                    bool matches(const GCodeProcessorResult::MoveVertex& move) const;
+                    bool matches(const GCodeProcessorResult::MoveVertex& move, bool split_by_object = false) const;
                     size_t vertices_count() const {
                         return sub_paths.empty() ? 0 : sub_paths.back().last.s_id - sub_paths.front().first.s_id + 1;
                     }
@@ -475,6 +476,7 @@ namespace Slic3r {
                 void set_extrusion_role_visibility_flags(uint32_t flags) override;
             private:
                 bool load_toolpaths(const GCodeProcessorResult& gcode_result, const BuildVolume& build_volume, const std::vector<BoundingBoxf3>& exclude_bounding_box) override;
+                void do_set_view_type(EViewType type) override;
                 //BBS: always load shell at preview
                 //void load_shells(const Print& print, bool initialized);
                 void refresh_render_paths(bool keep_sequential_current_first, bool keep_sequential_current_last) const;

@@ -1146,6 +1146,11 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
             wxPostEvent(wxGetApp().plater(), evt);
         }
 
+        if (param == "show_objects_in_preview") {
+            SimpleEvent evt(EVT_OBJECTS_PREVIEW_CHANGED);
+            wxPostEvent(wxGetApp().plater(), evt);
+        }
+
         e.Skip();
     });
 
@@ -1649,6 +1654,10 @@ wxWindow *PreferencesDialog::create_3d_tab()
                                                  _L("Always show shells or not in preview view tab. If you change this value, you should reslice."), 50,
                                                  "show_shells_in_preview");
 
+    auto item_show_objects = create_item_checkbox(_L("Show Objects color scheme in preview"), scrolled,
+        _L("Color preview toolpaths by object. Disabled by default. This does not calculate center of gravity."),
+        50, "show_objects_in_preview");
+
     auto item_show_heat_soak_area = create_item_checkbox(_L("Show Thermal Preconditioning Area"), scrolled,
                                                          _L("Warn if a model extends beyond the thermal preconditioning area. Available only on printers that support this feature."), 50,
                                                          "show_bed_heat_soak_area");
@@ -1682,6 +1691,7 @@ wxWindow *PreferencesDialog::create_3d_tab()
     sizer->Add(wrap_option_row(scrolled, item_tooltip_offset), flags);
     sizer->Add(wrap_option_row(scrolled, item_toolbar_style), flags);
     sizer->Add(wrap_option_row(scrolled, item_show_shells), flags);
+    sizer->Add(wrap_option_row(scrolled, item_show_objects), flags);
     sizer->Add(wrap_option_row(scrolled, item_show_heat_soak_area), flags);
 #if !BBL_RELEASE_TO_PUBLIC
     auto item_show_bvh_bounds = create_item_checkbox(_L("Show assembly BVH primary bounds"), scrolled, _L("Display the BVH primary bounding box wireframe in assembly view."), 50,
@@ -2149,6 +2159,7 @@ void PreferencesDialog::on_reset_preferences()
         "3d_middle_tooltip_offset_y",
         "toolbar_style",
         "show_shells_in_preview",
+        "show_objects_in_preview",
         "enable_step_mesh_setting",
         "import_single_svg_and_split",
         "gamma_correct_in_import_obj",

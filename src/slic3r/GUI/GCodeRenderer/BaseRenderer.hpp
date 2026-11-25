@@ -45,6 +45,8 @@ namespace Slic3r {
                 ThermalIndexMax,
                 ThermalIndexMean,
                 // end helio
+                // Preserve existing shader view IDs.
+                Objects,
                 Count
             };
 
@@ -206,6 +208,19 @@ namespace Slic3r {
 
             protected:
                 bool m_legend_enabled{ true };
+                struct ObjectPreviewRow
+                {
+                    int label_id;
+                    std::string name;
+                    Color color;
+                };
+                struct ObjectPreviewState
+                {
+                    std::vector<ObjectPreviewRow> objects;
+                    float label_min{ 0.0f };
+                    float label_max{ 0.0f };
+                };
+                ObjectPreviewState m_object_preview;
                 float m_legend_height{ 0.0f };
                 size_t m_extruders_count{ 0 };
                 std::vector<ExtrusionRole> m_roles;

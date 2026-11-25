@@ -311,6 +311,7 @@ wxDEFINE_EVENT(EVT_PREVIEW_ONLY_MODE_HINT,          wxCommandEvent);
 //BBS: change light/dark mode
 wxDEFINE_EVENT(EVT_GLCANVAS_COLOR_MODE_CHANGED,     SimpleEvent);
 wxDEFINE_EVENT(EVT_ENABLE_GCODE_OPTION_ITEM_CHANGED, SimpleEvent);
+wxDEFINE_EVENT(EVT_OBJECTS_PREVIEW_CHANGED, SimpleEvent);
 //BBS: print
 wxDEFINE_EVENT(EVT_PRINT_FROM_SDCARD_VIEW,          SimpleEvent);
 
@@ -10628,6 +10629,16 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
             preview->get_canvas3d()->get_gcode_viewer().record_record_gcodeviewer_option_item();
         }});
     this->q->Bind(EVT_GLCANVAS_COLOR_MODE_CHANGED, &priv::on_change_color_mode, this);
+    this->q->Bind(EVT_OBJECTS_PREVIEW_CHANGED, [this](SimpleEvent&) {
+        if (preview) {
+            auto& viewer = preview->get_canvas3d()->get_gcode_viewer();
+            // Enforce opt-out before rebuilding, including remembered Objects views.
+            viewer.on_object_shading_preference_changed();
+            preview->get_canvas3d()->reset_gcode_toolpaths();
+            preview->refresh_print();
+            preview->get_canvas3d()->set_as_dirty();
+        }
+    });
     this->q->Bind(wxEVT_SYS_COLOUR_CHANGED, &priv::on_apple_change_color_mode, this);
     this->q->Bind(EVT_CREATE_FILAMENT, &priv::on_create_filament, this);
     this->q->Bind(EVT_MODIFY_FILAMENT, &priv::on_modify_filament, this);
