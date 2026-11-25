@@ -193,21 +193,21 @@ jobs:
 
   # Ubuntu
       - name: Install dependencies from BuildLinux.sh
-        if: inputs.os == 'ubuntu-22.04' || inputs.os == 'ubuntu-24.04' || inputs.os == 'ubuntu-26.04'
+        if: inputs.os == 'ubuntu-22.04' || inputs.os == 'ubuntu-24.04' || inputs.os == 'ubuntu-26.04' || inputs.os == 'ubuntu-22.04-arm' || inputs.os == 'ubuntu-24.04-arm'
         shell: bash
         run: sudo ./BuildLinux.sh -ur
 
       - name: Fix permissions
-        if: inputs.os == 'ubuntu-22.04' || inputs.os == 'ubuntu-24.04' || inputs.os == 'ubuntu-26.04'
+        if: inputs.os == 'ubuntu-22.04' || inputs.os == 'ubuntu-24.04' || inputs.os == 'ubuntu-26.04' || inputs.os == 'ubuntu-22.04-arm' || inputs.os == 'ubuntu-24.04-arm'
         shell: bash
         run: sudo chown $USER -R ./
 
       - name: Build slicer
-        if: inputs.os == 'ubuntu-22.04' || inputs.os == 'ubuntu-24.04' || inputs.os == 'ubuntu-26.04'
+        if: inputs.os == 'ubuntu-22.04' || inputs.os == 'ubuntu-24.04' || inputs.os == 'ubuntu-26.04' || inputs.os == 'ubuntu-22.04-arm' || inputs.os == 'ubuntu-24.04-arm'
         shell: bash
         run: |
           ./BuildLinux.sh -isfr
-          mv -n ./build/BambuStudio_ubu64.AppImage ./build/Bambu_Studio_${{inputs.os}}_${{ env.ver }}.AppImage
+          mv -n ./build/BambuStudio_ubu*.AppImage ./build/Bambu_Studio_${{inputs.os}}_${{ env.ver }}.AppImage
 
       # - name: Build orca_custom_preset_tests
       #   if: github.ref == 'refs/heads/main' && inputs.os == 'ubuntu-22.04'
@@ -219,7 +219,7 @@ jobs:
       #     zip -r orca_custom_preset_tests.zip user/
 
       - name: Upload artifacts Ubuntu
-        if: ${{ ! env.ACT && (inputs.os == 'ubuntu-22.04' || inputs.os == 'ubuntu-24.04' || inputs.os == 'ubuntu-26.04') }}
+        if: ${{ ! env.ACT && (inputs.os == 'ubuntu-22.04' || inputs.os == 'ubuntu-24.04' || inputs.os == 'ubuntu-26.04' || inputs.os == 'ubuntu-22.04-arm' || inputs.os == 'ubuntu-24.04-arm') }}
         uses: actions/upload-artifact@v6
         with:
           name: BambuStudio_${{inputs.os}}_${{ env.ver }}

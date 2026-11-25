@@ -16,10 +16,11 @@ endif()
 option(OMC_CMAKE_ENABLE_EXCEPTION "Enable exception in OpenMeshCraft" ON)
 option(OMC_CMAKE_ENABLE_ASSERT "Enable assertion in OpenMeshCraft" ON)
 option(OMC_CMAKE_ENABLE_EXPENSIVE_ASSERT "Enable expensive assertion in OpenMeshCraft" OFF)
-# x86 SIMD is not meaningful for Apple Silicon; default OFF on APPLE so the
-# overlay matches OpenMeshCraft.cmake (-DOMC_CMAKE_ENABLE_*=OFF) and does not
-# mislead readers into thinking SSE/AVX is active on macOS.
-if(APPLE)
+# x86 SIMD is not meaningful for Apple Silicon or ARM64 Linux; default OFF on
+# APPLE / aarch64 so the overlay matches OpenMeshCraft.cmake
+# (-DOMC_CMAKE_ENABLE_*=OFF) and does not mislead readers into thinking
+# SSE/AVX is active there.
+if(APPLE OR CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64|arm64")
   set(_OMC_SIMD_DEFAULT OFF)
 else()
   set(_OMC_SIMD_DEFAULT ON)
