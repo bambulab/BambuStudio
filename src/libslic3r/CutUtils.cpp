@@ -44,8 +44,7 @@ static void apply_tolerance(ModelVolume *vol)
     vol->set_offset(vol->get_offset() + rot_norm * z_offset);
 }
 
-// Already extracted for i18n via GLGizmoAdvancedCut.cpp; CutUtils is not in list.txt,
-// so pass the English marker string only (no L() here).
+// Already extracted for i18n via GLGizmoAdvancedCut.cpp; keep the plain English marker (no L() here).
 static const char *const CutStageCutting = "Cutting model object";
 
 // Returns false when the paint reprojection was canceled; the caller has to unwind.

@@ -2,22 +2,34 @@ import type { CSSProperties } from 'react';
 import type { AmsFilamentHotendEnvUnit, AmsFilamentHotendSlotViewModel } from '../types';
 import { HumidityIcon, TemperatureIcon } from './AmsEnvIcons';
 
-// Width of the readout chip. It is right-aligned against the left edge of the
-// first column of its zone, filling the half-pitch gap the interleaved tiers
-// leave there.
+// Fits the half-pitch gap next to a top column
 const CHIP_WIDTH = 60;
+const COL = 80;
+
+export type AmbientInfoSide = 'left' | 'right';
+
+export interface AmbientAnchor {
+  col: number;
+  side: AmbientInfoSide;
+  humidity: number;
+  temp: number | null;
+}
 
 export function AmbientInfoDecoration({
-  startIndex,
+  col,
+  side,
   humidity,
   temp,
 }: {
-  startIndex: number;
+  col: number;
+  side: AmbientInfoSide;
   humidity: number;
   temp: number | null;
 }) {
   // Top columns sit at odd multiples of `--slot-pitch` (see Stage.tsx).
-  const left = `calc(${1 + 2 * startIndex} * var(--slot-pitch) - ${CHIP_WIDTH}px)`;
+  const left = side === 'left'
+    ? `calc(${1 + 2 * col} * var(--slot-pitch) - ${CHIP_WIDTH}px)`
+    : `calc(${1 + 2 * col} * var(--slot-pitch) + ${COL}px)`;
 
   return (
     <div
@@ -44,15 +56,14 @@ export function AmbientInfoDecoration({
   );
 }
 
-// Anchor each AMS unit's readout to its leftmost rendered column. The readout
-// describes the whole unit, so one entry produces at most one chip no matter
-// how many columns the unit spans.
+// Left of the zone, or right of it when a dryer chamber is on the left
 export function findAmbientAnchors(
   slots: AmsFilamentHotendSlotViewModel[],
   units: AmsFilamentHotendEnvUnit[],
-): Array<{ start: number; humidity: number; temp: number | null }> {
+  dryerRuns: ReadonlyArray<{ start: number; end: number }> = [],
+): AmbientAnchor[] {
   if (!units?.length) return [];
-  const byStart = new Map<number, { start: number; humidity: number; temp: number | null }>();
+  const byKey = new Map<string, AmbientAnchor>();
   const toIds = (v?: Array<number | string>) => (v ?? []).map(Number).filter((n) => !Number.isNaN(n));
 
   for (const unit of units) {
@@ -60,19 +71,28 @@ export function findAmbientAnchors(
     // virtual tray id, which would otherwise push the anchor past the first
     // top-tier column of this AMS unit.
     const addrIds = toIds(unit.zone_addrs);
-    let start = -1;
-    if (addrIds.length > 0) {
-      const addrSet = new Set(addrIds);
-      start = slots.findIndex((slot) => addrSet.has(Number(slot.addr_id)));
-    } else if (unit.ams_id) {
-      start = slots.findIndex((slot) => slot.ams_id === unit.ams_id);
-    }
-    if (start < 0 || byStart.has(start)) continue;
+    const addrSet = new Set(addrIds);
+    const cols: number[] = [];
+    slots.forEach((slot, idx) => {
+      if (addrIds.length > 0 ? addrSet.has(Number(slot.addr_id)) : (!!unit.ams_id && slot.ams_id === unit.ams_id)) {
+        cols.push(idx);
+      }
+    });
+    if (!cols.length) continue;
 
-    const humidity = typeof unit.humidity_raw === 'number' && unit.humidity_raw >= 0 ? unit.humidity_raw : -1;
-    const temp = typeof unit.temp === 'number' ? unit.temp : null;
-    byStart.set(start, { start, humidity, temp });
+    const first = cols[0];
+    const last = cols[cols.length - 1];
+    const dryerOnLeft = dryerRuns.some((run) => run.end < first);
+    const side: AmbientInfoSide = unit.info_side ?? (dryerOnLeft ? 'right' : 'left');
+    const anchor: AmbientAnchor = {
+      col: side === 'right' ? last : first,
+      side,
+      humidity: typeof unit.humidity_raw === 'number' && unit.humidity_raw >= 0 ? unit.humidity_raw : -1,
+      temp: typeof unit.temp === 'number' ? unit.temp : null,
+    };
+    const key = `${anchor.side}-${anchor.col}`;
+    if (!byKey.has(key)) byKey.set(key, anchor);
   }
 
-  return [...byStart.values()];
+  return [...byKey.values()];
 }

@@ -103,9 +103,18 @@ protected:
     void OnEdit() override;
     void render(wxDC &dc) override;
 
+    /**
+     * \brief Best size of a read-only combo: wide enough for its widest item
+     *
+     * \note An explicit ctor width still wins, as it becomes the min width.
+     *       An editable combo or CB_NO_TEXT keeps the base best size.
+     */
+    wxSize DoGetBestSize() const override;
+
     void sendComboBoxEvent();
     void sync_closed_suffix();
     void update_closed_suffix_reserve();
+    int  closed_suffix_reserve(const wxString &suffix) const;
 
 #ifdef __WIN32__
     WXLRESULT MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam) override;

@@ -149,7 +149,7 @@ private:
      */
     void applyMicrostructureToOutlines(const std::unordered_set<GridPoint3>& cells, const std::vector<ExPolygons>& layer_regions) const;
     void applyEmbeddingToOutlines(const std::unordered_set<GridPoint3>& cells, const ExPolygons& layer_regions, Layer *layer, const int& idx) const;
-    static const coord_t ignored_gap_ = 100u; //!< Distance between models to be considered next to each other so that an interlocking structure will be generated there
+    static constexpr coord_t ignored_gap_ = scaled<coord_t>(0.1); //!< Distance between models to be considered next to each other so that an interlocking structure will be generated there
 
     PrintObject&  print_object;
     const size_t  region_a_index;

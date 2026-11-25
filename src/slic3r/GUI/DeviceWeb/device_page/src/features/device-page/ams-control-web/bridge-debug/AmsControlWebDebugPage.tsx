@@ -1,8 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useDeviceBridge } from '../../../../hooks/Bridge';
 
-const MODULE = 'device_page_ams_control_web';
-
 type Snapshot = {
   created_ts?: number;
   dialog_snapshot_ts?: number;
@@ -20,8 +18,8 @@ type BridgeResponseBody<T> = {
   payload?: T;
 };
 
-function makeBody(submod: string, action: string, payload: Record<string, unknown> = {}) {
-  return { module: MODULE, submod, action, payload };
+function makeBody(module: string, submod: string, action: string, payload: Record<string, unknown> = {}) {
+  return { module, submod, action, payload };
 }
 
 async function copyTextToClipboard(text: string): Promise<boolean> {
@@ -95,14 +93,15 @@ function topLevelBlocks(value: unknown): Array<{ title: string; value: unknown }
   }));
 }
 
-export function AmsControlWebDebugPage() {
+// Debug-only viewer for a device page VM's `debug/snapshot`; shared by pages with the same snapshot shape.
+export function BridgeSnapshotDebugPage({ module, title }: { module: string; title: string }) {
   const request = useDeviceBridge();
   const [snapshot, setSnapshot] = useState<Snapshot>({});
   const [error, setError] = useState('');
 
   const loadSnapshot = useCallback(async () => {
     const resp = await request<ReturnType<typeof makeBody>, BridgeResponseBody<Snapshot>>(
-      makeBody('debug', 'snapshot'),
+      makeBody(module, 'debug', 'snapshot'),
       5000,
     );
     if (!resp.ok) {
@@ -115,7 +114,7 @@ export function AmsControlWebDebugPage() {
     }
     setSnapshot(resp.value.payload ?? {});
     setError('');
-  }, [request]);
+  }, [module, request]);
 
   useEffect(() => {
     void loadSnapshot();
@@ -134,7 +133,7 @@ export function AmsControlWebDebugPage() {
     <div className="h-screen w-screen overflow-auto bg-neutral-950 p-4 text-neutral-100">
       <div className="mb-4 flex items-center justify-between gap-3">
         <div>
-          <h1 className="m-0 text-base font-semibold">AMS Control Web Bridge Debug</h1>
+          <h1 className="m-0 text-base font-semibold">{title}</h1>
           <p className="m-0 mt-1 text-xs text-neutral-400">
             Open snapshot: {createdAt} · Dialog refresh: {refreshedAt}
           </p>
@@ -161,4 +160,8 @@ export function AmsControlWebDebugPage() {
       </div>
     </div>
   );
+}
+
+export function AmsControlWebDebugPage() {
+  return <BridgeSnapshotDebugPage module="device_page_ams_control_web" title="AMS Control Web Bridge Debug" />;
 }

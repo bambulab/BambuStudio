@@ -47,6 +47,7 @@ wxDEFINE_EVENT(EVT_CLEAR_IPADDRESS, wxCommandEvent);
 #define INITIAL_NUMBER_OF_MACHINES 0
 #define LIST_REFRESH_INTERVAL 200
 #define MACHINE_LIST_REFRESH_INTERVAL 2000
+#define DEV_NAME_MAX_LENGTH 31
 
 #define WRAP_GAP FromDIP(2)
 
@@ -964,9 +965,9 @@ void EditDevNameDialog::on_edit_name(wxCommandEvent &e)
         m_valid_type = NoValid;
     }
 
-    if (m_valid_type == Valid && new_dev_name.length() > 32)
+    if (m_valid_type == Valid && new_dev_name.length() > DEV_NAME_MAX_LENGTH)
     {
-        info_line    = _L("The name is not allowed to exceeds 32 characters.");
+        info_line    = _L("The name exceeds the maximum length:") + " " + wxString::Format("%d", DEV_NAME_MAX_LENGTH);
         m_valid_type = NoValid;
     }
 

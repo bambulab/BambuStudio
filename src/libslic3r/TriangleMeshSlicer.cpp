@@ -1,3 +1,4 @@
+#include "AABBTreeLines.hpp"
 #include "ClipperUtils.hpp"
 #include "Geometry.hpp"
 #include "Tesselate.hpp"
@@ -10,9 +11,13 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
+#include <cstring>
 #include <deque>
+#include <limits>
 #include <queue>
 #include <mutex>
+#include <unordered_map>
+#include <unordered_set>
 #include <utility>
 
 #include <tbb/parallel_for.h>
@@ -424,25 +429,29 @@ static FacetSliceType slice_facet_for_cut_mesh(
                 std::swap(a_id, b_id);
                 std::swap(a, b);
             }
+            // Snapshot sorted endpoints so every facet on this source edge uses the same
+            // interpolation inputs (independent of which facet invokes the branch first).
+            const stl_vertex   va    = *a;
+            const stl_vertex   vb    = *b;
             IntersectionPoint &point = points[num_points];
-            double             t     = (double(slice_z) - double(b->z())) / (double(a->z()) - double(b->z()));
+            const double       t     = (double(slice_z) - double(vb.z())) / (double(va.z()) - double(vb.z()));
             if (t <= 0.) {
                 if (point_on_layer == size_t(-1) || points[point_on_layer].point_id != a_id) {
-                    point.x()      = a->x();
-                    point.y()      = a->y();
+                    point.x()      = va.x();
+                    point.y()      = va.y();
                     point_on_layer = num_points++;
                     point.point_id = a_id;
                 }
             } else if (t >= 1.) {
                 if (point_on_layer == size_t(-1) || points[point_on_layer].point_id != b_id) {
-                    point.x()      = b->x();
-                    point.y()      = b->y();
+                    point.x()      = vb.x();
+                    point.y()      = vb.y();
                     point_on_layer = num_points++;
                     point.point_id = b_id;
                 }
             } else {
-                point.x()     = coord_t(floor(double(b->x()) + (double(a->x()) - double(b->x())) * t + 0.5));
-                point.y()     = coord_t(floor(double(b->y()) + (double(a->y()) - double(b->y())) * t + 0.5));
+                point.x()     = coord_t(floor(double(vb.x()) + (double(va.x()) - double(vb.x())) * t + 0.5));
+                point.y()     = coord_t(floor(double(vb.y()) + (double(va.y()) - double(vb.y())) * t + 0.5));
                 point.edge_id = edge_id;
                 ++num_points;
             }
@@ -1390,15 +1399,32 @@ namespace {
 // through (CAD models often stack a few of those). Shell faces and cap triangles have to agree
 // on a single index per position, otherwise the cap does not close the shell and the cut leaves
 // open edges behind.
+static float cut_plane_xy_tolerance(float lhs, float rhs)
+{
+    const float value_scale = std::max({1.f, std::abs(lhs), std::abs(rhs)});
+    return epson + 2.f * std::numeric_limits<float>::epsilon() * value_scale;
+}
+
+static bool cut_plane_axis_equal(float lhs, float rhs)
+{
+    return std::abs(lhs - rhs) <= cut_plane_xy_tolerance(lhs, rhs);
+}
+
 static bool cut_plane_xy_equal(const Vec2f &l, const Vec2f &r)
 {
-    return is_equal(l.x(), r.x()) && is_equal(l.y(), r.y());
+    return cut_plane_axis_equal(l.x(), r.x()) && cut_plane_axis_equal(l.y(), r.y());
+}
+
+static bool cut_plane_narrow_axis_equal(float lhs, float rhs) { return is_equal(lhs, rhs); }
+
+static bool cut_plane_narrow_xy_equal(const Vec2f &lhs, const Vec2f &rhs)
+{
+    return is_equal(lhs.x(), rhs.x()) && is_equal(lhs.y(), rhs.y());
 }
 
 // Index the welded map holds for a cut plane position, -1 when the position is not in the map.
-// The accepted distance is much wider than the rounding the cap coordinates went through, so the
-// closest entry is taken rather than the first one hit: several distinct positions may be within
-// the tolerance and only the closest one is the vertex the shell uses here.
+// Use the same float-aware tolerance as source-vertex reuse. Take the closest entry because
+// several distinct positions may still fall within that narrow tolerance window.
 static int find_cut_plane_vertex_index(const std::vector<std::pair<Vec2f, int>> &map_vertex_to_index, const Vec2f &v)
 {
     int   best_idx  = -1;
@@ -1416,12 +1442,12 @@ static int find_cut_plane_vertex_index(const std::vector<std::pair<Vec2f, int>> 
         [&v](const std::pair<Vec2f, int> &l) {
             return l.first.x() < v.x() || (is_equal_for_sort(l.first.x(), v.x()) && l.first.y() < v.y());
         });
-    // is_equal() accepts a wider distance than the sort key, so candidates sit on either side.
-    for (auto cur = it; cur != map_vertex_to_index.end() && is_equal(cur->first.x(), v.x()); ++ cur)
+    // The float-aware cut tolerance is wider than the sort key, so candidates sit on either side.
+    for (auto cur = it; cur != map_vertex_to_index.end() && cut_plane_axis_equal(cur->first.x(), v.x()); ++ cur)
         consider(*cur);
     for (auto cur = it; cur != map_vertex_to_index.begin(); ) {
         -- cur;
-        if (! is_equal(cur->first.x(), v.x()))
+        if (! cut_plane_axis_equal(cur->first.x(), v.x()))
             break;
         consider(*cur);
     }
@@ -2276,8 +2302,941 @@ void slice_mesh_slabs(
         *out_bottom = make_slab_loops<false>(lines.second, num_edges, throw_on_cancel);
 }
 
+// Metrics used by cut-boundary repair and legacy-weld compatibility checks.
+struct CutShellTopologyStats {
+    size_t open_edges { 0 };
+    size_t non_manifold_edges { 0 };
+    size_t same_direction_edges { 0 };
+    size_t non_plane_open_edges { 0 };
+};
+
+using CutVertexMap = std::vector<std::pair<Vec2f, int>>;
+
+struct CutBoundaryRepairState {
+    indexed_triangle_set its;
+    IntersectionLines    lines;
+    CutVertexMap         vertex_map;
+    std::vector<int>     src_faces;
+};
+
+struct CutBoundaryRepairBackup {
+    CutBoundaryRepairState state;
+    bool                   captured { false };
+};
+
+// Optional topology validation is deliberately bounded. At three records per face
+// this caps the temporary sorted edge array at roughly 144 MiB.
+static constexpr size_t MaxOptionalTopologyFaces = 4'000'000;
+static constexpr size_t MaxOptionalRepairFaces   = 1'000'000;
+static constexpr size_t MaxOptionalBoundaryLines = 200'000;
+static constexpr size_t CutTopologyCancelChunk   = 8192;
+
+static void sort_cut_vertex_map(CutVertexMap &map)
+{
+    std::sort(map.begin(), map.end(),
+        [](const std::pair<Vec2f, int> &l, const std::pair<Vec2f, int> &r) {
+            return l.first.x() < r.first.x() ||
+                   (is_equal_for_sort(l.first.x(), r.first.x()) &&
+                    (l.first.y() < r.first.y() ||
+                     (is_equal_for_sort(l.first.y(), r.first.y()) && l.second < r.second)));
+        });
+}
+
+static bool cut_topology_is_better(
+    const CutShellTopologyStats &candidate,
+    const CutShellTopologyStats &baseline)
+{
+    const bool no_worse =
+        candidate.open_edges <= baseline.open_edges &&
+        candidate.non_manifold_edges <= baseline.non_manifold_edges &&
+        candidate.same_direction_edges <= baseline.same_direction_edges &&
+        candidate.non_plane_open_edges <= baseline.non_plane_open_edges;
+    const bool improved =
+        candidate.open_edges < baseline.open_edges ||
+        candidate.non_manifold_edges < baseline.non_manifold_edges ||
+        candidate.same_direction_edges < baseline.same_direction_edges ||
+        candidate.non_plane_open_edges < baseline.non_plane_open_edges;
+    return no_worse && improved;
+}
+
+// Undirected edge with the orientation of the face that contributed it.
+struct CutEdgeRecord {
+    int low;
+    int high;
+    int orientation;
+
+    bool operator<(const CutEdgeRecord &rhs) const
+    {
+        return low < rhs.low || (low == rhs.low && high < rhs.high);
+    }
+};
+
+// Build edge incidences in one contiguous array. Sorting has predictable memory use
+// and avoids the multi-gigabyte node overhead of a hash table on scan-sized meshes.
+// Only edges with at least one endpoint near the cut plane are counted. Welding, cap
+// triangulation and boundary repair only touch cut-plane vertices, so the remaining
+// edges are identical for every compared candidate and only add a constant offset.
+static bool cut_shell_topology_stats(
+    const indexed_triangle_set                    &its,
+    const std::vector<stl_triangle_vertex_indices> &faces,
+    float                                           z,
+    CutShellTopologyStats                          &stats,
+    const std::function<bool()>                    &cancel)
+{
+    // Wider than every tolerance that admits a vertex into the cut vertex map; a superset
+    // of the touched vertices keeps the counts exact up to the constant offset.
+    const float near_plane_tolerance = 2.f * epson;
+    auto        near_plane = [&its, z, near_plane_tolerance](int vertex) {
+        return std::abs(its.vertices[vertex].z() - z) <= near_plane_tolerance;
+    };
+    std::vector<CutEdgeRecord> edges;
+    for (size_t face_idx = 0; face_idx < faces.size(); ++face_idx) {
+        if (face_idx % CutTopologyCancelChunk == 0 && cancel && cancel())
+            return false;
+        const stl_triangle_vertex_indices &face = faces[face_idx];
+        const bool corner_near_plane[3] { near_plane(face(0)), near_plane(face(1)), near_plane(face(2)) };
+        for (int edge = 0; edge < 3; ++edge) {
+            if (! corner_near_plane[edge] && ! corner_near_plane[(edge + 1) % 3])
+                continue;
+            const int from = face(edge);
+            const int to   = face((edge + 1) % 3);
+            edges.push_back({std::min(from, to), std::max(from, to), from < to ? 1 : -1});
+        }
+    }
+    if (cancel && cancel())
+        return false;
+    std::sort(edges.begin(), edges.end());
+
+    stats = {};
+    for (size_t first = 0; first < edges.size();) {
+        if (first % (CutTopologyCancelChunk * 3) == 0 && cancel && cancel())
+            return false;
+        size_t last = first + 1;
+        int orientation = edges[first].orientation;
+        while (last < edges.size() &&
+               edges[last].low == edges[first].low && edges[last].high == edges[first].high) {
+            orientation += edges[last].orientation;
+            ++last;
+        }
+        const size_t incidence = last - first;
+        if (incidence == 1)
+            ++stats.open_edges;
+        if (incidence > 2)
+            ++stats.non_manifold_edges;
+        else if (incidence == 2 && orientation != 0)
+            ++stats.same_direction_edges;
+        else if (incidence == 1 &&
+                 (! is_equal(its.vertices[edges[first].low].z(), z) ||
+                  ! is_equal(its.vertices[edges[first].high].z(), z)))
+            ++stats.non_plane_open_edges;
+        first = last;
+    }
+    return true;
+}
+
+// Group cut-plane positions under the given tolerance. Every entry of a group points at
+// the lowest shell index of that group.
+template<typename AxisEqual, typename XYEqual>
+static bool group_cut_plane_vertices(
+    const CutVertexMap          &map_vertex_to_index,
+    const std::function<bool()> &cancel,
+    AxisEqual                    axis_equal,
+    XYEqual                      xy_equal,
+    std::vector<int>            &canonical)
+{
+    canonical.assign(map_vertex_to_index.size(), -1);
+    for (int i = 0; i < int(map_vertex_to_index.size()); ++i) {
+        if (i % CutTopologyCancelChunk == 0 && cancel && cancel())
+            return false;
+        if (canonical[i] != -1)
+            continue;
+        const Vec2f ipos = map_vertex_to_index[i].first;
+        int band_end = i;
+        for (; band_end < int(map_vertex_to_index.size()) &&
+               axis_equal(ipos.x(), map_vertex_to_index[band_end].first.x()); ++band_end)
+            ;
+        int canonical_idx = map_vertex_to_index[i].second;
+        for (int j = i + 1; j < band_end; ++j)
+            if (canonical[j] == -1 && xy_equal(ipos, map_vertex_to_index[j].first))
+                canonical_idx = std::min(canonical_idx, map_vertex_to_index[j].second);
+        for (int j = i; j < band_end; ++j)
+            if (canonical[j] == -1 && xy_equal(ipos, map_vertex_to_index[j].first))
+                canonical[j] = canonical_idx;
+    }
+    return true;
+}
+
+struct CutWeldLocalStats {
+    size_t stacked_plane_edges { 0 };
+    size_t non_manifold_edges { 0 };
+    size_t same_direction_edges { 0 };
+
+    bool is_worse_than(const CutWeldLocalStats &rhs) const
+    {
+        return stacked_plane_edges > rhs.stacked_plane_edges ||
+               non_manifold_edges > rhs.non_manifold_edges ||
+               same_direction_edges > rhs.same_direction_edges;
+    }
+};
+
+static int cut_weld_representative_find(const std::vector<int> &parent, int vertex)
+{
+    while (parent[vertex] != vertex)
+        vertex = parent[vertex];
+    return vertex;
+}
+
+static int cut_weld_representative(std::vector<int> &parent, int vertex)
+{
+    const int root = cut_weld_representative_find(parent, vertex);
+    while (parent[vertex] != vertex) {
+        const int next = parent[vertex];
+        parent[vertex] = root;
+        vertex         = next;
+    }
+    return root;
+}
+
+// Narrow groups that share one wide group, listed by their representatives in ascending order.
+static std::vector<std::vector<int>> collect_wide_only_weld_candidates(
+    const std::vector<int> &wide,
+    const std::vector<int> &narrow)
+{
+    std::vector<std::pair<int, int>> wide_and_narrow;
+    wide_and_narrow.reserve(wide.size());
+    for (size_t i = 0; i < wide.size(); ++i)
+        wide_and_narrow.emplace_back(wide[i], narrow[i]);
+    sort_remove_duplicates(wide_and_narrow);
+    std::vector<std::vector<int>> candidates;
+    for (size_t first = 0; first < wide_and_narrow.size();) {
+        size_t last = first + 1;
+        while (last < wide_and_narrow.size() && wide_and_narrow[last].first == wide_and_narrow[first].first)
+            ++last;
+        if (last - first > 1) {
+            candidates.emplace_back();
+            for (size_t i = first; i < last; ++i)
+                candidates.back().emplace_back(wide_and_narrow[i].second);
+        }
+        first = last;
+    }
+    return candidates;
+}
+
+// Edge statistics of the faces around reps, counting only edges incident to reps.
+// With target >= 0 every rep is relabelled to target first, which simulates the join.
+static CutWeldLocalStats cut_weld_local_stats(
+    const indexed_triangle_set &its,
+    float                       z,
+    const std::vector<int>     &parent,
+    const std::vector<int>     &faces,
+    const std::vector<int>     &reps,
+    int                         target)
+{
+    auto is_rep = [&reps](int v) { return std::binary_search(reps.begin(), reps.end(), v); };
+    auto mapped = [&](int v) {
+        const int rep = cut_weld_representative_find(parent, v);
+        return target >= 0 && is_rep(rep) ? target : rep;
+    };
+    auto touched = [&](int v) { return target >= 0 ? v == target : is_rep(v); };
+
+    std::vector<CutEdgeRecord> edges;
+    for (int face_idx : faces) {
+        const stl_triangle_vertex_indices &face = its.indices[face_idx];
+        const int f[3] { mapped(face(0)), mapped(face(1)), mapped(face(2)) };
+        if (f[0] == f[1] || f[0] == f[2] || f[1] == f[2])
+            continue;
+        for (int edge = 0; edge < 3; ++edge) {
+            const int from = f[edge];
+            const int to   = f[(edge + 1) % 3];
+            if (touched(from) || touched(to))
+                edges.push_back({std::min(from, to), std::max(from, to), from < to ? 1 : -1});
+        }
+    }
+    std::sort(edges.begin(), edges.end());
+
+    CutWeldLocalStats stats;
+    for (size_t first = 0; first < edges.size();) {
+        size_t last = first + 1;
+        int orientation = edges[first].orientation;
+        while (last < edges.size() && edges[last].low == edges[first].low && edges[last].high == edges[first].high)
+            orientation += edges[last++].orientation;
+        const size_t incidence = last - first;
+        if (incidence > 2)
+            ++stats.non_manifold_edges;
+        else if (incidence == 2 && orientation != 0)
+            ++stats.same_direction_edges;
+        if (incidence >= 2 &&
+            is_equal(its.vertices[edges[first].low].z(), z) && is_equal(its.vertices[edges[first].high].z(), z))
+            ++stats.stacked_plane_edges;
+        first = last;
+    }
+    return stats;
+}
+
+// Build canonical shell indices for cut-plane welding: narrow tolerance groups first, then
+// optional wide-ULP joins vetted per group (cut_weld_local_stats). Output canonical[] is the
+// full weld map. triangulate_slice() may still reject that entire weld after shell stats or
+// after comparing welded vs unwelded finished caps — narrow and wide are not split there.
+static bool cut_plane_weld_canonical(
+    const indexed_triangle_set  &its,
+    float                        z,
+    const CutVertexMap          &map_vertex_to_index,
+    const std::function<bool()> &cancel,
+    std::vector<int>            &canonical)
+{
+    std::vector<int> wide;
+    if (! group_cut_plane_vertices(map_vertex_to_index, cancel, cut_plane_axis_equal, cut_plane_xy_equal, wide) ||
+        ! group_cut_plane_vertices(
+            map_vertex_to_index, cancel, cut_plane_narrow_axis_equal, cut_plane_narrow_xy_equal, canonical))
+        return false;
+    if (wide == canonical)
+        return true;
+
+    const std::vector<std::vector<int>> candidates = collect_wide_only_weld_candidates(wide, canonical);
+    if (candidates.empty())
+        return true;
+
+    // Shell vertex -> current weld representative. Accepted joins only link representatives.
+    std::vector<int> parent(its.vertices.size());
+    for (size_t v = 0; v < parent.size(); ++v)
+        parent[v] = int(v);
+    for (size_t i = 0; i < map_vertex_to_index.size(); ++i)
+        parent[map_vertex_to_index[i].second] = canonical[i];
+
+    std::unordered_set<int> watch_reps;
+    for (const std::vector<int> &candidate : candidates)
+        for (int v : candidate)
+            watch_reps.insert(v);
+
+    // Faces incident to a watched rep are the only ones local stats can change.
+    std::vector<uint8_t> weld_touch_vertex(its.vertices.size(), 0);
+    for (int rep : watch_reps)
+        weld_touch_vertex[rep] = 1;
+    for (size_t v = 0; v < parent.size(); ++v)
+        if (weld_touch_vertex[parent[v]])
+            weld_touch_vertex[v] = 1;
+
+    std::unordered_map<int, std::vector<int>> faces_by_rep;
+    for (int rep : watch_reps)
+        faces_by_rep.emplace(rep, std::vector<int>());
+    for (size_t face_idx = 0; face_idx < its.indices.size(); ++face_idx) {
+        if (face_idx % CutTopologyCancelChunk == 0 && cancel && cancel())
+            return false;
+        const stl_triangle_vertex_indices &face = its.indices[face_idx];
+        if (! weld_touch_vertex[face(0)] && ! weld_touch_vertex[face(1)] && ! weld_touch_vertex[face(2)])
+            continue;
+        for (int corner = 0; corner < 3; ++corner) {
+            const int rep = cut_weld_representative(parent, face(corner));
+            auto        it  = faces_by_rep.find(rep);
+            if (it == faces_by_rep.end())
+                continue;
+            if (it->second.empty() || it->second.back() != int(face_idx))
+                it->second.emplace_back(int(face_idx));
+        }
+    }
+
+    for (const std::vector<int> &candidate : candidates) {
+        if (cancel && cancel())
+            return false;
+        std::vector<int> reps;
+        for (int v : candidate)
+            reps.emplace_back(cut_weld_representative(parent, v));
+        sort_remove_duplicates(reps);
+        if (reps.size() < 2)
+            continue;
+        std::vector<int> faces;
+        for (int rep : reps) {
+            const std::vector<int> &rep_faces = faces_by_rep[rep];
+            faces.insert(faces.end(), rep_faces.begin(), rep_faces.end());
+        }
+        sort_remove_duplicates(faces);
+        const int               target = reps.front();
+        const CutWeldLocalStats before = cut_weld_local_stats(its, z, parent, faces, reps, -1);
+        const CutWeldLocalStats after  = cut_weld_local_stats(its, z, parent, faces, reps, target);
+        if (after.is_worse_than(before))
+            continue;
+        std::vector<int> &target_faces = faces_by_rep[target];
+        for (size_t i = 1; i < reps.size(); ++i) {
+            parent[reps[i]] = target;
+            std::vector<int> &rep_faces = faces_by_rep[reps[i]];
+            target_faces.insert(target_faces.end(), rep_faces.begin(), rep_faces.end());
+            rep_faces.clear();
+        }
+    }
+    for (size_t i = 0; i < canonical.size(); ++i)
+        canonical[i] = cut_weld_representative(parent, canonical[i]);
+    return true;
+}
+
+struct CutBoundaryIntersection {
+    size_t line_index1;
+    size_t line_index2;
+};
+
+// Keep the detector local because IntersectionPoints.hpp uses the same
+// IntersectionLines name as the slicer's line container.
+static std::vector<CutBoundaryIntersection> cut_boundary_intersections(const Polygon &loop)
+{
+    const Lines lines = to_lines(loop);
+    if (lines.size() < 3)
+        return {};
+
+    const auto tree = AABBTreeLines::build_aabb_tree_over_indexed_lines(lines);
+    std::vector<CutBoundaryIntersection> intersections;
+    for (uint32_t line_idx = 0; line_idx + 1 < lines.size(); ++line_idx) {
+        const Line &line = lines[line_idx];
+        const auto hits = AABBTreeLines::get_intersections_with_line<false, Point, Line>(lines, tree, line);
+        for (const auto &hit : hits) {
+            const auto hit_idx = hit.second;
+            if (hit_idx <= line_idx + 1)
+                continue;
+            const Line &hit_line = lines[hit_idx];
+            if (hit_line.a == line.a || hit_line.a == line.b || hit_line.b == line.a || hit_line.b == line.b)
+                continue;
+            intersections.push_back({line_idx, hit_idx});
+        }
+    }
+    return intersections;
+}
+
+static size_t cut_boundary_intersection_count(const Polygons &loops)
+{
+    size_t count = 0;
+    for (const Polygon &loop : loops)
+        count += cut_boundary_intersections(loop).size();
+    return count;
+}
+
+static Points cut_boundary_arc(const Polygon &loop, size_t first, size_t last)
+{
+    Points arc;
+    const size_t count = loop.points.size();
+    for (size_t idx = first;; idx = (idx + 1) % count) {
+        arc.emplace_back(loop.points[idx]);
+        if (idx == last)
+            break;
+    }
+    return arc;
+}
+
+static double cut_boundary_path_length(const Points &points)
+{
+    double length = 0.;
+    for (size_t idx = 1; idx < points.size(); ++idx)
+        length += (points[idx] - points[idx - 1]).cast<double>().norm();
+    return length;
+}
+
+// Collapse a selected microscopic detour in both the shell and the line graph.
+// The candidate is committed only if shell topology is not degraded and at least
+// one geometric boundary crossing disappears.
+static bool collapse_cut_boundary_arc(
+    indexed_triangle_set                    &its,
+    IntersectionLines                       &lines,
+    CutVertexMap                            &map_vertex_to_index,
+    const Points                            &arc,
+    const Point                             &target_point,
+    float                                    z,
+    size_t                                   old_intersection_count,
+    const CutShellTopologyStats             &old_stats,
+    std::vector<int>                        *src_faces,
+    const std::function<bool()>             &cancel,
+    bool                                     allow_line_only,
+    bool                                    &was_cancelled,
+    bool                                    &line_only_candidate)
+{
+    static constexpr size_t max_one_ring_faces = 128;
+    if (cancel && cancel()) {
+        was_cancelled = true;
+        return false;
+    }
+    const int target_vertex = find_cut_plane_vertex_index(
+        map_vertex_to_index, unscaled<double>(target_point).cast<float>());
+    if (target_vertex < 0)
+        return false;
+
+    std::vector<int> collapsed_vertices;
+    collapsed_vertices.reserve(arc.size());
+    for (const Point &point : arc) {
+        const int vertex = find_cut_plane_vertex_index(
+            map_vertex_to_index, unscaled<double>(point).cast<float>());
+        if (vertex < 0)
+            return false;
+        if (vertex != target_vertex &&
+            std::find(collapsed_vertices.begin(), collapsed_vertices.end(), vertex) == collapsed_vertices.end())
+            collapsed_vertices.emplace_back(vertex);
+    }
+    line_only_candidate = collapsed_vertices.empty();
+    if (line_only_candidate && ! allow_line_only)
+        return false;
+    const bool line_only_repair = line_only_candidate;
+
+    auto remapped_vertex = [&collapsed_vertices, target_vertex](int vertex) {
+        return std::find(collapsed_vertices.begin(), collapsed_vertices.end(), vertex) != collapsed_vertices.end() ?
+            target_vertex : vertex;
+    };
+
+    // Only the one-ring of the selected boundary arc may change. Reject high-valence
+    // vertices instead of turning a local numerical repair into a global shell rewrite.
+    // A line-only repair leaves the shell untouched, so no face array is built or replaced.
+    std::vector<char> affected_faces(line_only_repair ? 0 : its.indices.size(), 0);
+    size_t affected_face_count = 0;
+    for (size_t face_idx = 0; ! line_only_repair && face_idx < its.indices.size(); ++face_idx) {
+        const stl_triangle_vertex_indices &face = its.indices[face_idx];
+        bool affected = false;
+        for (int vertex = 0; vertex < 3 && ! affected; ++vertex)
+            affected = face(vertex) == target_vertex ||
+                std::find(collapsed_vertices.begin(), collapsed_vertices.end(), face(vertex)) != collapsed_vertices.end();
+        if (affected) {
+            affected_faces[face_idx] = 1;
+            if (++affected_face_count > max_one_ring_faces)
+                return false;
+        }
+    }
+    if (cancel && cancel()) {
+        was_cancelled = true;
+        return false;
+    }
+
+    std::vector<stl_triangle_vertex_indices> candidate_faces;
+    std::vector<int>                         candidate_src_faces;
+    if (! line_only_repair) {
+        candidate_faces.reserve(its.indices.size());
+        if (src_faces != nullptr)
+            candidate_src_faces.reserve(src_faces->size());
+    }
+    for (size_t face_idx = 0; ! line_only_repair && face_idx < its.indices.size(); ++face_idx) {
+        const stl_triangle_vertex_indices &face = its.indices[face_idx];
+        if (! affected_faces[face_idx]) {
+            candidate_faces.emplace_back(face);
+            if (src_faces != nullptr)
+                candidate_src_faces.emplace_back((*src_faces)[face_idx]);
+            continue;
+        }
+        const stl_triangle_vertex_indices candidate(
+            remapped_vertex(face(0)), remapped_vertex(face(1)), remapped_vertex(face(2)));
+        if (candidate(0) == candidate(1) || candidate(0) == candidate(2) || candidate(1) == candidate(2))
+            continue;
+        candidate_faces.emplace_back(candidate);
+        if (src_faces != nullptr)
+            candidate_src_faces.emplace_back((*src_faces)[face_idx]);
+    }
+
+    CutShellTopologyStats candidate_stats = old_stats;
+    if (! line_only_repair &&
+        ! cut_shell_topology_stats(its, candidate_faces, z, candidate_stats, cancel)) {
+        was_cancelled = true;
+        return false;
+    }
+    if (candidate_stats.open_edges > old_stats.open_edges ||
+        candidate_stats.non_manifold_edges > old_stats.non_manifold_edges ||
+        candidate_stats.same_direction_edges > old_stats.same_direction_edges ||
+        candidate_stats.non_plane_open_edges > old_stats.non_plane_open_edges)
+        return false;
+
+    IntersectionLines candidate_lines = lines;
+    for (IntersectionLine &line : candidate_lines) {
+        for (const Point &point : arc) {
+            if (line.a == point) {
+                line.a = target_point;
+                line.a_id = target_vertex;
+                line.edge_a_id = -1;
+            }
+            if (line.b == point) {
+                line.b = target_point;
+                line.b_id = target_vertex;
+                line.edge_b_id = -1;
+            }
+        }
+    }
+    candidate_lines.erase(
+        std::remove_if(candidate_lines.begin(), candidate_lines.end(),
+            [](const IntersectionLine &line) { return line.a == line.b; }),
+        candidate_lines.end());
+
+    if (cancel && cancel()) {
+        was_cancelled = true;
+        return false;
+    }
+    IntersectionLines candidate_loop_lines = candidate_lines;
+    const Polygons   candidate_loops = make_loops(candidate_loop_lines);
+    const size_t candidate_intersection_count = cut_boundary_intersection_count(candidate_loops);
+    if (candidate_loops.empty() || candidate_intersection_count >= old_intersection_count)
+        return false;
+
+    if (! line_only_repair) {
+        its.indices = std::move(candidate_faces);
+        if (src_faces != nullptr)
+            *src_faces = std::move(candidate_src_faces);
+    }
+    lines = std::move(candidate_lines);
+    for (std::pair<Vec2f, int> &entry : map_vertex_to_index) {
+        const int mapped = remapped_vertex(entry.second);
+        if (mapped != entry.second) {
+            entry.first  = to_2d(its.vertices[target_vertex]);
+            entry.second = mapped;
+        }
+    }
+    sort_cut_vertex_map(map_vertex_to_index);
+    map_vertex_to_index.erase(
+        std::unique(map_vertex_to_index.begin(), map_vertex_to_index.end(),
+            [](const std::pair<Vec2f, int> &lhs, const std::pair<Vec2f, int> &rhs) {
+                return lhs.second == rhs.second &&
+                    lhs.first.x() == rhs.first.x() && lhs.first.y() == rhs.first.y();
+            }),
+        map_vertex_to_index.end());
+    return true;
+}
+
+// Bulk variant of find_cut_plane_vertex_index() for cap mapping. Scanning the sorted map
+// visits every entry sharing the query x, which degrades on axis-aligned CAD sections.
+// Grid cells are four times the widest tolerance, so the 2x2 cells around a query hold
+// every entry the predicate can accept; the selection rule is unchanged.
+class CutPlaneVertexGrid
+{
+public:
+    explicit CutPlaneVertexGrid(const CutVertexMap &map) : m_map(map)
+    {
+        float max_abs = 1.f;
+        for (const auto &entry : map)
+            max_abs = std::max({max_abs, std::abs(entry.first.x()), std::abs(entry.first.y())});
+        m_tolerance = double(cut_plane_xy_tolerance(max_abs, max_abs));
+        m_cell      = 4. * m_tolerance;
+        m_max_abs   = max_abs;
+        std::vector<std::pair<uint64_t, int>> keyed;
+        keyed.reserve(map.size());
+        for (int idx = 0; idx < int(map.size()); ++idx)
+            keyed.emplace_back(key(cell_of(map[idx].first.x()), cell_of(map[idx].first.y())), idx);
+        std::sort(keyed.begin(), keyed.end());
+        m_entries.reserve(keyed.size());
+        m_ranges.reserve(keyed.size());
+        for (size_t first = 0; first < keyed.size();) {
+            size_t last = first;
+            for (; last < keyed.size() && keyed[last].first == keyed[first].first; ++last)
+                m_entries.emplace_back(keyed[last].second);
+            m_ranges.emplace(keyed[first].first, std::make_pair(uint32_t(first), uint32_t(last)));
+            first = last;
+        }
+    }
+
+    int find(const Vec2f &v) const
+    {
+        if (! std::isfinite(v.x()) || ! std::isfinite(v.y()) || std::abs(v.x()) > m_max_abs || std::abs(v.y()) > m_max_abs)
+            return find_cut_plane_vertex_index(m_map, v);
+        int   best_idx  = -1;
+        float best_dist = 0.f;
+        const double  margin = 1.5 * m_tolerance;
+        const int64_t x_lo = cell_of(double(v.x()) - margin), x_hi = cell_of(double(v.x()) + margin);
+        const int64_t y_lo = cell_of(double(v.y()) - margin), y_hi = cell_of(double(v.y()) + margin);
+        for (int64_t cx = x_lo; cx <= x_hi; ++cx)
+            for (int64_t cy = y_lo; cy <= y_hi; ++cy) {
+                const auto it = m_ranges.find(key(cx, cy));
+                if (it == m_ranges.end())
+                    continue;
+                for (uint32_t pos = it->second.first; pos < it->second.second; ++pos) {
+                    const std::pair<Vec2f, int> &e = m_map[m_entries[pos]];
+                    if (! cut_plane_xy_equal(e.first, v))
+                        continue;
+                    const float dist = (e.first - v).squaredNorm();
+                    if (best_idx == -1 || dist < best_dist || (dist == best_dist && e.second < best_idx)) {
+                        best_idx  = e.second;
+                        best_dist = dist;
+                    }
+                }
+            }
+        return best_idx;
+    }
+
+private:
+    int64_t cell_of(double value) const { return int64_t(std::floor(value / m_cell)); }
+    static uint64_t key(int64_t cx, int64_t cy) { return (uint64_t(uint32_t(cx)) << 32) | uint64_t(uint32_t(cy)); }
+
+    const CutVertexMap                                          &m_map;
+    double                                                       m_tolerance { 0. };
+    double                                                       m_cell { 1. };
+    float                                                        m_max_abs { 1.f };
+    std::vector<int>                                             m_entries;
+    std::unordered_map<uint64_t, std::pair<uint32_t, uint32_t>> m_ranges;
+};
+
+// Run the existing cap tessellator and map its coordinates back to shell vertices.
+static void append_cut_cap_triangles(
+    indexed_triangle_set &its,
+    IntersectionLines    &lines,
+    const CutVertexMap   &map_vertex_to_index,
+    float                 z,
+    bool                  normals_down,
+    const Pointf3s       *precomputed_triangles = nullptr)
+{
+    Pointf3s computed_triangles;
+    if (precomputed_triangles == nullptr)
+        computed_triangles = triangulate_expolygons_3d(make_expolygons_simple(lines), z, normals_down);
+    const Pointf3s &triangles = precomputed_triangles != nullptr ? *precomputed_triangles : computed_triangles;
+    const CutPlaneVertexGrid vertex_grid(map_vertex_to_index);
+    // Vertices created by the tessellator are matched by exact float equality. Hashing the
+    // bit patterns (with -0 folded into +0) replaces a scan over every vertex added so far,
+    // which is quadratic on self-intersecting sections.
+    struct NewVertexKey {
+        uint32_t bits[3];
+        bool operator==(const NewVertexKey &rhs) const
+        {
+            return bits[0] == rhs.bits[0] && bits[1] == rhs.bits[1] && bits[2] == rhs.bits[2];
+        }
+    };
+    struct NewVertexKeyHash {
+        size_t operator()(const NewVertexKey &key) const
+        {
+            uint64_t h = 1469598103934665603ull;
+            for (uint32_t b : key.bits)
+                h = (h ^ b) * 1099511628211ull;
+            return size_t(h);
+        }
+    };
+    auto new_vertex_key = [](const Vec3f &point) {
+        NewVertexKey key;
+        for (int axis = 0; axis < 3; ++axis) {
+            const float value = point(axis) == 0.f ? 0.f : point(axis);
+            std::memcpy(&key.bits[axis], &value, sizeof(uint32_t));
+        }
+        return key;
+    };
+    std::unordered_map<NewVertexKey, int, NewVertexKeyHash> new_vertices;
+    for (size_t idx = 0; idx < triangles.size();) {
+        stl_triangle_vertex_indices facet;
+        for (size_t vertex = 0; vertex < 3; ++vertex) {
+            const Vec3f point = triangles[idx++].cast<float>();
+            int mapped = vertex_grid.find(to_2d(point));
+            if (mapped == -1) {
+                const auto inserted = new_vertices.emplace(new_vertex_key(point), int(its.vertices.size()));
+                mapped              = inserted.first->second;
+                if (inserted.second)
+                    its.vertices.emplace_back(point);
+            }
+            facet(vertex) = mapped;
+        }
+        if (facet(0) != facet(1) && facet(0) != facet(2) && facet(1) != facet(2))
+            its.indices.emplace_back(facet);
+    }
+}
+
+// Repair only microscopic boundary detours that demonstrably cross another boundary edge.
+// Each loop is intersected once per repair round and cached until a committed collapse
+// invalidates the loops. Work and affected one-rings stay bounded so malformed input
+// cannot trigger an unbounded search on the synchronous cut path.
+static bool repair_local_cut_boundary_self_intersections(
+    indexed_triangle_set &its,
+    IntersectionLines    &lines,
+    CutVertexMap         &map_vertex_to_index,
+    float                 z,
+    std::vector<int>     *src_faces,
+    const std::function<bool()> &cancel,
+    CutBoundaryRepairBackup *backup = nullptr)
+{
+    static constexpr size_t max_repairs = 4;
+    static constexpr size_t max_collapse_attempts = 8;
+    static constexpr size_t max_arc_points = 9;
+    if (its.indices.size() > MaxOptionalRepairFaces || lines.size() > MaxOptionalBoundaryLines) {
+        // Large scans hit this on every cut; keep it quiet unless debugging.
+        BOOST_LOG_TRIVIAL(debug) << "Cut boundary repair skipped: faces=" << its.indices.size()
+                                 << " boundary_lines=" << lines.size();
+        return false;
+    }
+    const double max_arc_length = double(scale_(0.03));
+    const double max_endpoint_distance = double(scale_(0.015));
+    size_t collapse_attempts = 0;
+    bool repaired = false;
+
+    for (size_t repair_idx = 0; repair_idx < max_repairs; ++repair_idx) {
+        if (cancel && cancel())
+            break;
+        IntersectionLines loop_lines = lines;
+        Polygons          loops      = make_loops(loop_lines);
+        std::vector<std::vector<CutBoundaryIntersection>> intersections_by_loop;
+        intersections_by_loop.reserve(loops.size());
+        size_t old_intersection_count = 0;
+        for (const Polygon &loop : loops) {
+            std::vector<CutBoundaryIntersection> intersections = cut_boundary_intersections(loop);
+            old_intersection_count += intersections.size();
+            intersections_by_loop.emplace_back(std::move(intersections));
+        }
+        if (old_intersection_count == 0)
+            break;
+
+        CutShellTopologyStats old_stats;
+        bool old_stats_valid = false;
+        bool committed = false;
+        Points deferred_line_only_arc;
+        Point deferred_line_only_target;
+        for (size_t loop_idx = 0; loop_idx < loops.size(); ++loop_idx) {
+            if (cancel && cancel())
+                return repaired;
+            const Polygon &loop = loops[loop_idx];
+            const std::vector<CutBoundaryIntersection> &intersections = intersections_by_loop[loop_idx];
+            for (const CutBoundaryIntersection &intersection : intersections) {
+                const size_t n = loop.points.size();
+                size_t edge_a = intersection.line_index1;
+                size_t edge_b = intersection.line_index2;
+                if (edge_a > edge_b)
+                    std::swap(edge_a, edge_b);
+
+                Points arcs[2] {
+                    cut_boundary_arc(loop, (edge_a + 1) % n, edge_b),
+                    cut_boundary_arc(loop, (edge_b + 1) % n, edge_a)
+                };
+                for (const Points &arc : arcs) {
+                    if (arc.size() < 2 || arc.size() > max_arc_points ||
+                        cut_boundary_path_length(arc) > max_arc_length ||
+                        (arc.front() - arc.back()).cast<double>().norm() > max_endpoint_distance)
+                        continue;
+
+                    if (! old_stats_valid) {
+                        if (backup != nullptr && ! backup->captured) {
+                            backup->state.its        = its;
+                            backup->state.lines      = lines;
+                            backup->state.vertex_map = map_vertex_to_index;
+                            if (src_faces != nullptr)
+                                backup->state.src_faces = *src_faces;
+                            backup->captured = true;
+                        }
+                        if (! cut_shell_topology_stats(its, its.indices, z, old_stats, cancel))
+                            return repaired;
+                        old_stats_valid = true;
+                    }
+
+                    double front_cost = 0.;
+                    double back_cost  = 0.;
+                    for (const Point &point : arc) {
+                        front_cost += (point - arc.front()).cast<double>().squaredNorm();
+                        back_cost  += (point - arc.back()).cast<double>().squaredNorm();
+                    }
+                    const Point targets[2] {
+                        front_cost <= back_cost ? arc.front() : arc.back(),
+                        front_cost <= back_cost ? arc.back() : arc.front()
+                    };
+                    for (const Point &target : targets) {
+                        if (collapse_attempts == max_collapse_attempts)
+                            return repaired;
+                        ++collapse_attempts;
+                        bool was_cancelled = false;
+                        bool line_only_candidate = false;
+                        if (collapse_cut_boundary_arc(
+                                its, lines, map_vertex_to_index, arc, target, z,
+                                old_intersection_count, old_stats, src_faces, cancel, false,
+                                was_cancelled, line_only_candidate)) {
+                            committed = true;
+                            repaired  = true;
+                            break;
+                        }
+                        if (line_only_candidate && deferred_line_only_arc.empty()) {
+                            deferred_line_only_arc    = arc;
+                            deferred_line_only_target = target;
+                        }
+                        if (was_cancelled)
+                            return repaired;
+                    }
+                    if (committed)
+                        break;
+                }
+                if (committed)
+                    break;
+            }
+            if (committed)
+                break;
+        }
+        if (! committed && ! deferred_line_only_arc.empty()) {
+            bool was_cancelled = false;
+            bool line_only_candidate = false;
+            committed = collapse_cut_boundary_arc(
+                its, lines, map_vertex_to_index, deferred_line_only_arc, deferred_line_only_target, z,
+                old_intersection_count, old_stats, src_faces, cancel, true,
+                was_cancelled, line_only_candidate);
+            repaired = repaired || committed;
+            if (was_cancelled)
+                return repaired;
+        }
+        if (! committed)
+            break;
+    }
+
+    return repaired;
+}
+
+static void remap_cut_shell_vertices(
+    indexed_triangle_set      &its,
+    std::vector<int>          *src_faces,
+    const std::vector<int>    &map_duplicate_vertex)
+{
+    auto remapped_vertex = [&map_duplicate_vertex](int vertex) {
+        return vertex >= 0 && vertex < int(map_duplicate_vertex.size()) && map_duplicate_vertex[vertex] >= 0 ?
+            map_duplicate_vertex[vertex] : vertex;
+    };
+    assert(src_faces == nullptr || src_faces->size() == its.indices.size());
+    for (int i = 0; i < int(its.indices.size());) {
+        stl_triangle_vertex_indices &face = its.indices[i];
+        for (int vertex = 0; vertex < 3; ++vertex)
+            face(vertex) = remapped_vertex(face(vertex));
+        if (face(0) == face(1) || face(0) == face(2) || face(1) == face(2)) {
+            face = its.indices.back();
+            its.indices.pop_back();
+            if (src_faces != nullptr) {
+                (*src_faces)[i] = src_faces->back();
+                src_faces->pop_back();
+            }
+        } else {
+            ++i;
+        }
+    }
+}
+
+// Complete one shell candidate with the existing cap path. Local boundary repair
+// remains transactional: keep it only when the finished mesh is strictly better.
+static bool finalize_cut_cap(
+    indexed_triangle_set        &its,
+    IntersectionLines           &lines,
+    CutVertexMap                &map_vertex_to_index,
+    float                        z,
+    bool                         normals_down,
+    std::vector<int>            *src_faces,
+    const std::function<bool()> &cancel,
+    const Pointf3s              *shared_cap_triangles = nullptr)
+{
+    CutBoundaryRepairBackup backup;
+    const bool boundary_repaired = repair_local_cut_boundary_self_intersections(
+        its, lines, map_vertex_to_index, z, src_faces, cancel, &backup);
+    if (cancel && cancel()) {
+        if (backup.captured) {
+            its = std::move(backup.state.its);
+            if (src_faces != nullptr)
+                *src_faces = std::move(backup.state.src_faces);
+        }
+        return false;
+    }
+
+    // Boundary repair rewrites lines, so the shared tessellation only matches the unrepaired loops.
+    append_cut_cap_triangles(
+        its, lines, map_vertex_to_index, z, normals_down, boundary_repaired ? nullptr : shared_cap_triangles);
+    if (cancel && cancel())
+        return false;
+    if (boundary_repaired) {
+        append_cut_cap_triangles(
+            backup.state.its, backup.state.lines, backup.state.vertex_map, z, normals_down, shared_cap_triangles);
+        CutShellTopologyStats repaired_stats;
+        CutShellTopologyStats baseline_stats;
+        if (! cut_shell_topology_stats(its, its.indices, z, repaired_stats, cancel) ||
+            ! cut_shell_topology_stats(
+                backup.state.its, backup.state.its.indices, z, baseline_stats, cancel))
+            return false;
+        if (! cut_topology_is_better(repaired_stats, baseline_stats)) {
+            its = std::move(backup.state.its);
+            if (src_faces != nullptr)
+                *src_faces = std::move(backup.state.src_faces);
+        }
+    }
+    return true;
+}
+
 // Remove duplicates of slice_vertices, optionally triangulate the cut.
-static void triangulate_slice(
+static bool triangulate_slice(
     indexed_triangle_set    &its,
     IntersectionLines       &lines,
     std::vector<int>        &slice_vertices,
@@ -2286,110 +3245,174 @@ static void triangulate_slice(
     bool                     triangulate,
     bool                     normals_down,
     std::vector<int>        *src_faces,
-    const std::map<int, Vec3f*> &section_vertices_map)
+    const std::map<int, Vec3f*> &section_vertices_map,
+    const std::function<bool()> &cancel)
 {
+    if (cancel && cancel())
+        return false;
     sort_remove_duplicates(slice_vertices);
 
-    // 1) Create map of the cut plane vertices from positions to mesh indices.
-    // As the caller will likely add duplicate points when intersecting triangle edges, there will be duplicates.
-    // The original vertices the plane passes through are registered as well, so that a stack of
-    // coincident vertices ends up in a single group of step 2 instead of forking shell and cap.
-    std::vector<std::pair<Vec2f, int>> map_vertex_to_index;
+    // Create a position lookup shared by cap mapping and positional welding.
+    CutVertexMap map_vertex_to_index;
     map_vertex_to_index.reserve(slice_vertices.size() + section_vertices_map.size());
     for (int i : slice_vertices)
         map_vertex_to_index.emplace_back(to_2d(its.vertices[i]), i);
     for (const auto &kvp : section_vertices_map)
         if (kvp.first >= 0 && kvp.first < int(its.vertices.size()) && is_equal(its.vertices[kvp.first].z(), z))
             map_vertex_to_index.emplace_back(to_2d(its.vertices[kvp.first]), kvp.first);
-    std::sort(map_vertex_to_index.begin(), map_vertex_to_index.end(),
-        [](const std::pair<Vec2f, int> &l, const std::pair<Vec2f, int> &r) {
-            return l.first.x() < r.first.x() || 
-                   (is_equal_for_sort(l.first.x(), r.first.x()) && (l.first.y()< r.first.y() || 
-                                                          (is_equal_for_sort(l.first.y(), r.first.y()) && l.second < r.second)));
-    });
+    sort_cut_vertex_map(map_vertex_to_index);
 
-    // 2) Discover duplicate points on the slice. Remap duplicate vertices to a vertex with a lowest index.
-    //    Remove denegerate triangles, if they happen to be created by merging duplicate vertices.
-    //    Every entry lies on the cut plane, so entries sharing a position describe the same point
-    //    and the lowest index becomes the one index both the shell and the cap below refer to.
+    // Pre-weld welding table; used to build an unwelded cap candidate (no plane-vertex join).
+    CutBoundaryRepairState unwelded_state;
+    bool                   compare_unwelded_result = false;
+
+    // Apply cut_plane_weld_canonical (narrow groups + vetted wide-ULP joins). When shell
+    // stats worsen, either compare welded vs unwelded caps or drop the entire weld (narrow
+    // and wide) — see shell_weld_needs_validation below.
     {
         std::vector<int>  map_duplicate_vertex(its.vertices.size(), -1);
-        std::vector<char> grouped(map_vertex_to_index.size(), 0);
-        int i = 0;
-        int k = 0;
-        for (; i < int(map_vertex_to_index.size()); ++ i) {
-            if (grouped[i])
-                continue;
-            const Vec2f ipos = map_vertex_to_index[i].first;
-            // The entries are ordered by x alone, so the ones describing this position are not
-            // necessarily adjacent: another vertex of the same x band but of a far away y may sit
-            // between them. Walk the whole band and collect what is close to this anchor, rather
-            // than stopping at the first neighbour that does not match.
-            int band_end = i;
-            for (; band_end < int(map_vertex_to_index.size()) && is_equal(ipos.x(), map_vertex_to_index[band_end].first.x()); ++ band_end)
-                ;
-            int iidx = map_vertex_to_index[i].second;
-            for (int t = i + 1; t < band_end; ++ t)
-                if (! grouped[t] && cut_plane_xy_equal(ipos, map_vertex_to_index[t].first))
-                    iidx = std::min(iidx, map_vertex_to_index[t].second);
-            for (int t = i; t < band_end; ++ t) {
-                if (grouped[t] || ! cut_plane_xy_equal(ipos, map_vertex_to_index[t].first))
-                    continue;
-                grouped[t] = 1;
-                if (map_vertex_to_index[t].second != iidx)
-                    map_duplicate_vertex[map_vertex_to_index[t].second] = iidx;
-                // Keep every registered position pointing at the canonical index instead of keeping
-                // the group representative alone: the tolerant comparison is not transitive, so a cap
-                // vertex may well match one member of the group while missing that representative.
-                map_vertex_to_index[t].second = iidx;
+        std::vector<int>  canonical;
+        std::vector<int>  original_map_indices;
+        original_map_indices.reserve(map_vertex_to_index.size());
+        for (const auto &entry : map_vertex_to_index)
+            original_map_indices.emplace_back(entry.second);
+        if (! cut_plane_weld_canonical(its, z, map_vertex_to_index, cancel, canonical))
+            return false;
+        bool has_duplicate_vertices = false;
+        for (size_t i = 0; i < map_vertex_to_index.size(); ++i) {
+            if (map_vertex_to_index[i].second != canonical[i]) {
+                map_duplicate_vertex[map_vertex_to_index[i].second] = canonical[i];
+                has_duplicate_vertices = true;
             }
+            map_vertex_to_index[i].second = canonical[i];
         }
-        assert(src_faces == nullptr || src_faces->size() == its.indices.size());
-        for (i = 0; i < int(its.indices.size());) {
-            stl_triangle_vertex_indices &f = its.indices[i];
-            // Remap the face vertices that lost against another index of the same position.
-            for (k = 0; k < 3; ++ k)
-                if (f(k) >= 0 && f(k) < int(map_duplicate_vertex.size()) && map_duplicate_vertex[f(k)] >= 0)
-                    f(k) = map_duplicate_vertex[f(k)];
-            if (f(0) == f(1) || f(0) == f(2) || f(1) == f(2)) {
-                // Remove degenerate face.
-                f = its.indices.back();
-                its.indices.pop_back();
-                if (src_faces != nullptr) {
-                    (*src_faces)[i] = src_faces->back();
-                    src_faces->pop_back();
+
+        if (has_duplicate_vertices) {
+            auto remapped_vertex = [&map_duplicate_vertex](int vertex) {
+                return vertex >= 0 && vertex < int(map_duplicate_vertex.size()) && map_duplicate_vertex[vertex] >= 0 ?
+                    map_duplicate_vertex[vertex] : vertex;
+            };
+
+            if (its.indices.size() <= MaxOptionalTopologyFaces) {
+                std::vector<char> affected_vertices(its.vertices.size(), 0);
+                for (int vertex = 0; vertex < int(map_duplicate_vertex.size()); ++vertex)
+                    if (map_duplicate_vertex[vertex] >= 0) {
+                        affected_vertices[vertex] = 1;
+                        affected_vertices[map_duplicate_vertex[vertex]] = 1;
+                    }
+                std::vector<stl_triangle_vertex_indices> candidate_faces;
+                candidate_faces.reserve(its.indices.size());
+                std::vector<uint64_t> affected_plane_edges;
+                auto edge_key = [](int a, int b) {
+                    const uint32_t lo = uint32_t(std::min(a, b));
+                    const uint32_t hi = uint32_t(std::max(a, b));
+                    return (uint64_t(lo) << 32) | uint64_t(hi);
+                };
+                for (size_t face_idx = 0; face_idx < its.indices.size(); ++face_idx) {
+                    if (face_idx % CutTopologyCancelChunk == 0 && cancel && cancel())
+                        return false;
+                    const stl_triangle_vertex_indices &face = its.indices[face_idx];
+                    const Vec3i remapped(remapped_vertex(face(0)), remapped_vertex(face(1)), remapped_vertex(face(2)));
+                    if (remapped(0) != remapped(1) && remapped(0) != remapped(2) && remapped(1) != remapped(2)) {
+                        candidate_faces.emplace_back(remapped);
+                        for (int edge = 0; edge < 3; ++edge) {
+                            const int from = remapped(edge);
+                            const int to   = remapped((edge + 1) % 3);
+                            if ((affected_vertices[from] || affected_vertices[to]) &&
+                                is_equal(its.vertices[from].z(), z) && is_equal(its.vertices[to].z(), z) &&
+                                from != to)
+                                affected_plane_edges.emplace_back(edge_key(from, to));
+                        }
+                    }
                 }
-            } else
-                // Keep the face.
-                ++ i;
+                std::sort(affected_plane_edges.begin(), affected_plane_edges.end());
+                const bool repeated_affected_plane_edge =
+                    std::adjacent_find(affected_plane_edges.begin(), affected_plane_edges.end()) !=
+                    affected_plane_edges.end();
+                CutShellTopologyStats old_stats;
+                CutShellTopologyStats new_stats;
+                if (! cut_shell_topology_stats(its, its.indices, z, old_stats, cancel) ||
+                    ! cut_shell_topology_stats(its, candidate_faces, z, new_stats, cancel))
+                    return false;
+                const bool shell_weld_needs_validation =
+                    repeated_affected_plane_edge ||
+                    new_stats.open_edges > old_stats.open_edges ||
+                    new_stats.non_manifold_edges > old_stats.non_manifold_edges ||
+                    new_stats.same_direction_edges > old_stats.same_direction_edges ||
+                    new_stats.non_plane_open_edges > old_stats.non_plane_open_edges;
+                compare_unwelded_result =
+                    triangulate && shell_weld_needs_validation &&
+                    lines.size() <= MaxOptionalBoundaryLines;
+                if (compare_unwelded_result) {
+                    if (cancel && cancel())
+                        return false;
+                    unwelded_state.its        = its;
+                    unwelded_state.lines      = lines;
+                    unwelded_state.vertex_map = map_vertex_to_index;
+                    for (size_t i = 0; i < unwelded_state.vertex_map.size(); ++i)
+                        unwelded_state.vertex_map[i].second = original_map_indices[i];
+                    if (src_faces != nullptr)
+                        unwelded_state.src_faces = *src_faces;
+                } else if (shell_weld_needs_validation) {
+                    BOOST_LOG_TRIVIAL(debug)
+                        << "Cut plane weld rolled back (shell check): triangulate=" << triangulate
+                        << " boundary_lines=" << lines.size() << " faces=" << its.indices.size();
+                    std::fill(map_duplicate_vertex.begin(), map_duplicate_vertex.end(), -1);
+                    for (size_t i = 0; i < map_vertex_to_index.size(); ++i)
+                        map_vertex_to_index[i].second = original_map_indices[i];
+                }
+            } else {
+                BOOST_LOG_TRIVIAL(debug) << "Cut weld shell validation skipped: faces=" << its.indices.size();
+            }
+
+            remap_cut_shell_vertices(its, src_faces, map_duplicate_vertex);
         }
     }
 
     if (triangulate) {
-        size_t idx_vertex_new_first = its.vertices.size();
-        Pointf3s triangles = triangulate_expolygons_3d(make_expolygons_simple(lines), z, normals_down);
-        for (size_t i = 0; i < triangles.size(); ) {
-            stl_triangle_vertex_indices facet;
-            for (size_t j = 0; j < 3; ++ j) {
-                Vec3f v = triangles[i ++].cast<float>();
-                // The cap lies on the cut plane, so the map welded above yields the very index the shell uses.
-                int   idx = find_cut_plane_vertex_index(map_vertex_to_index, to_2d(v));
-                if (idx == -1) {
-                    // Try to find the vertex in the list of newly added vertices. Those vertices are not matched on the cut and they shall be rare.
-                    for (size_t k = idx_vertex_new_first; k < its.vertices.size(); ++ k)
-                        if (its.vertices[k] == v) {
-                            idx = int(k);
-                            break;
-                        }
-                    if (idx == -1) {
-                        idx = int(its.vertices.size());
-                        its.vertices.emplace_back(v);
-                    }
-                }
-                facet(j) = idx;
+        Pointf3s shared_cap_triangles;
+        const Pointf3s *shared_cap_ptr = nullptr;
+        if (compare_unwelded_result) {
+            // make_expolygons_simple() consumes its input; keep lines intact for boundary repair.
+            IntersectionLines cap_lines = lines;
+            shared_cap_triangles = triangulate_expolygons_3d(make_expolygons_simple(cap_lines), z, normals_down);
+            shared_cap_ptr       = &shared_cap_triangles;
+        }
+        if (! finalize_cut_cap(its, lines, map_vertex_to_index, z, normals_down, src_faces, cancel, shared_cap_ptr))
+            return false;
+
+        if (compare_unwelded_result) {
+            std::vector<int> *unwelded_src_faces =
+                src_faces == nullptr ? nullptr : &unwelded_state.src_faces;
+            if (! finalize_cut_cap(
+                    unwelded_state.its, unwelded_state.lines, unwelded_state.vertex_map,
+                    z, normals_down, unwelded_src_faces, cancel, shared_cap_ptr))
+                return false;
+
+            CutShellTopologyStats welded_stats;
+            CutShellTopologyStats unwelded_stats;
+            if (! cut_shell_topology_stats(its, its.indices, z, welded_stats, cancel) ||
+                ! cut_shell_topology_stats(
+                    unwelded_state.its, unwelded_state.its.indices, z, unwelded_stats, cancel))
+                return false;
+            // A closed boundary takes precedence when the candidates are otherwise
+            // incomparable: open edges mean the cap is detached from the shell.
+            // Non-manifold edges are deliberately not compared here: on self-intersecting
+            // sections the unwelded candidate trades them for many more open edges.
+            const bool closes_more_boundary =
+                welded_stats.non_plane_open_edges <= unwelded_stats.non_plane_open_edges &&
+                (welded_stats.open_edges < unwelded_stats.open_edges ||
+                 (welded_stats.open_edges == unwelded_stats.open_edges &&
+                  welded_stats.same_direction_edges < unwelded_stats.same_direction_edges));
+            if (! cut_topology_is_better(welded_stats, unwelded_stats) &&
+                ! closes_more_boundary) {
+                BOOST_LOG_TRIVIAL(debug) << "Cut plane weld rolled back (cap check)";
+                its = std::move(unwelded_state.its);
+                // Restore shell only; map_vertex_to_index is not read after triangulate_slice.
+                map_vertex_to_index = std::move(unwelded_state.vertex_map);
+                if (src_faces != nullptr)
+                    *src_faces = std::move(unwelded_state.src_faces);
             }
-            if (facet(0) != facet(1) && facet(0) != facet(2) && facet(1) != facet(2))
-                its.indices.emplace_back(facet);
         }
     }
 
@@ -2398,6 +3421,7 @@ static void triangulate_slice(
 
     // Degenerate faces should not be created.
     // its_remove_degenerate_faces(its);
+    return true;
 }
 
 void project_mesh(
@@ -2425,6 +3449,19 @@ Polygons project_mesh(
     std::vector<float>    zs { -1e10, 1e10 };
     slice_mesh_slabs(mesh, zs, trafo, &top, &bottom, nullptr, throw_on_cancel);
     return union_(top.front(), bottom.back());
+}
+
+static bool cut_plane_z_equal(float lhs, float rhs)
+{
+    return is_equal(lhs, rhs);
+}
+
+// Float coordinates may represent an exact 0.001 mm source distance slightly
+// above epson. Add only the local ULP allowance when testing the source vertex.
+static bool cut_vertex_matches_source_vertex(const Vec3f &cut_vertex, const Vec3f &source_vertex)
+{
+    return cut_plane_xy_equal(to_2d(cut_vertex), to_2d(source_vertex)) &&
+           cut_plane_z_equal(cut_vertex.z(), source_vertex.z());
 }
 
 void cut_mesh(const indexed_triangle_set& mesh, float z, indexed_triangle_set* upper, indexed_triangle_set* lower, bool triangulate_caps,
@@ -2460,6 +3497,8 @@ void cut_mesh(const indexed_triangle_set& mesh, float z, indexed_triangle_set* u
     std::vector<int>   upper_slice_vertices, lower_slice_vertices;
     std::vector<Vec3i> facets_edge_ids = its_face_edge_ids(mesh);
     std::map<int, Vec3f *> section_vertices_map;
+    std::unordered_map<int, int> upper_cut_vertex_by_edge;
+    std::unordered_map<int, int> lower_cut_vertex_by_edge;
 
     // Report / poll in chunks: the callbacks reach a mutex and a condition variable, so
     // doing it per facet would cost more than the slicing itself. One chunk of a large
@@ -2482,11 +3521,14 @@ void cut_mesh(const indexed_triangle_set& mesh, float z, indexed_triangle_set* u
         }
         const stl_triangle_vertex_indices &facet = mesh.indices[facet_idx];
         Vec3f vertices[3] { mesh.vertices[facet(0)], mesh.vertices[facet(1)], mesh.vertices[facet(2)] };
+        bool on_plane[3];
+        for (int i = 0; i < 3; ++i)
+            on_plane[i] = cut_plane_z_equal(vertices[i].z(), z);
         float min_z = std::min(vertices[0].z(), std::min(vertices[1].z(), vertices[2].z()));
         float max_z = std::max(vertices[0].z(), std::max(vertices[1].z(), vertices[2].z()));
 
         for (size_t i = 0; i < 3; i++) {
-            if (is_equal(z, vertices[i].z()) && section_vertices_map[facet(i)] == nullptr) {
+            if (on_plane[i] && section_vertices_map[facet(i)] == nullptr) {
                 section_vertices_map[facet(i)] = new Vec3f(vertices[i].x(), vertices[i].y(), vertices[i].z());
             }
         }
@@ -2605,36 +3647,49 @@ void cut_mesh(const indexed_triangle_set& mesh, float z, indexed_triangle_set* u
             const int         iv2 = facet[iv];
 
             // intersect v0-v1 and v2-v0 with cutting plane and make new vertices
-            auto new_vertex = [upper, lower, &upper_slice_vertices, &lower_slice_vertices](const Vec3f &a, const int ia, const Vec3f &b, const int ib, const Vec3f &c,
-                                                                                           const int ic, const Vec3f &new_pt, bool &is_new_vertex) {
-                int iupper, ilower;
-                is_new_vertex = false;
-                if (is_equal(new_pt, a))
-                    iupper = ilower = ia;
-                else if (is_equal(new_pt, b))
-                    iupper = ilower = ib;
-                else if (is_equal(new_pt, c))
-                    iupper = ilower = ic;
-                else {
-                    // Insert a new vertex into upper / lower.
-                    is_new_vertex = true;
-                    if (upper) {
-                        iupper = int(upper->vertices.size());
-                        upper->vertices.emplace_back(new_pt);
-                        upper_slice_vertices.emplace_back(iupper);
+            auto new_vertex = [upper, lower, &upper_slice_vertices, &lower_slice_vertices, &upper_cut_vertex_by_edge, &lower_cut_vertex_by_edge]
+                (const Vec3f &a, const int ia, const Vec3f &b, const int ib, const Vec3f &new_pt, const int cut_edge_id) {
+                int iupper = ia;
+                int ilower = ia;
+                auto resolve_half = [&](indexed_triangle_set *half, std::unordered_map<int, int> &by_edge,
+                                        std::vector<int> &slice_vertices, int &out_vertex) {
+                    if (half == nullptr)
+                        return;
+                    if (auto cached = by_edge.find(cut_edge_id); cached != by_edge.end()) {
+                        out_vertex = cached->second;
+                        return;
                     }
-                    if (lower) {
-                        ilower = int(lower->vertices.size());
-                        lower->vertices.emplace_back(new_pt);
-                        lower_slice_vertices.emplace_back(ilower);
+                    bool new_cut_vertex = true;
+                    int  shell_vertex   = ia;
+                    if (cut_vertex_matches_source_vertex(new_pt, a) && cut_vertex_matches_source_vertex(new_pt, b)) {
+                        const float da = (to_2d(new_pt) - to_2d(a)).squaredNorm();
+                        const float db = (to_2d(new_pt) - to_2d(b)).squaredNorm();
+                        shell_vertex   = da <= db ? ia : ib;
+                        new_cut_vertex = false;
+                    } else if (cut_vertex_matches_source_vertex(new_pt, a)) {
+                        shell_vertex   = ia;
+                        new_cut_vertex = false;
+                    } else if (cut_vertex_matches_source_vertex(new_pt, b)) {
+                        shell_vertex   = ib;
+                        new_cut_vertex = false;
                     }
-                }
+                    if (new_cut_vertex) {
+                        out_vertex = int(half->vertices.size());
+                        half->vertices.emplace_back(new_pt);
+                    } else {
+                        out_vertex = shell_vertex;
+                    }
+                    slice_vertices.emplace_back(out_vertex);
+                    by_edge.emplace(cut_edge_id, out_vertex);
+                };
+                resolve_half(upper, upper_cut_vertex_by_edge, upper_slice_vertices, iupper);
+                resolve_half(lower, lower_cut_vertex_by_edge, lower_slice_vertices, ilower);
                 return std::make_pair(iupper, ilower);
             };
-            bool is_new_vertex_v0v1;
-            bool is_new_vertex_v2v0;
-            auto [iv0v1_upper, iv0v1_lower] = new_vertex(v1, iv1, v0, iv0, v2, iv2, v0v1, is_new_vertex_v0v1);
-            auto [iv2v0_upper, iv2v0_lower] = new_vertex(v2, iv2, v0, iv0, v1, iv1, v2v0, is_new_vertex_v2v0);
+            const int edge_v0v1 = facets_edge_ids[facet_idx]((iv + 1) % 3);
+            const int edge_v2v0 = facets_edge_ids[facet_idx](iv);
+            auto [iv0v1_upper, iv0v1_lower] = new_vertex(v1, iv1, v0, iv0, v0v1, edge_v0v1);
+            auto [iv2v0_upper, iv2v0_lower] = new_vertex(v2, iv2, v0, iv0, v2v0, edge_v2v0);
             auto new_face                   = [upper, lower, upper_src_faces, lower_src_faces, facet_idx](indexed_triangle_set *its, int i, int j, int k) {
                 if (its != nullptr && i != j && i != k && j != k) {
                     its->indices.emplace_back(i, j, k);
@@ -2642,32 +3697,16 @@ void cut_mesh(const indexed_triangle_set& mesh, float z, indexed_triangle_set* u
                     else if (its == lower && lower_src_faces) lower_src_faces->emplace_back(facet_idx);
                 }
             };
-            if (is_new_vertex_v0v1 && is_new_vertex_v2v0) {
-                if (v0.z() > z) {
-                    new_face(upper, iv0, iv0v1_upper, iv2v0_upper);
-                    new_face(lower, iv1, iv2, iv0v1_lower);
-                    new_face(lower, iv2, iv2v0_lower, iv0v1_lower);
-                } else {
-                    new_face(upper, iv1, iv2, iv0v1_upper);
-                    new_face(upper, iv2, iv2v0_upper, iv0v1_upper);
-                    new_face(lower, iv0, iv0v1_lower, iv2v0_lower);
-                }
-            } else if (is_new_vertex_v0v1) {
-                if (v0.z() > z) {
-                    new_face(upper, iv0, iv0v1_upper, iv2);
-                    new_face(lower, iv1, iv2, iv0v1_lower);
-                } else {
-                    new_face(lower, iv0, iv0v1_lower, iv2);
-                    new_face(upper, iv1, iv2, iv0v1_upper);
-                }
-            } else if (is_new_vertex_v2v0) {
-                if (v0.z() > z) {
-                    new_face(upper, iv0, iv1, iv2v0_upper);
-                    new_face(lower, iv1, iv2, iv2v0_lower);
-                } else {
-                    new_face(lower, iv0, iv1, iv2v0_lower);
-                    new_face(upper, iv1, iv2, iv2v0_upper);
-                }
+            // The same templates also cover intersections canonicalized to an
+            // existing edge endpoint; duplicate-index triangles are discarded.
+            if (v0.z() > z) {
+                new_face(upper, iv0, iv0v1_upper, iv2v0_upper);
+                new_face(lower, iv1, iv2, iv0v1_lower);
+                new_face(lower, iv2, iv2v0_lower, iv0v1_lower);
+            } else {
+                new_face(upper, iv1, iv2, iv0v1_upper);
+                new_face(upper, iv2, iv2v0_upper, iv0v1_upper);
+                new_face(lower, iv0, iv0v1_lower, iv2v0_lower);
             }
         }
     }
@@ -2675,14 +3714,16 @@ void cut_mesh(const indexed_triangle_set& mesh, float z, indexed_triangle_set* u
     if (upper != nullptr && !canceled) {
         if (progress)
             progress(SlicePercentSpan);
-        triangulate_slice(*upper, upper_lines, upper_slice_vertices, z, triangulate_caps, NORMALS_DOWN, upper_src_faces, section_vertices_map);
+        if (! triangulate_slice(*upper, upper_lines, upper_slice_vertices, z, triangulate_caps, NORMALS_DOWN,
+                                upper_src_faces, section_vertices_map, cancel))
+            canceled = true;
         if (upper_src_faces) {
             assert(upper_src_faces->size() <= upper->indices.size());
             upper_src_faces->resize(upper->indices.size(), -1);
             assert(upper_src_faces->size() == upper->indices.size());
         }
 #ifndef NDEBUG
-        if (triangulate_caps) {
+        if (triangulate_caps && ! canceled) {
             size_t num_open_edges_new = its_num_open_edges(*upper);
             assert(num_open_edges_new <= num_open_edges_old);
         }
@@ -2692,14 +3733,16 @@ void cut_mesh(const indexed_triangle_set& mesh, float z, indexed_triangle_set* u
     if (lower != nullptr && !canceled) {
         if (progress)
             progress(90);
-        triangulate_slice(*lower, lower_lines, lower_slice_vertices, z, triangulate_caps, NORMALS_UP, lower_src_faces, section_vertices_map);
+        if (! triangulate_slice(*lower, lower_lines, lower_slice_vertices, z, triangulate_caps, NORMALS_UP,
+                                lower_src_faces, section_vertices_map, cancel))
+            canceled = true;
         if (lower_src_faces) {
             assert(lower_src_faces->size() <= lower->indices.size());
             lower_src_faces->resize(lower->indices.size(), -1);
             assert(lower_src_faces->size() == lower->indices.size());
         }
 #ifndef NDEBUG
-        if (triangulate_caps) {
+        if (triangulate_caps && ! canceled) {
             size_t num_open_edges_new = its_num_open_edges(*lower);
             assert(num_open_edges_new <= num_open_edges_old);
         }

@@ -17,6 +17,8 @@ set(SLIC3R_COMPILE_VERSION "${GIT_SHA1}")
 endif()
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/libslic3r_version.h.in ${CMAKE_CURRENT_BINARY_DIR}/libslic3r_version.h @ONLY)
+# Values that change on every configure go to one generated source file, not to the widely included version header.
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/BuildInfo.cpp.in ${CMAKE_CURRENT_BINARY_DIR}/BuildInfo.cpp @ONLY)
 
 if (MINGW)
     add_compile_options(-Wa,-mbig-obj)
@@ -34,6 +36,7 @@ set(lisbslic3r_sources
     PerfTrace.hpp
     pchheader.cpp
     pchheader.hpp
+    BuildInfo.hpp
     AABBTreeIndirect.hpp
     AABBTreeLines.hpp
     AABBMesh.hpp
@@ -163,6 +166,8 @@ set(lisbslic3r_sources
     Format/AssemblyTreeJson.hpp
     Format/bbs_3mf.cpp
     Format/bbs_3mf.hpp
+    Format/ExternalMixedFilament.cpp
+    Format/ExternalMixedFilament.hpp
     Format/AMF.cpp
     Format/AMF.hpp
     Format/OBJ.cpp
@@ -520,6 +525,8 @@ set(lisbslic3r_sources
     FilamentMixer.hpp
     FilamentMixer.cpp
     FilamentMixerModel.hpp
+    FilamentRemapper.hpp
+    FilamentRemapper.cpp
     ColorDecomposeRecipe.hpp
     ColorDecomposeRecipe.cpp
 )
@@ -534,6 +541,7 @@ endif ()
 
 add_library(libslic3r STATIC ${lisbslic3r_sources}
     "${CMAKE_CURRENT_BINARY_DIR}/libslic3r_version.h"
+    "${CMAKE_CURRENT_BINARY_DIR}/BuildInfo.cpp"
     ${OpenVDBUtils_SOURCES})
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${lisbslic3r_sources})
 
@@ -782,7 +790,8 @@ endif()
 if (APPLE)
     find_library(FOUNDATION Foundation REQUIRED)
     find_library(MODELIO ModelIO REQUIRED)
-    target_link_libraries(libslic3r ${FOUNDATION} ${MODELIO})
+    find_library(COREFOUNDATION CoreFoundation REQUIRED)
+    target_link_libraries(libslic3r ${FOUNDATION} ${MODELIO} ${COREFOUNDATION})
 endif ()
 
 if (TARGET OpenVDB::openvdb)
@@ -799,4 +808,5 @@ endif()
 
 if (SLIC3R_PCH AND NOT SLIC3R_SYNTAXONLY)
     add_precompiled_header(libslic3r pchheader.hpp FORCEINCLUDE)
+    set_source_files_properties("${CMAKE_CURRENT_BINARY_DIR}/BuildInfo.cpp" PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
 endif ()

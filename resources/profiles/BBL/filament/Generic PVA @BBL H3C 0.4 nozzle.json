@@ -8,17 +8,14 @@
     "close_optional_fan_first_x_layers": [
         "1"
     ],
-    "eng_plate_temp": [
-        "55"
-    ],
-    "eng_plate_temp_initial_layer": [
-        "55"
-    ],
     "filament_change_length": [
         "0"
     ],
     "filament_change_length_nc": [
         "0"
+    ],
+    "filament_dev_drying_cooling_temperature": [
+        "45"
     ],
     "filament_idle_travel_cooling_enabled": "0",
     "filament_max_volumetric_speed": [

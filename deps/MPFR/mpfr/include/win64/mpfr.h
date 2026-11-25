@@ -1,7 +1,7 @@
 /* mpfr.h -- Include file for mpfr.
 
-Copyright 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
-Contributed by the Arenaire and Cacao projects, INRIA.
+Copyright 1999-2017 Free Software Foundation, Inc.
+Contributed by the AriC and Caramba projects, INRIA.
 
 This file is part of the GNU MPFR Library.
 
@@ -25,9 +25,9 @@ http://www.gnu.org/licenses/ or write to the Free Software Foundation, Inc.,
 
 /* Define MPFR version number */
 #define MPFR_VERSION_MAJOR 3
-#define MPFR_VERSION_MINOR 0
-#define MPFR_VERSION_PATCHLEVEL 0
-#define MPFR_VERSION_STRING "3.0.0"
+#define MPFR_VERSION_MINOR 1
+#define MPFR_VERSION_PATCHLEVEL 6
+#define MPFR_VERSION_STRING "3.1.6"
 
 /* Macros dealing with MPFR VERSION */
 #define MPFR_VERSION_NUM(a,b,c) (((a) << 16L) | ((b) << 8) | (c))
@@ -39,33 +39,27 @@ MPFR_VERSION_NUM(MPFR_VERSION_MAJOR,MPFR_VERSION_MINOR,MPFR_VERSION_PATCHLEVEL)
 # include <gmp.h>
 #endif
 
-/* Check if stdio.h is included or if the user wants FILE */
-#if defined (_GMP_H_HAVE_FILE) || defined (MPFR_USE_FILE)
-# define _MPFR_H_HAVE_FILE 1
+/* GMP's internal __gmp_const macro has been removed on 2012-03-04:
+     http://gmplib.org:8000/gmp/rev/d287cfaf6732
+   const is standard and now assumed to be available. If the __gmp_const
+   definition is no longer present in GMP, this probably means that GMP
+   assumes that const is available; thus let's define it to const.
+   Note: this is a temporary fix that can be backported to previous MPFR
+   versions. In the future, __gmp_const should be replaced by const like
+   in GMP. */
+#ifndef __gmp_const
+# define __gmp_const const
 #endif
 
-#if defined (_GMP_H_HAVE_VA_LIST)
-# define _MPFR_H_HAVE_VA_LIST 1
-#endif
-
-/* Check if <stdint.h> / <inttypes.h> is included or if the user
-   explicitly wants intmax_t. Automatical detection is done by
-   checking:
-     - INTMAX_C and UINTMAX_C, but not if the compiler is a C++ one
-       (as suggested by Patrick Pelissier) because the test does not
-       work well in this case. See:
-         http://websympa.loria.fr/wwsympa/arc/mpfr/2010-02/msg00025.html
-       We do not check INTMAX_MAX and UINTMAX_MAX because under Solaris,
-       these macros are always defined by <limits.h> (i.e. even when
-       <stdint.h> and <inttypes.h> are not included).
-     - _STDINT_H (defined by the glibc) and _STDINT_H_ (defined under
-       Mac OS X), but this test may not work with all implementations.
-       Portable software should not rely on these tests.
-*/
-#if (defined (INTMAX_C) && defined (UINTMAX_C) && !defined(__cplusplus)) || \
-  defined (MPFR_USE_INTMAX_T) || defined (_STDINT_H) || defined (_STDINT_H_)
-# define _MPFR_H_HAVE_INTMAX_T 1
-#endif
+/* Avoid some problems with macro expansion if the user defines macros
+   with the same name as keywords. By convention, identifiers and macro
+   names starting with mpfr_ are reserved by MPFR. */
+typedef void            mpfr_void;
+typedef int             mpfr_int;
+typedef unsigned int    mpfr_uint;
+typedef long            mpfr_long;
+typedef unsigned long   mpfr_ulong;
+typedef size_t          mpfr_size_t;
 
 /* Definition of rounding modes (DON'T USE MPFR_RNDNA!).
    Warning! Changing the contents of this enum should be seen as an
@@ -98,13 +92,27 @@ typedef enum {
 #define GMP_RNDU MPFR_RNDU
 #define GMP_RNDD MPFR_RNDD
 
-/* Define precision : 1 (short), 2 (int) or 3 (long) (DON'T USE IT!)*/
+/* Note: With the following default choices for _MPFR_PREC_FORMAT and
+   _MPFR_EXP_FORMAT, mpfr_exp_t will be the same as [mp_exp_t] (at least
+   up to GMP 5). */
+
+/* Define precision: 1 (short), 2 (int) or 3 (long) (DON'T USE IT!) */
 #ifndef _MPFR_PREC_FORMAT
 # if __GMP_MP_SIZE_T_INT == 1
 #  define _MPFR_PREC_FORMAT 2
 # else
 #  define _MPFR_PREC_FORMAT 3
 # endif
+#endif
+
+/* Define exponent: 1 (short), 2 (int), 3 (long) or 4 (intmax_t)
+   (DON'T USE IT!) */
+#ifndef _MPFR_EXP_FORMAT
+# define _MPFR_EXP_FORMAT _MPFR_PREC_FORMAT
+#endif
+
+#if _MPFR_PREC_FORMAT > _MPFR_EXP_FORMAT
+# error "mpfr_prec_t must not be larger than mpfr_exp_t"
 #endif
 
 /* Let's make mpfr_prec_t signed in order to avoid problems due to the
@@ -132,12 +140,38 @@ typedef unsigned long  mpfr_uprec_t;
 /* Definition of sign */
 typedef int          mpfr_sign_t;
 
-/* Definition of the exponent: same as in GMP. */
-typedef mp_exp_t     mpfr_exp_t;
+/* Definition of the exponent. _MPFR_EXP_FORMAT must be large enough
+   so that mpfr_exp_t has at least 32 bits. */
+#if   _MPFR_EXP_FORMAT == 1
+typedef short mpfr_exp_t;
+typedef unsigned short mpfr_uexp_t;
+#elif _MPFR_EXP_FORMAT == 2
+typedef int mpfr_exp_t;
+typedef unsigned int mpfr_uexp_t;
+#elif _MPFR_EXP_FORMAT == 3
+typedef long mpfr_exp_t;
+typedef unsigned long mpfr_uexp_t;
+#elif _MPFR_EXP_FORMAT == 4
+/* Note: in this case, intmax_t and uintmax_t must be defined before
+   the inclusion of mpfr.h (we do not include <stdint.h> here because
+   of some non-ISO C99 implementations that support these types). */
+typedef intmax_t mpfr_exp_t;
+typedef uintmax_t mpfr_uexp_t;
+#else
+# error "Invalid MPFR Exp format"
+#endif
 
 /* Definition of the standard exponent limits */
-#define MPFR_EMAX_DEFAULT ((mpfr_exp_t) (((unsigned long) 1 << 30) - 1))
+#define MPFR_EMAX_DEFAULT ((mpfr_exp_t) (((mpfr_ulong) 1 << 30) - 1))
 #define MPFR_EMIN_DEFAULT (-(MPFR_EMAX_DEFAULT))
+
+/* DON'T USE THIS! (For MPFR-public macros only, see below.)
+   The mpfr_sgn macro uses the fact that __MPFR_EXP_NAN and __MPFR_EXP_ZERO
+   are the smallest values. */
+#define __MPFR_EXP_MAX ((mpfr_exp_t) (((mpfr_uexp_t) -1) >> 1))
+#define __MPFR_EXP_NAN  (1 - __MPFR_EXP_MAX)
+#define __MPFR_EXP_ZERO (0 - __MPFR_EXP_MAX)
+#define __MPFR_EXP_INF  (2 - __MPFR_EXP_MAX)
 
 /* Definition of the main structure */
 typedef struct {
@@ -219,6 +253,17 @@ typedef enum {
 # define __MPFR_DECLSPEC __GMP_DECLSPEC
 #endif
 
+/* Use MPFR_DEPRECATED to mark MPFR functions, types or variables as
+   deprecated. Code inspired by Apache Subversion's svn_types.h file. */
+#if defined(__GNUC__) && \
+  (__GNUC__ >= 4 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 1))
+# define MPFR_DEPRECATED __attribute__ ((deprecated))
+#elif defined(_MSC_VER) && _MSC_VER >= 1300
+# define MPFR_DEPRECATED __declspec(deprecated)
+#else
+# define MPFR_DEPRECATED
+#endif
+
 /* Note: In order to be declared, some functions need a specific
    system header to be included *before* "mpfr.h". If the user
    forgets to include the header, the MPFR function prototype in
@@ -233,8 +278,10 @@ extern "C" {
 
 __MPFR_DECLSPEC __gmp_const char * mpfr_get_version _MPFR_PROTO ((void));
 __MPFR_DECLSPEC __gmp_const char * mpfr_get_patches _MPFR_PROTO ((void));
-__MPFR_DECLSPEC int mpfr_buildopt_tls_p     _MPFR_PROTO ((void));
-__MPFR_DECLSPEC int mpfr_buildopt_decimal_p _MPFR_PROTO ((void));
+__MPFR_DECLSPEC int mpfr_buildopt_tls_p          _MPFR_PROTO ((void));
+__MPFR_DECLSPEC int mpfr_buildopt_decimal_p      _MPFR_PROTO ((void));
+__MPFR_DECLSPEC int mpfr_buildopt_gmpinternals_p _MPFR_PROTO ((void));
+__MPFR_DECLSPEC __gmp_const char * mpfr_buildopt_tune_case _MPFR_PROTO ((void));
 
 __MPFR_DECLSPEC mpfr_exp_t mpfr_get_emin     _MPFR_PROTO ((void));
 __MPFR_DECLSPEC int        mpfr_set_emin     _MPFR_PROTO ((mpfr_exp_t));
@@ -253,18 +300,21 @@ __MPFR_DECLSPEC __gmp_const char *
 __MPFR_DECLSPEC void mpfr_clear_flags _MPFR_PROTO ((void));
 __MPFR_DECLSPEC void mpfr_clear_underflow _MPFR_PROTO ((void));
 __MPFR_DECLSPEC void mpfr_clear_overflow _MPFR_PROTO ((void));
+__MPFR_DECLSPEC void mpfr_clear_divby0 _MPFR_PROTO ((void));
 __MPFR_DECLSPEC void mpfr_clear_nanflag _MPFR_PROTO ((void));
 __MPFR_DECLSPEC void mpfr_clear_inexflag _MPFR_PROTO ((void));
 __MPFR_DECLSPEC void mpfr_clear_erangeflag _MPFR_PROTO ((void));
 
 __MPFR_DECLSPEC void mpfr_set_underflow _MPFR_PROTO ((void));
 __MPFR_DECLSPEC void mpfr_set_overflow _MPFR_PROTO ((void));
+__MPFR_DECLSPEC void mpfr_set_divby0 _MPFR_PROTO ((void));
 __MPFR_DECLSPEC void mpfr_set_nanflag _MPFR_PROTO ((void));
 __MPFR_DECLSPEC void mpfr_set_inexflag _MPFR_PROTO ((void));
 __MPFR_DECLSPEC void mpfr_set_erangeflag _MPFR_PROTO ((void));
 
 __MPFR_DECLSPEC int mpfr_underflow_p _MPFR_PROTO ((void));
 __MPFR_DECLSPEC int mpfr_overflow_p _MPFR_PROTO ((void));
+__MPFR_DECLSPEC int mpfr_divby0_p _MPFR_PROTO ((void));
 __MPFR_DECLSPEC int mpfr_nanflag_p _MPFR_PROTO ((void));
 __MPFR_DECLSPEC int mpfr_inexflag_p _MPFR_PROTO ((void));
 __MPFR_DECLSPEC int mpfr_erangeflag_p _MPFR_PROTO ((void));
@@ -344,23 +394,6 @@ __MPFR_DECLSPEC int
 __MPFR_DECLSPEC int
   mpfr_copysign _MPFR_PROTO ((mpfr_ptr, mpfr_srcptr, mpfr_srcptr, mpfr_rnd_t));
 
-#ifdef _MPFR_H_HAVE_INTMAX_T
-#define mpfr_set_sj __gmpfr_set_sj
-#define mpfr_set_sj_2exp __gmpfr_set_sj_2exp
-#define mpfr_set_uj __gmpfr_set_uj
-#define mpfr_set_uj_2exp __gmpfr_set_uj_2exp
-#define mpfr_get_sj __gmpfr_mpfr_get_sj
-#define mpfr_get_uj __gmpfr_mpfr_get_uj
-__MPFR_DECLSPEC int mpfr_set_sj _MPFR_PROTO ((mpfr_t, intmax_t, mpfr_rnd_t));
-__MPFR_DECLSPEC int
-  mpfr_set_sj_2exp _MPFR_PROTO ((mpfr_t, intmax_t, intmax_t, mpfr_rnd_t));
-__MPFR_DECLSPEC int mpfr_set_uj _MPFR_PROTO ((mpfr_t, uintmax_t, mpfr_rnd_t));
-__MPFR_DECLSPEC int
-  mpfr_set_uj_2exp _MPFR_PROTO ((mpfr_t, uintmax_t, intmax_t, mpfr_rnd_t));
-__MPFR_DECLSPEC intmax_t mpfr_get_sj _MPFR_PROTO ((mpfr_srcptr, mpfr_rnd_t));
-__MPFR_DECLSPEC uintmax_t mpfr_get_uj _MPFR_PROTO ((mpfr_srcptr, mpfr_rnd_t));
-#endif
-
 __MPFR_DECLSPEC mpfr_exp_t mpfr_get_z_2exp _MPFR_PROTO ((mpz_ptr, mpfr_srcptr));
 __MPFR_DECLSPEC float mpfr_get_flt _MPFR_PROTO ((mpfr_srcptr, mpfr_rnd_t));
 __MPFR_DECLSPEC double mpfr_get_d _MPFR_PROTO ((mpfr_srcptr, mpfr_rnd_t));
@@ -375,6 +408,8 @@ __MPFR_DECLSPEC double mpfr_get_d_2exp _MPFR_PROTO ((long*, mpfr_srcptr,
                                                      mpfr_rnd_t));
 __MPFR_DECLSPEC long double mpfr_get_ld_2exp _MPFR_PROTO ((long*, mpfr_srcptr,
                                                            mpfr_rnd_t));
+__MPFR_DECLSPEC int mpfr_frexp _MPFR_PROTO ((mpfr_exp_t*, mpfr_ptr,
+                                             mpfr_srcptr, mpfr_rnd_t));
 __MPFR_DECLSPEC long mpfr_get_si _MPFR_PROTO ((mpfr_srcptr, mpfr_rnd_t));
 __MPFR_DECLSPEC unsigned long mpfr_get_ui _MPFR_PROTO ((mpfr_srcptr,
                                                         mpfr_rnd_t));
@@ -387,23 +422,14 @@ __MPFR_DECLSPEC void mpfr_free_str _MPFR_PROTO ((char *));
 
 __MPFR_DECLSPEC int mpfr_urandom _MPFR_PROTO ((mpfr_ptr, gmp_randstate_t,
                                                mpfr_rnd_t));
+__MPFR_DECLSPEC int mpfr_grandom _MPFR_PROTO ((mpfr_ptr, mpfr_ptr, gmp_randstate_t,
+                                               mpfr_rnd_t));
 __MPFR_DECLSPEC int mpfr_urandomb _MPFR_PROTO ((mpfr_ptr, gmp_randstate_t));
 
 __MPFR_DECLSPEC void mpfr_nextabove _MPFR_PROTO ((mpfr_ptr));
 __MPFR_DECLSPEC void mpfr_nextbelow _MPFR_PROTO ((mpfr_ptr));
 __MPFR_DECLSPEC void mpfr_nexttoward _MPFR_PROTO ((mpfr_ptr, mpfr_srcptr));
 
-#ifdef _MPFR_H_HAVE_FILE
-#define mpfr_inp_str __gmpfr_inp_str
-#define mpfr_out_str __gmpfr_out_str
-__MPFR_DECLSPEC size_t mpfr_inp_str _MPFR_PROTO ((mpfr_ptr, FILE*, int,
-                                                  mpfr_rnd_t));
-__MPFR_DECLSPEC size_t mpfr_out_str _MPFR_PROTO ((FILE*, int, size_t,
-                                                  mpfr_srcptr, mpfr_rnd_t));
-#define mpfr_fprintf __gmpfr_fprintf
-__MPFR_DECLSPEC int mpfr_fprintf _MPFR_PROTO ((FILE*, __gmp_const char*,
-                                               ...));
-#endif
 __MPFR_DECLSPEC int mpfr_printf _MPFR_PROTO ((__gmp_const char*, ...));
 __MPFR_DECLSPEC int mpfr_asprintf _MPFR_PROTO ((char**, __gmp_const char*,
                                                 ...));
@@ -411,25 +437,6 @@ __MPFR_DECLSPEC int mpfr_sprintf _MPFR_PROTO ((char*, __gmp_const char*,
                                                ...));
 __MPFR_DECLSPEC int mpfr_snprintf _MPFR_PROTO ((char*, size_t,
                                                 __gmp_const char*, ...));
-
-#ifdef _MPFR_H_HAVE_VA_LIST
-#ifdef _MPFR_H_HAVE_FILE
-#define mpfr_vfprintf __gmpfr_vfprintf
-__MPFR_DECLSPEC int mpfr_vfprintf _MPFR_PROTO ((FILE*, __gmp_const char*,
-                                                va_list));
-#endif /* _MPFR_H_HAVE_FILE */
-#define mpfr_vprintf __gmpfr_vprintf
-#define mpfr_vasprintf __gmpfr_vasprintf
-#define mpfr_vsprintf __gmpfr_vsprintf
-#define mpfr_vsnprintf __gmpfr_vsnprintf
-__MPFR_DECLSPEC int mpfr_vprintf _MPFR_PROTO ((__gmp_const char*, va_list));
-__MPFR_DECLSPEC int mpfr_vasprintf _MPFR_PROTO ((char**, __gmp_const char*,
-                                                 va_list));
-__MPFR_DECLSPEC int mpfr_vsprintf _MPFR_PROTO ((char*, __gmp_const char*,
-                                               va_list));
-__MPFR_DECLSPEC int mpfr_vsnprintf _MPFR_PROTO ((char*, size_t,
-                                                __gmp_const char*, va_list));
-#endif /* _MPFR_H_HAVE_VA_LIST */
 
 __MPFR_DECLSPEC int mpfr_pow _MPFR_PROTO ((mpfr_ptr, mpfr_srcptr,
                                            mpfr_srcptr, mpfr_rnd_t));
@@ -675,6 +682,8 @@ __MPFR_DECLSPEC int mpfr_add_z _MPFR_PROTO ((mpfr_ptr, mpfr_srcptr,
                                              mpz_srcptr, mpfr_rnd_t));
 __MPFR_DECLSPEC int mpfr_sub_z _MPFR_PROTO ((mpfr_ptr, mpfr_srcptr,
                                              mpz_srcptr, mpfr_rnd_t));
+__MPFR_DECLSPEC int mpfr_z_sub _MPFR_PROTO ((mpfr_ptr, mpz_srcptr,
+                                             mpfr_srcptr, mpfr_rnd_t));
 __MPFR_DECLSPEC int mpfr_cmp_z _MPFR_PROTO ((mpfr_srcptr, mpz_srcptr));
 
 __MPFR_DECLSPEC int mpfr_mul_q _MPFR_PROTO ((mpfr_ptr, mpfr_srcptr,
@@ -717,23 +726,6 @@ __MPFR_DECLSPEC int    mpfr_custom_get_kind   _MPFR_PROTO ((mpfr_srcptr));
 }
 #endif
 
-/* DON'T USE THIS! (For MPFR-public macros only, see below.)
-   The mpfr_sgn macro uses the fact that __MPFR_EXP_NAN and __MPFR_EXP_ZERO
-   are the smallest values.
-   FIXME: In the following macros, the cast of an unsigned type with MSB set
-   to the signed type mpfr_exp_t yields an integer overflow, which can give
-   unexpected results with future compilers and aggressive optimisations.
-   Why not working only with signed types, using INT_MIN and LONG_MIN? */
-#if __GMP_MP_SIZE_T_INT
-#define __MPFR_EXP_NAN  ((mpfr_exp_t)((~((~(unsigned int)0)>>1))+2))
-#define __MPFR_EXP_ZERO ((mpfr_exp_t)((~((~(unsigned int)0)>>1))+1))
-#define __MPFR_EXP_INF  ((mpfr_exp_t)((~((~(unsigned int)0)>>1))+3))
-#else
-#define __MPFR_EXP_NAN  ((mpfr_exp_t)((~((~(unsigned long)0)>>1))+2))
-#define __MPFR_EXP_ZERO ((mpfr_exp_t)((~((~(unsigned long)0)>>1))+1))
-#define __MPFR_EXP_INF  ((mpfr_exp_t)((~((~(unsigned long)0)>>1))+3))
-#endif
-
 /* Define MPFR_USE_EXTENSION to avoid "gcc -pedantic" warnings. */
 #ifndef MPFR_EXTENSION
 # if defined(MPFR_USE_EXTENSION)
@@ -760,9 +752,9 @@ __MPFR_DECLSPEC int    mpfr_custom_get_kind   _MPFR_PROTO ((mpfr_srcptr));
 #define mpfr_inf_p(_x)      ((_x)->_mpfr_exp == __MPFR_EXP_INF)
 #define mpfr_zero_p(_x)     ((_x)->_mpfr_exp == __MPFR_EXP_ZERO)
 #define mpfr_regular_p(_x)  ((_x)->_mpfr_exp >  __MPFR_EXP_INF)
-#define mpfr_sgn(_x)                                          \
-  ((_x)->_mpfr_exp < __MPFR_EXP_INF ?                         \
-   (mpfr_nan_p (_x) ? mpfr_set_erangeflag () : (void) 0), 0 : \
+#define mpfr_sgn(_x)                                               \
+  ((_x)->_mpfr_exp < __MPFR_EXP_INF ?                              \
+   (mpfr_nan_p (_x) ? mpfr_set_erangeflag () : (mpfr_void) 0), 0 : \
    MPFR_SIGN (_x))
 
 /* Prevent them from using as lvalues */
@@ -798,56 +790,78 @@ __MPFR_DECLSPEC int    mpfr_custom_get_kind   _MPFR_PROTO ((mpfr_srcptr));
      anyway. Checking with other ICC versions is needed. Possibly detect
      whether warnings are produced or not with a configure test.
    + Remove C++ too, since it complains too much. */
+/* Added casts to improve robustness in case of undefined behavior and
+   compiler extensions based on UB (in particular -fwrapv). MPFR doesn't
+   use such extensions, but these macros will be used by 3rd-party code,
+   where such extensions may be required.
+   Moreover casts to unsigned long have been added to avoid warnings in
+   programs that use MPFR and are compiled with -Wconversion; such casts
+   are OK since if X is a constant expression, then (unsigned long) X is
+   also a constant expression, so that the optimizations still work. The
+   warnings are probably related to the following two bugs:
+     http://gcc.gnu.org/bugzilla/show_bug.cgi?id=4210
+     http://gcc.gnu.org/bugzilla/show_bug.cgi?id=38470 (possibly a variant)
+   and the casts could be removed once these bugs are fixed.
+   Casts shouldn't be used on the generic calls (to the ..._2exp functions),
+   where implicit conversions are performed. Indeed, having at least one
+   implicit conversion in the macro allows the compiler to emit diagnostics
+   when normally expected, for instance in the following call:
+     mpfr_set_ui (x, "foo", MPFR_RNDN);
+   If this is not possible (for future macros), one of the tricks described
+   on http://groups.google.com/group/comp.std.c/msg/e92abd24bf9eaf7b could
+   be used. */
 #if defined (__GNUC__) && !defined(__ICC) && !defined(__cplusplus)
 #if (__GNUC__ >= 2)
 #undef mpfr_cmp_ui
-/* We use the fact that mpfr_sgn on NaN sets the erange flag and returns 0. */
-#define mpfr_cmp_ui(_f,_u)                 \
- (__builtin_constant_p (_u) && (_u) == 0 ? \
-   mpfr_sgn (_f) :                         \
-   mpfr_cmp_ui_2exp ((_f),(_u),0))
+/* We use the fact that mpfr_sgn on NaN sets the erange flag and returns 0.
+   But warning! mpfr_sgn is specified as a macro in the API, thus the macro
+   mustn't be used if side effects are possible, like here. */
+#define mpfr_cmp_ui(_f,_u)                                      \
+  (__builtin_constant_p (_u) && (mpfr_ulong) (_u) == 0 ?        \
+   (mpfr_sgn) (_f) :                                            \
+   mpfr_cmp_ui_2exp ((_f), (_u), 0))
 #undef mpfr_cmp_si
-#define mpfr_cmp_si(_f,_s)                 \
- (__builtin_constant_p (_s) && (_s) >= 0 ? \
-   mpfr_cmp_ui ((_f), (_s)) :              \
+#define mpfr_cmp_si(_f,_s)                                      \
+  (__builtin_constant_p (_s) && (mpfr_long) (_s) >= 0 ?         \
+   mpfr_cmp_ui ((_f), (mpfr_ulong) (mpfr_long) (_s)) :          \
    mpfr_cmp_si_2exp ((_f), (_s), 0))
 #if __GNUC__ > 2 || __GNUC_MINOR__ >= 95
 #undef mpfr_set_ui
-#define mpfr_set_ui(_f,_u,_r)              \
- (__builtin_constant_p (_u) && (_u) == 0 ? \
-   __extension__ ({                        \
-     mpfr_ptr _p = (_f);                   \
-     _p->_mpfr_sign = 1;                   \
-     _p->_mpfr_exp = __MPFR_EXP_ZERO;      \
-     (void) (_r); 0; }) :                  \
+#define mpfr_set_ui(_f,_u,_r)                                   \
+  (__builtin_constant_p (_u) && (mpfr_ulong) (_u) == 0 ?        \
+   __extension__ ({                                             \
+       mpfr_ptr _p = (_f);                                      \
+       _p->_mpfr_sign = 1;                                      \
+       _p->_mpfr_exp = __MPFR_EXP_ZERO;                         \
+       (mpfr_void) (_r); 0; }) :                                \
    mpfr_set_ui_2exp ((_f), (_u), 0, (_r)))
 #endif
 #undef mpfr_set_si
-#define mpfr_set_si(_f,_s,_r)              \
- (__builtin_constant_p (_s) && (_s) >= 0 ? \
-   mpfr_set_ui ((_f), (_s), (_r)) :        \
+#define mpfr_set_si(_f,_s,_r)                                   \
+  (__builtin_constant_p (_s) && (mpfr_long) (_s) >= 0 ?         \
+   mpfr_set_ui ((_f), (mpfr_ulong) (mpfr_long) (_s), (_r)) :    \
    mpfr_set_si_2exp ((_f), (_s), 0, (_r)))
 #endif
 #endif
 
 /* Macro version of mpfr_stack interface for fast access */
-#define mpfr_custom_get_size(p) ((size_t)                            \
+#define mpfr_custom_get_size(p) ((mpfr_size_t)                          \
        (((p)+GMP_NUMB_BITS-1)/GMP_NUMB_BITS*sizeof (mp_limb_t)))
 #define mpfr_custom_init(m,p) do {} while (0)
-#define mpfr_custom_get_significand(x) ((void*)((x)->_mpfr_d))
+#define mpfr_custom_get_significand(x) ((mpfr_void*)((x)->_mpfr_d))
 #define mpfr_custom_get_exp(x) ((x)->_mpfr_exp)
 #define mpfr_custom_move(x,m) do { ((x)->_mpfr_d = (mp_limb_t*)(m)); } while (0)
 #define mpfr_custom_init_set(x,k,e,p,m) do {                   \
   mpfr_ptr _x = (x);                                           \
   mpfr_exp_t _e;                                               \
   mpfr_kind_t _t;                                              \
-  int _s, _k;                                                  \
+  mpfr_int _s, _k;                                             \
   _k = (k);                                                    \
   if (_k >= 0)  {                                              \
     _t = (mpfr_kind_t) _k;                                     \
     _s = 1;                                                    \
   } else {                                                     \
-    _t = (mpfr_kind_t) -k;                                     \
+    _t = (mpfr_kind_t) - _k;                                   \
     _s = -1;                                                   \
   }                                                            \
   _e = _t == MPFR_REGULAR_KIND ? (e) :                         \
@@ -858,11 +872,13 @@ __MPFR_DECLSPEC int    mpfr_custom_get_kind   _MPFR_PROTO ((mpfr_srcptr));
   _x->_mpfr_exp  = _e;                                         \
   _x->_mpfr_d    = (mp_limb_t*) (m);                           \
  } while (0)
-#define mpfr_custom_get_kind(x)                                              \
-  ( (x)->_mpfr_exp >  __MPFR_EXP_INF ? (int)MPFR_REGULAR_KIND*MPFR_SIGN (x) \
-  : (x)->_mpfr_exp == __MPFR_EXP_INF ? (int)MPFR_INF_KIND*MPFR_SIGN (x)     \
-  : (x)->_mpfr_exp == __MPFR_EXP_NAN ? (int)MPFR_NAN_KIND                   \
-  : (int) MPFR_ZERO_KIND * MPFR_SIGN (x) )
+#define mpfr_custom_get_kind(x)                                         \
+  ( (x)->_mpfr_exp >  __MPFR_EXP_INF ?                                  \
+    (mpfr_int) MPFR_REGULAR_KIND * MPFR_SIGN (x)                        \
+  : (x)->_mpfr_exp == __MPFR_EXP_INF ?                                  \
+    (mpfr_int) MPFR_INF_KIND * MPFR_SIGN (x)                            \
+  : (x)->_mpfr_exp == __MPFR_EXP_NAN ? (mpfr_int) MPFR_NAN_KIND         \
+  : (mpfr_int) MPFR_ZERO_KIND * MPFR_SIGN (x) )
 
 
 #endif /* MPFR_USE_NO_MACRO */
@@ -886,6 +902,13 @@ __MPFR_DECLSPEC int    mpfr_custom_get_kind   _MPFR_PROTO ((mpfr_srcptr));
  ( mpfr_init(x), mpfr_set_f((x), (y), (rnd)) )
 
 /* Compatibility layer -- obsolete functions and macros */
+/* Note: it is not possible to output warnings, unless one defines
+ * a deprecated variable and uses it, e.g.
+ *   MPFR_DEPRECATED extern int mpfr_deprecated_feature;
+ *   #define MPFR_EMIN_MIN ((void)mpfr_deprecated_feature,mpfr_get_emin_min())
+ * (the cast to void avoids a warning because the left-hand operand
+ * has no effect).
+ */
 #define mpfr_cmp_abs mpfr_cmpabs
 #define mpfr_round_prec(x,r,p) mpfr_prec_round(x,p,r)
 #define __gmp_default_rounding_mode (mpfr_get_default_rounding_mode())
@@ -907,4 +930,130 @@ __MPFR_DECLSPEC int    mpfr_custom_get_kind   _MPFR_PROTO ((mpfr_srcptr));
 #define mpfr_get_z_exp mpfr_get_z_2exp
 #define mpfr_custom_get_mantissa mpfr_custom_get_significand
 
-#endif /* __MPFR_H*/
+#endif /* __MPFR_H */
+
+
+/* Check if <stdint.h> / <inttypes.h> is included or if the user
+   explicitly wants intmax_t. Automatical detection is done by
+   checking:
+     - INTMAX_C and UINTMAX_C, but not if the compiler is a C++ one
+       (as suggested by Patrick Pelissier) because the test does not
+       work well in this case. See:
+         https://sympa.inria.fr/sympa/arc/mpfr/2010-02/msg00025.html
+       We do not check INTMAX_MAX and UINTMAX_MAX because under Solaris,
+       these macros are always defined by <limits.h> (i.e. even when
+       <stdint.h> and <inttypes.h> are not included).
+     - _STDINT_H (defined by the glibc), _STDINT_H_ (defined under
+       Mac OS X) and _STDINT (defined under MS Visual Studio), but
+       this test may not work with all implementations.
+       Portable software should not rely on these tests.
+*/
+#if (defined (INTMAX_C) && defined (UINTMAX_C) && !defined(__cplusplus)) || \
+  defined (MPFR_USE_INTMAX_T) || \
+  defined (_STDINT_H) || defined (_STDINT_H_) || defined (_STDINT)
+# ifndef _MPFR_H_HAVE_INTMAX_T
+# define _MPFR_H_HAVE_INTMAX_T 1
+
+#if defined (__cplusplus)
+extern "C" {
+#endif
+
+#define mpfr_set_sj __gmpfr_set_sj
+#define mpfr_set_sj_2exp __gmpfr_set_sj_2exp
+#define mpfr_set_uj __gmpfr_set_uj
+#define mpfr_set_uj_2exp __gmpfr_set_uj_2exp
+#define mpfr_get_sj __gmpfr_mpfr_get_sj
+#define mpfr_get_uj __gmpfr_mpfr_get_uj
+__MPFR_DECLSPEC int mpfr_set_sj _MPFR_PROTO ((mpfr_t, intmax_t, mpfr_rnd_t));
+__MPFR_DECLSPEC int
+  mpfr_set_sj_2exp _MPFR_PROTO ((mpfr_t, intmax_t, intmax_t, mpfr_rnd_t));
+__MPFR_DECLSPEC int mpfr_set_uj _MPFR_PROTO ((mpfr_t, uintmax_t, mpfr_rnd_t));
+__MPFR_DECLSPEC int
+  mpfr_set_uj_2exp _MPFR_PROTO ((mpfr_t, uintmax_t, intmax_t, mpfr_rnd_t));
+__MPFR_DECLSPEC intmax_t mpfr_get_sj _MPFR_PROTO ((mpfr_srcptr, mpfr_rnd_t));
+__MPFR_DECLSPEC uintmax_t mpfr_get_uj _MPFR_PROTO ((mpfr_srcptr, mpfr_rnd_t));
+
+#if defined (__cplusplus)
+}
+#endif
+
+# endif /* _MPFR_H_HAVE_INTMAX_T */
+#endif
+
+
+/* Check if <stdio.h> has been included or if the user wants FILE */
+#if defined (_GMP_H_HAVE_FILE) || defined (MPFR_USE_FILE)
+# ifndef _MPFR_H_HAVE_FILE
+# define _MPFR_H_HAVE_FILE 1
+
+#if defined (__cplusplus)
+extern "C" {
+#endif
+
+#define mpfr_inp_str __gmpfr_inp_str
+#define mpfr_out_str __gmpfr_out_str
+__MPFR_DECLSPEC size_t mpfr_inp_str _MPFR_PROTO ((mpfr_ptr, FILE*, int,
+                                                  mpfr_rnd_t));
+__MPFR_DECLSPEC size_t mpfr_out_str _MPFR_PROTO ((FILE*, int, size_t,
+                                                  mpfr_srcptr, mpfr_rnd_t));
+#define mpfr_fprintf __gmpfr_fprintf
+__MPFR_DECLSPEC int mpfr_fprintf _MPFR_PROTO ((FILE*, __gmp_const char*,
+                                               ...));
+
+#if defined (__cplusplus)
+}
+#endif
+
+# endif /* _MPFR_H_HAVE_FILE */
+#endif
+
+
+/* check if <stdarg.h> has been included or if the user wants va_list */
+#if defined (_GMP_H_HAVE_VA_LIST) || defined (MPFR_USE_VA_LIST)
+# ifndef _MPFR_H_HAVE_VA_LIST
+# define _MPFR_H_HAVE_VA_LIST 1
+
+#if defined (__cplusplus)
+extern "C" {
+#endif
+
+#define mpfr_vprintf __gmpfr_vprintf
+#define mpfr_vasprintf __gmpfr_vasprintf
+#define mpfr_vsprintf __gmpfr_vsprintf
+#define mpfr_vsnprintf __gmpfr_vsnprintf
+__MPFR_DECLSPEC int mpfr_vprintf _MPFR_PROTO ((__gmp_const char*, va_list));
+__MPFR_DECLSPEC int mpfr_vasprintf _MPFR_PROTO ((char**, __gmp_const char*,
+                                                 va_list));
+__MPFR_DECLSPEC int mpfr_vsprintf _MPFR_PROTO ((char*, __gmp_const char*,
+                                               va_list));
+__MPFR_DECLSPEC int mpfr_vsnprintf _MPFR_PROTO ((char*, size_t,
+                                                __gmp_const char*, va_list));
+
+#if defined (__cplusplus)
+}
+#endif
+
+# endif /* _MPFR_H_HAVE_VA_LIST */
+#endif
+
+
+/* check if <stdarg.h> has been included and if FILE is available
+   (see above) */
+#if defined (_MPFR_H_HAVE_VA_LIST) && defined (_MPFR_H_HAVE_FILE)
+# ifndef _MPFR_H_HAVE_VA_LIST_FILE
+# define _MPFR_H_HAVE_VA_LIST_FILE 1
+
+#if defined (__cplusplus)
+extern "C" {
+#endif
+
+#define mpfr_vfprintf __gmpfr_vfprintf
+__MPFR_DECLSPEC int mpfr_vfprintf _MPFR_PROTO ((FILE*, __gmp_const char*,
+                                                va_list));
+
+#if defined (__cplusplus)
+}
+#endif
+
+# endif /* _MPFR_H_HAVE_VA_LIST_FILE */
+#endif

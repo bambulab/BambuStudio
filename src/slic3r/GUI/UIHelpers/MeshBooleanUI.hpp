@@ -74,6 +74,12 @@ public:
     std::function<void()> on_reset_operation;
     std::function<void(MeshBooleanOperation)> on_apply_color_overrides;
     std::function<bool()> on_delete_selected; // Returns true if delete was successful
+    std::function<void()> on_refresh_operands;
+    std::function<void(ObjectID, ObjectID)> on_repair_part;
+    std::function<bool()> is_operation_busy;
+
+    void set_operand_status(std::string count_error, std::vector<MeshBooleanRepairRow> rows);
+    void set_native_repair_available(bool available) { m_native_repair_available = available; }
 
     // Async status callbacks
     std::function<bool()> is_async_enabled;
@@ -101,6 +107,10 @@ private:
     bool m_entity_only;
     bool m_preserve_color;
     bool m_is_dark_mode;
+    std::string m_operand_count_error;
+    bool m_has_defects{false};
+    bool m_native_repair_available{false};
+    std::vector<MeshBooleanRepairRow> m_repair_rows;
 
     // External dependencies (injected)
     VolumeListManager* m_volume_manager{nullptr};
@@ -182,6 +192,7 @@ private:
     void draw_action_buttons();
     void draw_only_entity_checkbox();
     void draw_warnings(); // Warnings and error messages
+    void draw_repair_warning();
     void draw_separator(); // Separator line between content and controls
     void draw_progress_bar(); // Async progress display (progress bar + status text)
 

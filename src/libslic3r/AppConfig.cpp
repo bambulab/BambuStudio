@@ -192,6 +192,9 @@ void AppConfig::set_defaults()
         set_bool("zoom_to_mouse", true);
     if (get("canvas_drag_to_move").empty())
         set_bool("canvas_drag_to_move", true);
+    const std::string rotate_sensitivity = get("rotate_sensitivity");
+    if (rotate_sensitivity != "low" && rotate_sensitivity != "medium" && rotate_sensitivity != "high")
+        set("rotate_sensitivity", "medium");
     if (get("show_shells_in_preview").empty())
         set_bool("show_shells_in_preview", true);
     if (get("enable_text_styles").empty())
@@ -215,7 +218,7 @@ void AppConfig::set_defaults()
     if (get("user_bed_type").empty())
         set_bool("user_bed_type", true);
     if (get("grabber_size_factor").empty())
-        set("grabber_size_factor", "1.0");
+        set("grabber_size_factor", "1.5");
     if (get("assembly_part_number_label_font_size").empty())
         set("assembly_part_number_label_font_size", "0");
     if (get("3d_middle_tooltip_offset_x").empty())
@@ -253,6 +256,9 @@ void AppConfig::set_defaults()
 
     if (get("enable_advanced_antialiasing").empty())
         set_bool("enable_advanced_antialiasing", false);
+
+    if (get("show_objects_in_preview").empty())
+        set_bool("show_objects_in_preview", false);
 
     if (get("enable_advanced_gcode_viewer_").empty())
         set_bool("enable_advanced_gcode_viewer_", true);

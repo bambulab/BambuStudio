@@ -4,8 +4,9 @@
 #include "Utils.hpp"
 #include "nlohmann/json.hpp"
 
-#include <array>
+#include <algorithm>
 #include <cmath>
+#include <tuple>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/log/trivial.hpp>
@@ -21,159 +22,217 @@ std::string support_recommended_material_name(std::string preset_name)
     return preset_name;
 }
 
+bool is_tpu_filament_type(const std::string &filament_type)
+{
+    return filament_type == "TPU" || filament_type == "TPU-AMS";
+}
+
+bool unsuitable_as_support_base(const std::string &support_type, const std::string &model_type)
+{
+    return (support_type == "PLA" && (model_type == "PETG" || is_tpu_filament_type(model_type))) ||
+           (support_type == "PETG" && model_type == "PLA");
+}
+
 namespace {
 
-// Keyed by "support_material|model_material|printer_model". Multiple typed entries may share the
-// textual key; lookup selects the highest-priority entry with matching name/type semantics.
-using SupportRecommendedParamsMap = std::map<std::string, std::vector<SupportRecommendedParams>>;
-
-std::string support_recommended_params_key(const std::string &support_material, const std::string &model_material, const std::string &printer_model)
-{
-    return support_material + "|" + model_material + "|" + printer_model;
-}
+using SupportRecommendedParamsTable = std::vector<SupportRecommendedParams>;
 
 boost::filesystem::path support_recommended_params_path()
 {
     return (boost::filesystem::path(resources_dir()) / "profiles" / "BBL" / "filament" / "support_recommended_params.json").make_preferred();
 }
 
-SupportRecommendedParamsMap load_support_recommended_params_map(const boost::filesystem::path &json_path)
+std::string json_string(const nlohmann::json &combo, const char *key, const char *default_value)
 {
-    SupportRecommendedParamsMap support_recommended_params_map;
+    return combo.contains(key) && combo[key].is_string() ? combo[key].get<std::string>() : std::string(default_value);
+}
+
+bool json_bool(const nlohmann::json &combo, const char *key)
+{
+    return combo.contains(key) && combo[key].is_boolean() && combo[key].get<bool>();
+}
+
+std::vector<std::string> json_string_list(const nlohmann::json &combo, const char *key)
+{
+    std::vector<std::string> out;
+    if (! combo.contains(key))
+        return out;
+    const auto &value = combo[key];
+    if (value.is_string())
+        out.push_back(value.get<std::string>());
+    else if (value.is_array())
+        for (const auto &item : value)
+            if (item.is_string())
+                out.push_back(item.get<std::string>());
+    return out;
+}
+
+// Material match modes: "name"/"type" compare against the list; "any", "soluble" and "support" need no list.
+bool material_match_needs_list(const std::string &how)
+{
+    return how == "name" || how == "type";
+}
+
+void parse_recommended_params(const nlohmann::json &params, FilamentCombinationParams &out)
+{
+    for (auto it = params.begin(); it != params.end(); ++it) {
+        const std::string &key = it.key();
+        const auto &value = it.value();
+        if ((key == "support_top_z_distance" || key == "support_bottom_z_distance") && ! value.is_number()) {
+            BOOST_LOG_TRIVIAL(warning) << "Ignoring non-numeric support distance parameter: " << key;
+            continue;
+        }
+
+        if (value.is_number()) {
+            out.params[key] = value.get<double>();
+        } else if (value.is_boolean()) {
+            out.params[key] = value.get<bool>();
+        } else if (value.is_string()) {
+            out.params[key] = value.get<std::string>();
+        } else if (value.is_array()) {
+            std::vector<double> vec;
+            for (const auto &elem : value) {
+                if (elem.is_number()) {
+                    vec.push_back(elem.get<double>());
+                } else if (elem.is_string()) {
+                    try {
+                        vec.push_back(std::stod(elem.get<std::string>()));
+                    } catch (...) {
+                        BOOST_LOG_TRIVIAL(warning) << "Failed to parse array element as double for " << key;
+                    }
+                }
+            }
+            if (! vec.empty())
+                out.params[key] = vec;
+        }
+    }
+}
+
+SupportRecommendedParamsTable load_support_recommended_params_table(const boost::filesystem::path &json_path)
+{
+    SupportRecommendedParamsTable table;
 
     if (!boost::filesystem::exists(json_path)) {
         BOOST_LOG_TRIVIAL(warning) << "Support recommended params JSON file not found: " << json_path.string();
-        return support_recommended_params_map;
+        return table;
     }
 
     try {
         boost::nowide::ifstream ifs(json_path.string());
         if (!ifs.is_open()) {
             BOOST_LOG_TRIVIAL(error) << "Failed to open support recommended params JSON file";
-            return support_recommended_params_map;
+            return table;
         }
 
         nlohmann::json j;
         ifs >> j;
 
+        // Named parameter groups that entries pull in through "inherits", in order, before their own params.
+        const nlohmann::json param_sets = j.contains("param_sets") && j["param_sets"].is_object() ?
+            j["param_sets"] : nlohmann::json::object();
+
         if (j.contains("combinations") && j["combinations"].is_array()) {
             for (const auto &combo : j["combinations"]) {
                 SupportRecommendedParams rec_params;
 
-                // Load model_material (single string)
-                if (combo.contains("model_material") && combo["model_material"].is_string()) {
-                    rec_params.model_material = combo["model_material"].get<std::string>();
-                }
-
-                // Load model_material_type (default to "type")
-                if (combo.contains("model_material_type") && combo["model_material_type"].is_string()) {
-                    rec_params.model_material_type = combo["model_material_type"].get<std::string>();
-                } else {
-                    rec_params.model_material_type = "type";
-                }
-
-                // Load support_material_list (array)
-                if (combo.contains("support_material_list") && combo["support_material_list"].is_array()) {
-                    for (const auto &mat : combo["support_material_list"]) {
-                        if (mat.is_string()) {
-                            rec_params.support_material_list.push_back(mat.get<std::string>());
-                        }
-                    }
-                }
-
-                // Load support_material_type (default to "type")
-                if (combo.contains("support_material_type") && combo["support_material_type"].is_string()) {
-                    rec_params.support_material_type = combo["support_material_type"].get<std::string>();
-                } else {
-                    rec_params.support_material_type = "type";
-                }
-
-                // Load printer_models (array)
-                if (combo.contains("printer_models") && combo["printer_models"].is_array()) {
-                    for (const auto &pm : combo["printer_models"]) {
-                        if (pm.is_string()) {
-                            rec_params.printer_models.push_back(pm.get<std::string>());
-                        }
-                    }
-                }
+                // model_material is a string or a list of strings
+                rec_params.model_material_list   = json_string_list(combo, "model_material");
+                rec_params.model_material_type   = json_string(combo, "model_material_type", "type");
+                rec_params.support_material_list = json_string_list(combo, "support_material_list");
+                rec_params.support_material_type = json_string(combo, "support_material_type", "type");
+                rec_params.printer_models        = json_string_list(combo, "printer_models");
 
                 // Load priority (default to 0)
                 if (combo.contains("priority") && combo["priority"].is_number_integer()) {
                     rec_params.priority = combo["priority"].get<int>();
                 }
+                rec_params.use_as_support_base = json_bool(combo, "use_as_support_base");
 
-                // An entry without printer_models would apply to every machine, including those it was
-                // never validated on, so require the scope to be explicit.
-                if (rec_params.model_material.empty() || rec_params.support_material_list.empty() || rec_params.printer_models.empty()) {
+                if ((material_match_needs_list(rec_params.model_material_type) && rec_params.model_material_list.empty()) ||
+                    (material_match_needs_list(rec_params.support_material_type) && rec_params.support_material_list.empty())) {
+                    BOOST_LOG_TRIVIAL(warning) << "Ignoring support recommended params entry without materials";
                     continue;
                 }
 
-                // Load recommended params
-                if (combo.contains("recommended_params") && combo["recommended_params"].is_object()) {
-                    const auto &params = combo["recommended_params"];
-
-                    for (auto it = params.begin(); it != params.end(); ++it) {
-                        const std::string &key = it.key();
-                        const auto &value = it.value();
-                        if ((key == "support_top_z_distance" || key == "support_bottom_z_distance") &&
-                            ! value.is_number()) {
-                            BOOST_LOG_TRIVIAL(warning) << "Ignoring non-numeric support distance parameter: " << key;
-                            continue;
-                        }
-
-                        if (value.is_number_float() || value.is_number_integer()) {
-                            rec_params.params.params[key] = value.get<double>();
-                        } else if (value.is_boolean()) {
-                            rec_params.params.params[key] = value.get<bool>();
-                        } else if (value.is_string()) {
-                            rec_params.params.params[key] = value.get<std::string>();
-                        } else if (value.is_array()) {
-                            std::vector<double> vec;
-                            for (const auto& elem : value) {
-                                if (elem.is_number()) {
-                                    vec.push_back(elem.get<double>());
-                                } else if (elem.is_string()) {
-                                    try {
-                                        vec.push_back(std::stod(elem.get<std::string>()));
-                                    } catch (...) {
-                                        BOOST_LOG_TRIVIAL(warning) << "Failed to parse array element as double for " << key;
-                                    }
-                                }
-                            }
-                            if (!vec.empty()) {
-                                rec_params.params.params[key] = vec;
-                            }
-                        }
-                    }
+                for (const std::string &set_name : json_string_list(combo, "inherits")) {
+                    if (param_sets.contains(set_name) && param_sets[set_name].is_object())
+                        parse_recommended_params(param_sets[set_name], rec_params.params);
+                    else
+                        BOOST_LOG_TRIVIAL(warning) << "Unknown support recommended param set: " << set_name;
                 }
+                if (combo.contains("recommended_params") && combo["recommended_params"].is_object())
+                    parse_recommended_params(combo["recommended_params"], rec_params.params);
                 if (! rec_params.params.hasRecommendedParams())
                     continue;
 
-                // Create key for each (support_material, printer_model): "support_material|model_material|printer_model"
-                for (const auto &support_mat : rec_params.support_material_list) {
-                    for (const auto &printer_model : rec_params.printer_models) {
-                        support_recommended_params_map[support_recommended_params_key(
-                            support_mat, rec_params.model_material, printer_model)].push_back(rec_params);
-                    }
-                }
+                table.push_back(std::move(rec_params));
             }
         }
 
-        size_t entry_count = 0;
-        for (const auto &item : support_recommended_params_map)
-            entry_count += item.second.size();
-        BOOST_LOG_TRIVIAL(info) << "Loaded " << entry_count << " support recommended params from JSON";
+        BOOST_LOG_TRIVIAL(info) << "Loaded " << table.size() << " support recommended params from JSON";
     }
     catch (const std::exception& e) {
         BOOST_LOG_TRIVIAL(error) << "Error loading support recommended params JSON: " << e.what();
     }
-    return support_recommended_params_map;
+    return table;
 }
 
-const SupportRecommendedParamsMap &support_recommended_params()
+const SupportRecommendedParamsTable &support_recommended_params()
 {
-    static const SupportRecommendedParamsMap table = load_support_recommended_params_map(support_recommended_params_path());
+    static const SupportRecommendedParamsTable table = load_support_recommended_params_table(support_recommended_params_path());
     return table;
+}
+
+bool contains(const std::vector<std::string> &list, const std::string &value)
+{
+    return ! value.empty() && std::find(list.begin(), list.end(), value) != list.end();
+}
+
+// 0 = no match; otherwise a larger value is a more specific match (name > type > property/any).
+int material_specificity(const std::string &how, const std::vector<std::string> &list, const SupportMaterialProperties &material)
+{
+    if (how == "name")
+        return contains(list, material.name) ? 3 : 0;
+    if (how == "type")
+        return contains(list, material.type) ? 2 : 0;
+    if (how == "any")
+        return 1;
+    if (how == "soluble")
+        return material.soluble ? 1 : 0;
+    if (how == "support")
+        return material.support ? 1 : 0;
+    return 0;
+}
+
+// Highest priority wins; ties go to the more specific match (model side first), then to the later entry.
+const SupportRecommendedParams *find_support_recommended_params(
+    const SupportMaterialProperties &support_material,
+    const SupportMaterialProperties &model_material,
+    const std::string               &printer_model,
+    bool                             default_entries)
+{
+    const SupportRecommendedParams *best = nullptr;
+    std::tuple<int, int, int> best_rank;
+    for (const SupportRecommendedParams &entry : support_recommended_params()) {
+        if (default_entries ? ! entry.printer_models.empty() : ! contains(entry.printer_models, printer_model))
+            continue;
+        const int support_rank = material_specificity(entry.support_material_type, entry.support_material_list, support_material);
+        const int model_rank   = support_rank > 0 ?
+            material_specificity(entry.model_material_type, entry.model_material_list, model_material) : 0;
+        if (model_rank == 0)
+            continue;
+        const std::tuple<int, int, int> rank {entry.priority, model_rank, support_rank};
+        if (best == nullptr || rank >= best_rank) {
+            best      = &entry;
+            best_rank = rank;
+        }
+    }
+    return best;
+}
+
+std::optional<double> recommended_distance(const SupportRecommendedParams *entry, const char *key)
+{
+    return entry == nullptr ? std::nullopt : entry->params.get<double>(key);
 }
 
 } // namespace
@@ -183,86 +242,65 @@ void load_support_recommended_params()
     (void) support_recommended_params();
 }
 
-static const SupportRecommendedParams *find_support_recommended_params(
-    const std::string &support_material_name,
-    const std::string &support_material_type,
-    const std::string &model_material_name,
-    const std::string &model_material_type,
-    const std::string &printer_model)
-{
-    const SupportRecommendedParamsMap &table = support_recommended_params();
-    struct MaterialQuery {
-        const std::string *support_material;
-        const char        *support_key_type;
-        const std::string *model_material;
-        const char        *model_key_type;
-    };
-    const std::array<MaterialQuery, 4> queries {{
-        {&support_material_name, "name", &model_material_name, "name"},
-        {&support_material_type, "type", &model_material_name, "name"},
-        {&support_material_name, "name", &model_material_type, "type"},
-        {&support_material_type, "type", &model_material_type, "type"}
-    }};
-    const SupportRecommendedParams *best = nullptr;
-    size_t best_query_index = queries.size();
-    for (size_t query_index = 0; query_index < queries.size(); ++query_index) {
-        const MaterialQuery &query = queries[query_index];
-        if (query.support_material->empty() || query.model_material->empty())
-            continue;
-        auto it = table.find(support_recommended_params_key(
-            *query.support_material, *query.model_material, printer_model));
-        if (it == table.end())
-            continue;
-        for (const SupportRecommendedParams &entry : it->second) {
-            if (entry.support_material_type != query.support_key_type ||
-                entry.model_material_type != query.model_key_type)
-                continue;
-            // Query order resolves equal priorities from specific to general; within one key, the later
-            // JSON entry wins as it did when the table stored a single value.
-            if (best == nullptr || entry.priority > best->priority ||
-                (entry.priority == best->priority && query_index == best_query_index)) {
-                best = &entry;
-                best_query_index = query_index;
-            }
-        }
-    }
-    return best;
-}
-
 SupportMaterialCombination evaluate_support_material_combination(
     const SupportMaterialProperties &support_material,
     const SupportMaterialProperties &model_material,
     const std::string &printer_model)
 {
     SupportMaterialCombination result;
-    if (! printer_model.empty()) {
-        result.recommended_params = find_support_recommended_params(
-            support_material.name, support_material.type,
-            model_material.name, model_material.type, printer_model);
-    }
+    const SupportRecommendedParams *printer_entry =
+        ! printer_model.empty() ?
+        find_support_recommended_params(support_material, model_material, printer_model, false) : nullptr;
+    // Also looked up next to a printer entry, which inherits its missing top/bottom gaps from it.
+    const SupportRecommendedParams *default_entry =
+        find_support_recommended_params(support_material, model_material, printer_model, true);
+    result.recommended_params = printer_entry != nullptr ? printer_entry : default_entry;
+    if (result.recommended_params == nullptr)
+        return result;
 
-    if (support_material.type == "PLA" &&
-        (model_material.type == "TPU" || model_material.type == "TPU-AMS"))
-        result.built_in_rule = BuiltInSupportMaterialRule::PlaForTpu;
-    else if (support_material.soluble)
-        result.built_in_rule = BuiltInSupportMaterialRule::Soluble;
-    else if (support_material.support)
-        result.built_in_rule = BuiltInSupportMaterialRule::DedicatedSupport;
-    else if (support_material.type == "PETG" && model_material.type == "PLA")
-        result.built_in_rule = BuiltInSupportMaterialRule::PetgForPla;
-    else if (support_material.type == "PLA" && model_material.type == "PETG")
-        result.built_in_rule = BuiltInSupportMaterialRule::PlaForPetg;
-
-    const bool built_in_zero_top = result.built_in_rule != BuiltInSupportMaterialRule::None;
-    const bool built_in_zero_bottom = support_material.type == "PVA" && model_material.type == "PLA";
-    const std::optional<double> json_top = result.recommended_params == nullptr ?
-        std::nullopt : result.recommended_params->params.get<double>("support_top_z_distance");
-    const std::optional<double> json_bottom = result.recommended_params == nullptr ?
-        std::nullopt : result.recommended_params->params.get<double>("support_bottom_z_distance");
-
-    result.zero_top = json_top ? std::abs(*json_top) < EPSILON : built_in_zero_top;
-    result.zero_bottom = json_bottom ? std::abs(*json_bottom) < EPSILON : built_in_zero_bottom;
+    // A printer entry without a distance keeps the gap decision of the default entry.
+    auto zero_gap = [&](const char *key) {
+        std::optional<double> distance = recommended_distance(printer_entry, key);
+        if (! distance)
+            distance = recommended_distance(default_entry, key);
+        return distance && std::abs(*distance) < EPSILON;
+    };
+    result.zero_top    = zero_gap("support_top_z_distance");
+    result.zero_bottom = zero_gap("support_bottom_z_distance");
+    // The selected entry decides alone, so a printer entry can deny the support base its default allows.
+    result.use_as_support_base = result.recommended_params->use_as_support_base;
     return result;
+}
+
+SupportMaterialCombination evaluate_support_material_combination(
+    const SupportMaterialProperties              &support_material,
+    const std::vector<SupportMaterialProperties> &model_materials,
+    const std::string                            &printer_model,
+    size_t                                       *model_index)
+{
+    SupportMaterialCombination chosen;
+    // A gap or the support base holds only when every material's recommendation agrees on it.
+    bool zero_top = true, zero_bottom = true, use_as_support_base = true;
+    for (size_t i = 0; i < model_materials.size(); ++i) {
+        const SupportMaterialCombination combination =
+            evaluate_support_material_combination(support_material, model_materials[i], printer_model);
+        if (combination.recommended_params == nullptr)
+            return {};
+        zero_top            &= combination.zero_top;
+        zero_bottom         &= combination.zero_bottom;
+        use_as_support_base &= combination.use_as_support_base;
+        if (chosen.recommended_params == nullptr || combination.recommended_params->priority < chosen.recommended_params->priority) {
+            chosen = combination;
+            if (model_index != nullptr)
+                *model_index = i;
+        }
+    }
+    if (chosen.recommended_params == nullptr)
+        return {};
+    chosen.zero_top            = zero_top;
+    chosen.zero_bottom         = zero_bottom;
+    chosen.use_as_support_base = use_as_support_base;
+    return chosen;
 }
 
 } // namespace Slic3r

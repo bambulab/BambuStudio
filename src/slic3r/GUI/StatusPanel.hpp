@@ -38,6 +38,7 @@
 #include "Widgets/ImageSwitchButton.hpp"
 #include "Widgets/AMSControl.hpp"
 #include "Widgets/FilamentLoad.hpp"
+#include "DeviceTab/ControlPanel/ControlPanelWebEnable.hpp"
 #include "Widgets/FanControl.hpp"
 #include "DeviceTab/AmsControl/AmsControlWebEnable.hpp"
 #include "HMS.hpp"
@@ -61,6 +62,11 @@ class MessageDialog;
 class wgtDeviceFilamentHotendWebDialog;
 class wgtDeviceFilamentHotendHtmlDialog;
 class wgtDeviceNozzleRack;
+class wgtDeviceHotendRackWebPanel;
+class wgtDeviceFilamentLoadWebPanel;
+#if BBL_ENABLE_CONTROL_PANEL_WEB
+class wgtDeviceControlPanelWebPanel;
+#endif
 #if BBL_ENABLE_AMS_CONTROL_WEB
 class wgtAmsControlWebPanel;
 #endif
@@ -592,6 +598,7 @@ protected:
     wxStaticBitmap* m_bitmap_extruder_img;
 
     wgtDeviceNozzleRack* m_panel_nozzle_rack{ nullptr };
+    wgtDeviceHotendRackWebPanel* m_hotend_rack_web_panel{ nullptr };
 
     wxPanel *       m_panel_separator_right;
     wxPanel *       m_panel_separotor_bottom;
@@ -613,6 +620,9 @@ protected:
 
     wxPanel *       m_machine_ctrl_panel;
     StaticBox*                        m_temp_axis_ctrl_box{nullptr};
+#if BBL_ENABLE_CONTROL_PANEL_WEB
+    wgtDeviceControlPanelWebPanel*    m_control_panel_web_panel{ nullptr };
+#endif
     std::vector<CtrlAreaMaskOverlay*> m_ctrl_area_masks;
     std::vector<wxWindow*>            m_ctrl_area_mask_excludes;
     bool                              m_ctrl_area_mask_dark{false};
@@ -627,11 +637,16 @@ protected:
     Button *m_button_retry {nullptr};
     Button *m_fila_change_abort {nullptr};
     StaticBox* m_filament_load_box;
+    wgtDeviceFilamentLoadWebPanel* m_filament_load_web_panel{ nullptr };
     std::string m_devid;
 
 private:
     friend class StatusPanel;
     MachineObject *get_current_dev() const;
+    void on_fila_change_abort();
+
+    SecondaryCheckDialog *m_fila_change_abort_dlg {nullptr};
+    std::string m_fila_change_abort_devid;
 
 protected:
     // Virtual event handlers, override them in your derived class
@@ -695,6 +710,14 @@ public:
     void           show_ams_group(bool show = true);
     void show_filament_load_group(bool show = true);
     MediaPlayCtrl* get_media_play_ctrl() {return m_media_play_ctrl;};
+
+    wgtDeviceControlPanelWebPanel* get_control_panel_web_panel() const {
+#if BBL_ENABLE_CONTROL_PANEL_WEB
+        return m_control_panel_web_panel;
+#else
+        return nullptr;
+#endif
+    }
 
     void jump_to_Rack();
 

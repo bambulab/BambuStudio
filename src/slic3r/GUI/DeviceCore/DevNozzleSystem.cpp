@@ -391,6 +391,10 @@ DevFirmwareVersionInfo DevNozzle::GetFirmwareInfo() const
     const auto& nozzle_rack = m_nozzle_rack.lock();
     if (nozzle_rack)
     {
+        if (nozzle_rack->IsDirectConnectedRack() && m_addr_id.has_value())
+        {
+            return nozzle_rack->GetNozzleFirmwareInfo(*m_addr_id);
+        }
         if (IsOnRack())
         {
             return nozzle_rack->GetNozzleFirmwareInfo(m_nozzle_id);
@@ -1048,7 +1052,9 @@ void DevNozzleSystemParser::sTraverseBindAmsSlot(DevNozzleSystem* system, DevNoz
 
         if (nozzle_obj.GetAddrId().has_value()) {
             // using the rack ams slot
-            if (nozzle_obj.GetNozzleFlowType() != NozzleFlowType::T_FLOW) {
+            if (rack->GetRackType() == DevNozzleRack::RackType_A && nozzle_obj.GetNozzleFlowType() == NozzleFlowType::T_FLOW) {
+                // Skip the AMS info with (rackA + TPU285 nozzle)
+            } else {
                 for (const auto& ams_item : ams_list) {
                     if (ams_item.second->GetSlotCount() == rack->GetTotalRackNozzleCount()) {
                         DevAmsSlotId ams_slot_id;

@@ -52,6 +52,29 @@ wxString format_nozzle_spec(const NozzleConfig &cfg)
     return cfg.diameter + "mm " + flow_label;
 }
 
+bool project_filaments_use_nozzle(const NozzleConfig &nozzle)
+{
+    PresetBundle *preset_bundle = wxGetApp().preset_bundle;
+    if (preset_bundle == nullptr || !multi_nozzle_diameter_mode_enabled(preset_bundle->project_config))
+        return false;
+    const auto *diameters = preset_bundle->project_config.option<ConfigOptionStrings>("filament_diameter_map");
+    const auto *volumes   = preset_bundle->project_config.option<ConfigOptionInts>("filament_volume_map");
+    if (diameters == nullptr)
+        return false;
+    const std::string wanted = into_u8(nozzle.diameter);
+    for (size_t i = 0; i < diameters->values.size(); ++i) {
+        if (preset_bundle->is_mixed_filament(i))
+            continue;
+        if (diameters->values[i] != wanted)
+            continue;
+        const NozzleVolumeType volume = (volumes != nullptr && i < volumes->values.size())
+            ? static_cast<NozzleVolumeType>(volumes->values[i]) : nvtStandard;
+        if (volume == nozzle.volume)
+            return true;
+    }
+    return false;
+}
+
 NozzleLayout nozzle_layout_of(const ConfigBase &printer_config)
 {
     const auto *variants   = printer_config.option<ConfigOptionStrings>("extruder_variant_list");
@@ -63,9 +86,42 @@ NozzleLayout nozzle_layout_of(const ConfigBase &printer_config)
     return rack ? NozzleLayout::SingleExtruderRack : NozzleLayout::SingleExtruder;
 }
 
+bool uses_dual_nozzle_view(const ConfigBase &printer_config)
+{
+    return nozzle_layout_of(printer_config) == NozzleLayout::DualExtruder && supports_multi_nozzle_diameter_mode(printer_config);
+}
+
 bool is_dual_extruder(NozzleLayout layout) { return layout == NozzleLayout::DualExtruder || layout == NozzleLayout::DualExtruderRack; }
 
 bool has_nozzle_rack(NozzleLayout layout) { return layout == NozzleLayout::DualExtruderRack || layout == NozzleLayout::SingleExtruderRack; }
+
+bool printer_offers_flow(const std::string &diameter, NozzleVolumeType volume_type, std::optional<int> extruder_id)
+{
+    PresetBundle *preset_bundle  = wxGetApp().preset_bundle;
+    const Preset *printer_preset = preset_bundle->get_similar_printer_preset({}, diameter);
+    if (printer_preset == nullptr)
+        return false;
+
+    auto *extruder_variants  = printer_preset->config.option<ConfigOptionStrings>("extruder_variant_list");
+    auto *extruders_def      = printer_preset->config.def()->get("extruder_type");
+    auto *extruders          = printer_preset->config.option<ConfigOptionEnumsGeneric>("extruder_type");
+    auto *nozzle_volumes_def = preset_bundle->project_config.def()->get("nozzle_volume_type");
+    if (extruder_variants == nullptr || extruders_def == nullptr || extruders == nullptr || nozzle_volumes_def == nullptr)
+        return false;
+
+    for (size_t idx = 0; idx < extruder_variants->values.size() && idx < extruders->values.size(); ++idx) {
+        if (extruder_id && int(idx) != *extruder_id)
+            continue;
+        const std::string type = extruders_def->enum_labels[extruders->values[idx]];
+        for (size_t j = 0; j < nozzle_volumes_def->enum_labels.size(); ++j) {
+            if ((NozzleVolumeType) nozzle_volumes_def->enum_keys_map->at(nozzle_volumes_def->enum_values[j]) != volume_type)
+                continue;
+            if (boost::algorithm::contains(extruder_variants->values[idx], type + " " + nozzle_volumes_def->enum_labels[j]))
+                return true;
+        }
+    }
+    return false;
+}
 
 std::string slot_name(MachineObject *obj, int ams_id, int slot_id)
 {

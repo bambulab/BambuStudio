@@ -80,6 +80,7 @@ class DevAirPurifier;
 class DevAmsTray;
 class DevAxis;
 class DevBed;
+class DevCamera;
 class DevChamber;
 class DevConfig;
 class DevCtrl;
@@ -112,6 +113,11 @@ struct DevNozzle;
 // filament_id is matched case-sensitively against the official Bambu Lab IDs.
 bool is_stringing_prone_filament(const std::string& filament_id, float nozzle_diameter);
 
+// Optional fields of the "ams_control" command; unset fields are not sent.
+struct AmsControlOptions
+{
+    std::optional<bool> mc_remind_disable;
+};
 
 class MachineObject
 {
@@ -152,6 +158,7 @@ private:
     DevBed *          m_bed;
     DevStorage*       m_storage;
     std::shared_ptr<DevAirPurifier> m_air_purifier;
+    std::shared_ptr<DevCamera>      m_camera;
     DevCalib*         m_calib;
 
     /*Ctrl*/
@@ -393,6 +400,7 @@ public:
     DevBed *        GetBed()    const { return m_bed; };
     DevStorage*     GetStorage()const { return m_storage; }
     std::shared_ptr<DevAirPurifier> GetAirPurifier() const { return m_air_purifier; }
+    std::shared_ptr<DevCamera>      GetCamera() const { return m_camera; }
     DevCalib*       GetCalib()  const { return m_calib; }
 
     bool            supports_full_pa_calib_table() const;
@@ -423,6 +431,7 @@ public:
     DevFirmwareVersionInfo filatrack_version_info;
     DevFirmwareVersionInfo air_purifier_version_info;
     DevFirmwareVersionInfo hotend_ams_version_info;
+    DevFirmwareVersionInfo drying_module_version_info;
     std::map<std::string, DevFirmwareVersionInfo> module_vers;
     std::vector<FirmwareInfo> firmware_list;
 
@@ -498,7 +507,6 @@ public:
     bool is_filament_installed();
 
     /* camera */
-    bool has_ipcam { false };
     bool camera_recording { false };
     bool camera_recording_when_printing { false };
     bool camera_timelapse { false };
@@ -607,6 +615,7 @@ public:
     bool is_support_check_track_switch_match_slice_printer{ false };
     bool is_support_model_internal_storage{false};
     bool is_support_timelapse_memory{false};
+    bool support_big_flush{false};
     int  ams_preload_version{0};
 
     bool installed_upgrade_kit{false};
@@ -655,6 +664,8 @@ public:
     DevPrintTaskRatingInfo*  rating_info { nullptr };
     int           request_model_result             = 0;
     bool          get_model_mall_result_need_retry = false;
+    int           model_mall_auto_retry_count      = 0;
+    time_t        model_mall_next_retry_time       = 0;
 
     std::string obj_subtask_id;     // subtask_id == 0 for sdcard
     std::string subtask_name;
@@ -716,9 +727,12 @@ public:
     int check_resume_condition();
     // ams controls
     //int command_ams_switch(int tray_index, int old_temp = 210, int new_temp = 210);
-    int command_ams_change_filament(bool load, std::string ams_id, std::string slot_id, int old_temp = 210, int new_temp = 210, std::optional<int> extruder_id = std::nullopt);
+    int command_ams_change_filament(bool load, std::string ams_id, std::string slot_id, int old_temp = 210, int new_temp = 210, std::optional<int> extruder_id = std::nullopt, bool temper_check = true);
 
-    int command_multi_slot_ams_change_filament(bool is_load, const std::vector<std::pair<int, int>>& slots);
+    int command_multi_slot_ams_change_filament(bool is_load, const std::vector<std::pair<int, int>>& slots, bool temper_check = true);
+    
+    enum class ChamberSoftTempAction { Load, TakeHotend };
+    bool check_chamber_soft_temp(ChamberSoftTempAction action, const std::vector<std::string>& filament_ids, std::function<void()> resend);
     int command_ams_user_settings(bool start_read_opt, bool tray_read_opt, bool remain_flag = false,
                                   std::optional<bool> filament_tab_auto_read_rfid = std::nullopt);
     int command_ams_switch_filament(bool switch_filament);
@@ -734,7 +748,7 @@ public:
     // indirect (only un-fed slots), 1 = active (all slots). slot_bits is
     // omitted so mode drives the selection.
     int command_ams_read_all(int ams_id, int mode);
-    int command_ams_control(std::string action);
+    int command_ams_control(std::string action, const AmsControlOptions& options = {});
     int command_ams_drying_stop();
     int command_start_extrusion_cali(int tray_index, int nozzle_temp, int bed_temp, float max_volumetric_speed, std::string setting_id = "");
     int command_stop_extrusion_cali();

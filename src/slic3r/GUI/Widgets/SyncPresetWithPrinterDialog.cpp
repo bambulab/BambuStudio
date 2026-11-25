@@ -172,6 +172,8 @@ std::vector<SlotSpec> collect_project_slot_specs(const PresetBundle &preset_bund
     std::vector<SlotSpec> specs;
     specs.reserve(slot_count);
     for (size_t i = 0; i < slot_count; ++i) {
+        if (preset_bundle.is_mixed_filament(i))
+            continue;
         NozzleSpec spec;
         if (diameter_map != nullptr && i < diameter_map->values.size() && !diameter_map->values[i].empty())
             spec.diameter = (float) string_to_double_decimal_point(diameter_map->values[i].c_str());
@@ -316,6 +318,111 @@ wxSizer *make_target_cell(wxWindow *target, bool is_combo)
     return cell;
 }
 
+bool preset_config_offers_flow(const DynamicPrintConfig &printer_config, NozzleVolumeType volume_type)
+{
+    PresetBundle *preset_bundle = wxGetApp().preset_bundle;
+    if (preset_bundle == nullptr)
+        return false;
+
+    const auto *extruder_variants  = printer_config.option<ConfigOptionStrings>("extruder_variant_list");
+    const auto *extruders_def      = printer_config.def()->get("extruder_type");
+    const auto *extruders          = printer_config.option<ConfigOptionEnumsGeneric>("extruder_type");
+    const auto *nozzle_volumes_def = preset_bundle->project_config.def()->get("nozzle_volume_type");
+    if (extruder_variants == nullptr || extruders_def == nullptr || extruders == nullptr || nozzle_volumes_def == nullptr)
+        return false;
+
+    for (size_t idx = 0; idx < extruder_variants->values.size() && idx < extruders->values.size(); ++idx) {
+        const std::string &type = extruders_def->enum_labels[extruders->values[idx]];
+        for (size_t j = 0; j < nozzle_volumes_def->enum_labels.size(); ++j) {
+            if ((NozzleVolumeType) nozzle_volumes_def->enum_keys_map->at(nozzle_volumes_def->enum_values[j]) != volume_type)
+                continue;
+            if (extruder_variants->values[idx].find(type + " " + nozzle_volumes_def->enum_labels[j]) != std::string::npos)
+                return true;
+        }
+    }
+    return false;
+}
+
+int preset_max_nozzle_count(const Preset &target_preset)
+{
+    const auto *max_counts = target_preset.config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
+    const auto *diameters  = target_preset.config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
+    const size_t extruder_count = diameters != nullptr && !diameters->values.empty() ? diameters->values.size() : 1;
+
+    int total = 0;
+    for (size_t eid = 0; eid < extruder_count; ++eid) {
+        int slot_count = 1;
+        if (max_counts != nullptr && eid < max_counts->values.size() && !max_counts->is_nil(eid) && max_counts->values[eid] > 0)
+            slot_count = max_counts->values[eid];
+        total += slot_count;
+    }
+    return total;
+}
+
+std::vector<NozzleSpec> collect_preset_supported_nozzles(const Preset &target_preset)
+{
+    std::vector<NozzleSpec> specs;
+    PresetBundle *preset_bundle = wxGetApp().preset_bundle;
+    if (preset_bundle == nullptr)
+        return specs;
+
+    const std::string printer_model = target_preset.config.opt_string("printer_model");
+    if (printer_model.empty())
+        return specs;
+
+    for (const Preset &preset : preset_bundle->printers.get_presets()) {
+        if (!preset.is_system || preset.config.opt_string("printer_model") != printer_model)
+            continue;
+        const float diameter = (float) string_to_double_decimal_point(preset.config.opt_string("printer_variant").c_str());
+        if (diameter <= 0.f)
+            continue;
+        const std::string diameter_str = format_diameter_to_str(diameter);
+        for (NozzleVolumeType volume : get_valid_nozzle_volume_type()) {
+            if (volume == nvtHybrid || !nozzle_variant_exists(diameter_str, volume))
+                continue;
+            if (!preset_config_offers_flow(preset.config, volume))
+                continue;
+            push_unique(specs, NozzleSpec{diameter, volume}, /* with_flow_type */ true);
+        }
+    }
+
+    std::sort(specs.begin(), specs.end(), [](const NozzleSpec &a, const NozzleSpec &b) {
+        return std::tie(a.diameter, a.volume) < std::tie(b.diameter, b.volume);
+    });
+    return specs;
+}
+
+bool is_tpu_volume_type(NozzleVolumeType type)
+{
+    return type == NozzleVolumeType::nvtTPU285 || type == NozzleVolumeType::nvtTPUHighFlow;
+}
+
+wxPanel *make_status_hint_panel(wxWindow *parent, const char *icon_name, const wxColour &text_color, const wxString &text, Label **out_label = nullptr)
+{
+    auto *panel = new wxPanel(parent);
+    panel->SetBackgroundColour(parent->GetBackgroundColour());
+
+    auto *icon = new wxStaticBitmap(panel, wxID_ANY, create_scaled_bitmap(icon_name, panel, 16));
+    auto *label = new Label(panel, text);
+    label->SetFont(Label::Body_14);
+    label->SetForegroundColour(C(text_color));
+    label->Wrap(parent->FromDIP(kDialogWidth) - 2 * parent->FromDIP(kSidePadding) - parent->FromDIP(16 + 8));
+    if (out_label != nullptr)
+        *out_label = label;
+
+    auto *row = new wxBoxSizer(wxHORIZONTAL);
+    // Centred on the first text line rather than the whole label, so a wrapped hint keeps it beside line one.
+    row->Add(icon, 0, wxTOP, std::max(0, (label->GetCharHeight() - icon->GetBestSize().GetHeight()) / 2));
+    row->AddSpacer(parent->FromDIP(8));
+    row->Add(label, 1);
+
+    // The 12px gap to the block above belongs to the hint, so it goes away when hidden.
+    auto *sizer = new wxBoxSizer(wxVERTICAL);
+    sizer->Add(row, 0, wxEXPAND | wxTOP, parent->FromDIP(12));
+    panel->SetSizer(sizer);
+    return panel;
+}
+
 } // namespace
 
 wxString format_nozzle_spec_label(const NozzleSpec &spec, bool with_flow_type)
@@ -330,13 +437,15 @@ wxString format_nozzle_spec_label(const NozzleSpec &spec, bool with_flow_type)
 int find_closest_nozzle(const NozzleSpec &want, const std::vector<NozzleSpec> &candidates, bool with_flow_type)
 {
     int best = -1;
+    const int want_diameter = (int) std::lround(want.diameter * 1000.f);
     // Closest diameter first, preferring the finer nozzle on a tie.
-    std::tuple<float, float, int> best_key;
+    std::tuple<int, int, int> best_key;
 
     for (size_t i = 0; i < candidates.size(); ++i) {
         const NozzleSpec &candidate = candidates[i];
+        const int candidate_diameter = (int) std::lround(candidate.diameter * 1000.f);
         const int flow = with_flow_type ? volume_rank(want.volume, candidate.volume) : 0;
-        const std::tuple<float, float, int> key{std::abs(candidate.diameter - want.diameter), candidate.diameter, flow};
+        const std::tuple<int, int, int> key{std::abs(candidate_diameter - want_diameter), candidate_diameter, flow};
         if (best < 0 || key < best_key) {
             best = (int) i;
             best_key = key;
@@ -372,13 +481,13 @@ std::optional<PrinterMigrationInfo> collect_printer_migration_info(MachineObject
     const Preset *target_preset = get_printer_preset(obj);
 
     // See PrinterMigrationInfo::compare_flow_type.
-    // The project flag outlives a printer switch, so an H2D (or any non-rack) 3mf can still
-    // carry multi_nozzle_diameter_mode=1 and a leftover filament_diameter_map. Per-slot
-    // diameters are only real on a rack; otherwise the project's diameter is printer_variant.
+    // The project flag outlives a printer switch, so a 3mf of a printer without the mode can still
+    // carry multi_nozzle_diameter_mode=1 and a leftover filament_diameter_map. Per-slot diameters are
+    // only real on a printer that offers the mode; otherwise the project's diameter is printer_variant.
     const bool multi_diameter_mode = multi_nozzle_diameter_mode_enabled(preset_bundle->project_config) &&
-                                     is_single_ext_multi_nozzle(preset.config);
-    const bool target_has_rack = target_preset != nullptr && is_single_ext_multi_nozzle(target_preset->config);
-    info.compare_flow_type = multi_diameter_mode && target_has_rack;
+                                     supports_multi_nozzle_diameter_mode(preset.config);
+    const bool target_supports_multi_diameter = target_preset != nullptr && supports_multi_nozzle_diameter_mode(target_preset->config);
+    info.compare_flow_type = multi_diameter_mode && target_supports_multi_diameter;
 
     const size_t slot_count = preset_bundle->filament_presets.size();
     const std::vector<SlotSpec> slot_specs = collect_project_slot_specs(*preset_bundle, multi_diameter_mode, info.compare_flow_type);
@@ -398,14 +507,14 @@ std::optional<PrinterMigrationInfo> collect_printer_migration_info(MachineObject
     info.printer_nozzles = collect_printer_nozzles(obj, info.compare_flow_type);
     info.project_nozzles = dedupe_project_rows(slot_specs, info.printer_nozzles, info.compare_flow_type, info.row_slots, info.row_labels);
 
-    // Without a rack the machine prints one diameter per plate, so a project asking for several can
-    // never be served as it stands - no matter that the extruders happen to carry each one. Counting
-    // them separately would call it covered, hide the section, and hand several diameters to a
+    // A machine without the multi-diameter mode prints one diameter per plate, so a project asking for
+    // several can never be served as it stands - no matter that the extruders happen to carry each one.
+    // Counting them separately would call it covered, hide the section, and hand several diameters to a
     // printer preset that can only express one.
     std::set<std::string> project_diameters;
     for (const SlotSpec &entry : slot_specs)
         project_diameters.insert(format_diameter_to_str(entry.spec.diameter));
-    const bool needs_more_diameters_than_target_can_hold = !target_has_rack && project_diameters.size() > 1;
+    const bool needs_more_diameters_than_target_can_hold = !target_supports_multi_diameter && project_diameters.size() > 1;
 
     info.nozzles_fully_covered = !needs_more_diameters_than_target_can_hold &&
                                  printer_covers_project(info.slot_nozzles, info.printer_nozzles, info.compare_flow_type);
@@ -423,6 +532,103 @@ std::optional<PrinterMigrationInfo> collect_printer_migration_info(MachineObject
                          (info.section_kind == NozzleSectionKind::Table && !info.compare_flow_type && info.project_nozzles.size() > 1);
 
     return info;
+}
+
+std::optional<PrinterMigrationInfo> collect_preset_switch_migration_info(const Preset &target_preset)
+{
+    PresetBundle *preset_bundle = wxGetApp().preset_bundle;
+    if (preset_bundle == nullptr)
+        return std::nullopt;
+
+    Preset &source_preset = preset_bundle->printers.get_edited_preset();
+    if (!multi_nozzle_diameter_mode_enabled(preset_bundle->project_config) ||
+        !supports_multi_nozzle_diameter_mode(source_preset.config) ||
+        !supports_multi_nozzle_diameter_mode(target_preset.config))
+        return std::nullopt;
+
+    const std::string source_model = source_preset.config.opt_string("printer_model");
+    const std::string target_model = target_preset.config.opt_string("printer_model");
+    if (source_model.empty() || target_model.empty() || source_model == target_model)
+        return std::nullopt;
+
+    const int max_nozzles = preset_max_nozzle_count(target_preset);
+    if (max_nozzles <= 0)
+        return std::nullopt;
+
+    const std::vector<SlotSpec> slot_specs = collect_project_slot_specs(
+        *preset_bundle, /* multi_diameter_mode */ true, /* with_flow_type */ true);
+    if (slot_specs.empty())
+        return std::nullopt;
+
+    std::vector<NozzleSpec> candidates = collect_preset_supported_nozzles(target_preset);
+    if (candidates.empty())
+        return std::nullopt;
+
+    // Pass an empty printer_nozzles list so dedupe_project_rows keeps every distinct (diameter, flow)
+    // row in the project: the user may merge any of them to fit within max_nozzles.
+    std::vector<std::vector<size_t>> row_slots;
+    std::vector<wxString>            row_labels;
+    std::vector<NozzleSpec> project_nozzles = dedupe_project_rows(
+        slot_specs, /* printer_nozzles */ {}, /* with_flow_type */ true, row_slots, row_labels);
+
+    PrinterMigrationInfo info;
+    info.is_preset_switch     = true;
+    info.model_mismatch       = true;
+    info.compare_flow_type    = true;
+    info.max_distinct_nozzles = max_nozzles;
+
+    info.source_model_id = source_preset.get_printer_type(preset_bundle);
+    if (const VendorProfile::PrinterModel *pm = PresetUtils::system_printer_model(source_preset))
+        info.source_model_name = wxString::FromUTF8(pm->name);
+    else
+        info.source_model_name = wxString::FromUTF8(source_model);
+
+    if (const VendorProfile::PrinterModel *pm = PresetUtils::system_printer_model(target_preset)) {
+        info.target_model_id   = pm->model_id;
+        info.target_model_name = wxString::FromUTF8(pm->name);
+    } else {
+        info.target_model_id   = target_model;
+        info.target_model_name = wxString::FromUTF8(target_model);
+    }
+
+    const size_t slot_count = preset_bundle->filament_presets.size();
+    info.slot_nozzles.assign(slot_count, NozzleSpec{});
+    for (const SlotSpec &entry : slot_specs)
+        if (entry.slot < info.slot_nozzles.size())
+            info.slot_nozzles[entry.slot] = entry.spec;
+
+    const bool target_supports_all = std::all_of(project_nozzles.begin(), project_nozzles.end(),
+                                                 [&](const NozzleSpec &required) {
+                                                     return std::any_of(candidates.begin(), candidates.end(),
+                                                                        [&](const NozzleSpec &candidate) {
+                                                                            return same_spec(candidate, required, true);
+                                                                        });
+                                                 });
+    info.nozzles_fully_covered = (int) project_nozzles.size() <= max_nozzles && target_supports_all;
+    info.project_nozzles       = std::move(project_nozzles);
+    info.row_slots             = std::move(row_slots);
+    info.row_labels            = std::move(row_labels);
+    info.printer_nozzles       = std::move(candidates);
+    info.section_kind          = info.nozzles_fully_covered ? NozzleSectionKind::None : NozzleSectionKind::Table;
+    return info;
+}
+
+PendingNozzleMigration build_default_nozzle_migration(const PrinterMigrationInfo &info)
+{
+    PendingNozzleMigration migration;
+    migration.apply_flow_type = info.compare_flow_type;
+    migration.per_slot        = info.slot_nozzles;
+    if (info.printer_nozzles.empty())
+        return migration;
+
+    for (NozzleSpec &spec : migration.per_slot) {
+        if (spec.diameter <= 0.f)
+            continue;
+        const int matched = find_closest_nozzle(spec, info.printer_nozzles, info.compare_flow_type);
+        if (matched >= 0)
+            spec = info.printer_nozzles[matched];
+    }
+    return migration;
 }
 
 SyncPresetWithPrinterDialog::SyncPresetWithPrinterDialog(wxWindow *parent, PrinterMigrationInfo info)
@@ -445,7 +651,10 @@ void SyncPresetWithPrinterDialog::build_layout()
     auto *root = new wxBoxSizer(wxVERTICAL);
     root->AddSpacer(FromDIP(25));
 
-    auto *description = new Label(this, _L("The printer model and settings in this 3MF file don't match the connected printer. Do you want to adapt these slicing settings for this printer?"));
+    const wxString intro = m_info.is_preset_switch
+        ? _L("The printer model and settings in this 3MF file don't match the target printer. Do you want to adapt these slicing settings for the target printer?")
+        : _L("The printer model and settings in this 3MF file don't match the connected printer. Do you want to adapt these slicing settings for this printer?");
+    auto *description = new Label(this, intro);
     description->SetFont(Label::Body_14);
     description->SetForegroundColour(C(ThemeColor::TextPrimary));
     description->Wrap(content_width);
@@ -474,11 +683,21 @@ void SyncPresetWithPrinterDialog::build_layout()
     migration_note->Wrap(content_width);
     root->Add(migration_note, 0, wxLEFT | wxRIGHT, FromDIP(kSidePadding));
 
+    if (m_info.max_distinct_nozzles > 0) {
+        m_nozzle_limit_hint = build_nozzle_limit_hint(this);
+        root->Add(m_nozzle_limit_hint, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(kSidePadding));
+    }
+
+    m_tpu_fallback_hint = build_tpu_fallback_hint(this);
+    root->Add(m_tpu_fallback_hint, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(kSidePadding));
+    update_tpu_fallback_hint(false);
+
     m_detail_loss_hint = build_detail_loss_hint(this);
     root->Add(m_detail_loss_hint, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(kSidePadding));
     update_detail_loss_hint(false);
     root->AddSpacer(FromDIP(m_info.offer_skip_future_checks ? 12 : 20));
     root->Add(build_footer(this), 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(kSidePadding));
+    update_nozzle_limit_hint(false);
     root->AddSpacer(FromDIP(23));
 
     SetSizer(root);
@@ -542,7 +761,10 @@ wxWindow *SyncPresetWithPrinterDialog::build_model_table(wxWindow *parent)
     wxPanel *frame = make_table_frame(parent, rows_host);
 
     auto *rows = new wxBoxSizer(wxVERTICAL);
-    rows->Add(make_header_row(rows_host, _L("3MF File Settings"), _L("Connected Printer")), 0, wxEXPAND);
+    rows->Add(make_header_row(rows_host,
+                              _L("3MF File Settings"),
+                              m_info.is_preset_switch ? _L("Target Printer") : _L("Connected Printer")),
+              0, wxEXPAND);
 
     auto *data_row = new wxPanel(rows_host);
     data_row->SetBackgroundColour(C(ThemeColor::White));
@@ -564,7 +786,10 @@ wxWindow *SyncPresetWithPrinterDialog::build_nozzle_table(wxWindow *parent)
     wxPanel *frame = make_table_frame(parent, rows_host);
 
     auto *rows = new wxBoxSizer(wxVERTICAL);
-    rows->Add(make_header_row(rows_host, _L("3MF File Settings"), _L("Connected Printer")), 0, wxEXPAND);
+    rows->Add(make_header_row(rows_host,
+                              _L("3MF File Settings"),
+                              m_info.is_preset_switch ? _L("Target Nozzle") : _L("Connected Printer")),
+              0, wxEXPAND);
 
     m_nozzle_combos.clear();
 
@@ -671,34 +896,125 @@ wxWindow *SyncPresetWithPrinterDialog::make_nozzle_combo(wxWindow *parent, const
     combo->Enable(!m_info.printer_nozzles.empty());
     combo->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent &evt) {
         evt.Skip();
+        update_nozzle_limit_hint(true);
+        update_tpu_fallback_hint(true);
         update_detail_loss_hint(true);
     });
     m_nozzle_combos.push_back(combo);
     return combo;
 }
 
+wxWindow *SyncPresetWithPrinterDialog::build_nozzle_limit_hint(wxWindow *parent)
+{
+    const wxString target_name = m_info.target_model_name.IsEmpty() ? wxString(_L("Target printer")) : m_info.target_model_name;
+    wxPanel *panel = make_status_hint_panel(
+        parent,
+        "error",
+        ThemeColor::Danger,
+        wxString::Format(_L("%s supports up to %d nozzles. Please reduce the matched nozzles and keep only %d to continue."),
+                         target_name, m_info.max_distinct_nozzles, m_info.max_distinct_nozzles));
+    panel->Hide();
+    return panel;
+}
+
+wxWindow *SyncPresetWithPrinterDialog::build_tpu_fallback_hint(wxWindow *parent)
+{
+    wxPanel *panel = make_status_hint_panel(
+        parent,
+        "warning",
+        ThemeColor::Warning,
+        wxEmptyString,
+        &m_tpu_fallback_label);
+    panel->Hide();
+    return panel;
+}
+
 wxWindow *SyncPresetWithPrinterDialog::build_detail_loss_hint(wxWindow *parent)
 {
-    auto *panel = new wxPanel(parent);
-    panel->SetBackgroundColour(parent->GetBackgroundColour());
+    return make_status_hint_panel(
+        parent,
+        "warning",
+        ThemeColor::Warning,
+        _L("Using a larger nozzle after adapting the settings may reduce fine details in your model. Please proceed with caution."));
+}
 
-    auto *icon = new wxStaticBitmap(panel, wxID_ANY, create_scaled_bitmap("warning", panel, 16));
-    auto *label = new Label(panel, _L("Using a larger nozzle after adapting the settings may reduce fine details in your model. Please proceed with caution."));
-    label->SetFont(Label::Body_14);
-    label->SetForegroundColour(C(ThemeColor::Warning));
-    label->Wrap(FromDIP(kDialogWidth) - 2 * FromDIP(kSidePadding) - FromDIP(16 + 6));
+int SyncPresetWithPrinterDialog::distinct_chosen_nozzle_count() const
+{
+    std::vector<NozzleSpec> distinct;
+    for (const NozzleSpec &spec : GetChosenNozzles()) {
+        if (spec.diameter <= 0.f)
+            continue;
+        push_unique(distinct, spec, m_info.compare_flow_type);
+    }
+    return (int) distinct.size();
+}
 
-    auto *row = new wxBoxSizer(wxHORIZONTAL);
-    // Centred on the first text line rather than the whole label, so a wrapped hint keeps it beside line one.
-    row->Add(icon, 0, wxTOP, std::max(0, (label->GetCharHeight() - icon->GetBestSize().GetHeight()) / 2));
-    row->AddSpacer(FromDIP(6));
-    row->Add(label, 1);
+void SyncPresetWithPrinterDialog::update_nozzle_limit_hint(bool refit)
+{
+    if (m_info.max_distinct_nozzles <= 0 || m_nozzle_limit_hint == nullptr || m_confirm_btn == nullptr)
+        return;
 
-    // The gap to the note above belongs to the hint, so it goes away with it.
-    auto *sizer = new wxBoxSizer(wxVERTICAL);
-    sizer->Add(row, 0, wxEXPAND | wxTOP, FromDIP(12));
-    panel->SetSizer(sizer);
-    return panel;
+    const bool over_limit = distinct_chosen_nozzle_count() > m_info.max_distinct_nozzles;
+    const bool has_plan   = m_info.section_kind != NozzleSectionKind::Table || !m_info.printer_nozzles.empty();
+    m_confirm_btn->Enable(has_plan && !over_limit);
+
+    const bool changed = m_nozzle_limit_hint->IsShown() != over_limit;
+    m_nozzle_limit_hint->Show(over_limit);
+    if (!refit || !changed)
+        return;
+
+    GetSizer()->SetSizeHints(this);
+    Layout();
+}
+
+void SyncPresetWithPrinterDialog::update_tpu_fallback_hint(bool refit)
+{
+    if (m_tpu_fallback_hint == nullptr || m_tpu_fallback_label == nullptr)
+        return;
+
+    wxString message;
+    if (m_info.is_preset_switch && m_info.compare_flow_type) {
+        const wxString target_name = m_info.target_model_name.IsEmpty() ? wxString(_L("Target printer")) : m_info.target_model_name;
+        const std::vector<NozzleSpec> chosen = GetChosenNozzles();
+        std::set<std::pair<wxString, wxString>> seen_pairs;
+        for (size_t row = 0; row < chosen.size() && row < m_info.project_nozzles.size(); ++row) {
+            const NozzleSpec &src = m_info.project_nozzles[row];
+            const NozzleSpec &dst = chosen[row];
+            if (dst.diameter <= 0.f || !is_tpu_volume_type(src.volume) || dst.volume == src.volume)
+                continue;
+            // Only treat it as an unsupported fallback when the target printer does not offer the
+            // source TPU flow at this diameter; a user voluntarily changing a supported one is fine,
+            // though both read naturally under the same wording if no exact candidate exists.
+            const bool target_has_exact = std::any_of(m_info.printer_nozzles.begin(), m_info.printer_nozzles.end(),
+                                                      [&](const NozzleSpec &c) { return c == src; });
+            if (target_has_exact)
+                continue;
+
+            const wxString from_label = format_nozzle_spec_label(src, /* with_flow_type */ true);
+            const wxString to_label   = format_nozzle_spec_label(dst, /* with_flow_type */ true);
+            if (!seen_pairs.emplace(from_label, to_label).second)
+                continue;
+            if (!message.IsEmpty())
+                message += "\n";
+            message += wxString::Format(_L("%s doesn't support %s nozzles. Switched to %s nozzle."),
+                                        target_name, from_label, to_label);
+        }
+    }
+
+    const bool show       = !message.IsEmpty();
+    const bool text_diff  = show && m_tpu_fallback_label->GetLabel() != message;
+    if (text_diff) {
+        m_tpu_fallback_label->SetLabel(message);
+        m_tpu_fallback_label->Wrap(FromDIP(kDialogWidth) - 2 * FromDIP(kSidePadding) - FromDIP(16 + 8));
+    }
+
+    const bool vis_diff = m_tpu_fallback_hint->IsShown() != show;
+    m_tpu_fallback_hint->Show(show);
+    if (!refit || (!vis_diff && !text_diff))
+        return;
+
+    GetSizer()->SetSizeHints(this);
+    Layout();
 }
 
 void SyncPresetWithPrinterDialog::update_detail_loss_hint(bool refit)
@@ -770,7 +1086,11 @@ wxWindow *SyncPresetWithPrinterDialog::build_footer(wxWindow *parent)
     m_confirm_btn->SetBackgroundColor(confirm_bg);
     m_confirm_btn->SetBorderColor(confirm_border);
     m_confirm_btn->SetTextColor(confirm_text);
-    m_confirm_btn->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &) { EndModal(wxID_OK); });
+    m_confirm_btn->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &) {
+        if (m_info.max_distinct_nozzles > 0 && distinct_chosen_nozzle_count() > m_info.max_distinct_nozzles)
+            return;
+        EndModal(wxID_OK);
+    });
     // Unreachable in practice - an empty candidate list becomes Unavailable, not Table - but kept
     // so a table can never ship with nothing to confirm.
     const bool has_plan = m_info.section_kind != NozzleSectionKind::Table || !m_info.printer_nozzles.empty();

@@ -6,6 +6,12 @@
 #include "boost/nowide/cstdio.hpp"
 #endif
 
+#ifdef __APPLE__
+#include <cerrno>
+#include "Utils.hpp"
+#include "libslic3r/Log.hpp"
+#endif
+
 #include "I18N.hpp"
 
 //! macro used to mark string used at localization,
@@ -15,19 +21,37 @@
 namespace Slic3r {
 
 namespace {
+FILE *fopen_zip(const char *fname, const char *mode)
+{
+#if defined(_MSC_VER) || defined(__MINGW64__)
+    return boost::nowide::fopen(fname, mode);
+#elif defined(__GNUC__) && defined(_LARGEFILE64_SOURCE)
+    return fopen64(fname, mode);
+#else
+    return fopen(fname, mode);
+#endif
+}
+
 bool open_zip(mz_zip_archive *zip, const char *fname, bool isread)
 {
     if (!zip) return false;
     const char *mode = isread ? "rb" : "wb";
 
-    FILE *f = nullptr;
-#if defined(_MSC_VER) || defined(__MINGW64__)
-    f = boost::nowide::fopen(fname, mode);
-#elif defined(__GNUC__) && defined(_LARGEFILE64_SOURCE)
-    f = fopen64(fname, mode);
-#else
-    f = fopen(fname, mode);
-#endif
+    FILE *f = fopen_zip(fname, mode);
+
+#ifdef __APPLE__
+    if (!f && errno == ENOENT) {
+        // macOS hands out precomposed (NFC) paths, but SMB/NFS volumes match names byte by byte and many
+        // servers store them decomposed, so an accented name only opens in NFD. Retry in that form.
+        const std::string fname_nfd = normalize_utf8_nfd(fname);
+        if (fname_nfd != fname) {
+            f = fopen_zip(fname_nfd.c_str(), mode);
+            if (f)
+                BOOST_LOG_TRIVIAL(info) << "opened zip by the decomposed (NFD) path " << PathSanitizer::sanitize(fname_nfd)
+                                        << ", the precomposed one was not found";
+        }
+    }
+#endif /* __APPLE__ */
 
     if (!f) {
         zip->m_last_error = MZ_ZIP_FILE_OPEN_FAILED;

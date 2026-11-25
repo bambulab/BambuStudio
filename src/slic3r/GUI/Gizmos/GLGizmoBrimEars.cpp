@@ -824,7 +824,7 @@ void GLGizmoBrimEars::update_model_object()
     if (mo) {
         mo->brim_points.clear();
         for (const CacheEntry& ce : m_editing_cache) mo->brim_points.emplace_back(ce.brim_point);
-        wxGetApp().plater()->set_plater_dirty(true);
+        wxGetApp().plater()->mark_project_dirty();
     }
     m_parent.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
 }

@@ -95,6 +95,7 @@ private:
         std::shared_ptr<const json> action;
         HMSStatus                   status = HMSStatus::Unknown;
         time_t                      last_update = 0;
+        int                         fail_count = 0;      // consecutive failed downloads, reset on success
         std::string                 info_ver;    // in-memory version, avoids disk read on request
         std::string                 action_ver;
         bool                        inflight = false;

@@ -9,6 +9,7 @@
 #include "slic3r/GUI/DeviceCore/DevManager.h"
 #include "slic3r/GUI/DeviceCore/DevInfo.h"
 #include "slic3r/GUI/DeviceCore/DevFilaSystem.h"
+#include "slic3r/GUI/DeviceCore/DevDryer.h"
 #include "slic3r/GUI/DeviceCore/DevFilaSwitch.h"
 
 #include <wx/simplebook.h>
@@ -343,7 +344,8 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
                 int humidity_value = info->humidity_display_idx;
                 if (humidity_value > 0 && humidity_value <= 5) { m_Humidity_tip_popup.set_humidity_level(humidity_value); }
                 m_Humidity_tip_popup.Popup();
-            } else if (obj && obj->is_support_remote_dry && (info->ams_type == DevAmsType::N3F || info->ams_type == DevAmsType::N3S || info->ams_type == DevAmsType::ZMULTI_A)){
+            } else if (auto dryer = (obj && obj->GetFilaSystem()) ? obj->GetFilaSystem()->GetDryerMgr().Find(info->ams_id) : std::nullopt;
+                       dryer && dryer->IsSupportRemoteDry(obj)) {
                 wxPoint img_pos = ClientToScreen(wxPoint(0, 0));
                 wxPoint popup_pos(img_pos.x - FromDIP(700) + FromDIP(150), img_pos.y - FromDIP(80));
                 AMSDryCtrWin::RunModal(this, info->ams_id, popup_pos);

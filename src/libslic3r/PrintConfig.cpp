@@ -1,4 +1,6 @@
 #include "PrintConfig.hpp"
+#include "AdaptiveLayerMerge.hpp"
+#include "Preset.hpp"
 #include "ClipperUtils.hpp"
 #include "Config.hpp"
 #include "Flow.hpp"
@@ -7,18 +9,25 @@
 #include "Utils.hpp"
 #include "LocalesUtils.hpp"
 
+#include <algorithm>
 #include <array>
 #include <cassert>
+#include <functional>
 #include <set>
 #include <cmath>
 #include <cstdlib>
 #include <sstream>
 #include <boost/algorithm/string/case_conv.hpp>
+#include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/algorithm/string/split.hpp>
+#include <boost/filesystem/path.hpp>
 #include <boost/format.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/nowide/fstream.hpp>
 #include <boost/thread.hpp>
+
+#include "nlohmann/json.hpp"
 
 #include <float.h>
 #include "libslic3r/Log.hpp"
@@ -142,6 +151,12 @@ bool multi_nozzle_diameter_mode_enabled(const ConfigOptionResolver &config)
     return opt != nullptr && opt->value;
 }
 
+std::string process_nozzle_diameter_mode_tag(const ConfigBase &config)
+{
+    const auto *opt = config.option<ConfigOptionString>("process_nozzle_diameter_mode");
+    return opt != nullptr ? opt->value : std::string();
+}
+
 std::string printer_nozzle_diameter_mode_tag(const ConfigBase &config)
 {
     const auto *opt = config.option<ConfigOptionString>("printer_nozzle_diameter_mode");
@@ -149,65 +164,214 @@ std::string printer_nozzle_diameter_mode_tag(const ConfigBase &config)
 }
 
 namespace {
+
+// One diameter of a rule set in resources/info/multi_nozzle_rules.json.
+struct MultiNozzleDiameterRule
+{
+    double                         diameter = 0.;
+    std::map<ExtruderType, double> retraction_length; // per extruder type: a Bowden extruder retracts further
+    double                         ironing_inset = 0.;
+    int                            wall_loops = 0;
+    int                            top_shell_layers = 0;
+    double                         top_shell_thickness = 0.;
+    int                            bottom_shell_layers = 0;
+    double                         bottom_shell_thickness = 0.;
+    int                            top_color_penetration_layers = 0;
+    int                            bottom_color_penetration_layers = 0;
+    double                         support_top_z_distance = 0.;
+    double                         support_bottom_z_distance = 0.;
+    double                         prime_tower_line_width = 0.;
+    double                         prime_tower_ramming_line_width = 0.;
+    double                         prime_tower_feedrate_factor = 0.;
+};
+
+using MultiNozzleRuleSet = std::vector<MultiNozzleDiameterRule>;
+
+// Keyed by printer_model.
+using MultiNozzleRules = std::map<std::string, MultiNozzleRuleSet>;
+
+ExtruderType extruder_type_from_name(const std::string &name)
+{
+    const t_config_enum_values &names = ConfigOptionEnum<ExtruderType>::get_enum_values();
+    const auto                  it    = names.find(name);
+    if (it == names.end())
+        throw ConfigurationError("multi_nozzle_rules.json: unknown extruder type " + name);
+    return ExtruderType(it->second);
+}
+
+MultiNozzleDiameterRule parse_diameter_rule(const std::string &diameter, const nlohmann::json &j)
+{
+    MultiNozzleDiameterRule rule;
+    rule.diameter = string_to_double_decimal_point(diameter);
+    if (rule.diameter <= 0.)
+        throw ConfigurationError("multi_nozzle_rules.json: invalid diameter " + diameter);
+    for (const auto &[extruder_type, length] : j.at("retraction_length").items())
+        rule.retraction_length[extruder_type_from_name(extruder_type)] = length.get<double>();
+    rule.ironing_inset                   = j.at("ironing_inset").get<double>();
+    rule.wall_loops                      = j.at("wall_loops").get<int>();
+    rule.top_shell_layers                = j.at("top_shell_layers").get<int>();
+    rule.top_shell_thickness             = j.at("top_shell_thickness").get<double>();
+    rule.bottom_shell_layers             = j.at("bottom_shell_layers").get<int>();
+    rule.bottom_shell_thickness          = j.at("bottom_shell_thickness").get<double>();
+    rule.top_color_penetration_layers    = j.at("top_color_penetration_layers").get<int>();
+    rule.bottom_color_penetration_layers = j.at("bottom_color_penetration_layers").get<int>();
+    rule.support_top_z_distance          = j.at("support_top_z_distance").get<double>();
+    rule.support_bottom_z_distance       = j.at("support_bottom_z_distance").get<double>();
+    rule.prime_tower_line_width          = j.at("prime_tower_line_width").get<double>();
+    rule.prime_tower_ramming_line_width  = j.at("prime_tower_ramming_line_width").get<double>();
+    rule.prime_tower_feedrate_factor     = j.at("prime_tower_feedrate_factor").get<double>();
+    return rule;
+}
+
+MultiNozzleRules load_multi_nozzle_rules()
+{
+    const boost::filesystem::path path = boost::filesystem::path(resources_dir()) / "info" / "multi_nozzle_rules.json";
+    boost::nowide::ifstream       in(path.string());
+    if (!in.is_open())
+        throw ConfigurationError("cannot open " + path.string());
+    const nlohmann::json j = nlohmann::json::parse(in);
+
+    MultiNozzleRules rules;
+    for (const auto &[printer_model, diameters] : j.at("printer_models").items()) {
+        MultiNozzleRuleSet &set = rules[printer_model];
+        for (const auto &[diameter, values] : diameters.items())
+            set.push_back(parse_diameter_rule(diameter, values));
+    }
+    BOOST_LOG_TRIVIAL(info) << "multi-nozzle rules loaded for " << rules.size() << " printer models";
+    return rules;
+}
+
+const MultiNozzleRules &multi_nozzle_rules()
+{
+    static const MultiNozzleRules rules = load_multi_nozzle_rules();
+    return rules;
+}
+
+std::string printer_model_of(const ConfigBase &config)
+{
+    const auto *printer_model = config.option<ConfigOptionString>("printer_model");
+    return printer_model == nullptr ? std::string() : printer_model->value;
+}
+
+const MultiNozzleRuleSet *find_multi_nozzle_rule_set(const ConfigBase &config)
+{
+    const MultiNozzleRules &rules = multi_nozzle_rules();
+    const auto              it    = rules.find(printer_model_of(config));
+    return it == rules.end() ? nullptr : &it->second;
+}
+
+// The rule of the config's printer model for nozzle_diameter, or null when the rule set has no entry for that diameter.
+const MultiNozzleDiameterRule *find_multi_nozzle_diameter_rule(const ConfigBase &config, double nozzle_diameter)
+{
+    const MultiNozzleRuleSet *set = find_multi_nozzle_rule_set(config);
+    if (set == nullptr)
+        throw ConfigurationError("printer model " + printer_model_of(config) + " has no multi-diameter rule set");
+    for (const MultiNozzleDiameterRule &rule : *set)
+        if (std::abs(nozzle_diameter - rule.diameter) < 1e-3)
+            return &rule;
+    return nullptr;
+}
+
 template<typename T>
-T multi_nozzle_value(double nozzle_diameter, T preset_value, const std::array<T, 4> &values)
+T multi_nozzle_value(const ConfigBase &config, double nozzle_diameter, T preset_value, T MultiNozzleDiameterRule::*member)
 {
-    constexpr std::array<double, 4> diameters { 0.2, 0.4, 0.6, 0.8 };
-    for (size_t i = 0; i < diameters.size(); ++i)
-        if (std::abs(nozzle_diameter - diameters[i]) < 1e-3)
-            return values[i];
-    return preset_value;
-}
+    const MultiNozzleDiameterRule *rule = find_multi_nozzle_diameter_rule(config, nozzle_diameter);
+    return rule == nullptr ? preset_value : rule->*member;
 }
 
-double multi_nozzle_retraction_length(double nozzle_diameter, double preset_value)
+// Extruder type of a filament row's extruder variant, e.g. "Bowden High Flow" -> etBowden.
+ExtruderType extruder_type_of_variant(const std::string &variant)
 {
-    return multi_nozzle_value(nozzle_diameter, preset_value, std::array<double, 4> { 0.4, 0.8, 1.4, 3.0 });
+    for (const auto &[name, type] : ConfigOptionEnum<ExtruderType>::get_enum_values())
+        if (boost::algorithm::starts_with(variant, name + " "))
+            return ExtruderType(type);
+    throw ConfigurationError("filament_extruder_variant " + variant + " names no extruder type");
 }
 
-double multi_nozzle_ironing_inset(double nozzle_diameter, double preset_value)
+} // namespace
+
+bool supports_multi_nozzle_diameter_mode(const ConfigBase &config)
 {
-    return multi_nozzle_value(nozzle_diameter, preset_value, std::array<double, 4> { 0.11, 0.21, 0.31, 0.41 });
+    return find_multi_nozzle_rule_set(config) != nullptr;
 }
 
-int multi_nozzle_wall_loops(double nozzle_diameter, int preset_value)
+double multi_nozzle_retraction_length(const ConfigBase &config, double nozzle_diameter, ExtruderType extruder_type, double preset_value)
 {
-    return multi_nozzle_value(nozzle_diameter, preset_value, std::array<int, 4> { 4, 2, 2, 2 });
+    const MultiNozzleDiameterRule *rule = find_multi_nozzle_diameter_rule(config, nozzle_diameter);
+    if (rule == nullptr)
+        return preset_value;
+    const auto it = rule->retraction_length.find(extruder_type);
+    if (it == rule->retraction_length.end())
+        throw ConfigurationError("multi_nozzle_rules.json: no retraction length for extruder type " +
+                                 ConfigOptionEnum<ExtruderType>::get_enum_names()[extruder_type] + " of printer model " +
+                                 printer_model_of(config));
+    return it->second;
 }
 
-int multi_nozzle_top_shell_layers(double nozzle_diameter, int preset_value)
+double multi_nozzle_ironing_inset(const ConfigBase &config, double nozzle_diameter, double preset_value)
 {
-    return multi_nozzle_value(nozzle_diameter, preset_value, std::array<int, 4> { 7, 5, 3, 3 });
+    return multi_nozzle_value(config, nozzle_diameter, preset_value, &MultiNozzleDiameterRule::ironing_inset);
 }
 
-double multi_nozzle_top_shell_thickness(double nozzle_diameter, double preset_value)
+int multi_nozzle_wall_loops(const ConfigBase &config, double nozzle_diameter, int preset_value)
 {
-    return multi_nozzle_value(nozzle_diameter, preset_value, std::array<double, 4> { 0.8, 1.0, 0.8, 0.8 });
+    return multi_nozzle_value(config, nozzle_diameter, preset_value, &MultiNozzleDiameterRule::wall_loops);
 }
 
-int multi_nozzle_bottom_shell_layers(double nozzle_diameter, int preset_value)
+int multi_nozzle_top_shell_layers(const ConfigBase &config, double nozzle_diameter, int preset_value)
 {
-    return multi_nozzle_value(nozzle_diameter, preset_value, std::array<int, 4> { 5, 3, 3, 3 });
+    return multi_nozzle_value(config, nozzle_diameter, preset_value, &MultiNozzleDiameterRule::top_shell_layers);
 }
 
-double multi_nozzle_bottom_shell_thickness(double nozzle_diameter, double preset_value)
+double multi_nozzle_top_shell_thickness(const ConfigBase &config, double nozzle_diameter, double preset_value)
 {
-    return multi_nozzle_value(nozzle_diameter, preset_value, std::array<double, 4> { 0.0, 0.0, 0.0, 0.0 });
+    return multi_nozzle_value(config, nozzle_diameter, preset_value, &MultiNozzleDiameterRule::top_shell_thickness);
 }
 
-int multi_nozzle_top_color_penetration_layers(double nozzle_diameter, int preset_value)
+int multi_nozzle_bottom_shell_layers(const ConfigBase &config, double nozzle_diameter, int preset_value)
 {
-    return multi_nozzle_value(nozzle_diameter, preset_value, std::array<int, 4> { 7, 5, 3, 3 });
+    return multi_nozzle_value(config, nozzle_diameter, preset_value, &MultiNozzleDiameterRule::bottom_shell_layers);
 }
 
-int multi_nozzle_bottom_color_penetration_layers(double nozzle_diameter, int preset_value)
+double multi_nozzle_bottom_shell_thickness(const ConfigBase &config, double nozzle_diameter, double preset_value)
 {
-    return multi_nozzle_value(nozzle_diameter, preset_value, std::array<int, 4> { 5, 3, 3, 3 });
+    return multi_nozzle_value(config, nozzle_diameter, preset_value, &MultiNozzleDiameterRule::bottom_shell_thickness);
 }
 
-double multi_nozzle_support_z_distance(double nozzle_diameter, double preset_value)
+int multi_nozzle_top_color_penetration_layers(const ConfigBase &config, double nozzle_diameter, int preset_value)
 {
-    return multi_nozzle_value(nozzle_diameter, preset_value, std::array<double, 4> { 0.1, 0.2, 0.2, 0.2 });
+    return multi_nozzle_value(config, nozzle_diameter, preset_value, &MultiNozzleDiameterRule::top_color_penetration_layers);
+}
+
+int multi_nozzle_bottom_color_penetration_layers(const ConfigBase &config, double nozzle_diameter, int preset_value)
+{
+    return multi_nozzle_value(config, nozzle_diameter, preset_value, &MultiNozzleDiameterRule::bottom_color_penetration_layers);
+}
+
+double multi_nozzle_support_top_z_distance(const ConfigBase &config, double nozzle_diameter, double preset_value)
+{
+    return multi_nozzle_value(config, nozzle_diameter, preset_value, &MultiNozzleDiameterRule::support_top_z_distance);
+}
+
+double multi_nozzle_support_bottom_z_distance(const ConfigBase &config, double nozzle_diameter, double preset_value)
+{
+    return multi_nozzle_value(config, nozzle_diameter, preset_value, &MultiNozzleDiameterRule::support_bottom_z_distance);
+}
+
+const char *project_support_z_distance_key(const std::string &opt_key)
+{
+    if (opt_key == "support_top_z_distance")
+        return project_support_top_z_distance_key;
+    if (opt_key == "support_bottom_z_distance")
+        return project_support_bottom_z_distance_key;
+    return nullptr;
+}
+
+double project_support_z_distance(const ConfigOptionResolver &config, const std::string &opt_key)
+{
+    const char *project_key = project_support_z_distance_key(opt_key);
+    const auto *opt         = project_key != nullptr ? config.option<ConfigOptionFloat>(project_key) : nullptr;
+    return opt != nullptr && opt->value >= 0. ? opt->value : -1.;
 }
 
 bool is_multi_nozzle_auto_option(const std::string &opt_key)
@@ -233,23 +397,26 @@ bool is_multi_nozzle_auto_option(const std::string &opt_key)
     return auto_options.count(opt_key.substr(0, opt_key.find('#'))) > 0;
 }
 
-// 0.2 mm nozzle uses 0.4 mm; 0.4 / 0.6 / 0.8 mm nozzles keep the historical 0.8 mm tower line.
-double multi_nozzle_prime_tower_line_width(double nozzle_diameter, double preset_value)
+double multi_nozzle_prime_tower_line_width(const ConfigBase &config, double nozzle_diameter, double preset_value)
 {
-    return multi_nozzle_value(nozzle_diameter, preset_value, std::array<double, 4> { 0.4, 0.8, 0.8, 0.8 });
+    return multi_nozzle_value(config, nozzle_diameter, preset_value, &MultiNozzleDiameterRule::prime_tower_line_width);
 }
 
-// 0 keeps the built-in ramming-width table (nozzle_change_width_for_diameter). Presets stored 0
-// for every diameter; do not replace that with an explicit width.
-double multi_nozzle_prime_tower_ramming_line_width(double nozzle_diameter, double preset_value)
+double multi_nozzle_prime_tower_ramming_line_width(const ConfigBase &config, double nozzle_diameter, double preset_value)
 {
-    return multi_nozzle_value(nozzle_diameter, preset_value, std::array<double, 4> { 0.0, 0.0, 0.0, 0.0 });
+    return multi_nozzle_value(config, nozzle_diameter, preset_value, &MultiNozzleDiameterRule::prime_tower_ramming_line_width);
 }
 
-// Feedrate factor is 1 on every standard nozzle. It is not scaled from the process value.
-double multi_nozzle_prime_tower_feedrate_factor(double nozzle_diameter, double preset_value)
+double multi_nozzle_prime_tower_feedrate_factor(const ConfigBase &config, double nozzle_diameter, double preset_value)
 {
-    return multi_nozzle_value(nozzle_diameter, preset_value, std::array<double, 4> { 1.0, 1.0, 1.0, 1.0 });
+    return multi_nozzle_value(config, nozzle_diameter, preset_value, &MultiNozzleDiameterRule::prime_tower_feedrate_factor);
+}
+
+bool uses_multi_nozzle_initial_layer_line_width(const ConfigBase &printer_config, bool multi_nozzle_diameter_mode)
+{
+    const auto *hotend_as_extruder = printer_config.option<ConfigOptionBool>("handle_hotend_as_extruder");
+    return multi_nozzle_diameter_mode && supports_multi_nozzle_diameter_mode(printer_config) &&
+           hotend_as_extruder != nullptr && hotend_as_extruder->value;
 }
 
 // The diameters that describe what the machine offers: per-slot where that data is authoritative,
@@ -451,21 +618,62 @@ bool complete_filament_nozzle_diameter_selections(
     return true;
 }
 
-float nozzle_diameter_for_filament(const PrintConfig &config, unsigned int filament_id)
+float nozzle_diameter_for_filament(const ConfigBase &config, unsigned int filament_id)
 {
     if (filament_id != 0) {
         const size_t fil_idx = filament_id - 1;
-        const auto  &selected = config.filament_diameter_map.values;
-        if (fil_idx < selected.size() && !selected[fil_idx].empty() &&
-            selected[fil_idx].find(';') == std::string::npos) {
-            const double diameter = string_to_double_decimal_point(selected[fil_idx].c_str());
-            if (diameter > 0.0)
-                return float(diameter);
+        if (const auto *selected = config.option<ConfigOptionStrings>("filament_diameter_map")) {
+            if (fil_idx < selected->values.size() && !selected->values[fil_idx].empty() &&
+                selected->values[fil_idx].find(';') == std::string::npos) {
+                const double diameter = string_to_double_decimal_point(selected->values[fil_idx].c_str());
+                if (diameter > 0.0)
+                    return float(diameter);
+            }
         }
     }
 
     const size_t nozzle_idx = (filament_id == 0) ? 0 : filament_id - 1;
-    return float(config.nozzle_diameter.get_at(nozzle_idx));
+    if (const auto *nozzles = config.option<ConfigOptionFloats>("nozzle_diameter")) {
+        if (!nozzles->values.empty())
+            return float(nozzles->get_at(nozzle_idx));
+    }
+    return 0.f;
+}
+
+float nozzle_diameter_for_filament(const PrintConfig &config, unsigned int filament_id)
+{
+    return nozzle_diameter_for_filament(static_cast<const ConfigBase &>(config), filament_id);
+}
+
+double wipe_tower_estimate_layer_height(const ConfigBase &config, const std::vector<int> &filaments)
+{
+    const ConfigOption *layer_height_opt = config.option("layer_height");
+    const double        layer_height     = layer_height_opt ? layer_height_opt->getFloat() : 0.08;
+    double              sizing_height    = layer_height;
+    // Multi-diameter slicing pins the layer grid to the 0.2 nozzle, so a 0.4 preset's 0.2 mm
+    // layer is cut into 0.1 mm steps. WipeTower::plan_toolchange() sizes the tower from that
+    // physical height. A nozzle that cannot merge those steps back up to the authored height
+    // (a 0.2 nozzle tops out at 0.14 mm) keeps the fine grid, and dividing by the authored
+    // height makes the estimate too small. Plates whose nozzles all merge back keep it.
+    if (layer_height > EPSILON && multi_nozzle_diameter_mode_enabled(config)) {
+        const int    subdivision = std::max(1, layer_grid_subdivision(config));
+        const double base_height = layer_height / double(subdivision);
+        const double grid_nozzle = layer_grid_nozzle_diameter(config);
+        for (int filament_id : filaments) {
+            if (filament_id <= 0)
+                continue;
+            const double nozzle = nozzle_diameter_for_filament(config, unsigned(filament_id));
+            if (nozzle <= EPSILON)
+                continue;
+            const double band_height =
+                double(adaptive_layer_band_size(nozzle, grid_nozzle, base_height)) * base_height;
+            if (band_height + EPSILON < layer_height) {
+                sizing_height = base_height;
+                break;
+            }
+        }
+    }
+    return sizing_height;
 }
 
 double primary_nozzle_diameter(const ConfigBase &config)
@@ -837,7 +1045,8 @@ static const t_config_enum_values s_keys_map_BedType = {
     { "Engineering Plate",  btEP  },
     { "High Temp Plate",    btPEI  },
     { "Textured PEI Plate", btPTE },
-    {"Supertack Plate",     btSuperTack}
+    {"Supertack Plate",     btSuperTack},
+    { "3D Effect Plate",    bt3DEffect }
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(BedType)
 
@@ -1185,6 +1394,12 @@ int get_effective_ams_nozzle_idx(const ConfigBase& config)
     // Runtime: an AMS-capable model may currently have no AMS connected. In that case every nozzle
     // (including the AMS slot) is a fixed nozzle, so report -1 to make both the UI and the grouping
     // take the "all fixed nozzles" path consistently.
+    // An AMS with no nozzle on its slot cannot feed anything either, so it counts as no AMS too.
+    const auto* nozzle_slot_opt = dynamic_cast<const ConfigOptionInts*>(config.option("extruder_nozzle_slot"));
+    if (nozzle_slot_opt && !nozzle_slot_opt->values.empty() &&
+        std::find(nozzle_slot_opt->values.begin(), nozzle_slot_opt->values.end(), ams_idx) == nozzle_slot_opt->values.end())
+        return -1;
+
     const auto* ams_count_opt = dynamic_cast<const ConfigOptionStrings*>(config.option("extruder_ams_count"));
     if (!ams_count_opt)
         return ams_idx; // missing data: stay permissive and keep the configured slot
@@ -1708,6 +1923,14 @@ void PrintConfigDef::init_fff_params()
     // the upper limit supported by machine currently is 350
     // limit to the max with some margin
     const int max_temp = 360;
+    // Lowest nozzle print temperature accepted. Not a material property, a product decision:
+    // below ~190°C most filaments are soft but flow too poorly to print reliably, and the lowest
+    // recommended range of any official filament starts at 175°C (PE / PE-CF), so 165 keeps a
+    // margin under it. Values typed below it are reset in the GUI.
+    // Known limitation: a value already stored below it (older user presets or projects) is kept and
+    // used for slicing, but the settings field shows it clamped to 165 and writes 165 back once the
+    // field loses focus. No bundled profile goes below it.
+    const int min_print_temp = 165;
 
     def = this->add("reduce_crossing_wall", coBool);
     def->label = L("Avoid crossing wall");
@@ -1793,6 +2016,16 @@ void PrintConfigDef::init_fff_params()
     def->max        = 120;
     def->set_default_value(new ConfigOptionInts{45});
 
+    def             = this->add("effect_plate_temp", coInts);
+    def->label      = L("Other layers");
+    def->tooltip    = L("Bed temperature for layers except the initial one. "
+                     "Value 0 means the filament does not support to print on the 3D Effect Plate");
+    def->sidetext   = "°C";
+    def->full_label = L("Bed temperature");
+    def->min        = 0;
+    def->max        = 120;
+    def->set_default_value(new ConfigOptionInts{45});
+
     def = this->add("supertack_plate_temp_initial_layer", coInts);
     def->label = L("Initial layer");
     def->full_label = L("Initial layer bed temperature");
@@ -1843,6 +2076,16 @@ void PrintConfigDef::init_fff_params()
     def->max        = 120;
     def->set_default_value(new ConfigOptionInts{45});
 
+    def             = this->add("effect_plate_temp_initial_layer", coInts);
+    def->label      = L("Initial layer");
+    def->full_label = L("Initial layer bed temperature");
+    def->tooltip    = L("Bed temperature of the initial layer. "
+                     "Value 0 means the filament does not support to print on the 3D Effect Plate");
+    def->sidetext   = "°C";
+    def->min        = 0;
+    def->max        = 120;
+    def->set_default_value(new ConfigOptionInts{45});
+
     def = this->add("curr_bed_type", coEnum);
     def->label = L("Bed type");
     def->tooltip = L("Bed types supported by the printer");
@@ -1853,11 +2096,13 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.emplace_back("High Temp Plate");
     def->enum_values.emplace_back("Textured PEI Plate");
     def->enum_values.emplace_back("Supertack Plate");
+    def->enum_values.emplace_back("3D Effect Plate");
     def->enum_labels.emplace_back(L("Cool Plate"));
     def->enum_labels.emplace_back(L("Engineering Plate"));
     def->enum_labels.emplace_back(L("Smooth PEI Plate / High Temp Plate"));
     def->enum_labels.emplace_back(L("Textured PEI Plate"));
     def->enum_labels.emplace_back(L("Bambu Cool Plate SuperTack"));
+    def->enum_labels.emplace_back(L("3D Effect Plate"));
     def->set_default_value(new ConfigOptionEnum<BedType>(btPC));
 
     // BBS
@@ -4042,7 +4287,7 @@ void PrintConfigDef::init_fff_params()
     def->full_label = L("Initial layer nozzle temperature");
     def->tooltip = L("Nozzle temperature to print initial layer when using this filament");
     def->sidetext = "°C";
-    def->min = 0;
+    def->min = min_print_temp;
     def->max = max_temp;
     def->nullable = true;
     def->set_default_value(new ConfigOptionIntsNullable { 200 });
@@ -5447,6 +5692,11 @@ void PrintConfigDef::init_fff_params()
     //BBS: open this option to command line
     //def->cli = ConfigOptionDef::nocli;
 
+    // Stamped on user/project process presets when they are saved; not shown on any settings page.
+    def = this->add("process_nozzle_diameter_mode", coString);
+    def->set_default_value(new ConfigOptionString(""));
+    def->cli = ConfigOptionDef::nocli;
+
     def = this->add("printer_settings_id", coString);
     def->set_default_value(new ConfigOptionString(""));
     //BBS: open this option to command line
@@ -5821,6 +6071,13 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionInts { 1 });
     def->cli = ConfigOptionDef::nocli;
 
+    // Project only: per variable-length filament option, the number of values each filament owns.
+    def = this->add("filament_dev_value_count", coStrings);
+    def->label = "Filament device value count";
+    def->tooltip = "Filament device value count";
+    def->set_default_value(new ConfigOptionStrings {});
+    def->cli = ConfigOptionDef::nocli;
+
     def = this->add("filament_diameter_map", coStrings);
     def->label = "Filament selected nozzle diameters";
     def->tooltip = "Per-filament explicitly selected nozzle diameter. Empty means not selected.";
@@ -5831,6 +6088,27 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = "Let one plate print with several nozzle diameters. When disabled, the machine is treated "
                    "as offering a single nozzle diameter and slicing keeps the single-diameter behavior.";
     def->set_default_value(new ConfigOptionBool { false });
+
+    // Project-only, like multi_nozzle_diameter_mode: kept out of the static PrintConfig layout.
+    def = this->add("project_support_top_z_distance", coFloat);
+    def->label = L("Top Z distance");
+    def->category = L("Support");
+    def->tooltip = L("The z gap between the top support interface and object. -1 means auto: the gap follows "
+                     "the support nozzle, and is 0 for a support material combination.");
+    def->sidetext = L("mm");
+    def->min = -1;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(-1));
+
+    def = this->add("project_support_bottom_z_distance", coFloat);
+    def->label = L("Bottom Z distance");
+    def->category = L("Support");
+    def->tooltip = L("The z gap between the bottom support interface and object. -1 means auto: the gap follows "
+                     "the support nozzle, and is 0 for a support material combination.");
+    def->sidetext = L("mm");
+    def->min = -1;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(-1));
 
     def = this->add("filament_retract_length_nc", coFloats);
     def->label = L("length when change hotend");
@@ -5903,6 +6181,19 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Ensure seam placement away from overhangs for alignment and backing modes.");
     def->mode    = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
+
+    def           = this->add("seam_embedded_headroom", coFloat);
+    def->label    = L("Embedded seam headroom");
+    def->category = L("Quality");
+    def->tooltip  = L("When a seam can be hidden inside the print (e.g. at the joint of two materials), prefer the seam position that "
+                      "leaves at least this much hidden wall in the printing direction before the wall becomes visible. "
+                      "This hides extrusion defects caused by unstable nozzle pressure after a filament change. Set to 0 to disable.");
+    def->sidetext = L("mm");
+    def->min      = 0;
+    def->max      = 100;
+    def->mode     = comAdvanced;
+    // Disabled unless the process profile enables it, so that projects saved without this option keep their seams.
+    def->set_default_value(new ConfigOptionFloat(0.));
 
     def = this->add("seam_gap", coPercent);
     def->label = L("Seam gap");
@@ -6740,7 +7031,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Nozzle temperature for layers after the initial one");
     def->sidetext = "°C";
     def->full_label = L("Nozzle temperature");
-    def->min = 0;
+    def->min = min_print_temp;
     def->max = max_temp;
     def->nullable = true;
     def->set_default_value(new ConfigOptionIntsNullable { 200 });
@@ -6751,6 +7042,8 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = "°C";
     def->min = 0;
     def->max = max_temp;
+    // Comes from the filament preset; the print temperature warnings are judged against it
+    def->readonly = true;
     def->set_default_value(new ConfigOptionInts { 190 });
 
     def = this->add("nozzle_temperature_range_high", coInts);
@@ -6759,6 +7052,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = "°C";
     def->min = 0;
     def->max = max_temp;
+    def->readonly = true;
     def->set_default_value(new ConfigOptionInts { 240 });
 
     def = this->add("head_wrap_detect_zone", coPoints);
@@ -6842,6 +7136,14 @@ void PrintConfigDef::init_fff_params()
     def->tooltip  = L("This is the number of layers of bottom paint penetration.");
     def->min      = 1;
     def->set_default_value(new ConfigOptionInt(3));
+
+    def           = this->add("cross_part_color_penetration", coBool);
+    def->label    = L("Cross-part color penetration");
+    def->category = L("Strength");
+    def->tooltip  = L("Allow top and bottom surface color penetration from a part to cross into adjacent parts. "
+                      "When disabled, color penetration is kept inside the part itself.");
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(true));
 
     def           = this->add("infill_instead_top_bottom_surfaces", coBool);
     def->label    = L("Use infill instead of top and bottom surfaces");
@@ -7080,6 +7382,7 @@ void PrintConfigDef::init_fff_params()
     //def->tooltip = L("Wipe tower rotation angle with respect to x-axis.");
     //def->sidetext = L("°");
     def->mode = comDevelop;
+    def->cli = ConfigOptionDef::nocli;
     def->set_default_value(new ConfigOptionFloat(0.));
 
     def           = this->add("prime_tower_max_speed", coFloat);
@@ -8479,7 +8782,9 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         "retraction_distance_when_cut",
         "prime_volume",
         "apply_top_surface_compensation",
-        "nozzle_type"
+        "nozzle_type",
+        // The printer variant alone selects the nozzles that print.
+        "extruder_enabled"
     };
 
     if (ignore.find(opt_key) != ignore.end()) {
@@ -9502,7 +9807,7 @@ int DynamicPrintConfig::update_values_from_multi_to_multi(DynamicPrintConfig& ne
     return 0;
 }
 
-int DynamicPrintConfig::update_values_from_multi_to_multi_2(const std::vector<std::string>& src_extruder_variants, const std::vector<std::string>& dst_extruder_variants, const DynamicPrintConfig& dst_config, const std::set<std::string>& key_sets)
+int DynamicPrintConfig::update_values_from_multi_to_multi_2(const std::vector<std::string>& src_extruder_variants, const std::vector<std::string>& dst_extruder_variants, const DynamicPrintConfig& dst_config, const std::set<std::string>& key_sets, const std::vector<int>& variant_index)
 {
     const ConfigDef  *config_def     = this->def();
     if (!config_def) {
@@ -9518,11 +9823,19 @@ int DynamicPrintConfig::update_values_from_multi_to_multi_2(const std::vector<st
         return indices;
     };
 
+    //for each dst variant, the src variants to take the value from
     std::vector<std::vector<int>> same_variant_indices;
-    for(size_t dst_idx =0 ;dst_idx < dst_extruder_variants.size(); ++dst_idx){
-        auto& dst_variant = dst_extruder_variants[dst_idx];
-        auto indices =get_same_variant_indices(src_extruder_variants, dst_variant);
-        same_variant_indices.emplace_back(indices);
+    if (!variant_index.empty()) {
+        //only one src variant, so the min / first non-nil value below is just its value
+        for (int src_idx : variant_index)
+            same_variant_indices.push_back(src_idx >= 0 ? std::vector<int>{src_idx} : std::vector<int>());
+    }
+    else {
+        for(size_t dst_idx =0 ;dst_idx < dst_extruder_variants.size(); ++dst_idx){
+            auto& dst_variant = dst_extruder_variants[dst_idx];
+            auto indices =get_same_variant_indices(src_extruder_variants, dst_variant);
+            same_variant_indices.emplace_back(indices);
+        }
     }
 
     t_config_option_keys keys = this->keys();
@@ -9534,6 +9847,16 @@ int DynamicPrintConfig::update_values_from_multi_to_multi_2(const std::vector<st
             BOOST_LOG_TRIVIAL(warning) << boost::format("can not find opt define for %1%")%key;
             continue;
         }
+        //the values are taken from dst_config first, so it must have a value for each dst variant
+        //otherwise remove the key so that the dst_config value is used, instead of keeping the values in the src variant layout
+        const ConfigOption* dst_opt = dst_config.option(key);
+        if (!dst_opt || dst_opt->type() != optdef->type || !dst_opt->is_vector()
+            || static_cast<const ConfigOptionVectorBase*>(dst_opt)->size() < same_variant_indices.size()) {
+            BOOST_LOG_TRIVIAL(error) << boost::format("can not map the variants of %1%, dst config has less than %2% values, remove it: %3%")%key %same_variant_indices.size() %this->option(key)->serialize();
+            this->erase(key);
+            continue;
+        }
+        std::string old_value = this->option(key)->serialize();
 
         switch (optdef->type){
             case coFloats:
@@ -9572,7 +9895,7 @@ int DynamicPrintConfig::update_values_from_multi_to_multi_2(const std::vector<st
                     bool has_value = false;
                     FloatOrPercent target_value(9999.f, true);
                     for(auto idx : indices){
-                        if(opt && !opt->is_nil(idx)){
+                        if(opt && idx < opt->values.size() && !opt->is_nil(idx)){
                             has_value = true;
                             target_value = src_values[idx].value < target_value.value ? src_values[idx] : target_value;
                         }
@@ -9596,7 +9919,7 @@ int DynamicPrintConfig::update_values_from_multi_to_multi_2(const std::vector<st
                     bool has_value = false;
                     bool target_value;
                     for(auto idx : indices){
-                        if(opt && !opt->is_nil(idx)){
+                        if(opt && idx < opt->values.size() && !opt->is_nil(idx)){
                             has_value = true;
                             target_value = src_values[idx];
                             break;
@@ -9612,13 +9935,54 @@ int DynamicPrintConfig::update_values_from_multi_to_multi_2(const std::vector<st
             }
             default:
                 BOOST_LOG_TRIVIAL(warning) << boost::format("unsupported option type for %1%")%key;
-                break;
+                continue;
         }
-
+        BOOST_LOG_TRIVIAL(debug) << boost::format("key %1%, %2% -> %3%")%key %old_value %this->option(key)->serialize();
     }
 
     return 0;
 
+}
+
+bool has_multiple_extruder_ids(const std::vector<int> &ids)
+{
+    return std::adjacent_find(ids.begin(), ids.end(), std::not_equal_to<int>()) != ids.end();
+}
+
+std::vector<int> compute_variant_index_by_name(const std::vector<std::string> &src_variants,
+                                               const std::vector<int>         &src_ids,
+                                               const std::vector<std::string> &dst_variants,
+                                               const std::vector<int>         &dst_ids,
+                                               bool                            match_id,
+                                               int                             preferred_src_id)
+{
+    std::vector<int> variant_index(dst_variants.size(), -1);
+    for (size_t i = 0; i < dst_variants.size(); i++) {
+        int dst_id = (i < dst_ids.size()) ? dst_ids[i] : 1;
+        for (size_t j = 0; j < src_variants.size(); j++) {
+            if (src_variants[j] != dst_variants[i])
+                continue;
+            int src_id = (j < src_ids.size()) ? src_ids[j] : 1;
+            if (match_id) {
+                // both are multi-extruder: only the variant with the same name on the same extruder
+                if (src_id == dst_id) {
+                    variant_index[i] = (int) j;
+                    break;
+                }
+            }
+            else {
+                // the ids are not compared, so a wrong id (e.g. 2 on a single extruder) still matches
+                // prefer the variant on extruder preferred_src_id, otherwise the first one with the name
+                if (variant_index[i] == -1)
+                    variant_index[i] = (int) j;
+                if (src_id == preferred_src_id) {
+                    variant_index[i] = (int) j;
+                    break;
+                }
+            }
+        }
+    }
+    return variant_index;
 }
 
 
@@ -9855,7 +10219,7 @@ std::vector<int> DynamicPrintConfig::update_values_to_printer_extruders(DynamicP
                     variant_index[v_index] = get_index_for_extruder(e_index+1, id_name, extruder_type, nozzle_volume_type, variant_name);
                     if (variant_index[v_index] < 0) {
                         BOOST_LOG_TRIVIAL(error) << boost::format("could not found extruder_type %1%, nozzle_volume_type %2%, extruder_index %3%, nvt_index %4%, nvt_count %5%")%s_keys_names_ExtruderType[extruder_type] % get_nozzle_volume_type_string(nozzle_volume_type) % (e_index+1) %nvt_index %nvt_count;
-                        assert(false);
+                        // assert(false);
                         //for some updates happens in a invalid state(caused by popup window)
                         //we need to avoid crash
                         variant_index[v_index] = 0;
@@ -10487,6 +10851,65 @@ void DynamicPrintConfig::update_diff_values_to_child_config(DynamicPrintConfig& 
     return;
 }
 
+// Match "@BBL H3C" / "Bambu Lab H3C" as a whole model name, so that e.g. "H3CP" is not matched.
+static bool refers_to_legacy_print_extruder_id_printer(const std::string &name)
+{
+    static const std::vector<std::string> prefixes = {"@BBL ", "Bambu Lab "};
+    static const std::vector<std::string> models   = {"H3C", "P3C"};
+    for (const std::string &prefix : prefixes)
+        for (const std::string &model : models) {
+            const std::string token = prefix + model;
+            for (size_t pos = name.find(token); pos != std::string::npos; pos = name.find(token, pos + 1)) {
+                const size_t end = pos + token.size();
+                if (end == name.size() || name[end] == ' ' || name[end] == '(')
+                    return true;
+            }
+        }
+    return false;
+}
+
+bool DynamicPrintConfig::normalize_legacy_print_extruder_id(const std::map<std::string, std::string> &key_values)
+{
+    auto *opt = this->option<ConfigOptionInts>("print_extruder_id");
+    if (opt == nullptr || opt->values.empty())
+        return false;
+    const int min_id = *std::min_element(opt->values.begin(), opt->values.end());
+    if (min_id <= 1)
+        return false;
+
+    auto version_iter = key_values.find(BBL_JSON_KEY_VERSION);
+    if (version_iter == key_values.end())
+        return false;
+    boost::optional<Semver> version = Semver::parse(version_iter->second);
+    if (!version)
+        return false;
+    auto name_iter = key_values.find(BBL_JSON_KEY_NAME);
+    const bool is_project_settings = name_iter != key_values.end() && name_iter->second == "project_settings";
+    if (*version >= Semver(is_project_settings ? "02.09.01.73" : "02.09.00.76"))
+        return false;
+
+    std::vector<std::string> names;
+    for (const char *key : {BBL_JSON_KEY_NAME, BBL_JSON_KEY_INHERITS}) {
+        auto iter = key_values.find(key);
+        if (iter != key_values.end())
+            names.push_back(iter->second);
+    }
+    for (const char *key : {"inherits", "print_settings_id", "printer_settings_id", "printer_model"}) {
+        if (auto *str_opt = this->option<ConfigOptionString>(key))
+            names.push_back(str_opt->value);
+    }
+    if (auto *printers = this->option<ConfigOptionStrings>("compatible_printers"))
+        names.insert(names.end(), printers->values.begin(), printers->values.end());
+    if (std::none_of(names.begin(), names.end(), refers_to_legacy_print_extruder_id_printer))
+        return false;
+
+    const std::string old_value = opt->serialize();
+    for (int &id : opt->values)
+        id -= min_id - 1;
+    BOOST_LOG_TRIVIAL(warning) << boost::format("normalize legacy print_extruder_id from %1% to %2%, version %3%") % old_value % opt->serialize() % version_iter->second;
+    return true;
+}
+
 void update_static_print_config_from_dynamic(ConfigBase& config, const DynamicPrintConfig& dest_config, std::vector<int> variant_index, std::set<std::string>& key_set1, int stride)
 {
     if (variant_index.size() > 0) {
@@ -10507,6 +10930,23 @@ void update_static_print_config_from_dynamic(ConfigBase& config, const DynamicPr
     }
     else
         config.apply(dest_config, true);
+}
+
+bool filament_variant_lengths_valid(const DynamicPrintConfig &config)
+{
+    if (!config.option("extruder_variant_list"))
+        return true;
+
+    const auto *filament_colour = config.option<ConfigOptionStrings>("filament_colour");
+    const size_t num_filaments = filament_colour ? filament_colour->size() : 0;
+
+    const auto *self_index = config.option<ConfigOptionInts>("filament_self_index");
+    const size_t self_index_count = self_index ? self_index->size() : num_filaments;
+
+    const auto *variants = config.option<ConfigOptionStrings>("filament_extruder_variant");
+    const size_t variant_count = variants ? variants->size() : 0;
+
+    return variant_count == self_index_count && variant_count >= num_filaments;
 }
 
 void align_filament_variant_overrides(DynamicPrintConfig &config)
@@ -10548,14 +10988,18 @@ void align_filament_variant_overrides(DynamicPrintConfig &config)
 
 // Multi-diameter: the machine retraction_length is stored per machine variant, and one variant can carry
 // nozzles of different diameters. Filament rows without their own filament_retraction_length take the
-// length for the diameter of the nozzle the filament is assigned to.
+// length the rule set gives for the diameter of the nozzle the filament is assigned to and for the
+// extruder type of the row's variant.
 static void apply_multi_nozzle_retraction_length(const DynamicPrintConfig &config, const ConfigOptionFloatsNullable &filament_retraction,
                                                  ConfigOptionFloatsNullable &retraction)
 {
     const auto *self_index = config.option<ConfigOptionInts>("filament_self_index");
+    const auto *variants   = config.option<ConfigOptionStrings>("filament_extruder_variant");
     const auto *selected   = config.option<ConfigOptionStrings>("filament_diameter_map");
     if (self_index == nullptr || selected == nullptr || self_index->values.size() != retraction.values.size())
         throw ConfigurationError("filament_self_index does not match the filament retraction rows");
+    if (variants == nullptr || variants->values.size() != retraction.values.size())
+        throw ConfigurationError("filament_extruder_variant does not match the filament retraction rows");
 
     for (size_t row = 0; row < retraction.values.size(); ++row) {
         if (!filament_retraction.is_nil(row))
@@ -10567,7 +11011,8 @@ static void apply_multi_nozzle_retraction_length(const DynamicPrintConfig &confi
         if (diameter_str.empty() || diameter_str.find(';') != std::string::npos)
             continue;
         const double diameter = string_to_double_decimal_point(diameter_str.c_str());
-        retraction.values[row] = multi_nozzle_retraction_length(diameter, retraction.values[row]);
+        retraction.values[row] = multi_nozzle_retraction_length(config, diameter, extruder_type_of_variant(variants->values[row]),
+                                                                retraction.values[row]);
     }
 }
 
@@ -11250,6 +11695,12 @@ CLIMiscConfigDef::CLIMiscConfigDef()
     def->cli_params = "\"filament1.json;filament2.json;...\"";
     def->set_default_value(new ConfigOptionStrings());
 
+    def = this->add("old_to_new_filament_map", coInts);
+    def->label = "Old to new filament map";
+    def->tooltip = "One-to-one map from old 1-based filament ids to new 1-based ids. Length equals old filament count.";
+    def->cli_params = "\"1,2,3,5,6\"";
+    def->set_default_value(new ConfigOptionInts());
+
     def = this->add("skip_objects", coInts);
     def->label = "Skip Objects";
     def->tooltip = "Skip some objects in this print";
@@ -11289,6 +11740,12 @@ CLIMiscConfigDef::CLIMiscConfigDef()
     def->label = "Load assemble list";
     def->tooltip = "Load assemble object list from config file";
     def->cli_params = "assemble_list.json";
+    def->set_default_value(new ConfigOptionString());
+
+    def = this->add("import_positions", coString);
+    def->label = "Import arrange positions";
+    def->tooltip = "Import model instance positions from a JSON file produced by arrange export";
+    def->cli_params = "positions.json";
     def->set_default_value(new ConfigOptionString());
 
     /*def = this->add("output", coString);
@@ -11378,6 +11835,14 @@ CLIMiscConfigDef::CLIMiscConfigDef()
     def = this->add("skip_modified_gcodes", coBool);
     def->label = "Skip modified gcodes in 3mf";
     def->tooltip = "Skip the modified gcodes in 3mf from Printer or filament Presets";
+    def->cli_params = "option";
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("switch_process", coBool);
+    def->label = "Switch process by layer height";
+    def->tooltip = "When switching machine, load the new machine's system process with the same layer height, "
+                   "and keep the values of keys listed in different_settings_to_system. "
+                   "Only when no process is specified; if no process matches, the original process is used";
     def->cli_params = "option";
     def->set_default_value(new ConfigOptionBool(false));
 
@@ -11587,31 +12052,6 @@ static bool skirt_expansion_params(const ConfigBase &cfg, int &skirt_loops, floa
     return true;
 }
 
-// Nozzle diameter a filament will be printed with. Mirrors
-// nozzle_diameter_for_filament(const PrintConfig &, unsigned int) for callers that only hold a
-// DynamicPrintConfig (arrange). filament_id is 1-based; 0 means "unknown" and falls back to
-// the first extruder.
-static float skirt_nozzle_diameter_for_filament(const ConfigBase &cfg, unsigned int filament_id)
-{
-    const auto *opt_nozzle_f = cfg.option<ConfigOptionFloats>("nozzle_diameter");
-    const float fallback_dia = opt_nozzle_f ? static_cast<float>(opt_nozzle_f->get_at(0)) : 0.4f;
-    if (filament_id == 0)
-        return fallback_dia;
-
-    const size_t filament_idx = size_t(filament_id - 1);
-    const auto  *selected     = cfg.option<ConfigOptionStrings>("filament_diameter_map");
-    if (selected != nullptr && filament_idx < selected->values.size() &&
-        selected->values[filament_idx].find(';') == std::string::npos) {
-        const double selected_diameter = string_to_double_decimal_point(selected->values[filament_idx].c_str());
-        if (selected_diameter > 0.)
-            return static_cast<float>(selected_diameter);
-    }
-    if (opt_nozzle_f == nullptr)
-        return fallback_dia;
-
-    return static_cast<float>(opt_nozzle_f->get_at(filament_idx));
-}
-
 // Skirt flow inferred from the config alone, mirroring Print::skirt_flow().
 static Flow skirt_flow_from_config(const ConfigBase &cfg, unsigned int filament_id)
 {
@@ -11628,9 +12068,13 @@ static Flow skirt_flow_from_config(const ConfigBase &cfg, unsigned int filament_
     auto  opt_lh       = cfg.option("initial_layer_print_height");
     float layer_height = opt_lh ? static_cast<float>(opt_lh->getFloat()) : 0.2f;
 
+    float nozzle_dia = nozzle_diameter_for_filament(cfg, filament_id);
+    if (nozzle_dia <= 0.f)
+        nozzle_dia = 0.4f;
+
     return Flow::new_from_config_width(
         frPerimeter, width_opt, float(primary_nozzle_diameter(cfg)),
-        skirt_nozzle_diameter_for_filament(cfg, filament_id), layer_height,
+        nozzle_dia, layer_height,
         multi_nozzle_diameter_mode_enabled(cfg));
 }
 

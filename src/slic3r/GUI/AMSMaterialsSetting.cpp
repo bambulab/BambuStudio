@@ -14,6 +14,7 @@
 #include "../Utils/ColorSpaceConvert.hpp"
 #include "../Utils/BBLUtil.hpp"
 #include "EncodedFilament.hpp"
+#include "MaterialColorLabel.hpp"
 #include "FilamentBitmapUtils.hpp"
 #include "FilamentSelectDialog.hpp"
 
@@ -335,11 +336,17 @@ void AMSMaterialsSetting::create_panel_normal(wxWindow* parent)
     m_clr_picker->SetBackgroundColour(*wxWHITE);
 
     m_sizer_colour->Add(m_clr_picker, 0, wxRESERVE_SPACE_EVEN_IF_HIDDEN | wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(10));
-    m_clr_name = new Label(parent, wxEmptyString);
+    m_clr_name = new Label(parent, wxEmptyString, wxST_ELLIPSIZE_END);
     m_clr_name->SetForegroundColour(*wxBLACK);
     m_clr_name->SetBackgroundColour(*wxWHITE);
     m_clr_name->SetFont(Label::Body_13);
+    // Small min width: a long colour name must ellipsize, not widen the row.
+    m_clr_name->SetMinSize(wxSize(FromDIP(20), -1));
     m_sizer_colour->Add(m_clr_name, 1, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(10));
+    m_clr_name->Bind(wxEVT_SIZE, [this](wxSizeEvent& e) {
+        e.Skip();
+        update_clr_name_tooltip();
+    });
 
     m_color_picker_popup = new ColorPickerPopup(parent, this);
     m_color_picker_popup->SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
@@ -465,11 +472,11 @@ void AMSMaterialsSetting::create_panel_rfid_display(wxWindow* parent)
     m_rfid_lbl_brand->SetForegroundColour(AMS_MATERIALS_SETTING_GREY900);
 
     m_rfid_lbl_color_name = new wxStaticText(panel_top, wxID_ANY, wxEmptyString);
-    m_rfid_lbl_color_name->SetFont(Label::Body_13);
+    m_rfid_lbl_color_name->SetFont(Label::Head_14);
     m_rfid_lbl_color_name->SetForegroundColour(AMS_MATERIALS_SETTING_GREY700);
 
-    sizer_names->Add(m_rfid_lbl_brand,      0, wxBOTTOM, FromDIP(2));
-    sizer_names->Add(m_rfid_lbl_color_name, 0, 0, 0);
+    sizer_names->Add(m_rfid_lbl_color_name, 0, wxBOTTOM, FromDIP(2));
+    sizer_names->Add(m_rfid_lbl_brand, 0, 0, 0);
     sizer_top->Add(sizer_names, 1, wxALIGN_CENTER_VERTICAL, 0);
     panel_top->SetSizer(sizer_top);
 
@@ -1230,6 +1237,9 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent& event)
         return;
     }
 
+    bool                         save_only_unbind = false;
+    std::optional<FilamentSpool> pending_create;
+
     if (!m_open_spool_id.empty()) {
         const bool rebinding_to_different_spool =
             !m_selected_spool_id.empty() && (m_selected_spool_id != m_open_spool_id);
@@ -1311,22 +1321,14 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent& event)
                         ? std::clamp<int>(static_cast<int>(std::lround(add_remain * 100.0 / add_total)), 0, 100)
                         : 100;
 
-                    const std::string new_id = store->add_spool(new_spool);
                     BOOST_LOG_TRIVIAL(info) << "add filament to library, initial_weight=" << add_total
                                             << " net_weight=" << add_remain;
 
-                    // Async cloud push — fires after this function returns
-                    if (auto* disp = wxGetApp().fila_manager_cloud_disp()) {
-                        FilamentSpool spool_for_push = new_spool;
-                        spool_for_push.spool_id = new_id;
-                        disp->enqueue_push_create(spool_for_push);
-                    }
-
-                    // Redirect existing force_mount_spool block to bind the new spool
-                    m_selected_spool_id = new_id;
+                    pending_create   = new_spool;
+                    save_only_unbind = true;
                 }
             } else if (result == FilaManagerPromptDialog::RESULT_SAVE_ONLY) {
-                //do nothing, filament in library will be unbinded automatically.
+                save_only_unbind = true;
             }
             }
         }
@@ -1334,6 +1336,15 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent& event)
 
     // the combobox item
     auto filament_item = map_filament_items[into_u8(m_current_filament_alias)];
+    if (!m_selected_spool_id.empty() && filament_item.filament_id.empty()) {
+        auto* store = wxGetApp().fila_manager_store();
+        const FilamentSpool* sp = store ? store->get_spool(m_selected_spool_id) : nullptr;
+        if (sp) {
+            filament_item.filament_id = sp->filament_id;
+            filament_item.setting_id  = sp->filament_id;
+            filament_item.spool_id    = sp->spool_id;
+        }
+    }
 
     int total_weight = 0;
     int remain_weight = 0;
@@ -1346,17 +1357,11 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent& event)
     //get filament id
     ams_filament_id = "";
     ams_setting_id = "";
-
-    if (!m_selected_spool_id.empty() && filament_item.filament_id.empty()) {
-        auto* store = wxGetApp().fila_manager_store();
-        const FilamentSpool* sp = store ? store->get_spool(m_selected_spool_id) : nullptr;
-        if (sp) {
-            filament_item.filament_id = sp->filament_id;
-            filament_item.setting_id  = sp->filament_id;
-            filament_item.spool_id    = sp->spool_id;
-        }
+    if (sel_opt) {
+        ams_filament_id = sel_opt->filament_id;
+        ams_setting_id = sel_opt->setting_id;
+        m_filament_type = sel_opt->filament_type;
     }
-
 
     // check filament info
     const auto& fila_check_res = sCheckFilamentInfo(preset_bundle, obj, ams_id, slot_id, filament_item.filament_id, ams_filament_id, ams_setting_id);
@@ -1425,6 +1430,11 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent& event)
     long nozzle_temp_min_int, nozzle_temp_max_int;
     nozzle_temp_min.ToLong(&nozzle_temp_min_int);
     nozzle_temp_max.ToLong(&nozzle_temp_max_int);
+    if (sel_opt) {
+        nozzle_temp_min_int = sel_opt->nozzle_temp_range_low;
+        nozzle_temp_max_int = sel_opt->nozzle_temp_range_high;
+    }
+
     wxColour color = m_clr_picker->m_colour;
     std::string tray_color = colour_to_ams_string(color);
     std::vector<std::string> tray_colors;
@@ -1501,33 +1511,100 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent& event)
         }
     }
 
+    // Resolve type, slot and AMS SN from the device-layer tray (external spools map to slot 0).
+    struct ResolvedSlot {
+        int         ams_type = -1;
+        std::string slot_id;
+        std::string ams_sn;
+    };
+    const auto resolve_slot = [this]() {
+        ResolvedSlot r;
+        r.slot_id = std::to_string(slot_id);
+        if (const auto tray_opt = obj->get_tray(ams_id, slot_id)) {
+            r.ams_type = static_cast<int>(tray_opt->ams_type);
+            r.slot_id  = std::to_string(tray_opt->get_ams_slot_id().second);
+        }
+        const auto ver_map = obj->get_ams_version();
+        if (auto vit = ver_map.find(ams_id); vit != ver_map.end())
+            r.ams_sn = vit->second.sn;
+        return r;
+    };
+
+    if (save_only_unbind) {
+        auto*                store = wxGetApp().fila_manager_store();
+        const FilamentSpool* sp    = store ? store->get_spool(m_open_spool_id) : nullptr;
+        if (sp && sp->in_printer && sp->dev_id == obj->get_dev_id()) {
+            if (auto* cloud = wxGetApp().fila_manager_cloud_sync())
+                cloud->sync_slot_bindings_to_cloud(obj->get_dev_id(), {m_open_spool_id}, /*is_bind=*/false);
+
+            FilamentSpool off    = *sp;
+            off.in_printer       = false;
+            off.dev_id.clear();
+            off.device_name.clear();
+            off.ams_sn.clear();
+            off.slot_id.clear();
+            off.ams_id           = -1;
+            off.ams_type         = -1;
+            off.mount_hold_count = 0;
+            store->update_spool(off);
+
+            BOOST_LOG_TRIVIAL(info) << "save only: unbind open_spool=" << m_open_spool_id;
+        }
+
+        // Add to Filament Library: create the new spool and bind it to this slot once the
+        // cloud list shows it (the create response carries no id).
+        if (pending_create) {
+            if (auto* disp = wxGetApp().fila_manager_cloud_disp()) {
+                const ResolvedSlot resolved = resolve_slot();
+                wgtFilaManagerCloudDispatcher::SlotBindTarget target;
+                target.dev_id   = obj->get_dev_id();
+                target.dev_name = obj->get_dev_name();
+                target.ams_id   = ams_id;
+                target.ams_type = resolved.ams_type;
+                target.slot_id  = resolved.slot_id;
+                target.ams_sn   = resolved.ams_sn;
+                disp->enqueue_create_and_bind(*pending_create, target);
+            } else {
+                BOOST_LOG_TRIVIAL(warning) << "add to library: cloud dispatcher unavailable, new spool not created";
+            }
+        }
+    }
     // When the user picked a Filament Manager spool, immediately update its
     // in-printer snapshot without waiting for the next MQTT push_status.
-    if (!m_selected_spool_id.empty()) {
+    else if (!m_selected_spool_id.empty()) {
         auto* store = wxGetApp().fila_manager_store();
         if (store) {
-            int resolved_ams_type = -1;
-            if (auto* ams_obj = obj->GetFilaSystem()->GetAmsById(std::to_string(ams_id)))
-                resolved_ams_type = static_cast<int>(ams_obj->GetAmsType());
+            const ResolvedSlot resolved          = resolve_slot();
+            const int          resolved_ams_type = resolved.ams_type;
+            const std::string& resolved_slot_id  = resolved.slot_id;
+            const std::string& resolved_ams_sn   = resolved.ams_sn;
 
-            std::string resolved_ams_sn;
-            const auto ver_map = obj->get_ams_version();
-            auto vit = ver_map.find(ams_id);
-            if (vit != ver_map.end())
-                resolved_ams_sn = vit->second.sn;
+            const std::string dev_id    = obj->get_dev_id();
+            const std::string new_id    = m_selected_spool_id;
+            const std::string old_id    = m_open_spool_id;
+            const bool        replacing = !old_id.empty() && old_id != new_id;
 
-            if (store->force_mount_spool(m_selected_spool_id,
-                                         obj->get_dev_id(),
+            auto* cloud    = wxGetApp().fila_manager_cloud_sync();
+            auto  bind_new = [dev_id, new_id]() {
+                if (auto* c = wxGetApp().fila_manager_cloud_sync())
+                    c->sync_slot_bindings_to_cloud(dev_id, {new_id}, /*is_bind=*/true);
+            };
+
+            if (replacing && cloud && store->get_spool(new_id)) {
+                BOOST_LOG_TRIVIAL(info) << "rebind spool: unbind old_spool=" << old_id
+                                        << " then bind new_spool=" << new_id;
+                cloud->sync_slot_bindings_to_cloud(dev_id, {old_id}, /*is_bind=*/false, bind_new);
+            }
+
+            if (store->force_mount_spool(new_id,
+                                         dev_id,
                                          obj->get_dev_name(),
                                          ams_id,
                                          resolved_ams_type,
-                                         std::to_string(slot_id),
+                                         resolved_slot_id,
                                          resolved_ams_sn)) {
-                if (auto* cloud = wxGetApp().fila_manager_cloud_sync()) {
-                    cloud->sync_slot_bindings_to_cloud(obj->get_dev_id(),
-                                                       {m_selected_spool_id},
-                                                       /*is_bind=*/true);
-                }
+                if (!replacing && cloud)
+                    bind_new();
                 FilamentSelectDialog::remember_recent_spool(
                     wxString::FromUTF8(m_selected_spool_id));
             }
@@ -1543,6 +1620,15 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent& event)
 void AMSMaterialsSetting::on_select_close(wxCommandEvent &event)
 {
     Close();
+}
+
+static wxString material_color_label(const wxString& filament_id, const FilamentColor& filament_color)
+{
+    wxString name;
+    if (auto* query = wxGetApp().get_filament_color_code_query())
+        name = query->GetFilaColorName(filament_id, filament_color);
+
+    return format_material_color_label(name, filament_color, _L("Unknown"));
 }
 
 void AMSMaterialsSetting::on_select_reread(wxCommandEvent& event)
@@ -1618,9 +1704,9 @@ void AMSMaterialsSetting::set_color(wxColour color)
     FilamentColor fila_color;
     fila_color.AddColor(color);
     fila_color.EndSet(m_clr_picker->ctype);
-    auto clr_query = GUI::wxGetApp().get_filament_color_code_query();
-    m_clr_name->SetLabelText(clr_query->GetFilaColorName(ams_filament_id, fila_color));
+    m_clr_name->SetLabelText(material_color_label(ams_filament_id, fila_color));
     if (m_clr_picker->GetParent()) m_clr_picker->GetParent()->Layout();
+    update_clr_name_tooltip();
 }
 
 void AMSMaterialsSetting::set_empty_color(wxColour color)
@@ -1631,6 +1717,7 @@ void AMSMaterialsSetting::set_empty_color(wxColour color)
     m_clr_picker->Hide();
     m_clr_name->SetLabelText(_L("Please select a color"));
     if (m_clr_picker->GetParent()) m_clr_picker->GetParent()->Layout();
+    update_clr_name_tooltip();
 }
 
 void AMSMaterialsSetting::set_colors(std::vector<wxColour> colors)
@@ -1645,15 +1732,25 @@ void AMSMaterialsSetting::set_colors(std::vector<wxColour> colors)
         FilamentColor fila_color;
         for (const auto& clr : colors) { fila_color.AddColor(clr); }
         fila_color.EndSet(m_clr_picker->ctype);
-        auto clr_query = GUI::wxGetApp().get_filament_color_code_query();
-        m_clr_name->SetLabelText(clr_query->GetFilaColorName(ams_filament_id, fila_color));
+        m_clr_name->SetLabelText(material_color_label(ams_filament_id, fila_color));
         if (m_clr_picker->GetParent()) m_clr_picker->GetParent()->Layout();
+        update_clr_name_tooltip();
     }
 }
 
 void AMSMaterialsSetting::set_ctype(int ctype)
 {
     m_clr_picker->ctype = ctype;
+}
+
+void AMSMaterialsSetting::update_clr_name_tooltip()
+{
+    const wxString text  = m_clr_name->GetLabelText();
+    const int      avail = m_clr_name->GetClientSize().x;
+    if (avail > 0 && m_clr_name->GetTextExtent(text).x > avail)
+        m_clr_name->SetToolTip(text);
+    else
+        m_clr_name->UnsetToolTip();
 }
 
 void AMSMaterialsSetting::on_picker_color(wxCommandEvent& event)
@@ -1972,6 +2069,17 @@ std::optional<DevNozzle> AMSMaterialsSetting::get_slot_nozzle() const
     return std::nullopt;
 }
 
+std::string AMSMaterialsSetting::slot_nozzle_diameter_str() const
+{
+    std::string diameter_str;
+    if (auto nozzle_opt = get_slot_nozzle()) {
+        std::ostringstream stream;
+        stream << std::fixed << std::setprecision(1) << nozzle_opt->GetNozzleDiameter();
+        diameter_str = stream.str();
+    }
+    return diameter_str;
+}
+
 std::set<int> AMSMaterialsSetting::slot_bound_extruder_ids() const
 {
     std::set<int> extruder_ids;
@@ -2044,12 +2152,7 @@ void AMSMaterialsSetting::on_open_filament_select_dialog()
     if (!obj) return;
     if (m_view_only || !m_filament_box_editable) return;
 
-    std::string nozzle_diameter_str;
-    if (auto nozzle_opt = get_slot_nozzle()) {
-        std::ostringstream stream;
-        stream << std::fixed << std::setprecision(1) << nozzle_opt->GetNozzleDiameter();
-        nozzle_diameter_str = stream.str();
-    }
+    const std::string nozzle_diameter_str = slot_nozzle_diameter_str();
 
     wxArrayString                          filament_items;
     std::map<std::string, FilamentInfos>   tmp_map;
@@ -2074,7 +2177,14 @@ void AMSMaterialsSetting::on_open_filament_select_dialog()
     const int     cascade  = FromDIP(20);
     const wxPoint base_pos = this->GetScreenPosition();
     const wxSize  dlg_size = dlg.GetSize();
-    const wxRect  area     = wxDisplay(wxDisplay::GetFromWindow(this)).GetClientArea();
+    const int     display_idx = wxDisplay::GetFromWindow(this);
+    wxRect        area;
+    if (display_idx != wxNOT_FOUND) {
+        area = wxDisplay(static_cast<unsigned int>(display_idx)).GetClientArea();
+    } else {
+        area = wxGetClientDisplayRect();
+        BOOST_LOG_TRIVIAL(warning) << "display not found for materials setting dialog, fallback to primary client area";
+    }
     int pos_x = base_pos.x + cascade;
     int pos_y = base_pos.y + cascade;
     if (pos_x + dlg_size.GetWidth()  > area.GetRight())  pos_x = area.GetRight()  - dlg_size.GetWidth();
@@ -2138,13 +2248,7 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
     PresetBundle *preset_bundle = wxGetApp().preset_bundle;
     m_filament_type             = "";
 
-    std::string nozzle_diameter_str;
-    auto nozzle_opt = get_slot_nozzle();
-    if (nozzle_opt) {
-        std::ostringstream stream;
-        stream << std::fixed << std::setprecision(1) << nozzle_opt->GetNozzleDiameter();
-        nozzle_diameter_str = stream.str();
-    }
+    const std::string nozzle_diameter_str = slot_nozzle_diameter_str();
 
     {
         wxArrayString                          unused_items;
@@ -2237,7 +2341,12 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
                 fila_color.AddColor(m_clr_picker->m_colour);
             }
             fila_color.EndSet(m_clr_picker->ctype);
-            color_name = clr_query->GetFilaColorName(wxString::FromUTF8(ams_filament_id), fila_color);
+            color_name = material_color_label(wxString::FromUTF8(ams_filament_id), fila_color);
+            if (auto* info = clr_query->GetFilaInfo(wxString::FromUTF8(ams_filament_id), fila_color)) {
+                const wxString code = info->GetFilaColorCode();
+                if (!code.IsEmpty())
+                    m_rfid_lbl_brand->SetLabel(filament + " (" + code + ")");
+            }
         }
         m_rfid_lbl_color_name->SetLabel(color_name);
 
@@ -2290,12 +2399,10 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
         if (store) {
             sp = store->find_by_slot(obj->get_dev_id(),
                                      std::to_string(ams_id),
-                                     std::to_string(slot_id));
+                                     std::to_string(tray_opt->get_ams_slot_id().second));
         }
         if (!sp && store && !tray_opt->uuid.empty())
             sp = store->find_by_tag_uid(tray_opt->uuid);
-        if (!sp && store && !tray_opt->setting_id.empty())
-            sp = store->find_by_setting_and_color(tray_opt->setting_id, tray_opt->color);
         if (sp) {
             init_spool_id    = sp->spool_id;
             init_display_text = spool_display_name(*sp);
@@ -2707,10 +2814,7 @@ void AMSMaterialsSetting::apply_filament_selection()
     m_filament_type = "";
     PresetBundle* preset_bundle = wxGetApp().preset_bundle;
     if (preset_bundle) {
-        std::ostringstream stream;
-        if (obj)
-            stream << std::fixed << std::setprecision(1) << obj->GetExtderSystem()->GetNozzleDiameter(0);
-        std::string nozzle_diameter_str = stream.str();
+        const std::string nozzle_diameter_str = slot_nozzle_diameter_str();
         std::set<std::string> printer_names = preset_bundle->get_printer_names_by_printer_type_and_nozzle(DevPrinterConfigUtil::get_printer_display_name(obj->printer_type),
                                                                                                           nozzle_diameter_str);
         for (auto it = preset_bundle->filaments.begin(); it != preset_bundle->filaments.end(); it++) {
@@ -2771,6 +2875,17 @@ void AMSMaterialsSetting::apply_filament_selection()
 
                     break;
                 }
+            }
+        }
+
+        // The list offered this preset but no compatible match resolved its type; OK will then be
+        // rejected with "select the material type and color first", so leave a trace of why.
+        if (m_filament_type.empty() && !m_current_filament_alias.IsEmpty()) {
+            auto item_it = map_filament_items.find(into_u8(m_current_filament_alias));
+            if (item_it != map_filament_items.end() && !item_it->second.filament_id.empty()) {
+                BOOST_LOG_TRIVIAL(warning) << "filament type unresolved for selected preset "
+                                           << KV(log_key::filament_id, item_it->second.filament_id)
+                                           << " nozzle_diameter=" << nozzle_diameter_str;
             }
         }
     }

@@ -4,6 +4,7 @@
 #include "Widgets/Label.hpp"
 #include "BBLUtil.hpp"
 
+#include "DeviceCore/DevConfig.h"
 #include "DeviceCore/DevManager.h"
 #include "DeviceCore/DevNozzleRack.h"
 #include "libslic3r/Log.hpp"
@@ -165,6 +166,7 @@ void CalibrationCaliPage::clear_last_job_status()
 
 void CalibrationCaliPage::update(MachineObject* obj)
 {
+    const bool device_changed = curr_obj != obj;
     curr_obj = obj;
     if (this->IsShown()) {
         if (obj) {
@@ -188,14 +190,16 @@ void CalibrationCaliPage::update(MachineObject* obj)
     // enable calibration when finished
     bool enable_cali = false;
     if (obj) {
-        if (obj->GetExtderSystem()->GetCurrentExtderId() != m_cur_extruder_id) {
+        if (device_changed || obj->GetExtderSystem()->GetCurrentExtderId() != m_cur_extruder_id) {
             m_cur_extruder_id = obj->GetExtderSystem()->GetCurrentExtderId();
             set_cali_img();
         }
 
         StatusPanel* status_panel = Slic3r::GUI::wxGetApp().mainframe->m_monitor->get_status_panel();
-        status_panel->sync_current_dev(obj);
-        status_panel->update_error_message();
+        if (status_panel) {
+            status_panel->sync_current_dev(obj);
+            status_panel->update_error_message();
+        }
 
         if (obj->print_status == "RUNNING")
             m_is_between_start_and_running = false;
@@ -214,11 +218,12 @@ void CalibrationCaliPage::update(MachineObject* obj)
                                 enable_cali = true;
                             }
                             else {
-                                /* Rack slots can hold mixed diameters, so ask for every diameter (-1); the single recorded diameter would drop the other slots' results. */
+                                /* Rack slots and mixed-diameter calibration can span several diameters, so ask for every diameter (-1); the single recorded diameter would drop the others' results. */
                                 auto rack = obj->GetNozzleRack();
                                 const bool has_rack = rack && rack->IsSupported() && rack->IsDirectConnectedRack();
+                                const bool multi_diameter = obj->GetConfig() && obj->GetConfig()->SupportMultiDiameterCalibration();
                                 // use selected diameter, add a counter to timeout, add a warning tips when get result failed
-                                CalibUtils::emit_get_PA_calib_results(has_rack ? -1.0f : get_selected_calibration_nozzle_dia(obj));
+                                CalibUtils::emit_get_PA_calib_results((has_rack || multi_diameter) ? -1.0f : get_selected_calibration_nozzle_dia(obj));
                                 BOOST_LOG_TRIVIAL(trace) << "CalibUtils::emit_get_PA_calib_results, auto count = " << get_result_count++;
                                 enable_cali = false;
                             }

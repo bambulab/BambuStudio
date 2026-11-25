@@ -183,7 +183,7 @@ void GLGizmoPainterBase::render_cursor() const
         if (m_cursor_type == TriangleSelector::SPHERE)
             render_cursor_sphere(trafo_matrices[m_rr.mesh_id]);
         else if (m_cursor_type == TriangleSelector::CIRCLE)
-            render_cursor_circle();
+            render_cursor_circle(trafo_matrices[m_rr.mesh_id]);
         else if (m_cursor_type == TriangleSelector::HEIGHT_RANGE)
             render_cursor_height_range(trafo_matrices[m_rr.mesh_id]);
     }
@@ -191,7 +191,7 @@ void GLGizmoPainterBase::render_cursor() const
 
 
 
-void GLGizmoPainterBase::render_cursor_circle() const
+void GLGizmoPainterBase::render_cursor_circle(const Transform3d& trafo) const
 {
     const auto& p_flat_shader = wxGetApp().get_shader("flat");
     if (!p_flat_shader) {
@@ -232,11 +232,24 @@ void GLGizmoPainterBase::render_cursor_circle() const
     const auto view_matrix = camera.get_view_matrix_for_billboard();
     const auto& proj_matrix = camera.get_projection_matrix();
 
+    // The billboard circle is sized for the orbit target and drawn at near+0.10.
+    // The paint disk sits on the hit, perpendicular to the view. In perspective,
+    // match that disk's on-screen radius: scale by (near + 0.10) / (gui_scale * hit_depth).
+    float cursor_radius = m_cursor_radius;
+    if (camera.get_type() == Camera::EType::Perspective) {
+        const Vec3d  world_hit = trafo * m_rr.hit.cast<double>();
+        const double hit_depth = -(camera.get_view_matrix() * world_hit).z();
+        const double gui_scale = camera.get_gui_scale();
+        const double near_z    = camera.get_near_z();
+        if (hit_depth > 1e-4 && gui_scale > 1e-8 && near_z > 1e-8)
+            cursor_radius = float(m_cursor_radius * (near_z + 0.10) / (gui_scale * hit_depth));
+    }
+
     Transform3d model_matrix{ Transform3d::Identity() };
     model_matrix.data()[3 * 4 + 0] = center.x();
     model_matrix.data()[3 * 4 + 1] = center.y();
-    model_matrix.data()[0 * 4 + 0] = m_cursor_radius;
-    model_matrix.data()[1 * 4 + 1] = m_cursor_radius;
+    model_matrix.data()[0 * 4 + 0] = cursor_radius;
+    model_matrix.data()[1 * 4 + 1] = cursor_radius;
 
     wxGetApp().bind_shader(p_flat_shader);
 

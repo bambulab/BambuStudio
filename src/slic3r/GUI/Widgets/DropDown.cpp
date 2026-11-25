@@ -63,7 +63,9 @@ void DropDown::Create(wxWindow *parent, long style)
     if ((style & DD_NO_CHECK_ICON) == 0)
         check_bitmap = ScalableBitmap(this, "checked", 16);
     arrow_bitmap = ScalableBitmap(this, "hms_arrow", 16);
-    synced_bitmap = ScalableBitmap(this, "badge", 14);
+    // Square corners to match the closed combo's own synced badge (Plater.cpp sets "badge_square"
+    // via SetBadgeIcon()) -- DD_ITEM_STYLE_SYNCED has no other consumer, so this is safe to hardcode.
+    synced_bitmap = ScalableBitmap(this, "badge_square", 14);
     text_off = style & DD_NO_TEXT;
 
     // BBS set default font
@@ -341,7 +343,7 @@ void DropDown::render(wxDC &dc)
         rcContent.width -= szBmp.x + 5;
     }
 
-    const int suffix_pad = FromDIP(8);
+    const int suffix_pad = FromDIP(16);
     int suffix_col = 0;
     if (!text_off) {
         dc.SetFont(::Label::Body_13);
@@ -616,7 +618,7 @@ void DropDown::messureSize()
         if (size1.x > textSize.x) textSize = size1;
     }
     if (suffix_col > 0)
-        textSize.x += FromDIP(12) + suffix_col + FromDIP(8) + synced_badge_width();
+        textSize.x += FromDIP(12) + suffix_col + FromDIP(16) + synced_badge_width();
     if (!align_icon) iconSize.x = 0;
     wxSize szContent = textSize;
     if (szContent.x < FromDIP(120))
@@ -727,14 +729,20 @@ void DropDown::autoPosition()
             if (use_content_width && count <= (size_t)max_visible_rows) size.x += 6;
             size.y = drect.GetBottom() - GetPosition().y - 10;
             wxWindow::SetSize(size);
-            if (selection >= 0) {
-                if (offset.y + rowSize.y * (selection + 1) > size.y)
-                    offset.y = size.y - rowSize.y * (selection + 1);
-                else if (offset.y + rowSize.y * selection < 0)
-                    offset.y = -rowSize.y * selection;
+            // Scroll by the visible row, not the raw item index: grouped items fold into one
+            // row, so the raw index can pass the last row and scroll the whole list out of view.
+            const int row = selectedItem();
+            if (row >= 0) {
+                if (offset.y + rowSize.y * (row + 1) > size.y)
+                    offset.y = size.y - rowSize.y * (row + 1);
+                else if (offset.y + rowSize.y * row < 0)
+                    offset.y = -rowSize.y * row;
             }
         }
     }
+    // Keep at least the last page of rows in view, whatever offset was left from earlier.
+    const int min_offset = std::min(0, GetSize().y - rowSize.y * int(count));
+    offset.y = std::clamp(offset.y, min_offset, 0);
 }
 
 void DropDown::fitWidthToDisplay(wxSize &size)

@@ -147,6 +147,7 @@ public:
         boost::uint64_t size = 0;
         int         flags = 0;
         wxBitmap    thumbnail;
+        std::shared_ptr<wxImage> thumbnail_image;
         std::shared_ptr<Download> download;
         std::string local_path;
         std::map<std::string, std::string> metadata;

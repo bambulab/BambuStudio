@@ -491,7 +491,8 @@ ImFont *StyleManager::create_imgui_font(const std::string &text, double scale, b
                                 ImFontAtlasFlags_NoPowerOfTwoHeight;
 
     const FontProp &font_prop = m_style_cache.style.prop;
-    float font_size = 36;//use fix font size get_imgui_font_size(font_prop, font_file, scale);
+    // A step above the panel labels, and below the previous fixed 36px preview size.
+    float font_size = ImGui::GetFontSize() * 1.4f;
     if (font_size < min_imgui_font_size)
         font_size = min_imgui_font_size;
     if (font_size > max_imgui_font_size)

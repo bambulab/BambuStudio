@@ -45,6 +45,8 @@ namespace Slic3r {
                 ThermalIndexMax,
                 ThermalIndexMean,
                 // end helio
+                // Preserve existing shader view IDs.
+                Objects,
                 Count
             };
 
@@ -202,10 +204,24 @@ namespace Slic3r {
                 // end helio
             private:
                 void delete_wipe_tower();
-                void render_legend_color_arr_recommen(float window_padding, bool is_show_left_right_result);
+                void render_legend_color_arr_recommen(float window_padding, bool is_show_left_right_result, float content_width);
+                void render_legend_filament_group_card(float window_padding, float content_width);
 
             protected:
                 bool m_legend_enabled{ true };
+                struct ObjectPreviewRow
+                {
+                    int label_id;
+                    std::string name;
+                    Color color;
+                };
+                struct ObjectPreviewState
+                {
+                    std::vector<ObjectPreviewRow> objects;
+                    float label_min{ 0.0f };
+                    float label_max{ 0.0f };
+                };
+                ObjectPreviewState m_object_preview;
                 float m_legend_height{ 0.0f };
                 size_t m_extruders_count{ 0 };
                 std::vector<ExtrusionRole> m_roles;
@@ -242,9 +258,14 @@ namespace Slic3r {
                 std::vector<ExtruderFilament> m_right_extruder_filament;
                 size_t m_nozzle_nums{ 0 };
                 bool   m_single_ext_multi_nozzle{ false };
+                bool   m_support_multi_nozzle_diameter{ false };
                 int    m_ams_nozzle_idx{ -1 };
                 int    m_total_nozzle_count{ 1 };
                 bool m_fold{ false };
+                // Multi-nozzle filament table in the ColorPrint legend: compact by default, per-source columns in detail mode.
+                bool m_color_print_detail{ false };
+                // Height of the horizontally scrollable detail table measured on the previous frame; ImGui 1.83 child windows cannot auto-fit their height.
+                float m_color_print_table_height{ 0.0f };
                 std::vector<size_t> m_ssid_to_moveid_map;
                 std::vector<int> m_plater_extruder;
                 //BBS: save m_gcode_result as well

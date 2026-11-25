@@ -157,6 +157,11 @@ ExtruderFullStat build_extruder_full_stat_from_nozzle_stat(const ExtruderNozzleS
 void sync_per_slot_nozzle_options_from_full_stat(DynamicPrintConfig &config, const ExtruderFullStat &full_stat);
 bool per_slot_nozzle_options_consistent(const DynamicPrintConfig &config);
 
+// Multi-diameter: replace nozzle_diameter[e] when that extruder's installed slots share one
+// positive diameter. Several diameters, or none, keep the existing element. Array length stays.
+// No-op unless the machine uses per-slot diameters and the flat slot list matches the counts.
+void apply_installed_extruder_nozzle_diameters(DynamicPrintConfig &config);
+
 /**
  * \brief Count one extruder's physical nozzle slots by their preset default volume type
  *
@@ -255,7 +260,9 @@ public:
     //BBS: project embedded preset logic
     PresetsConfigSubstitutions load_project_embedded_presets(std::vector<Preset*> project_presets, ForwardCompatibilitySubstitutionRule substitution_rule);
     std::vector<Preset*> get_current_project_embedded_presets();
-    void reset_project_embedded_presets();
+    // Returns true if any project-embedded preset was removed or a filament
+    // slot was rewritten onto a preset that still exists (UI may need reload).
+    bool reset_project_embedded_presets();
 
     //BBS: find printer model
     std::string get_texture_for_printer_model(std::string model_name);
@@ -317,6 +324,9 @@ public:
     // its per-diameter flow list cannot disagree. The printer preset's extruder_variant_list only
     // says what the model could take and must not be used to offer flow types on its own.
     std::set<std::pair<std::string, NozzleVolumeType>> get_installed_nozzle_variants() const;
+    // Whether an installed nozzle can print this filament after applying its diameter, flow and
+    // extruder restrictions. Uses the same nozzle-selection rules as the per-filament selector.
+    bool                        has_compatible_installed_nozzle(size_t filament_index) const;
     // Updates the selected diameter and switches to a matching system preset when the current preset cannot serve it.
     // `diameter_picked_by_user` keeps a diameter the machine does not currently carry: the request then
     // only has to be one the filament has a preset for. Picking a tray by hand is such a case -- the
@@ -337,6 +347,13 @@ public:
     // the result keep it anyway so validation can flag them instead of rewriting them to the
     // smallest remaining option.
     void                        seed_filament_nozzles_for_multi_diameter(const std::string &fallback_diameter);
+    // Writes process_nozzle_diameter_mode on the edited process preset right before it is saved, so a
+    // user/project process remembers which multi-diameter mode it was saved in. Printers that cannot do
+    // multi-diameter get an empty value.
+    void                        stamp_process_nozzle_diameter_mode();
+    // Whether `preset` is a user/project process preset saved in the other multi-diameter mode than the
+    // current one, on a printer that supports multi-diameter mode. Such presets must not be the active process.
+    bool                        is_other_multi_nozzle_mode_process_preset(const Preset &preset) const;
     // Writes printer_nozzle_diameter_mode on the edited printer preset right before it is saved, so a
     // user/project printer remembers which multi-diameter mode it was saved in. Printers that cannot do
     // multi-diameter get an empty value.
@@ -442,6 +459,12 @@ public:
     DynamicPrintConfig          full_config(bool apply_extruder = true, std::optional<std::vector<int>>filament_maps = std::nullopt, std::optional<std::vector<int>> filament_volume_maps = std::nullopt) const;
     // full_config() with the some "useless" config removed.
     DynamicPrintConfig          full_config_secure(std::optional<std::vector<int>>filament_maps = std::nullopt) const;
+    /**
+     * \brief full_config_secure() with the preset names to write into a 3mf file
+     *
+     * \note Use this config only for a 3mf file. Its preset names can differ from the names in this session.
+     */
+    DynamicPrintConfig          full_config_for_3mf() const;
 
     //BBS: add some functions for multiple extruders
     int get_printer_extruder_count() const;
@@ -451,7 +474,7 @@ public:
     // Load user configuration and store it into the user profiles.
     // This method is called by the configuration wizard.
     void                        load_config_from_wizard(const std::string &name, DynamicPrintConfig config, Semver file_version)
-        { this->load_config_file_config(name, false, std::move(config), file_version, true); }
+        { this->load_config_file_config(name, false, std::move(config), file_version, true); this->forget_loaded_process_keys(); }
 
     // Load configuration that comes from a model file containing configuration, such as 3MF et al.
     // This method is called by the Plater.
@@ -518,6 +541,17 @@ public:
     void                        update_compatible(PresetSelectCompatibleType select_other_print_if_incompatible, PresetSelectCompatibleType select_other_filament_if_incompatible);
     void                        update_compatible(PresetSelectCompatibleType select_other_if_incompatible) { this->update_compatible(select_other_if_incompatible, select_other_if_incompatible); }
 
+    // While uses_multi_nozzle_initial_layer_line_width() holds for the edited printer and the project, the system
+    // process presets hold multi_nozzle_initial_layer_line_width for multi_nozzle_initial_layer_line_width_keys, and
+    // the user process presets that follow their system parent's value follow it there too. Otherwise the replaced
+    // values are put back. update_compatible() calls it; a multi_nozzle_diameter_mode change without a printer
+    // switch has to call it as well.
+    void                        update_multi_nozzle_process_values();
+    // Forgets the keys of the last loaded 3mf's different_settings_to_system that update_multi_nozzle_process_values()
+    // keeps on the edited process. Call it once the project's multi_nozzle_diameter_mode is restored and the process
+    // values follow it.
+    void                        forget_loaded_process_keys();
+
     /**
      * \brief Replace the built-in default process and filament presets with the printer's preferred ones
      *
@@ -576,12 +610,32 @@ private:
 
     DynamicPrintConfig          full_fff_config(bool apply_extruder, std::optional<std::vector<int>> filament_maps=std::nullopt, std::optional<std::vector<int>> filament_volume_maps=std::nullopt) const;
     DynamicPrintConfig          full_sla_config() const;
+
+    // Process values update_multi_nozzle_process_values() replaced, by preset name and key: the own value of a system
+    // preset, or the system value a user preset follows. std::nullopt marks a user preset that keeps a value of its own.
+    std::map<std::string, std::map<std::string, std::optional<double>>> m_multi_nozzle_process_values;
+    // Edited process after the last config load, and the multi_nozzle_initial_layer_line_width_keys its
+    // different_settings_to_system lists. Those are the project's own values: the edited and saved copies of that
+    // process keep them while update_multi_nozzle_process_values() replaces the preset's values.
+    std::string           m_loaded_process_name;
+    std::set<std::string> m_loaded_process_keys;
 };
 
 ENABLE_ENUM_BITMASK_OPERATORS(PresetBundle::LoadConfigBundleAttribute)
 
 //add these functions here to allow other access
 extern void convert_filament_preset_name(std::string& machine_name, std::string& filament_name);
+
+/**
+ * \brief Check the per-extruder and per-filament option sizes of a project config read from a 3mf
+ *
+ * \param config  config exactly as read from the file, before defaults are applied
+ * \return false when a per-extruder or per-filament option size rule fails
+ * \note Pass the raw file config. The function checks the filament variant sizes on the config
+ *       merged over FullPrintConfig defaults, because the loader sees that view. It checks
+ *       extruder_type on the raw config, because a default would hide a missing option.
+ */
+bool check_project_config(const DynamicPrintConfig &config);
 
 } // namespace Slic3r
 

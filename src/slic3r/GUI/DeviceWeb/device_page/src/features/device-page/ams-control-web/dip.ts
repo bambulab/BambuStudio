@@ -31,6 +31,8 @@ export const NOZZLE_ICON = {
 // AMSextruder dual: wxLEFT FromDIP(2) between left_nozzle and right_nozzle.
 export const NOZZLE_GAP = 2;
 
+export const NOZZLE_LABEL = { gap: 6, fontSize: 12 } as const;
+
 export const HUM_ICON = { numbered: 20, plain: 16, sun: 20, heating: 16 } as const;
 
 export const TRAY_ICON = { sideWidth: 52, midWidth: 50, height: 72 } as const;
@@ -70,9 +72,8 @@ export const SLOT_REMAIN_LINE = {
   marginX: 0,
   gapToCard: 2,
   border: 1,
-  // Capsule outline and consumed-side track. Both are darker than the spool
-  // fill so a white filament keeps its contrast, unlike AmsMappingPopup's flat
-  // #E4E4E4 track where a pale remainder washed out.
+  // Capsule outline and consumed-side track. The outline is also drawn around
+  // the fill, so a white filament keeps a visible edge against the light track.
   borderColor: 'var(--ams-web-remain-frame)',
   trackColor: 'var(--ams-web-remain-track)',
 } as const;

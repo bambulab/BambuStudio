@@ -34,6 +34,7 @@ class OG_CustomCtrl :public wxPanel
 
     wxSize  m_bmp_mode_sz;
     wxSize  m_bmp_blinking_sz;
+    ScalableBitmap m_bmp_warning;
 
     int     m_max_win_width{0};
     bool    m_multi_nozzle_mode_enabled{false};
@@ -82,6 +83,8 @@ class OG_CustomCtrl :public wxPanel
         wxCoord content_height() const;
         wxCoord draw_text      (wxDC& dc, wxPoint pos, const wxString& text, const wxColour* color, int width, bool is_url = false, bool is_main = false);
         wxPoint draw_blinking_bmp(wxDC& dc, wxPoint pos, bool is_blinking);
+        /// Draw the warning icon of \p field into the room reserved after it; returns the next h_pos
+        wxCoord draw_warning_bmp(wxDC& dc, wxPoint pos, Field* field, size_t rect_id);
         wxCoord draw_act_bmps(wxDC& dc, wxPoint pos, const wxBitmap& bmp_undo_to_sys, const wxBitmap& bmp_undo, bool is_blinking, size_t rect_id = 0, bool skip_vertical_adjust = false);
         bool    launch_browser() const;
         bool    is_separator() const { return og_line.is_separator(); }
@@ -90,6 +93,7 @@ class OG_CustomCtrl :public wxPanel
 
         std::vector<wxRect> rects_undo_icon;
         std::vector<wxRect> rects_undo_to_sys_icon;
+        std::vector<wxRect> rects_warning_icon;
         wxRect              rect_label;
         wxRect              rect_nozzle_mirror;
         wxRect              rect_nozzle_group;

@@ -266,6 +266,24 @@ public:
 
     // Name of the preset, usually derived form the file name.
     std::string         name;
+
+    /**
+     * \brief Name that the 3mf file stores for this preset
+     *
+     * A project preset loaded from a 3mf file may get a suffix in 
+     * name: "x" in a.3mf loads as "x(a.3mf)".
+     * This keeps "x". Empty for a preset otherwise
+     * \note Read name_for_3mf() instead of this field.
+     */
+    std::string         name_from_3mf;
+
+    /**
+     * \brief Name to write into a 3mf file
+     *
+     * \note Use this name only for the 3mf file. Use name for all other purposes, such as the UI and preset lookup.
+     * \note Never write name into a 3mf file. Each save and reopen then adds one more suffix.
+     */
+    const std::string&  name_for_3mf() const;
     // File name of the preset. This could be a Print / Filament / Printer preset,
     // or a Configuration file bundling the Print + Filament + Printer presets (in that case is_external and possibly is_system will be true),
     // or it could be a G-code (again, is_external will be true).
@@ -517,7 +535,9 @@ public:
     //BBS: add project embedded presets logic
     void load_project_embedded_presets(std::vector<Preset*>& project_presets, const std::string& type, PresetsConfigSubstitutions& substitutions, ForwardCompatibilitySubstitutionRule rule);
     std::vector<Preset*> get_project_embedded_presets();
-    bool reset_project_embedded_presets();
+    // Returns true if the previously selected preset was removed (caller must reselect).
+    // If out_removed is set, receives whether any project-embedded preset was erased.
+    bool reset_project_embedded_presets(bool *out_removed = nullptr);
 
     // Load a preset from an already parsed config file, insert it into the sorted sequence of presets
     // and select it, losing previous modifications.
@@ -641,6 +661,9 @@ public:
         return (idx == m_idx_selected) ? m_edited_preset : m_presets[idx];
     }
     const Preset&   preset(size_t idx) const    { return const_cast<PresetCollection*>(this)->preset(idx); }
+    // Sets a float option of the preset at idx. With copies_follow, its edited and saved copies follow while they
+    // still hold the previous value, so the change does not show up as a user modification.
+    void            set_preset_float(size_t idx, const std::string &opt_key, double value, bool copies_follow);
     void            discard_current_changes() {
         m_presets[m_idx_selected].reset_dirty();
         m_edited_preset = m_presets[m_idx_selected];

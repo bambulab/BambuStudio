@@ -4,9 +4,9 @@
 
 namespace Slic3r {
 
-enum DevMcTackType
+enum DevMcTaskType
 {
-
+    MULTI_FILAMENT_CHANGE = 1
 };
 
 class DevMcTask
@@ -16,7 +16,8 @@ public:
     void Reset();
 
     bool IsValid() const { return m_id >= 0; }
-    int  GetId() const { return m_id; }
+    DevMcTaskType GetTaskType() const { return (DevMcTaskType)m_id; }
+
     int  GetStepRaw() const { return m_step; }
     int  GetSubStep() const { return (m_step >> 8) & 0xFF; }
     int  GetTotalStep() const { return m_step & 0xFF; }

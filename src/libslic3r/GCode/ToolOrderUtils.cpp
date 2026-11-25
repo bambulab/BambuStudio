@@ -1721,10 +1721,15 @@ namespace Slic3r
                 }
 
                 const int nozzle_count = static_cast<int>(base_nozzles.size());
+                start_nozzle_idx %= nozzle_count;
+                if (start_nozzle_idx < 0)
+                    start_nozzle_idx += nozzle_count;
                 for (int j = 0; j < nozzle_count; ++j) {
-                    int nozzle_idx = (start_nozzle_idx + j) % nozzle_count;
-                    if (nozzle_idx < 0)
-                        nozzle_idx += nozzle_count;
+                    // Nozzles are traversed in ascending index order; only the nozzle used last
+                    // on the previous layer is moved to the front. Rotating the whole order
+                    // cyclically made the layer-to-layer nozzle sequence fall into a longer period.
+                    int nozzle_idx = (j == 0) ? start_nozzle_idx
+                                              : (j <= start_nozzle_idx ? j - 1 : j);
                     int nozzle_id = base_nozzles[nozzle_idx];
                     auto seq_it = nozzle_filament_sequences.find(nozzle_id);
                     if (seq_it == nozzle_filament_sequences.end() || layer >= seq_it->second.size())

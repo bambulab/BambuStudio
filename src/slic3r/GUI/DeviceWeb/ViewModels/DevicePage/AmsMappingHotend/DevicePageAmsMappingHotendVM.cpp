@@ -434,8 +434,10 @@ nlohmann::json DevicePageAmsMappingHotendVM::BuildState() const
                     empty_td.ams_id   = slot_opt->first;
                     empty_td.slot_id  = slot_opt->second;
                     empty_td.ams_type = ams_ptr ? ams_ptr->GetAmsType() : DevAmsType::AMS;
-                    empty_td.id       = ams_ptr ? ams_ptr->GetTrayId(empty_td.slot_id)
-                                                : empty_td.slot_id;
+                    empty_td.id       = (empty_td.ams_type == DevAmsType::N3S)
+                                            ? (empty_td.ams_id + empty_td.slot_id)
+                                            : (ams_ptr ? ams_ptr->GetTrayId(empty_td.slot_id)
+                                                       : empty_td.slot_id);
                     td_opt = empty_td;
                 } else {
                     if (auto opt_tray = obj->get_tray(slot_opt->first, slot_opt->second)) {
@@ -459,8 +461,10 @@ nlohmann::json DevicePageAmsMappingHotendVM::BuildState() const
                         } else {
                             third_td.slot_id  = slot_opt->second;
                             third_td.ams_type = ams_ptr ? ams_ptr->GetAmsType() : DevAmsType::AMS;
-                            third_td.id       = ams_ptr ? ams_ptr->GetTrayId(third_td.slot_id)
-                                                        : third_td.slot_id;
+                            third_td.id       = (third_td.ams_type == DevAmsType::N3S)
+                                                    ? (third_td.ams_id + third_td.slot_id)
+                                                    : (ams_ptr ? ams_ptr->GetTrayId(third_td.slot_id)
+                                                               : third_td.slot_id);
                         }
                         td_opt = third_td;
                     }
@@ -830,11 +834,16 @@ nlohmann::json DevicePageAmsMappingHotendVM::BuildSlotJson(MachineObject*       
             sub_slot[SK::slot::ams_id]         = std::to_string(sub_td.ams_id);
             sub_slot[SK::slot::slot_id]        = std::to_string(sub_td.slot_id);
             sub_slot[SK::slot::tray_id]        = sub_td.id;
-            // A preload card is another feed source for the *same* hotend
-            // position as the main card, so it carries the hotend index (which
-            // the send page also shows as the mapping label). Real sub-AMS
-            // slots keep their ordinal inside their own AMS unit.
-            sub_slot[SK::slot::index]          = std::to_string(g.is_preload ? slot_index : sub_index);
+
+            const std::string sub_idx_str = std::to_string(g.is_preload ? slot_index : sub_index);
+            sub_slot[SK::slot::index] = sub_idx_str;
+            wxString sub_display_idx  = g.is_preload
+                                            ? wxString::FromUTF8(sub_idx_str.c_str())
+                                            : wxGetApp().transition_tridid(sub_td.id, std::nullopt, obj);
+            if (sub_display_idx.empty()) {
+                sub_display_idx = wxString::FromUTF8(sub_idx_str.c_str());
+            }
+            sub_slot[SK::slot::display_index] = sub_display_idx.ToUTF8().data();
             ++sub_index;
             sub_slot[SK::slot::ext]            = (sub_td.ams_type == DevAmsType::EXT_SPOOL);
             sub_slot[SK::slot::state]          = slot_state_to_string(sj.state);

@@ -60,6 +60,11 @@ public:
     void ShowCalibrationButton(bool show = true);
 
 private:
+    /**
+     * \brief Add a fixed spacer of \p dip device-independent pixels that follows DPI changes in Rescale()
+     */
+    void AddDipSpacer(int dip);
+
     wxFrame* m_frame;
     wxAuiToolBarItem* m_file_menu_item;
     wxAuiToolBarItem* m_dropdown_menu_item;

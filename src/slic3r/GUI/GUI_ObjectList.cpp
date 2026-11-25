@@ -1184,9 +1184,8 @@ void ObjectList::update_filament_colors()
 
 void ObjectList::update_name_column_width() const
 {
+#ifndef __APPLE__
     wxSize client_size = this->GetClientSize();
-    bool p_vbar = this->GetParent()->HasScrollbar(wxVERTICAL);
-    bool p_hbar = this->GetParent()->HasScrollbar(wxHORIZONTAL);
 
     auto em = em_unit(const_cast<ObjectList*>(this));
     // BBS: walkaround for wxDataViewCtrl::HasScrollbar() does not return correct status
@@ -1199,6 +1198,7 @@ void ObjectList::update_name_column_width() const
     }
 
     GetColumn(colName)->SetWidth(client_size.x - (others_width)*em);
+#endif
 }
 
 void ObjectList::set_filament_column_hidden(const bool hide) const
@@ -2727,10 +2727,35 @@ void GUI::ObjectList::add_new_model_object_from_old_object() {
         const int vol_idx = m_objects_model->GetVolumeIdByItem(item);
         vol_idxs.emplace_back(vol_idx);
     }
-    if (vol_idxs.empty()) {
+    if (vol_idxs.empty() || obj_idx < 0 || m_objects == nullptr || obj_idx >= static_cast<int>(m_objects->size()))
         return;
+    // Both the promoted volumes and the ones left on this object need a solid part.
+    {
+        const ModelObject* source = (*m_objects)[obj_idx];
+        if (source == nullptr)
+            return;
+        std::vector<bool> selected(source->volumes.size(), false);
+        bool selected_has_part = false;
+        for (int vol_idx : vol_idxs) {
+            if (vol_idx < 0 || vol_idx >= static_cast<int>(source->volumes.size()) || source->volumes[vol_idx] == nullptr)
+                continue;
+            selected[vol_idx] = true;
+            if (source->volumes[vol_idx]->is_model_part())
+                selected_has_part = true;
+        }
+        bool remaining_has_part = false;
+        for (size_t i = 0; i < source->volumes.size(); ++i) {
+            if (selected[i] || source->volumes[i] == nullptr)
+                continue;
+            if (source->volumes[i]->is_model_part()) {
+                remaining_has_part = true;
+                break;
+            }
+        }
+        if (!selected_has_part || !remaining_has_part)
+            return;
     }
-    take_snapshot("Add new model object");
+    take_snapshot("Split as New Object");
     wxBusyCursor cursor;
     std::sort(vol_idxs.begin(), vol_idxs.end());
     ModelVolumePtrs sel_volumes;
@@ -2754,7 +2779,11 @@ void GUI::ObjectList::add_new_model_object_from_old_object() {
 
     std::vector<size_t> object_idxs;
     ModelObject *       new_object = model.add_object();
-    new_object->name               = into_u8(_L("Sub-merged body"));
+    // A single promoted volume keeps its part name. Several volumes share one new object name.
+    if (sel_volumes.size() == 1 && !sel_volumes.front()->name.empty())
+        new_object->name = sel_volumes.front()->name;
+    else
+        new_object->name = into_u8(_L("New Object"));
     new_object->add_instance(); // each object should have at least one instance
     int min_extruder = (int) EnforcerBlockerType::ExtruderMax;
     for (auto mv : sel_volumes) {
@@ -3629,11 +3658,11 @@ void ObjectList::merge(bool to_multipart_object)
     }
 }
 
-void ObjectList::merge_objects(const std::vector<size_t>& obj_idxs)
+std::vector<size_t> ObjectList::merge_objects(const std::vector<size_t>& obj_idxs)
 {
     // Merge the given whole objects into one multipart object, reusing merge(true) so the assemble-pose
     if (obj_idxs.size() <= 1)
-        return;
+        return obj_idxs;
 
     wxDataViewItemArray sels;
     for (const size_t idx : obj_idxs) {
@@ -3644,10 +3673,12 @@ void ObjectList::merge_objects(const std::vector<size_t>& obj_idxs)
             sels.Add(item);
     }
     if (sels.GetCount() < 2)
-        return;
+        return obj_idxs;
 
     select_items(sels);
     merge(true);
+    // merge(true) appends the merged object to the end of the model, then removes the sources.
+    return { m_objects->size() - 1 };
 }
 
 void ObjectList::merge_volumes()
@@ -4705,8 +4736,30 @@ wxDataViewItemArray ObjectList::add_volumes_to_object_in_list(size_t obj_idx, st
     return items;
 }
 
+// wxDataViewRendererBase keeps the item it is editing in its own m_item and nothing clears it when the
+// node behind that item is destroyed. Deleting nodes while a cell editor is open therefore leaves m_item
+// dangling, and the next kill-focus runs FinishEditing() -> GetValueFromEditorCtrl() / ChangeValue() over
+// freed memory -- which is how quitting with the plate name editor open crashed in
+// ObjectDataViewModel::GetValue(). Call this before anything that deletes nodes.
+// It has to run while the node is still alive: CancelEditing() fires wxEVT_DATAVIEW_ITEM_EDITING_DONE and
+// OnEditingDone() reads the item being edited.
+void ObjectList::cancel_item_editing()
+{
+    for (unsigned int col = 0; col < GetColumnCount(); ++col) {
+        wxDataViewColumn* column = GetColumn(col);
+        if (!column)
+            continue;
+        wxDataViewRenderer* renderer = column->GetRenderer();
+        // No open editor means no stale item to clear, and CancelEditing() would still fire EDITING_DONE.
+        if (renderer && renderer->GetEditorCtrl())
+            renderer->CancelEditing();
+    }
+}
+
 void ObjectList::delete_object_from_list()
 {
+    cancel_item_editing();
+
     auto item = GetSelection();
     if (!item)
         return;
@@ -4718,16 +4771,19 @@ void ObjectList::delete_object_from_list()
 
 void ObjectList::delete_object_from_list(const size_t obj_idx)
 {
+    cancel_item_editing();
     select_item([this, obj_idx]() { return m_objects_model->Delete(m_objects_model->GetItemById(obj_idx)); });
 }
 
 void ObjectList::delete_volume_from_list(const size_t obj_idx, const size_t vol_idx)
 {
+    cancel_item_editing();
     select_item([this, obj_idx, vol_idx]() { return m_objects_model->Delete(m_objects_model->GetItemByVolumeId(obj_idx, vol_idx)); });
 }
 
 void ObjectList::delete_instance_from_list(const size_t obj_idx, const size_t inst_idx)
 {
+    cancel_item_editing();
     select_item([this, obj_idx, inst_idx]() { return m_objects_model->Delete(m_objects_model->GetItemByInstanceId(obj_idx, inst_idx)); });
 }
 
@@ -4768,6 +4824,8 @@ void ObjectList::delete_from_model_and_list(const std::vector<ItemForDelete>& it
 {
     if (items_for_delete.empty())
         return;
+
+    cancel_item_editing();
 
     m_prevent_list_events = true;
     //BBS
@@ -7043,7 +7101,14 @@ void ObjectList::OnEditingStarted(wxDataViewEvent &event)
     const auto renderer = column->GetRenderer();
     if (!renderer->GetEditorCtrl()) {
         renderer->StartEditing(item, GetItemRect(item, column));
-        if (col == colName) // TODO: for colName editing, disable shortcuts
+        // TODO: for colName editing, disable shortcuts
+        // Only the item types the name renderer actually opens an editor for (see the
+        // can_create_editor_ctrl function set in the ctor). Layers and ranges reach this point too,
+        // but CreateEditorCtrl() refuses them, so dropping the accelerators there would turn the
+        // list's shortcuts off without any edit having started -- and nothing would turn them back
+        // on, because this path Veto()s the event and EDITING_DONE, which restores the table, never
+        // fires.
+        if (col == colName && (m_objects_model->GetItemType(item) & (itVolume | itObject | itPlate)))
             SetAcceleratorTable(wxNullAcceleratorTable);
     }
 #ifdef __WXOSX__
@@ -7201,6 +7266,8 @@ void ObjectList::on_plate_added(PartPlate* part_plate)
 
 void ObjectList::on_plate_deleted(int plate_idx)
 {
+    cancel_item_editing();
+
     m_objects_model->DeletePlate(plate_idx);
 
     wxDataViewItemArray top_list;
@@ -7212,6 +7279,8 @@ void ObjectList::on_plate_deleted(int plate_idx)
 
 void ObjectList::reload_all_plates(bool notify_partplate)
 {
+    cancel_item_editing();
+
     m_prevent_canvas_selection_update = true;
 #ifdef __WXOSX__
     AssociateModel(nullptr);

@@ -1464,6 +1464,16 @@ static inline ExPolygons detect_overhangs(
             }
         }
 
+        // 同层各区域的下层外扩量通常相同，按外扩量缓存，相同时只算一次。
+        float    lower_expanded_offset = -1.f;
+        Polygons lower_expanded;
+        auto expanded_lower_layer = [&](float offset) -> const Polygons & {
+            if (offset != lower_expanded_offset) {
+                lower_expanded        = expand(lower_layer_polygons, offset, SUPPORT_SURFACES_OFFSET_PARAMETERS);
+                lower_expanded_offset = offset;
+            }
+            return lower_expanded;
+        };
         for (LayerRegion *layerm : layer.regions()) {
             // Extrusion width accounts for the roundings of the extrudates.
             // It is the maximum widh of the extrudate.
@@ -1493,7 +1503,7 @@ static inline ExPolygons detect_overhangs(
                 //FIXME cache the lower layer offset if this layer has multiple regions.
                 diff_polygons = 
                     diff(layerm_polygons,
-                            expand(lower_layer_polygons, lower_layer_offset, SUPPORT_SURFACES_OFFSET_PARAMETERS));
+                            expanded_lower_layer(lower_layer_offset));
                 if (buildplate_only && ! annotations.buildplate_covered[layer_id].empty()) {
                     // Don't support overhangs above the top surfaces.
                     // This step is done before the contact surface is calculated by growing the overhang region.
@@ -1571,9 +1581,16 @@ static inline ExPolygons detect_overhangs(
     ExPolygons overhang_areas = union_ex(overhang_polygons);
     // check cantilever
     if (layer.lower_layer) {
+        // 外扩量对本层所有悬垂相同，下层轮廓只外扩一次。
+        ExPolygons lower_slices_grown;
+        bool       lower_slices_grown_valid = false;
         for (ExPolygon& poly : overhang_areas) {
             float fw = float(layer.regions().front()->flow(frExternalPerimeter).scaled_width());
-            auto cluster_boundary_ex = intersection_ex(poly, offset_ex(layer.lower_layer->lslices, std::max(fw, lower_layer_offset) + scale_(0.1)));
+            if (!lower_slices_grown_valid) {
+                lower_slices_grown       = offset_ex(layer.lower_layer->lslices, std::max(fw, lower_layer_offset) + scale_(0.1));
+                lower_slices_grown_valid = true;
+            }
+            auto cluster_boundary_ex = intersection_ex(poly, lower_slices_grown);
             Polygons cluster_boundary = to_polygons(cluster_boundary_ex);
             if (cluster_boundary.empty()) continue;
             double dist_max = 0;
@@ -2084,6 +2101,10 @@ static void merge_contact_layers(const SlicingParameters &slicing_params, double
 struct OverhangCluster {
     std::map<int, std::vector<ExPolygon*>> layer_overhangs;
     ExPolygons merged_overhangs_dilated;
+    // 分组时只收集外扩后的各部分及包围盒，最后由 finalize_merged() 一次性求并。
+    ExPolygons               dilated_parts;
+    std::vector<BoundingBox> dilated_part_bboxes;
+    BoundingBox              dilated_bbox;
     int min_layer = 1e7;
     int max_layer = 0;
     coordf_t offset_scaled = 0;
@@ -2091,60 +2112,75 @@ struct OverhangCluster {
     bool is_sharp_tail = false;
     bool is_small_overhang = false;
 
-    OverhangCluster(ExPolygon* overhang, int layer_nr, coordf_t offset_scaled) {
+    OverhangCluster(ExPolygon* overhang, int layer_nr, coordf_t offset_scaled, const ExPolygons &overhang_dilated) {
         this->offset_scaled = offset_scaled;
-        insert(overhang, layer_nr);
+        insert(overhang, layer_nr, overhang_dilated);
     }
 
-    void insert(ExPolygon* overhang_new, int layer_nr) {
+    // overhang_dilated 为调用方算好的 offset_ex(*overhang_new, offset_scaled)。
+    void insert(ExPolygon* overhang_new, int layer_nr, const ExPolygons &overhang_dilated) {
         if (layer_overhangs.find(layer_nr) != layer_overhangs.end()) {
             layer_overhangs[layer_nr].push_back(overhang_new);
         }
         else {
             layer_overhangs.emplace(layer_nr, std::vector<ExPolygon*>{ overhang_new });
         }
-        ExPolygons overhang_dilated = offset_scaled > EPSILON ? offset_ex(*overhang_new, offset_scaled) : ExPolygons{ *overhang_new };
-        if (!overhang_dilated.empty())
-            merged_overhangs_dilated = union_ex(merged_overhangs_dilated, overhang_dilated);
+        for (const ExPolygon &part : offset_scaled > EPSILON ? overhang_dilated : ExPolygons{ *overhang_new }) {
+            dilated_parts.emplace_back(part);
+            dilated_part_bboxes.emplace_back(get_extents(part));
+            dilated_bbox.merge(dilated_part_bboxes.back());
+        }
         min_layer = std::min(min_layer, layer_nr);
         max_layer = std::max(max_layer, layer_nr);
+    }
+
+    void finalize_merged()
+    {
+        merged_overhangs_dilated = union_ex(dilated_parts);
+        dilated_parts.clear();
+        dilated_parts.shrink_to_fit();
+        dilated_part_bboxes.clear();
+        dilated_part_bboxes.shrink_to_fit();
     }
 
     int height() {
         return max_layer - min_layer + 1;
     }
 
-    bool intersects(const ExPolygon& overhang_new, int layer_nr) {
+    // 与合并区域相交等价于与其中某个部分相交；包围盒不相交的部分直接跳过。
+    bool intersects(const ExPolygons &overhang_dilated, const BoundingBox &overhang_bbox, int layer_nr) {
         if (layer_nr < 1)
             return false;
 
-        //auto it = layer_overhangs.find(layer_nr - 1);
-        //if (it == layer_overhangs.end())
-        //    return false;
-        //ExPolygons overhangs_lower;
-        //for (ExPolygon* poly : it->second) {
-        //    overhangs_lower.push_back(*poly);
-        //}
         if (layer_nr<min_layer - 1 || layer_nr>max_layer + 1)
             return false;
-        const ExPolygons overhang_dilated = offset_ex(overhang_new, offset_scaled);
-        return overlaps(overhang_dilated, merged_overhangs_dilated);
+        if (overhang_dilated.empty() || !dilated_bbox.defined || !dilated_bbox.overlap(overhang_bbox))
+            return false;
+        for (const ExPolygon &a : overhang_dilated) {
+            const BoundingBox a_bbox = get_extents(a);
+            for (size_t i = 0; i < dilated_parts.size(); ++i)
+                if (dilated_part_bboxes[i].overlap(a_bbox) && a.overlaps(dilated_parts[i]))
+                    return true;
+        }
+        return false;
     }
 };
 
 static OverhangCluster* add_overhang(std::vector<OverhangCluster>& clusters, ExPolygon* overhang, int layer_nr, coordf_t offset_scaled) {
     OverhangCluster* cluster = nullptr;
-    bool found = false;
+    // 外扩只算一次，供所有聚类的相交判断和插入复用。
+    const ExPolygons  overhang_dilated = offset_ex(*overhang, offset_scaled);
+    const BoundingBox overhang_bbox    = get_extents(overhang_dilated);
     for (int i = 0; i < clusters.size(); i++) {
         auto cluster_i = &clusters[i];
-        if (cluster_i->intersects(*overhang, layer_nr)) {
-            cluster_i->insert(overhang, layer_nr);
+        if (cluster_i->intersects(overhang_dilated, overhang_bbox, layer_nr)) {
+            cluster_i->insert(overhang, layer_nr, overhang_dilated);
             cluster = cluster_i;
             break;
         }
     }
     if (!cluster) {
-        cluster = &clusters.emplace_back(overhang, layer_nr, offset_scaled);
+        cluster = &clusters.emplace_back(overhang, layer_nr, offset_scaled, overhang_dilated);
     }
     return cluster;
 };
@@ -2317,7 +2353,11 @@ SupportGeneratorLayersPtr PrintObjectSupportMaterial::top_contact_layers(
             }
         }
 
-        for (OverhangCluster& cluster : clusters) {
+        // 各聚类分类相互独立，可并行；待删除悬垂仍按原顺序串行收集。
+        tbb::parallel_for(tbb::blocked_range<size_t>(0, clusters.size()), [&](const tbb::blocked_range<size_t> &range) {
+          for (size_t cluster_idx = range.begin(); cluster_idx < range.end(); ++cluster_idx) {
+            OverhangCluster &cluster = clusters[cluster_idx];
+            cluster.finalize_merged();
             // 3. check whether the small overhang is sharp tail
             cluster.is_sharp_tail = false;
             for (size_t layer_id = cluster.min_layer; layer_id <= cluster.max_layer; layer_id++) {
@@ -2348,7 +2388,9 @@ SupportGeneratorLayersPtr PrintObjectSupportMaterial::top_contact_layers(
                 svg.draw(cluster.merged_overhangs_dilated, "blue");
             }
 #endif
-
+          }
+        });
+        for (const OverhangCluster &cluster : clusters) {
             // 5. remove small overhangs
             if (cluster.is_small_overhang) {
                 for (auto overhangs : cluster.layer_overhangs) {
@@ -2375,7 +2417,9 @@ SupportGeneratorLayersPtr PrintObjectSupportMaterial::top_contact_layers(
     if (object.print()->canceled())
         return SupportGeneratorLayersPtr();
 
-    for (size_t layer_id = layer_id_start; layer_id < num_layers; layer_id++) {
+    // 各层接触区只读本层和下层数据，按 layer_id 写入固定位置，可并行；层分配用带锁的 allocate()。
+    tbb::parallel_for(tbb::blocked_range<size_t>(layer_id_start, num_layers), [&](const tbb::blocked_range<size_t> &range) {
+      for (size_t layer_id = range.begin(); layer_id < range.end(); layer_id++) {
         const Layer& layer = *object.layers()[layer_id];
         Polygons            overhang_polygons = to_polygons(overhangs_per_layers[layer_id]);
         Polygons            lower_layer_polygons = (layer_id == 0) ? Polygons() : to_polygons(object.layers()[layer_id - 1]->lslices);
@@ -2415,7 +2459,8 @@ SupportGeneratorLayersPtr PrintObjectSupportMaterial::top_contact_layers(
                 }
             }
         }
-    }
+      }
+    });
 
     // Compress contact_out, remove the nullptr items.
     remove_nulls(contact_out);

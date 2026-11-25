@@ -116,6 +116,11 @@ private:
     // row → spool reverse map (populated by make_spool_row for non-dimmed rows)
     std::map<wxWindow*, FilamentSpool>          m_row_to_spool;
 
+    // Devices with a second external spool mounted (numbered in the "In use" tooltip).
+    std::set<std::string>                       m_multi_ext_devs;
+    // Width of the row tail column (badges / placeholder), set by fill_manager_tab().
+    int                                         m_badge_col_w{0};
+
     // confirmed selection result (valid after EndModal(wxID_OK))
     SelectionResult   m_result;
 

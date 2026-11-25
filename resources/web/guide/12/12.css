@@ -1,0 +1,13 @@
+#Title div
+{
+	font-size: 20px;
+}
+
+#PolicyTxt
+{
+	padding: 20px;
+	word-wrap: break-word;
+	border-style: solid;
+	border-width: 1px;
+	border-color: #D7D7D7;
+}

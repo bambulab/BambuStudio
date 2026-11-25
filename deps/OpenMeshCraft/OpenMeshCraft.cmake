@@ -4,6 +4,7 @@
 #   CMakeLists.txt.in                - upstream root overlay + wrapper install
 #   OpenMeshCraftConfig.cmake.in     - Config installed into dependency prefix
 #   wrapper/                         - C ABI sources
+#   0001-*.patch, 0002-*.patch       - fixes on top of the fetched source
 #
 # Install tree (CMAKE_PREFIX_PATH):
 #   include/OpenMeshCraft/OpenMeshCraftBoolean.h
@@ -16,10 +17,19 @@
 # does not need CGAL/googletest; prepare only fills empty submodule placeholders
 # (eigen / parallel-hashmap / oneTBB) and vendors {fmt} for GCC9 / old Apple libc++.
 # Linux/mac/AVX compatibility lives in the fetched OpenMeshCraft zip
-# (bambulab/OpenMeshCraft @0e8d12c3, merged PR #2 OMC::format);
-# do not mutate unzipped .h/.cpp here.
+# (bambulab/OpenMeshCraft @0e8d12c3, merged PR #2 OMC::format). Source fixes are
+# applied as the numbered patches in this directory; do not edit the unzipped
+# .h/.cpp any other way.
 
 set(_OMC_DIR "${CMAKE_CURRENT_LIST_DIR}")
+
+# `git apply` run inside a work tree resolves the patch paths against the
+# repository root and silently skips anything outside the current prefix (see
+# Assimp.cmake). deps/CMakeLists.txt defines BINARY_DIR_REL only when it detected
+# a work tree, so tell git where the extracted sources live in that case.
+if (BINARY_DIR_REL)
+  set(OMC_DIRECTORY_FLAG --directory ${BINARY_DIR_REL}/dep_OpenMeshCraft-prefix/src/dep_OpenMeshCraft)
+endif ()
 set(_OMC_GEN_DIR "${CMAKE_CURRENT_BINARY_DIR}/omc_gen")
 file(MAKE_DIRECTORY "${_OMC_GEN_DIR}")
 
@@ -239,16 +249,13 @@ if(MPFR_PKG)
   list(APPEND _OMC_DEPENDS ${MPFR_PKG})
 endif()
 
-set(_OMC_SIMD_ARGS "")
-# x86 SSE/AVX flags are not valid on aarch64, so disable them there just like
-# on Apple Silicon (GCC on Linux aarch64 rejects -mavx2/-mfma outright).
+set(_OMC_SIMD_ARGS
+  -DOMC_CMAKE_ENABLE_AVX=OFF
+  -DOMC_CMAKE_ENABLE_AVX2=OFF
+  -DOMC_CMAKE_ENABLE_FMA=OFF
+)
 if(APPLE OR CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64|arm64")
-  set(_OMC_SIMD_ARGS
-    -DOMC_CMAKE_ENABLE_SSE2=OFF
-    -DOMC_CMAKE_ENABLE_AVX=OFF
-    -DOMC_CMAKE_ENABLE_AVX2=OFF
-    -DOMC_CMAKE_ENABLE_FMA=OFF
-  )
+  list(APPEND _OMC_SIMD_ARGS -DOMC_CMAKE_ENABLE_SSE2=OFF)
 endif()
 
 # MSVC has std::format; GCC 9 / older Apple libc++ use vendored {fmt}.
@@ -281,6 +288,11 @@ bambustudio_add_cmake_project(OpenMeshCraft
   COMMAND ${CMAKE_COMMAND} -E copy
     ${_OMC_DIR}/OpenMeshCraftConfig.cmake.in
     <SOURCE_DIR>/OpenMeshCraftConfig.cmake.in
+  # 0001: coplanar input crashes/hangs; 0002: coincident face winding, no input
+  # limit, labeled arrangement export (used by wrapper/OpenMeshCraftBoolean.cpp).
+  COMMAND git apply ${OMC_DIRECTORY_FLAG} --verbose --ignore-space-change --whitespace=fix
+    ${_OMC_DIR}/0001-OpenMeshCraft-coplanar-crash-fix.patch
+    ${_OMC_DIR}/0002-OpenMeshCraft-coincident-winding-labels-export.patch
   CMAKE_ARGS
     -DOMC_BUILD_TEST=OFF
     -DOMC_MASTER_PROJECT=OFF

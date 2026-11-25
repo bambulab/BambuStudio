@@ -1,6 +1,9 @@
 #include "Tab.hpp"
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Model.hpp"
+#include "libslic3r/PerfTrace.hpp"
+
+#include <memory>
 
 #include <wx/app.h>
 #include <wx/button.h>
@@ -32,7 +35,6 @@
 
 #include "DeviceCore/DevFilaSystem.h"
 #include "DeviceCore/DevManager.h"
-#include "DeviceCore/DevHMSQuery.h"
 #include "fila_manager/wgtFilaManagerCloudDispatcher.h"
 #include "libslic3r/Log.hpp"
 
@@ -105,35 +107,87 @@ MonitorPanel::MonitorPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, 
     : wxPanel(parent, id, pos, size, style),
     m_select_machine(SelectMachinePopup(this))
 {
+    // Cheap empty shell only; StatusPanel / tabbook are created in ensure_content()
+    // on first Show so MainFrame startup stays fast and notebook page is stable.
+    PERF_TRACE("startup.monitor.ctor");
+    SetBackgroundColour(*wxWHITE);
+}
+
+void MonitorPanel::ensure_content()
+{
+    if (m_initialized)
+        return;
+
+    PERF_TRACE("startup.monitor.ensure_content");
+
+    // Parent page may already be visible. Freeze so children do not flash at (0,0).
+    Freeze();
+
     init_bitmap();
 
-    init_tabpanel();
+    {
+        PERF_TRACE("startup.monitor.init_tabpanel");
+        init_tabpanel();
+    }
 
     m_main_sizer = new wxBoxSizer(wxHORIZONTAL);
     m_main_sizer->Add(m_tabpanel, 1, wxEXPAND | wxLEFT, 0);
-    SetSizerAndFit(m_main_sizer);
+    SetSizer(m_main_sizer);
+    Layout();
 
+    // Allocate only. Starting it here keeps a 1s timer alive if the page is hidden.
     init_timer();
 
-    m_side_tools->get_panel()->Connect(wxEVT_LEFT_DOWN, wxMouseEventHandler(MonitorPanel::on_printer_clicked), NULL, this);
+    if (m_side_tools)
+        m_side_tools->get_panel()->Connect(wxEVT_LEFT_DOWN, wxMouseEventHandler(MonitorPanel::on_printer_clicked), NULL, this);
 
     Bind(wxEVT_TIMER, &MonitorPanel::on_timer, this);
     Bind(wxEVT_SIZE, &MonitorPanel::on_size, this);
     Bind(wxEVT_COMMAND_CHOICE_SELECTED, &MonitorPanel::on_select_printer, this);
 
     m_select_machine.Bind(EVT_FINISHED_UPDATE_MACHINE_LIST, [this](wxCommandEvent& e) {
-        m_side_tools->start_interval();
+        if (m_side_tools)
+            m_side_tools->start_interval();
         });
 
+    // Subpages are created after MainFrame's dark-mode pass.
+    if (wxGetApp().dark_mode()) {
+        on_sys_color_changed();
+        wxGetApp().UpdateDarkUIWin(this);
+    }
+
+    // Allow a few traced update_all samples after first paint.
+    m_perf_update_all_traces_left = 3;
+
+    // Relayout after tabbook/StatusPanel/show_status so the already-visible
+    // Monitor page gets correct child sizes before Thaw paints.
+    if (m_tabpanel)
+        m_tabpanel->Layout();
+    Layout();
+
+    Thaw();
+    perf_mark("startup.monitor.ui_ready");
+}
+
+Tabbook* MonitorPanel::get_tabpanel()
+{
+    // Callers such as print_job_finished() run inside SelectMachineDialog::ShowModal().
+    // Building the print-queue WebView there hangs macOS, so creation stays in Show().
+    return m_tabpanel;
 }
 
 MonitorPanel::~MonitorPanel()
 {
-    m_side_tools->get_panel()->Disconnect(wxEVT_LEFT_DOWN, wxMouseEventHandler(MonitorPanel::on_printer_clicked), NULL, this);
+    if (m_side_tools)
+        m_side_tools->get_panel()->Disconnect(wxEVT_LEFT_DOWN, wxMouseEventHandler(MonitorPanel::on_printer_clicked), NULL, this);
 
     if (m_refresh_timer)
         m_refresh_timer->Stop();
     delete m_refresh_timer;
+
+    if (m_first_update_timer)
+        m_first_update_timer->Stop();
+    delete m_first_update_timer;
 }
 
 void MonitorPanel::init_bitmap()
@@ -148,10 +202,74 @@ void MonitorPanel::init_bitmap()
 
 void MonitorPanel::init_timer()
 {
+    if (m_refresh_timer)
+        return;
+    // Allocate only. Show(false) can arrive before the deferred Show(true)
+    // callback, and a timer started here would keep firing while the page is hidden.
     m_refresh_timer = new wxTimer();
     m_refresh_timer->SetOwner(this);
-    m_refresh_timer->Start(REFRESH_INTERVAL);
-    if (update_flag) { update_all();}
+}
+
+void MonitorPanel::on_deferred_first_update()
+{
+    if (IsBeingDeleted() || !m_initialized)
+        return;
+    // Show(false) won the race. The next Show(true) binds through resume_on_show().
+    if (!IsShown())
+        return;
+
+    DeviceManager *device_mgr = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (device_mgr) {
+        obj = device_mgr->get_selected_machine();
+        if (obj == nullptr) {
+            PERF_TRACE("startup.monitor.load_last_machine");
+            device_mgr->load_last_machine();
+        } else {
+            obj->reset_update_time();
+        }
+    }
+    if (update_flag)
+        update_all();
+    perf_mark("startup.monitor.first_update_deferred");
+}
+
+void MonitorPanel::resume_on_show(bool shown, bool first)
+{
+    if (m_refresh_timer) {
+        m_refresh_timer->Stop();
+        if (shown) {
+            m_refresh_timer->SetOwner(this);
+            m_refresh_timer->Start(REFRESH_INTERVAL);
+        }
+    }
+    if (!shown) {
+        if (m_first_update_timer)
+            m_first_update_timer->Stop();
+        return;
+    }
+    // Nested CallAfter is drained before WM_PAINT on wx 3.1.5, so a synchronous
+    // update_all here would still block the shell. A one-shot native timer runs
+    // after that paint.
+    if (first) {
+        if (!m_first_update_timer) {
+            m_first_update_timer = new wxTimer();
+            m_first_update_timer->SetOwner(this);
+        }
+        m_first_update_timer->StartOnce(1);
+        return;
+    }
+
+    if (update_flag)
+        update_all();
+
+    DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!dev)
+        return;
+    obj = dev->get_selected_machine();
+    if (obj == nullptr)
+        dev->load_last_machine();
+    else
+        obj->reset_update_time();
 }
 
 void MonitorPanel::init_tabpanel()
@@ -174,7 +292,7 @@ void MonitorPanel::init_tabpanel()
             m_print_queue_panel->NavigateTo("/device_page/print_queue", true);
             update_print_queue_device(obj);
         }
-        BOOST_LOG_TRIVIAL(info) << "select :" << get_string_from_tab(PrinterTab(m_tabpanel->GetSelection()))
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << " select :" << get_string_from_tab(PrinterTab(m_tabpanel->GetSelection()))
             << " wxString:" << m_tabpanel->GetPageText(m_tabpanel->GetSelection()).ToStdString();
         NetworkAgent* agent = GUI::wxGetApp().getAgent();
         if (agent) {
@@ -198,33 +316,49 @@ void MonitorPanel::init_tabpanel()
         }, m_tabpanel->GetId());
 
     //m_status_add_machine_panel = new AddMachinePanel(m_tabpanel);
-    m_status_info_panel        = new StatusPanel(m_tabpanel);
-    m_tabpanel->AddPage(m_status_info_panel, _L("Status"), "", true);
+    {
+        PERF_TRACE("startup.monitor.status_panel");
+        m_status_info_panel        = new StatusPanel(m_tabpanel);
+        m_tabpanel->AddPage(m_status_info_panel, _L("Status"), "", true);
+    }
 
 #if STUDIO_ENABLE_PRINT_QUENE
-    m_print_queue_panel = new DeviceWebHost(m_tabpanel, DeviceWebHostMode::PrintQueue,
-                                            "/device_page/print_queue", true);
-    m_tabpanel->AddPage(m_print_queue_panel, _L("Print queue"), "", false);
+    {
+        PERF_TRACE("startup.monitor.print_queue");
+        m_print_queue_panel = new DeviceWebHost(m_tabpanel, DeviceWebHostMode::PrintQueue,
+                                                "/device_page/print_queue", true);
+        m_tabpanel->AddPage(m_print_queue_panel, _L("Print queue"), "", false);
+    }
 #endif
 
-    m_media_file_panel = new MediaFilePanel(m_tabpanel);
-    m_tabpanel->AddPage(m_media_file_panel, _L("Storage"), "", false);
-    //m_tabpanel->AddPage(m_media_file_panel, _L("Internal Storage"), "", false);
+    {
+        PERF_TRACE("startup.monitor.media_upgrade_hms");
+        m_media_file_panel = new MediaFilePanel(m_tabpanel);
+        m_tabpanel->AddPage(m_media_file_panel, _L("Storage"), "", false);
+        //m_tabpanel->AddPage(m_media_file_panel, _L("Internal Storage"), "", false);
 
-    m_upgrade_panel = new UpgradePanel(m_tabpanel);
-    m_tabpanel->AddPage(m_upgrade_panel, _CTX(L_CONTEXT("Update", "Firmware"), "Firmware"), "", false);
+        m_upgrade_panel = new UpgradePanel(m_tabpanel);
+        m_tabpanel->AddPage(m_upgrade_panel, _CTX(L_CONTEXT("Update", "Firmware"), "Firmware"), "", false);
 
-    m_hms_panel = new HMSPanel(m_tabpanel);
-    m_tabpanel->AddPage(m_hms_panel, _L("Assistant(HMS)"),    "", false);
+        m_hms_panel = new HMSPanel(m_tabpanel);
+        m_tabpanel->AddPage(m_hms_panel, _L("Assistant(HMS)"),    "", false);
+    }
 
     m_initialized = true;
-    show_status((int)MonitorStatus::MONITOR_NO_PRINTER);
+    // The deferred first update applies a machine that is already selected.
+    // Painting MONITOR_NO_PRINTER first flashes an empty device page.
+    DeviceManager* device_mgr = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!device_mgr || device_mgr->get_selected_machine() == nullptr)
+        show_status((int)MonitorStatus::MONITOR_NO_PRINTER);
 }
 
 void MonitorPanel::set_default()
 {
     obj = nullptr;
     last_conn_type = "undefined";
+
+    if (!m_initialized || !m_status_info_panel)
+        return;
 
     /* reset status panel*/
     m_status_info_panel->set_default();
@@ -249,23 +383,39 @@ wxWindow* MonitorPanel::create_side_tools()
 
 void MonitorPanel::on_sys_color_changed()
 {
-    m_status_info_panel->on_sys_color_changed();
-    m_upgrade_panel->on_sys_color_changed();
-    m_media_file_panel->Rescale();
+    if (!m_initialized)
+        return;
+    if (m_status_info_panel)
+        m_status_info_panel->on_sys_color_changed();
+    if (m_upgrade_panel)
+        m_upgrade_panel->on_sys_color_changed();
+    if (m_media_file_panel)
+        m_media_file_panel->Rescale();
+    if (m_print_queue_panel)
+        m_print_queue_panel->on_sys_color_changed();
 }
 
 void MonitorPanel::msw_rescale()
 {
+    if (!m_initialized)
+        return;
+
     init_bitmap();
 
     /* side_tool rescale */
-    m_side_tools->msw_rescale();
-    m_tabpanel->Rescale();
+    if (m_side_tools)
+        m_side_tools->msw_rescale();
+    if (m_tabpanel)
+        m_tabpanel->Rescale();
     //m_status_add_machine_panel->msw_rescale();
-    m_status_info_panel->msw_rescale();
-    m_media_file_panel->Rescale();
-    m_upgrade_panel->msw_rescale();
-    m_hms_panel->msw_rescale();
+    if (m_status_info_panel)
+        m_status_info_panel->msw_rescale();
+    if (m_media_file_panel)
+        m_media_file_panel->Rescale();
+    if (m_upgrade_panel)
+        m_upgrade_panel->msw_rescale();
+    if (m_hms_panel)
+        m_hms_panel->msw_rescale();
 
     Layout();
     Refresh();
@@ -302,6 +452,11 @@ void MonitorPanel::select_machine(std::string machine_sn)
 
 void MonitorPanel::on_timer(wxTimerEvent& event)
 {
+    if (m_first_update_timer && &event.GetTimer() == m_first_update_timer) {
+        on_deferred_first_update();
+        return;
+    }
+
     if (update_flag) {
         update_all();
         //Layout();
@@ -313,6 +468,9 @@ void MonitorPanel::on_select_printer(wxCommandEvent& event)
     Slic3r::DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (!dev)
         return;
+
+    // Content may still be empty if select arrives before first Show; build once.
+    ensure_content();
 
     const std::string target_machine = event.GetString().ToStdString();
     if (dev->get_selected_machine() && (dev->get_selected_machine()->get_dev_id() != target_machine) && m_hms_panel) {
@@ -326,7 +484,7 @@ void MonitorPanel::on_select_printer(wxCommandEvent& event)
     update_all();
 
     MachineObject *obj_ = dev->get_selected_machine();
-    if (m_tabpanel->GetCurrentPage() == m_print_queue_panel) {
+    if (m_tabpanel && m_tabpanel->GetCurrentPage() == m_print_queue_panel) {
         update_print_queue_device(obj_);
     }
     if (obj_) {
@@ -372,8 +530,15 @@ void MonitorPanel::on_size(wxSizeEvent &event)
 
 void MonitorPanel::update_all()
 {
-    if (!m_initialized)
+    if (!m_initialized || !m_tabpanel)
         return;
+
+    // Cap traces: timer fires every 1s; only need first-entry samples.
+    std::unique_ptr<PerfTimer> update_all_timer;
+    if (m_perf_update_all_traces_left > 0) {
+        --m_perf_update_all_traces_left;
+        update_all_timer = std::make_unique<PerfTimer>("startup.monitor.update_all");
+    }
 
     NetworkAgent* m_agent = wxGetApp().getAgent();
     Slic3r::DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
@@ -382,10 +547,14 @@ void MonitorPanel::update_all()
 
     if (!obj) {
         show_status((int)MONITOR_NO_PRINTER);
-        m_hms_panel->clear_hms_tag();
-        m_tabpanel->GetBtnsListCtrl()->showNewTag(PT_HMS, 0);
-        m_status_info_panel->m_media_play_ctrl->SetMachineObject(obj);
-        m_status_info_panel->update(obj);
+        if (m_hms_panel)
+            m_hms_panel->clear_hms_tag();
+        if (m_tabpanel->GetBtnsListCtrl())
+            m_tabpanel->GetBtnsListCtrl()->showNewTag(PT_HMS, 0);
+        if (m_status_info_panel) {
+            m_status_info_panel->m_media_play_ctrl->SetMachineObject(obj);
+            m_status_info_panel->update(obj);
+        }
         update_print_queue_device(nullptr);
         return;
     }
@@ -398,7 +567,8 @@ void MonitorPanel::update_all()
         last_conn_type = obj->connection_type();
     }
 
-    m_side_tools->update_status(obj);
+    if (m_side_tools)
+        m_side_tools->update_status(obj);
 
     if (obj->is_connecting()) {
         show_status(MONITOR_CONNECTING);
@@ -420,18 +590,21 @@ void MonitorPanel::update_all()
     auto current_page = m_tabpanel->GetCurrentPage();
 
     if (current_page == m_status_info_panel) {
-        if (m_status_info_panel->IsShown()) {
+        if (m_status_info_panel && m_status_info_panel->IsShown()) {
             m_status_info_panel->sync_current_dev(obj);
             m_status_info_panel->m_media_play_ctrl->SetMachineObject(obj);
             m_status_info_panel->update(obj);
         }
     } else if (current_page == m_upgrade_panel) {
-        m_upgrade_panel->update(obj);
+        if (m_upgrade_panel)
+            m_upgrade_panel->update(obj);
     } else if (current_page == m_media_file_panel) {
-        m_media_file_panel->UpdateByObj(obj);
+        if (m_media_file_panel)
+            m_media_file_panel->UpdateByObj(obj);
     }
 
-    if (current_page == m_hms_panel || (obj->GetHMS()->GetHMSItems().size() != m_hms_panel->temp_hms_list.size())) {
+    if (m_hms_panel &&
+        (current_page == m_hms_panel || (obj->GetHMS()->GetHMSItems().size() != m_hms_panel->temp_hms_list.size()))) {
         m_hms_panel->update(obj);
     }
 
@@ -448,7 +621,9 @@ void MonitorPanel::update_print_queue_device(MachineObject* obj)
 
 void MonitorPanel::update_hms_tag()
 {
-    m_tabpanel->GetBtnsListCtrl()->showNewTag(PT_HMS, (int)m_hms_panel->temp_hms_list.size());
+    if (!m_hms_panel || !m_tabpanel || !m_tabpanel->GetBtnsListCtrl())
+        return;
+    m_tabpanel->GetBtnsListCtrl()->showNewTag(PT_HMS, HMSPanel::count_shown(obj));
 }
 
 bool MonitorPanel::Show(bool show)
@@ -456,31 +631,35 @@ bool MonitorPanel::Show(bool show)
 #ifdef __APPLE__
     wxGetApp().mainframe->SetMinSize(wxGetApp().plater()->GetMinSize());
 #endif
-    NetworkAgent* m_agent = wxGetApp().getAgent();
-    DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (show) {
         start_update();
         if (StatusPanel* sp = get_status_panel())
             sp->update_ctrl_area_masks();
 
-        m_refresh_timer->Stop();
-        m_refresh_timer->SetOwner(this);
-        m_refresh_timer->Start(REFRESH_INTERVAL);
-        if (update_flag) { update_all(); }
-
-        if (dev) {
-            //set a default machine when obj is null
-            obj = dev->get_selected_machine();
-            if (obj == nullptr) {
-                dev->load_last_machine();
-            } else {
-                obj->reset_update_time();
-            }
+        // Show empty shell first; defer heavy StatusPanel so the notebook selection
+        // paints immediately without flashing other tabs.
+        if (!m_initialized) {
+            CallAfter([this]() {
+                if (this->IsBeingDeleted())
+                    return;
+                // Builds the shell. resume_on_show(..., true) only arms the
+                // one-shot bind, so this callback does not run update_all.
+                ensure_content();
+                if (IsBeingDeleted())
+                    return;
+                resume_on_show(IsShown(), true);
+            });
+            return wxPanel::Show(show);
         }
 
+        // Called before wxPanel::Show(true), so the page is not shown yet.
+        resume_on_show(true);
     } else {
         stop_update();
-        m_refresh_timer->Stop();
+        if (m_refresh_timer)
+            m_refresh_timer->Stop();
+        if (m_first_update_timer)
+            m_first_update_timer->Stop();
         if (StatusPanel* sp = get_status_panel())
             sp->hide_ctrl_area_overlays();
     }
@@ -516,13 +695,20 @@ void MonitorPanel::show_status(int status)
     //Freeze();
     // update panels
     if (m_side_tools) { m_side_tools->show_status(status); };
-    m_status_info_panel->show_status(status);
-    m_hms_panel->show_status(status);
-    m_upgrade_panel->show_status(status);
+    if (m_status_info_panel)
+        m_status_info_panel->show_status(status);
+    if (m_hms_panel) {
+        m_hms_panel->show_status(status);
+        if (HMSPanel::clears_rows(status) && m_tabpanel && m_tabpanel->GetBtnsListCtrl())
+            m_tabpanel->GetBtnsListCtrl()->showNewTag(PT_HMS, 0);
+    }
+    if (m_upgrade_panel)
+        m_upgrade_panel->show_status(status);
 
     if ((status & (int)MonitorStatus::MONITOR_NO_PRINTER) != 0) {
         set_default();
-        m_tabpanel->Layout();
+        if (m_tabpanel)
+            m_tabpanel->Layout();
     } else if (((status & (int)MonitorStatus::MONITOR_NORMAL) != 0)
         || ((status & (int)MonitorStatus::MONITOR_DISCONNECTED) != 0)
         || ((status & (int) MonitorStatus::MONITOR_DISCONNECTED_SERVER) != 0)
@@ -535,7 +721,8 @@ void MonitorPanel::show_status(int status)
         {
             set_default();
         }
-        m_tabpanel->Layout();
+        if (m_tabpanel)
+            m_tabpanel->Layout();
     }
     Layout();
     //Thaw();
@@ -568,6 +755,9 @@ void MonitorPanel::jump_to_HMS()
 {
     if (!this->IsShown())
         return;
+    ensure_content();
+    if (!m_tabpanel)
+        return;
     auto page = m_tabpanel->GetCurrentPage();
     if (page && page != m_hms_panel)
         m_tabpanel->SetSelection(PT_HMS);
@@ -576,6 +766,9 @@ void MonitorPanel::jump_to_HMS()
 void MonitorPanel::jump_to_Upgrade()
 {
     if (this->IsShown()) {
+        ensure_content();
+        if (!m_tabpanel)
+            return;
         auto page = m_tabpanel->GetCurrentPage();
         if (page && page != m_upgrade_panel) {
             m_tabpanel->SetSelection(PT_UPDATE);
@@ -586,6 +779,10 @@ void MonitorPanel::jump_to_Upgrade()
 void MonitorPanel::jump_to_LiveView()
 {
     if (!this->IsShown()) { return; }
+
+    ensure_content();
+    if (!m_tabpanel || !m_status_info_panel)
+        return;
 
     auto page = m_tabpanel->GetCurrentPage();
     if (page && page != m_hms_panel)
@@ -602,6 +799,10 @@ void MonitorPanel::jump_to_Rack()
         return;
     }
 
+    ensure_content();
+    if (!m_tabpanel || !m_status_info_panel)
+        return;
+
     auto page = m_tabpanel->GetCurrentPage();
     if (page && page != m_status_info_panel) {
         m_tabpanel->SetSelection(PT_STATUS);
@@ -612,7 +813,8 @@ void MonitorPanel::jump_to_Rack()
 
 void MonitorPanel::jump_to_print_queue()
 {
-    if (!m_print_queue_panel) { return; }
+    ensure_content();
+    if (!m_print_queue_panel || !m_tabpanel) { return; }
 
     // Re-selecting the current page is a no-op, so refresh it explicitly.
     if (m_tabpanel->GetCurrentPage() == m_print_queue_panel) {

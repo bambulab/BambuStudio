@@ -77,6 +77,8 @@ namespace Slic3r {
             // order, aligned with IMSlider::m_values), for the preview slider only. Filled only for
             // mixed-color sublayers (empty otherwise, slider falls back to layers_times).
             std::vector<float> preview_layers_times;
+            // Time (s) per 0-based filament id, charged to the filament loaded in the nozzle while each move runs.
+            std::map<size_t, float> filaments_times;
 
             void reset() {
                 time = 0.0f;
@@ -91,6 +93,7 @@ namespace Slic3r {
                 layers_times.shrink_to_fit();
                 preview_layers_times.clear();
                 preview_layers_times.shrink_to_fit();
+                filaments_times.clear();
             }
         };
 
@@ -233,6 +236,8 @@ namespace Slic3r {
             int  object_label_id{-1};
             float print_z{0.0f};
             bool is_pa_line_calibration{false};
+            // Logical nozzle (group id) active while this move was parsed. -1 when unknown.
+            int nozzle_id{-1};
 
             float volumetric_rate() const { return feedrate * mm3_per_mm; }
             //BBS: new function to support arc move
@@ -612,6 +617,7 @@ namespace Slic3r {
             unsigned int move_id{ 0 }; //  index of the related move vertex, will be assigned duraing gcode process
             unsigned int g1_line_id{ 0 };
             unsigned int layer_id{ 0 };
+            int filament_id{ -1 }; // filament selected when the block is created, -1 before the first tool change
             float distance{ 0.0f }; // mm
             float acceleration{ 0.0f }; // mm/s^2
             float max_entry_speed{ 0.0f }; // mm/s
@@ -673,7 +679,7 @@ namespace Slic3r {
             // hard limit for the travel acceleration, to which the firmware will clamp.
             float max_travel_acceleration; // mm/s^2
             float extrude_factor_override_percentage;
-            float time; // s
+            double time; // s
             struct StopTime
             {
                 unsigned int g1_line_id;
@@ -691,6 +697,7 @@ namespace Slic3r {
             std::vector<G1LinesCacheItem> g1_times_cache;
             std::array<float, static_cast<size_t>(EMoveType::Count)> moves_time;
             std::array<float, static_cast<size_t>(ExtrusionRole::erCount)> roles_time;
+            std::map<int, float> filaments_time; // keyed by TimeBlock::filament_id
             std::vector<float> layers_time;
             //BBS: prepare stage time before print model, including start gcode time and mostly same with start gcode time
             float prepare_time;
@@ -1226,6 +1233,14 @@ namespace Slic3r {
         float m_additional_fan_speed; // percentage (auxiliary/side fan, M106 P2)
         ExtrusionRole m_extrusion_role;
         std::vector<int> m_filament_maps;
+        // filament_nozzle_map from the gcode header / print config. Used when no slice-time nozzle group is attached.
+        std::vector<int> m_filament_nozzle_map;
+        // Physical nozzle slot ids from the gcode header / print config. Used to reject stale virtual NN ids.
+        std::vector<int> m_physical_nozzle_ids;
+        // Nozzle written on the latest T/M1020 H or NOZZLE_CHANGE NN. -1 when the gcode did not name one.
+        int m_gcode_nozzle_id{-1};
+        // True when initialize_from_context() supplied the slice-time nozzle group (layer-accurate).
+        bool m_nozzle_group_from_context{false};
         std::vector<unsigned char> m_last_filament_id;
         std::vector<unsigned char> m_filament_id;
         unsigned char m_extruder_id;
@@ -1330,6 +1345,7 @@ namespace Slic3r {
 
         std::vector<std::pair<EMoveType, float>> get_moves_time(PrintEstimatedStatistics::ETimeMode mode) const;
         std::vector<std::pair<ExtrusionRole, float>> get_roles_time(PrintEstimatedStatistics::ETimeMode mode) const;
+        std::map<size_t, float> get_filaments_time(PrintEstimatedStatistics::ETimeMode mode) const;
         std::vector<float> get_layers_time(PrintEstimatedStatistics::ETimeMode mode) const;
 
         //BBS: set offset for gcode writer
@@ -1514,6 +1530,8 @@ namespace Slic3r {
         void process_M623(const GCodeReader::GCodeLine &line);
 
         void process_filament_change(int filament_id, int nozzle_id);
+        // Logical nozzle id of the move currently being parsed.
+        int resolve_move_nozzle_id() const;
         //BBS: different path_type is only used for arc move
         void store_move_vertex(EMoveType type, EMovePathType path_type = EMovePathType::Noop_move);
 

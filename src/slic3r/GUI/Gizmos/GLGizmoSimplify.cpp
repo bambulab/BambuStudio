@@ -1,4 +1,5 @@
 #include "GLGizmoSimplify.hpp"
+#include "GLGizmoSimplifyDialog.hpp"
 #include "slic3r/GUI/GLCanvas3D.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/GUI_ObjectList.hpp"
@@ -13,6 +14,7 @@
 #include "libslic3r/QuadricEdgeCollapse.hpp"
 
 #include <GL/glew.h>
+#include <wx/glcanvas.h>
 
 #include <thread>
 #include <atomic>
@@ -70,12 +72,6 @@ GLGizmoSimplify::GLGizmoSimplify(GLCanvas3D & parent, unsigned int sprite_id)
     : GLGizmoBase(parent, sprite_id)
     , m_volume(nullptr)
     , m_show_wireframe(false)
-    , m_move_to_center(false)
-    // translation for GUI size
-    , tr_mesh_name(_u8L("Mesh name"))
-    , tr_triangles(_u8L("Triangles"))
-    , tr_detail_level(_u8L("Detail level"))
-    , tr_decimate_ratio(_u8L("Decimate ratio"))
 {}
 
 GLGizmoSimplify::~GLGizmoSimplify()
@@ -83,6 +79,7 @@ GLGizmoSimplify::~GLGizmoSimplify()
     stop_worker_thread_request();
     if (m_worker.joinable())
         m_worker.join();
+    close_dialog();
     m_glmodel.reset();
 }
 
@@ -127,7 +124,6 @@ void GLGizmoSimplify::push_simplify_suggestion(const ModelObject &object, Notifi
                 return close_notification;
             GLGizmoSimplify* simplify = dynamic_cast<GLGizmoSimplify*>(manager.get_current());
             if (simplify == nullptr) return close_notification;
-            simplify->set_center_position();
             return close_notification;
         };
     manager.push_simplify_suggestion_notification(t, oid, hypertext, open_simplify);
@@ -158,10 +154,9 @@ std::string GLGizmoSimplify::on_get_name() const
     }
 }
 
-void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limit)
+// Follows the selection of the gizmo. Returns true when the preview has to be (re)started.
+bool GLGizmoSimplify::sync_with_selection()
 {
-    create_gui_cfg();
-
     const Selection &selection = m_parent.get_selection();
     const ModelVolume *act_volume = get_model_volume(selection, wxGetApp().plater()->model());
     if (act_volume == nullptr) {
@@ -173,286 +168,195 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
                 _L("Error"));
             msg.ShowModal();
         }
-        return;
+        return false;
     }
 
-    bool is_cancelling = false;
-    bool is_worker_running = false;
-    bool is_result_ready = false;
+    // Do not reselect object when processing
+    if (act_volume == m_volume)
+        return false;
+
+    // select different model
+
+    // close suggestion notification
+    auto notification_manager = wxGetApp().plater()->get_notification_manager();
+    const ObjectID oid = act_volume->get_object()->id();
+    notification_manager->remove_simplify_suggestion_with_id(oid);
+    if (std::find(m_hidden_suggestions.begin(), m_hidden_suggestions.end(), oid) == m_hidden_suggestions.end())
+        m_hidden_suggestions.push_back(oid);
+
+    m_volume = act_volume;
+    // Keep the painting by default when the model has any, so the user has to opt out to lose it.
+    m_preserve_color = has_any_painting(*m_volume);
+    // Both methods start from their defaults for each newly selected model; the chosen
+    // method itself is kept so switching models does not flip it.
+    m_detail_level                  = 2;
+    m_configuration.max_error       = 0.1f;
+    m_configuration.decimate_ratio  = 50.;
+    m_configuration.fix_count_by_ratio(m_volume->mesh().its.indices.size());
+    init_model(m_volume->mesh().its);
+    return true;
+}
+
+void GLGizmoSimplify::open_dialog()
+{
+    // Created hidden; show_dialog() shows it once on_render() has filled it in, so it never opens empty.
+    if (! m_dialog)
+        m_dialog = new SimplifyDialog(*this);
+}
+
+void GLGizmoSimplify::show_dialog()
+{
+    if (! m_dialog || m_dialog->IsShown())
+        return;
+    // At the top left of the 3D view, below the main toolbar (not centred on the view, where it would
+    // cover the model).
+    if (wxGLCanvas *canvas = m_parent.get_wxglcanvas(); canvas != nullptr) {
+        const wxPoint origin = canvas->GetScreenPosition();
+        m_dialog->Move(origin.x, origin.y + m_parent.get_main_toolbar_height());
+    }
+    // Without activating it: the 3D view keeps the keyboard focus, and its shortcuts, until the user
+    // clicks into the dialog.
+    m_dialog->ShowWithoutActivating();
+}
+
+void GLGizmoSimplify::close_dialog()
+{
+    if (m_dialog) {
+        // Events that are still pending for the dialog must not reach this gizmo any more.
+        m_dialog->detach();
+        m_dialog->Destroy();
+        m_dialog = nullptr;
+    }
+}
+
+void GLGizmoSimplify::refresh_dialog()
+{
+    if (m_dialog == nullptr || m_volume == nullptr)
+        return;
+
+    SimplifyDialogView view;
+
+    std::string name = m_volume->name;
+    if (name.length() > max_char_in_name)
+        name = name.substr(0, max_char_in_name - 3) + "...";
+    view.mesh_name = wxString::FromUTF8(name);
+    view.triangle_count = m_volume->mesh().its.indices.size();
+
+    bool preview_current = false;
+    bool result_ready    = false;
+    {
+        std::lock_guard lk(m_state_mutex);
+        preview_current  = m_state.result && m_state.mv == m_volume && m_state.config == m_configuration;
+        result_ready     = bool(m_state.result);
+        view.worker_running = m_state.status == State::running;
+        view.cancelling     = m_state.status == State::cancelling;
+        view.progress       = m_state.progress;
+    }
+    view.result_count = preview_current ? wxString(std::to_string(m_triangle_count)) : wxString("-");
+
+    view.use_count      = m_configuration.use_count;
+    view.detail_level   = m_detail_level;
+    view.decimate_ratio = m_configuration.decimate_ratio;
+    view.show_wireframe = m_show_wireframe;
+    view.painted        = has_any_painting(*m_volume);
+    view.preserve_color = m_preserve_color;
+    view.apply_enabled  = result_ready && ! view.worker_running && ! m_apply_pending;
+
+    m_dialog->update(view);
+}
+
+void GLGizmoSimplify::refresh_dialog_progress()
+{
+    if (! m_dialog)
+        return;
     int progress = 0;
     {
         std::lock_guard lk(m_state_mutex);
-        is_cancelling = m_state.status == State::cancelling;
-        is_worker_running = m_state.status == State::running;
-        is_result_ready = bool(m_state.result);
         progress = m_state.progress;
     }
-
-    // Whether to trigger calculation after rendering is done.
-    bool start_process = false;
-
-
-    // Check selection of new volume
-    // Do not reselect object when processing
-    if (act_volume != m_volume) {
-        bool change_window_position = (m_volume == nullptr);
-        // select different model
-
-        // close suggestion notification
-        auto notification_manager = wxGetApp().plater()->get_notification_manager();
-        const ObjectID oid = act_volume->get_object()->id();
-        notification_manager->remove_simplify_suggestion_with_id(oid);
-        if (std::find(m_hidden_suggestions.begin(), m_hidden_suggestions.end(), oid) == m_hidden_suggestions.end())
-            m_hidden_suggestions.push_back(oid);
-
-        m_volume = act_volume;
-        m_preserve_color = false; // default off for each newly selected model
-        // Both methods start from their defaults for each newly selected model; the chosen
-        // method itself is kept so switching models does not flip it.
-        m_detail_level                  = 2;
-        m_configuration.max_error       = 0.1f;
-        m_configuration.decimate_ratio  = 50.;
-        m_configuration.fix_count_by_ratio(m_volume->mesh().its.indices.size());
-        init_model(m_volume->mesh().its);
-
-        // Start processing. If we switched from another object, process will
-        // stop the background thread and it will restart itself later.
-        start_process = true;
-
-        // set window position
-        if (m_move_to_center && change_window_position) {
-            m_move_to_center = false;
-            auto parent_size = m_parent.get_canvas_size();
-            ImVec2 pos(parent_size.get_width() / 2 - m_gui_cfg->window_offset_x,
-                       parent_size.get_height() / 2 - m_gui_cfg->window_offset_y);
-            ImGui::SetNextWindowPos(pos, ImGuiCond_Always);
-        }else if (change_window_position) {
-            ImVec2 pos = ImGui::GetMousePos();
-            pos.x -= m_gui_cfg->window_offset_x;
-            pos.y -= m_gui_cfg->window_offset_y;
-            // minimal top left value
-            ImVec2 tl(m_gui_cfg->window_padding, m_gui_cfg->window_padding + m_parent.get_main_toolbar_height());
-            if (pos.x < tl.x) pos.x = tl.x;
-            if (pos.y < tl.y) pos.y = tl.y;
-            // maximal bottom right value
-            auto parent_size = m_parent.get_canvas_size();
-            ImVec2 br(
-                parent_size.get_width() - (2 * m_gui_cfg->window_offset_x + m_gui_cfg->window_padding),
-                parent_size.get_height() - (2 * m_gui_cfg->window_offset_y + m_gui_cfg->window_padding));
-            if (pos.x > br.x) pos.x = br.x;
-            if (pos.y > br.y) pos.y = br.y;
-            ImGui::SetNextWindowPos(pos, ImGuiCond_Always);
-        }
-    }
-    float space_size = m_imgui->get_style_scaling() * 8;
-    float mesh_size = m_imgui->calc_text_size(_L("Mesh name")).x + m_imgui->scaled(2.0f);
-    float triangle_size = m_imgui->calc_text_size(_L("Triangles")).x + m_imgui->scaled(2.0f);
-    float text_left_width = std::max(triangle_size,mesh_size);
-
-    float detail_size = m_imgui->calc_text_size(_L("Detail level")).x + m_imgui->scaled(2.0f);
-    float decimate_size = m_imgui->calc_text_size(_L("Decimate ratio")).x + m_imgui->scaled(2.0f);
-    float circle_size = m_imgui->scaled(2.0f);
-    float bottom_left_width = std::max(detail_size, decimate_size) + circle_size;
-
-    float slider_width = m_imgui->scaled(5.0f);
-
-    m_imgui->push_common_window_style(m_parent.get_scale());
-    int flag = ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize |
-               ImGuiWindowFlags_NoCollapse;
-    m_imgui->begin(on_get_name(), flag);
-
-    m_imgui->text(tr_mesh_name + ":");
-    // BBS: somehow the calculated utf8 width is too narrow, have to add 35 here
-    ImGui::SameLine(text_left_width + space_size);
-    std::string name = m_volume->name;
-    if (name.length() > m_gui_cfg->max_char_in_name)
-        name = name.substr(0, m_gui_cfg->max_char_in_name - 3) + "...";
-    m_imgui->text_colored(ImVec4(0.42f, 0.42f, 0.42f, 1.00f), name);
-
-    m_imgui->text(tr_triangles + ":");
-    ImGui::SameLine(text_left_width + space_size);
-
-    size_t orig_triangle_count = m_volume->mesh().its.indices.size();
-    m_imgui->text_colored(ImVec4(0.42f, 0.42f, 0.42f, 1.00f), std::to_string(orig_triangle_count));
-
-    ImGui::Separator();
-
-    // Simplification method. The two methods are independent: each keeps its own setting and
-    // only the selected one is shown and used for the preview.
-    // render_combo places the box with SameLine(label_width), measured from the window edge, so the
-    // label column includes the window padding (current cursor x). Combo width follows GLGizmoAssembly:
-    // BBLBeginCombo draws the box two arrow widths narrower than the item width.
-    const float method_label_width = ImGui::GetCursorPosX() + m_imgui->calc_text_size(_L("Simplification method")).x +
-                                     m_imgui->calc_text_size("xx").x;
-    std::vector<std::string> methods = { tr_detail_level, tr_decimate_ratio };
-    size_t method_idx = m_configuration.use_count ? 1 : 0;
-    const float method_text_width  = std::max(m_imgui->calc_text_size(_L("Detail level")).x,
-                                              m_imgui->calc_text_size(_L("Decimate ratio")).x);
-    const float method_combo_width = method_text_width * 1.2f + m_imgui->calc_text_size("xxx").x + m_imgui->scaled(3.0f);
-    ImGuiWrapper::push_combo_style(m_parent.get_scale());
-    if (render_combo(_u8L("Simplification method"), methods, method_idx, method_label_width, method_combo_width)) {
-        m_configuration.use_count = method_idx == 1;
-        start_process = true;
-    }
-    ImGuiWrapper::pop_combo_style();
-    ImGui::Dummy(ImVec2(0.f, space_size * 0.5f));
-
-    if (! m_configuration.use_count) {
-        std::vector<std::string> reduce_captions = {
-            static_cast<std::string>(_u8L("Extra high")),
-            static_cast<std::string>(_u8L("High")),
-            static_cast<std::string>(_u8L("Medium")),
-            static_cast<std::string>(_u8L("Low")),
-            static_cast<std::string>(_u8L("Extra low"))
-        };
-        ImGui::PushItemWidth(bottom_left_width + slider_width);
-        ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.81f, 0.81f, 0.81f, 1.00f));
-        ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(0.81f, 0.81f, 0.81f, 1.00f));
-        ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(0.81f, 0.81f, 0.81f, 1.00f));
-        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
-        ImGui::PushStyleColor(ImGuiCol_SliderGrab, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
-        if (m_imgui->bbl_sliderin("##ReductionLevel", &m_detail_level, 0, 4, reduce_captions[std::clamp(m_detail_level, 0, 4)].c_str())) {
-            m_detail_level = std::clamp(m_detail_level, 0, 4);
-            switch (m_detail_level) {
-            case 0: m_configuration.max_error = 1e-3f; break;
-            case 1: m_configuration.max_error = 1e-2f; break;
-            case 2: m_configuration.max_error = 0.1f; break;
-            case 3: m_configuration.max_error = 0.5f; break;
-            case 4: m_configuration.max_error = 1.f; break;
-            }
-            start_process = true;
-        }
-        ImGui::PopStyleColor(5);
-        ImGui::PopItemWidth();
-    } else {
-        const char * format = (m_configuration.decimate_ratio > 10)? "%.0f %%":
-            ((m_configuration.decimate_ratio > 1)? "%.1f %%":"%.2f %%");
-
-        ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0);
-        ImGui::PushItemWidth(bottom_left_width + slider_width - space_size);
-        if (m_imgui->bbl_slider_float_style("##decimate_ratio", &m_configuration.decimate_ratio, 0.f, 100.f, format)) {
-            m_configuration.decimate_ratio = std::clamp(m_configuration.decimate_ratio, 0.f, 100.f);
-            m_configuration.fix_count_by_ratio(orig_triangle_count);
-            start_process = true;
-        }
-        ImGui::PopItemWidth();
-        ImGui::SameLine();
-        ImGui::PopStyleVar(1);
-
-        ImGui::PushItemWidth(ImGui::CalcTextSize("100.00%").x + space_size);
-        if (ImGui::BBLDragFloat("##decimate_ratio_input", &m_configuration.decimate_ratio, 0.05f, 0.0f, 0.0f, "%.2f%%")) {
-            m_configuration.decimate_ratio = std::clamp(m_configuration.decimate_ratio, 0.f, 100.f);
-            m_configuration.fix_count_by_ratio(orig_triangle_count);
-            start_process = true;
-        }
-        ImGui::PopItemWidth();
-    }
-
-    // Triangle count of the computed preview, the same for both methods. Shown only once the
-    // preview matches the current settings, so it never shows a stale count.
-    bool preview_current = false;
-    {
-        std::lock_guard lk(m_state_mutex);
-        preview_current = m_state.result && m_state.mv == m_volume && m_state.config == m_configuration;
-    }
-    const std::string result_count = preview_current ? std::to_string(m_triangle_count) : std::string("-");
-    m_imgui->text_colored(ImVec4(0.42f, 0.42f, 0.42f, 1.00f),
-                          GUI::format(_L("Triangles after simplification: %1%"), result_count));
-
-    // Same checkbox look as the Mesh Boolean panel: wider gap between box and label.
-    const ImVec2 original_inner_spacing = ImGui::GetStyle().ItemInnerSpacing;
-    ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing, ImVec2(original_inner_spacing.x + 4.0f, original_inner_spacing.y));
-    m_imgui->bbl_checkbox(_L("Show wireframe"), m_show_wireframe);
-
-    // Only offer paint preservation when the model actually has painting. When it has
-    // none, keep the old fast behavior (no checkbox, nothing to keep).
-    const bool painted = m_volume != nullptr && has_any_painting(*m_volume);
-    if (painted) {
-        m_imgui->bbl_checkbox(_L("Keep all painting"), m_preserve_color);
-        if (ImGui::IsItemHovered())
-            m_imgui->tooltip(_u8L("Includes color, seam, support and fuzzy skin painting. If unchecked, all painting will be removed from the result."),
-                             ImGui::GetFontSize() * 20.0f);
-    } else
-        m_preserve_color = false;
-    ImGui::PopStyleVar(1);
-    // Say it before Apply, not only in the hover tooltip: applying without the box drops all painting.
-    if (painted && ! m_preserve_color)
-        m_imgui->warning_text_wrapped(_L("Warning") + ": " +
-                                          _L("All painting (color, seam, support and fuzzy skin) will be removed from the simplified model. "
-                                             "Check \"Keep all painting\" to keep it."),
-                                      ImGui::GetFontSize() * 20.0f);
-
-    // The preview starts computing as soon as the window opens; label the bar so it is clear what runs.
-    // Drawn above the bar (its row is shared with the Apply/Cancel buttons), and the line is kept
-    // while idle so the auto-sized window does not jump each time a slider move restarts the preview.
-    if (is_worker_running)
-        ImGui::TextColored(ImVec4(0.42f, 0.42f, 0.42f, 1.00f), "%s", _u8L("Calculating simplified preview...").c_str());
-    else
-        ImGui::Dummy(ImVec2(0.f, ImGui::GetTextLineHeight()));
-
-     // draw progress bar
-    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding,12);
-    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(0,0));
-    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,ImVec2(10,20));
-    if (is_worker_running) { // apply or preview
-        // draw progress bar
-        std::string progress_text = GUI::format(_L("%1%"), std::to_string(progress)) + "%%";
-        ImVec2 progress_size(bottom_left_width - space_size, 0.0f);
-        ImGui::BBLProgressBar2(progress / 100., progress_size);
-        ImGui::SameLine();
-        ImGui::AlignTextToFramePadding();
-        ImGui::TextColored(ImVec4(0.42f, 0.42f, 0.42f, 1.00f), progress_text.c_str());
-        ImGui::SameLine(bottom_left_width + slider_width +  m_imgui->scaled(1.0f));
-    } else {
-        ImGui::Dummy(ImVec2(bottom_left_width - space_size, -1));
-        ImGui::SameLine(bottom_left_width + slider_width +  m_imgui->scaled(1.0f));
-    }
-    ImGui::PopStyleVar(3);
-
-    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding,12);
-    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(10,3));
-    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,ImVec2(10,0));
-    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.15f, 0.18f, 0.19f, 1.00f));
-
-    m_imgui->disabled_begin(is_worker_running || ! is_result_ready || m_apply_pending);
-    m_imgui->push_confirm_button_style();
-    if (m_imgui->bbl_button(_L("Apply"))) {
-        // Defer the actual apply out of the GL/imgui render frame. apply_simplify() may pop a
-        // modal progress dialog, and running a nested modal event loop inside the render
-        // callback swallows the mouse-up event, leaving toolbar/other buttons unresponsive
-        // afterwards. CallAfter runs it once the current event finishes.
-        if (!m_apply_pending) {
-            m_apply_pending = true;
-            call_after_if_active([this]() { apply_simplify(); });
-        }
-    }
-    else if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled) && is_worker_running) {
-        ImGui::SetTooltip("%s", _u8L("Can't apply when process preview.").c_str());
-    }
-    m_imgui->pop_confirm_button_style();
-    m_imgui->disabled_end(); // state !settings
-
-    ImGui::SameLine();
-
-    m_imgui->disabled_begin(is_cancelling);
-    m_imgui->push_cancel_button_style();
-    if (m_imgui->bbl_button(_L("Cancel"))) {
-        close();
-    }
-    else if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled) && is_cancelling)
-        ImGui::SetTooltip("%s", _u8L("Operation already cancelling. Please wait few seconds.").c_str());
-    m_imgui->pop_cancel_button_style();
-    m_imgui->disabled_end(); // state cancelling
-
-    ImGui::PopStyleVar(3);
-    ImGui::PopStyleColor(1);
-
-    m_imgui->end();
-    m_imgui->pop_common_window_style();
-    if (start_process)
-        process();
+    m_dialog->update_progress(progress);
 }
 
+// The dialog's events can still arrive while the gizmo closes (e.g. the value box losing the focus
+// when the dialog goes away), so every handler checks that the gizmo is open. They also ignore values
+// that did not change, so such an event never starts a new preview.
+
+void GLGizmoSimplify::on_dialog_method_changed(bool use_count)
+{
+    if (GLGizmoBase::m_state != On || m_configuration.use_count == use_count)
+        return;
+    m_configuration.use_count = use_count;
+    process();
+    refresh_dialog();
+}
+
+void GLGizmoSimplify::on_dialog_detail_changed(int detail_level)
+{
+    detail_level = std::clamp(detail_level, 0, 4);
+    if (GLGizmoBase::m_state != On || m_detail_level == detail_level)
+        return;
+    m_detail_level = detail_level;
+    switch (m_detail_level) {
+    case 0: m_configuration.max_error = 1e-3f; break;
+    case 1: m_configuration.max_error = 1e-2f; break;
+    case 2: m_configuration.max_error = 0.1f; break;
+    case 3: m_configuration.max_error = 0.5f; break;
+    case 4: m_configuration.max_error = 1.f; break;
+    }
+    process();
+    refresh_dialog();
+}
+
+void GLGizmoSimplify::on_dialog_ratio_changed(float decimate_ratio)
+{
+    decimate_ratio = std::clamp(decimate_ratio, 0.f, 100.f);
+    if (GLGizmoBase::m_state != On || m_volume == nullptr || m_configuration.decimate_ratio == decimate_ratio)
+        return;
+    m_configuration.decimate_ratio = decimate_ratio;
+    m_configuration.fix_count_by_ratio(m_volume->mesh().its.indices.size());
+    process();
+    refresh_dialog();
+}
+
+void GLGizmoSimplify::on_dialog_wireframe_changed(bool show_wireframe)
+{
+    if (GLGizmoBase::m_state != On)
+        return;
+    m_show_wireframe = show_wireframe;
+    request_rerender(true);
+}
+
+void GLGizmoSimplify::on_dialog_preserve_changed(bool preserve_color)
+{
+    if (GLGizmoBase::m_state != On)
+        return;
+    m_preserve_color = preserve_color;
+    refresh_dialog();
+}
+
+void GLGizmoSimplify::on_dialog_apply()
+{
+    if (GLGizmoBase::m_state != On || m_apply_pending)
+        return;
+    m_apply_pending = true;
+    refresh_dialog();
+    // Defer the actual apply out of the wx event that raised it: apply_simplify() may pop a
+    // modal progress dialog, which must not run nested inside the button handler.
+    call_after_if_active([this]() { apply_simplify(); });
+}
+
+// close() toggles the gizmo, so it would open it again if it is already closed.
+void GLGizmoSimplify::on_dialog_cancel()
+{
+    if (GLGizmoBase::m_state == On)
+        close();
+}
+
+void GLGizmoSimplify::on_dialog_closed()
+{
+    if (GLGizmoBase::m_state == On)
+        close();
+}
 
 void GLGizmoSimplify::close() {
     // close gizmo == open it again
@@ -490,6 +394,7 @@ void GLGizmoSimplify::worker_finished()
         // Settings were changed, restart the worker immediately.
         process();
     }
+    refresh_dialog();
     request_rerender(true);
 }
 
@@ -551,7 +456,7 @@ void GLGizmoSimplify::process()
         std::function<void(int)> statusfn = [this](int percent) {
             std::lock_guard lk(m_state_mutex);
             m_state.progress = percent;
-            call_after_if_active([this]() { request_rerender(); });
+            call_after_if_active([this]() { refresh_dialog_progress(); request_rerender(); });
         };
 
         // Initialize.
@@ -593,6 +498,7 @@ void GLGizmoSimplify::apply_simplify() {
     // Deferred entry point (see the Apply button): clear the guard up-front so a canceled
     // apply re-enables the button for a retry, while a successful apply closes the gizmo.
     m_apply_pending = false;
+    refresh_dialog();
 
     const Selection& selection = m_parent.get_selection();
     int object_idx = selection.get_object_idx();
@@ -719,6 +625,7 @@ void GLGizmoSimplify::on_set_state()
         m_parent.toggle_model_objects_visibility(true);
 
         stop_worker_thread_request();
+        close_dialog();
         m_volume = nullptr; // invalidate selected model
         m_glmodel.reset();
 
@@ -736,30 +643,10 @@ void GLGizmoSimplify::on_set_state()
         }
     } else if (GLGizmoBase::m_state == GLGizmoBase::On) {
         m_apply_pending = false; // fresh session: never start with a stale pending-apply guard
+        open_dialog();
         // when open by hyperlink it needs to show up
         request_rerender();
     }
-}
-
-void GLGizmoSimplify::create_gui_cfg() {
-    if (m_gui_cfg.has_value()) return;
-    int space_size = m_imgui->calc_text_size(":MM").x;
-    GuiCfg cfg;
-    cfg.top_left_width = std::max(m_imgui->calc_text_size(tr_mesh_name).x,
-                                  m_imgui->calc_text_size(tr_triangles).x)
-        + space_size;
-
-    const float radio_size = ImGui::GetFrameHeight();
-    cfg.bottom_left_width =
-        std::max(m_imgui->calc_text_size(tr_detail_level).x,
-                 m_imgui->calc_text_size(tr_decimate_ratio).x) +
-        space_size + radio_size;
-
-    cfg.input_width   = cfg.bottom_left_width * 1.5;
-    cfg.window_offset_x = (cfg.bottom_left_width + cfg.input_width)/2;
-    cfg.window_offset_y = ImGui::GetTextLineHeightWithSpacing() * 5;
-
-    m_gui_cfg = cfg;
 }
 
 void GLGizmoSimplify::request_rerender(bool force) {
@@ -770,11 +657,6 @@ void GLGizmoSimplify::request_rerender(bool force) {
         m_last_rerender_timestamp = now;
     }
 }
-
-void GLGizmoSimplify::set_center_position() {
-    m_move_to_center = true;
-}
-
 
 void GLGizmoSimplify::init_model(const indexed_triangle_set& its)
 {
@@ -801,6 +683,12 @@ void GLGizmoSimplify::init_model(const indexed_triangle_set& its)
 
 void GLGizmoSimplify::on_render()
 {
+    if (sync_with_selection()) {
+        process();
+        refresh_dialog();
+        show_dialog();
+    }
+
     if (! m_glmodel.is_initialized())
         return;
 

@@ -786,8 +786,7 @@ void ProjectPanel::OnScriptMessage(wxWebViewEvent& evt)
                     model_ref.profile_info->ProfileCover.clear();
 
 
-                wxGetApp().plater()->set_plater_dirty(true);
-                Slic3r::put_other_changes();
+                wxGetApp().plater()->mark_project_dirty();
                 update_model_data();
 
                 response["status"]  = "success";

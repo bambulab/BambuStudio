@@ -11,7 +11,7 @@
 #include "MsgDialog.hpp"
 #include "DeviceErrorDialog.hpp"
 #include "Plater.hpp"
-#include "GUI_App.hpp"
+#include "AlertDialog.hpp"
 #include "ReleaseNote.hpp"
 #include <thread>
 #include <mutex>
@@ -36,7 +36,9 @@
 #include "fast_float/fast_float.h"
 
 #include "DeviceCore/DevAxis.h"
+#include "DeviceCore/DevCamera.h"
 #include "DeviceCore/DevChamber.h"
+#include "DeviceCore/DevDryer.h"
 #include "DeviceCore/DevHMSQuery.h"
 #include "DeviceCore/DevFilaSystem.h"
 #include "DeviceCore/DevFilaSwitch.h"
@@ -71,6 +73,8 @@
 #define CALI_DEBUG
 #define MINUTE_30 1800000    //ms
 #define TIME_OUT  5000       //ms
+#define MODEL_MALL_AUTO_RETRY_MAX          3
+#define MODEL_MALL_AUTO_RETRY_INTERVAL_SEC 5
 
 namespace pt = boost::property_tree;
 
@@ -640,9 +644,6 @@ MachineObject::MachineObject(DeviceManager* manager, NetworkAgent* agent, std::s
     hw_switch_state = 0;
     m_print_error_img_id = "";
 
-    has_ipcam = true; // default true
-
-
     auto vslot = DevAmsTray(std::to_string(VIRTUAL_TRAY_MAIN_ID), std::to_string(VIRTUAL_TRAY_MAIN_ID));
     vt_slot.push_back(vslot);
 
@@ -653,6 +654,7 @@ MachineObject::MachineObject(DeviceManager* manager, NetworkAgent* agent, std::s
         m_fan = new DevFan(this);
         m_bed = new DevBed(this);
         m_air_purifier = DevAirPurifier::Create(this);
+        m_camera       = DevCamera::Create(this);
 
         m_storage       = new DevStorage(this);
         m_extder_system = new DevExtderSystem(this);
@@ -982,6 +984,7 @@ void MachineObject::clear_version_info()
     filatrack_version_info = DevFirmwareVersionInfo();
     air_purifier_version_info = DevFirmwareVersionInfo();
     hotend_ams_version_info = DevFirmwareVersionInfo();
+    drying_module_version_info = DevFirmwareVersionInfo();
     module_vers.clear();
     m_nozzle_system->ClearFirmwareInfoWTM();
     extinguish_version_info = DevFirmwareVersionInfo();
@@ -1011,6 +1014,8 @@ void MachineObject::store_version_info(const DevFirmwareVersionInfo& info)
         air_purifier_version_info = info;
     } else if (info.isHotendAms(DevPrinterConfigUtil::get_hotend_ams_type_string(printer_type))) {
         hotend_ams_version_info = info;
+    } else if (info.isDryingModule()) {
+        drying_module_version_info = info;
     } else if(info.isHE()){
         m_nozzle_system->AddFirmwareInfoHE(info);
     }
@@ -1693,8 +1698,15 @@ int MachineObject::check_resume_condition()
     return 0;
 }
 
-int MachineObject::command_ams_change_filament(bool load, std::string ams_id, std::string slot_id, int old_temp, int new_temp, std::optional<int> extruder_id)
+int MachineObject::command_ams_change_filament(bool load, std::string ams_id, std::string slot_id, int old_temp, int new_temp, std::optional<int> extruder_id, bool temper_check)
 {
+    if (load && temper_check &&
+        !check_chamber_soft_temp(ChamberSoftTempAction::Load, {get_filament_id(ams_id, slot_id)}, [this, ams_id, slot_id, old_temp, new_temp, extruder_id]() {
+            command_ams_change_filament(true, ams_id, slot_id, old_temp, new_temp, extruder_id, false);
+        })) {
+        return 0;
+    }
+
     json j;
     try {
         auto tray_id = 0;
@@ -1704,6 +1716,11 @@ int MachineObject::command_ams_change_filament(bool load, std::string ams_id, st
 
         j["print"]["command"]     = "ams_change_filament";
         j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+
+        if (!temper_check) {
+            j["print"]["temper_check"] = false;
+        }
+
         j["print"]["curr_temp"]   = old_temp;
         j["print"]["tar_temp"]    = new_temp;
         j["print"]["ams_id"]      = atoi(ams_id.c_str());
@@ -1733,11 +1750,21 @@ int MachineObject::command_ams_change_filament(bool load, std::string ams_id, st
     return this->publish_json(j);
 }
 
-int MachineObject::command_multi_slot_ams_change_filament(bool is_load, const std::vector<std::pair<int, int>>& slots)
+int MachineObject::command_multi_slot_ams_change_filament(bool is_load, const std::vector<std::pair<int, int>>& slots, bool temper_check)
 {
     if (slots.size() == 1) {
         const auto& [ams_id, slot_id] = slots.front();
-        return command_ams_change_filament(is_load, std::to_string(ams_id), std::to_string(slot_id));
+        return command_ams_change_filament(is_load, std::to_string(ams_id), std::to_string(slot_id), 210, 210, std::nullopt, temper_check);
+    }
+
+    if (is_load && temper_check) {
+        std::vector<std::string> filament_ids;
+        for (const auto& [ams_id, slot_id] : slots) {
+            filament_ids.push_back(get_filament_id(std::to_string(ams_id), std::to_string(slot_id)));
+        }
+        if (!check_chamber_soft_temp(ChamberSoftTempAction::Load, filament_ids, [this, slots]() { command_multi_slot_ams_change_filament(true, slots, false); })) {
+            return 0;
+        }
     }
 
     json j;
@@ -1745,6 +1772,9 @@ int MachineObject::command_multi_slot_ams_change_filament(bool is_load, const st
         j["print"]["command"]     = "multi_slot_ams_change_filament";
         j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
         j["print"]["is_load"]     = is_load;
+        if (!temper_check) {
+            j["print"]["temper_check"] = false;
+        }
 
         json arr = json::array();
         for (const auto& [ams_id, slot_id] : slots) {
@@ -1896,7 +1926,7 @@ int MachineObject::command_ams_select_tray(std::string tray_id)
     return this->publish_gcode(gcode_cmd);
 }
 
-int MachineObject::command_ams_control(std::string action)
+int MachineObject::command_ams_control(std::string action, const AmsControlOptions& options)
 {
     if (action == "resume" && check_resume_condition()) return 0;
 
@@ -1906,6 +1936,7 @@ int MachineObject::command_ams_control(std::string action)
         j["print"]["command"] = "ams_control";
         j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
         j["print"]["param"] = action;
+        if (options.mc_remind_disable) { j["print"]["mc_remind_disable"] = *options.mc_remind_disable; }
         return this->publish_json(j);
     }
     return -1;
@@ -3317,6 +3348,7 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                             is_support_ext_change_assist_old = get_flag_bits(flag3, 16);
                             is_support_filament_32_colors = get_flag_bits(flag3, 17);
                             is_support_timelapse_memory = get_flag_bits(flag3, 20);
+                            DevCalib::ParseSupportKNByNozzleId(get_flag_bits(flag3, 21), m_calib);
                         }
                     }
                     if (!key_field_only) {
@@ -3645,13 +3677,7 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                                 if (ipcam.contains("cfg")) {
                                     timelapse_last_enabled = get_flag_bits_no_border(ipcam["cfg"].get<std::string>(), 0) == 1;
                                 }
-                                if (ipcam.contains("ipcam_dev")) {
-                                    if (ipcam["ipcam_dev"].get<std::string>() == "1") {
-                                        has_ipcam = true;
-                                    } else {
-                                        has_ipcam = false;
-                                    }
-                                }
+                                m_camera->ParseIpcam(ipcam);
                                 if (ipcam.contains("resolution")) {
                                     if (camera_resolution_hold_count > 0)
                                         camera_resolution_hold_count--;
@@ -3760,6 +3786,7 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                     if (jj.contains("ams")) {
                         DevFilaSystemParser::ParseV1_0(jj, this, m_fila_system.get(), key_field_only);
                     }
+                    m_fila_system->GetDryerMgr().ParseV1_0(jj);
 
                     /* vitrual tray*/
                     if (!key_field_only) {
@@ -4067,6 +4094,63 @@ void MachineObject::set_ctt_dlg( wxString text){
     }
 }
 
+bool MachineObject::check_chamber_soft_temp(ChamberSoftTempAction action, const std::vector<std::string>& filament_ids, std::function<void()> resend)
+{
+    // Same rule as the send print check in SelectMachine: the chamber must stay 5 degrees below the softening
+    // temperature, and an unknown filament counts as 43, the lowest softening temperature of the known filaments
+    constexpr int SOFT_TEMP_MARGIN  = 5;
+    constexpr int UNKNOWN_SOFT_TEMP = 43;
+
+    const auto rack = GetNozzleRack();
+    if (!rack || !rack->IsDirectConnectedRack()) {
+        return true;
+    }
+
+    if (filament_ids.empty() || !m_chamber || !GUI::wxGetApp().preset_bundle) {
+        return true;
+    }
+
+    int soft_temp = std::numeric_limits<int>::max();
+    for (const std::string& filament_id : filament_ids) {
+        const auto filament = filament_id.empty() ? std::nullopt : GUI::wxGetApp().preset_bundle->get_filament_by_filament_id(filament_id);
+        soft_temp           = std::min(soft_temp, filament ? filament->temperature_vitrification : UNKNOWN_SOFT_TEMP);
+    }
+
+    const int chamber_limit = soft_temp - SOFT_TEMP_MARGIN;
+    const int chamber_temp  = int(m_chamber->GetChamberTemp());
+    if (chamber_temp < chamber_limit) {
+        return true;
+    }
+
+    BOOST_LOG_TRIVIAL(info) << KV(log_key::dev_id, get_dev_id()) << "chamber temperature " << chamber_temp << " reaches the filament limit " << chamber_limit << ", ask before sending";
+
+    // Ask after the caller returns: device page request handlers must not run a modal loop
+    const wxString text = wxString::Format(_L("The chamber temperature is too high, which may cause the filament to soften. Please wait until the chamber temperature drops below %d\u2103. You may open the front door or enable fans to cool down."), chamber_limit);
+    GUI::wxGetApp().CallAfter([this, token = get_token(), action, text, resend = std::move(resend)]() {
+        const auto can_continue = [this, &token]() {
+            if (token.expired() || GUI::wxGetApp().is_closing()) {
+                return false;
+            }
+            return m_manager->get_selected_machine() == this;
+        };
+
+        if (!can_continue()) {
+            return;
+        }
+
+        GUI::AlertDialog dlg(GUI::wxGetApp().mainframe, _L("Info"), text);
+        dlg.AddButton(wxID_CANCEL, _L("Close"));
+        dlg.AddButton(wxID_OK, action == ChamberSoftTempAction::TakeHotend ? _L("Continue taking") : _L("Continue loading"), GUI::AlertButtonRole::Primary);
+        if (dlg.ShowModal() != wxID_OK || !can_continue()) {
+            return;
+        }
+
+        BOOST_LOG_TRIVIAL(info) << KV(log_key::dev_id, get_dev_id()) << "send command without temper check";
+        resend();
+    });
+    return false;
+}
+
 int MachineObject::publish_gcode(std::string gcode_str)
 {
     json j;
@@ -4134,6 +4218,11 @@ void MachineObject::update_model_task()
             BOOST_LOG_TRIVIAL(info) << "need retry";
             get_model_mall_result_need_retry = false;
         }
+        model_mall_auto_retry_count = 0;
+    } else if (rating_info && !rating_info->request_successful && rating_info->http_code != 403 && model_mall_auto_retry_count < MODEL_MALL_AUTO_RETRY_MAX &&
+               time(nullptr) >= model_mall_next_retry_time) {
+        model_mall_auto_retry_count++;
+        BOOST_LOG_TRIVIAL(info) << "model mall result auto retry, times: " << model_mall_auto_retry_count;
     } else {
         BOOST_LOG_TRIVIAL(info) << "subtask_id_ no change and do not need retry";
         return;
@@ -4169,7 +4258,9 @@ void MachineObject::update_model_task()
                         rating_info->request_successful = false;
                         BOOST_LOG_TRIVIAL(info) << "can not get rating id";
                         Slic3r::GUI::wxGetApp().CallAfter([this, token, rating_info]() {
-                            if (!token.expired()) this->rating_info = rating_info;
+                            if (token.expired()) return;
+                            this->rating_info                = rating_info;
+                            this->model_mall_next_retry_time = time(nullptr) + MODEL_MALL_AUTO_RETRY_INTERVAL_SEC;
                         });
                         return;
                     }
@@ -4187,13 +4278,21 @@ void MachineObject::update_model_task()
                         if (!token.expired()) this->rating_info = rating_info;
                     });
                 } catch (...) {
-                    BOOST_LOG_TRIVIAL(info) << "parse model mall result json failed";
+                    BOOST_LOG_TRIVIAL(warning) << "parse model mall result json failed";
+                    rating_info->request_successful = false;
+                    Slic3r::GUI::wxGetApp().CallAfter([this, token, rating_info]() {
+                        if (token.expired()) return;
+                        this->rating_info                = rating_info;
+                        this->model_mall_next_retry_time = time(nullptr) + MODEL_MALL_AUTO_RETRY_INTERVAL_SEC;
+                    });
                 }
             }
             else {
                 rating_info->request_successful = false;
                 Slic3r::GUI::wxGetApp().CallAfter([this, token, rating_info]() {
-                    if (!token.expired()) this->rating_info = rating_info;
+                    if (token.expired()) return;
+                    this->rating_info                = rating_info;
+                    this->model_mall_next_retry_time = time(nullptr) + MODEL_MALL_AUTO_RETRY_INTERVAL_SEC;
                 });
                 BOOST_LOG_TRIVIAL(info) << "model mall result request failed, request time: " << request_model_result << " "
                                         << KV(log_key::http_code, http_code) << "error msg: " << http_error;
@@ -4812,6 +4911,7 @@ void MachineObject::parse_new_info(json print)
         m_fila_system->GetAutoRefillMgr().SetSupportManualEdit(get_flag_bits_no_border(fun2, 26) == 1);
         is_support_door_open_check_slow_down = (get_flag_bits_no_border(fun2, 27) == 1);
         is_support_timelapse_memory = (get_flag_bits_no_border(fun2, 36) == 1);
+        support_big_flush = (get_flag_bits_no_border(fun2, 41) == 1);
 
         if (DevPrinterConfigUtil::support_print_check_firmware_for_tpu_left(printer_type)) {
             m_firmware_support_print_tpu_left = DevUtil::get_flag_bits_no_border(fun2, 7) == 1;
@@ -4854,7 +4954,8 @@ void MachineObject::parse_new_info(json print)
             DeviceManager* device_manager = GUI::wxGetApp().getDeviceManager();
             MachineObject* local_machine = device_manager ? device_manager->get_local_machine(get_dev_id()) : nullptr;
             if (local_machine && local_machine->is_lan_mode_printer()) {
-                device_manager->remove_local_machine_for_cloud_mode(get_dev_id(), "cloud status push");
+                // farm 机器无法通过推送准确识别。
+                // device_manager->remove_local_machine_for_cloud_mode(get_dev_id(), "cloud status push");
             }
         }
     }
@@ -5423,7 +5524,12 @@ bool MachineObject::is_target_slot_unload() const
         return m_fila_system->IsVirtualTrayId(std::to_string(tar_second));
     }
 
-    return m_fila_system->IsVirtualTrayId(m_extder_system->GetTargetSlotId());
+    auto target_slot = m_extder_system->GetTargetSlotId();
+    if (target_slot.empty()) {
+        return true;
+    }
+
+    return m_fila_system->IsVirtualTrayId(target_slot);
 }
 
 Slic3r::DevAms* MachineObject::get_curr_Ams()

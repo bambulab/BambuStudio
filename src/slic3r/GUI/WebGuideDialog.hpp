@@ -122,6 +122,8 @@ private:
     bool m_GuideFinish;
     std::string m_PrivacyUse;
     std::string m_Region;
+    // user clicked "Agree" on the user_clause page, i.e. agreed to both Terms of Use and Privacy Policy
+    bool m_UserClauseAgreed{false};
 
     bool InstallNetplugin;
     bool network_plugin_ready {false};

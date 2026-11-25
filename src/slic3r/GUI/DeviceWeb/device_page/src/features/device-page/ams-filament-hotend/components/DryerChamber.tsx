@@ -1,17 +1,20 @@
 import type { CSSProperties } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { AmsFilamentHotendDryerZone, AmsFilamentHotendSlotViewModel } from '../types';
-import { DryingIcon, HumidityIcon } from './AmsEnvIcons';
+import { DryingActiveIcon, DryingIcon, HumidityIcon } from './AmsEnvIcons';
 
 const COL = 80;
 
 // Gap between the chamber background and the readout trailing it.
 const INFO_GAP = 6;
 
+export type DryerInfoSide = 'left' | 'right';
+
 export function DryerChamberDecoration({
   startIndex,
   endIndex,
   totalSlots,
+  infoSide,
   humidity,
   status,
   isDrying,
@@ -21,13 +24,13 @@ export function DryerChamberDecoration({
   startIndex: number;
   endIndex: number;
   totalSlots: number;
+  infoSide: DryerInfoSide;
   humidity: number;
   status: string;
   isDrying?: boolean;
   amsId: string;
   onDry?: (amsId: string) => void;
 }) {
-  if (totalSlots !== 4) return null;
   // Top columns sit at odd multiples of `--slot-pitch` (see Stage.tsx).
   const startStr = `calc(${1 + 2 * startIndex} * var(--slot-pitch) - 4px)`;
   const endStr = `calc(${1 + 2 * endIndex} * var(--slot-pitch) + ${COL + 4}px)`;
@@ -40,7 +43,7 @@ export function DryerChamberDecoration({
 
   return (
     <div
-      className={`dryer-chamber-bg${isDrying ? ' is-drying' : ''}`}
+      className={`dryer-chamber-bg info-${infoSide}${isDrying ? ' is-drying' : ''}`}
       data-testid="ams-hotend-dryer-chamber"
       style={{
         ['--chamber-left' as never]: startStr,
@@ -48,8 +51,9 @@ export function DryerChamberDecoration({
         ['--chamber-cap' as never]: capStr,
       } as CSSProperties}
     >
-      <div className="dryer-chamber-zone" aria-hidden="true" />
-      <DryerInfo humidity={humidity} status={status} amsId={amsId} onDry={onDry} />
+      {/* A left-side readout leads the chamber; a right-side one trails the zone spacer. */}
+      {infoSide === 'right' && <div className="dryer-chamber-zone" aria-hidden="true" />}
+      <DryerInfo humidity={humidity} status={status} isDrying={isDrying} amsId={amsId} onDry={onDry} />
     </div>
   );
 }
@@ -57,11 +61,13 @@ export function DryerChamberDecoration({
 export function DryerInfo({
   humidity,
   status,
+  isDrying,
   amsId,
   onDry,
 }: {
   humidity: number;
   status: string;
+  isDrying?: boolean;
   amsId: string;
   onDry?: (amsId: string) => void;
 }) {
@@ -77,7 +83,7 @@ export function DryerInfo({
         </span>
       </div>
       <div className="dryer-info-row">
-        <DryingIcon />
+        {isDrying ? <DryingActiveIcon /> : <DryingIcon />}
         {/* Long localized statuses are ellipsized; keep the full text on hover. */}
         <span className="dryer-text" title={statusText}>{statusText}</span>
       </div>
@@ -97,25 +103,27 @@ export function DryerInfo({
   );
 }
 
-// Non-idle dryer states are shown as active.
-function isDryingStatus(status?: string) {
-  return !!status && status !== 'Idle' && status !== 'Off';
-}
+// Matches DevAms::AmsIsDrying(), which the native AMS widget uses for its heating sun.
+const ACTIVE_DRY_STATUSES = new Set(['Checking', 'Drying', 'Error', 'Heat fault']);
 
-// Split each dryer zone into contiguous rendered slot runs.
-export function findDryerRuns(
-  slots: AmsFilamentHotendSlotViewModel[],
-  zones: AmsFilamentHotendDryerZone[],
-): Array<{
+export interface DryerRun {
   start: number;
   end: number;
+  infoSide: DryerInfoSide;
   humidity: number;
   status: string;
   isDrying: boolean;
   amsId: string;
-}> {
+}
+
+// Split each dryer zone into contiguous rendered slot runs; the readout goes
+// to the stage edge the run touches.
+export function findDryerRuns(
+  slots: AmsFilamentHotendSlotViewModel[],
+  zones: AmsFilamentHotendDryerZone[],
+): DryerRun[] {
   if (!zones?.length) return [];
-  const runs: Array<{ start: number; end: number; humidity: number; status: string; isDrying: boolean; amsId: string }> = [];
+  const runs: Array<Omit<DryerRun, 'infoSide'>> = [];
 
   for (const zone of zones) {
     const toIds = (v?: Array<number | string>) => (v ?? []).map(Number).filter((n) => !Number.isNaN(n));
@@ -139,7 +147,8 @@ export function findDryerRuns(
 
     const humidity = typeof zone.humidity_raw === 'number' && zone.humidity_raw >= 0 ? zone.humidity_raw : -1;
     const status = zone.dry_status_text || '';
-    const isDrying = isDryingStatus(zone.dry_status) || (typeof zone.dry_time === 'number' && zone.dry_time > 0);
+    const isDrying = ACTIVE_DRY_STATUSES.has(zone.dry_status ?? '')
+      || (!zone.dry_status && typeof zone.dry_time === 'number' && zone.dry_time > 0);
 
     let runStart = matchedCols[0];
     let prev = matchedCols[0];
@@ -156,5 +165,9 @@ export function findDryerRuns(
     }
   }
 
-  return runs;
+  const lastCol = slots.length - 1;
+  return runs.map((run) => ({
+    ...run,
+    infoSide: run.start === 0 && run.end < lastCol ? 'left' : 'right',
+  }));
 }

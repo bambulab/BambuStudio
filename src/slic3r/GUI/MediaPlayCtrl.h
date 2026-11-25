@@ -17,6 +17,8 @@
 #include "wxMediaCtrl3.h"
 #endif
 
+#include "DeviceCore/DevCamera.h"
+
 #include <wx/panel.h>
 
 #include <boost/thread.hpp>
@@ -91,6 +93,11 @@ protected:
 private:
     void load();
 
+    // Device-side camera error overrides the playback status while non-empty
+    void SetCameraError(wxString const &err);
+
+    void RefreshStatusLabel();
+
     void update_camera_switch_tooltip();
 
     void start_device_image_flow();
@@ -126,7 +133,10 @@ private:
     std::string m_lan_passwd;
     std::string m_dev_ver;
     std::string m_tutk_state;
-    bool m_camera_exists = false;
+    DevCamera::IpcamReadyState m_ipcam_ready_state = DevCamera::IPCAM_NOT_PRESENT;
+    wxString m_status_msg;
+    bool m_status_hyperlink = false;
+    wxString m_camera_error;
     bool m_support_liveview_preview = false;
     bool m_lan_mode = false;
     int m_remote_proto = 0;

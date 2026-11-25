@@ -80,7 +80,7 @@ export function Stage({
   // Dryer chambers are physically attached to the top tier in the current
   // hardware layout; only top slots can fall under a chamber decoration.
   const dryerRuns = findDryerRuns(topSlots, amsDryZones);
-  const ambientAnchors = findAmbientAnchors(topSlots, amsEnvUnits);
+  const ambientAnchors = findAmbientAnchors(topSlots, amsEnvUnits, dryerRuns);
   const dryClickable = mode === 'normal';
 
   return (
@@ -96,6 +96,7 @@ export function Stage({
             startIndex={run.start}
             endIndex={run.end}
             totalSlots={topSlots.length}
+            infoSide={run.infoSide}
             humidity={run.humidity}
             status={run.status}
             isDrying={run.isDrying}
@@ -105,8 +106,9 @@ export function Stage({
         ))}
         {ambientAnchors.map((anchor) => (
           <AmbientInfoDecoration
-            key={`ambient-${anchor.start}`}
-            startIndex={anchor.start}
+            key={`ambient-${anchor.side}-${anchor.col}`}
+            col={anchor.col}
+            side={anchor.side}
             humidity={anchor.humidity}
             temp={anchor.temp}
           />

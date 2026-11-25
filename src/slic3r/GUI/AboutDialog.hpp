@@ -57,7 +57,6 @@ private:
 class AboutDialog : public DPIDialog
 {
     ScalableBitmap  m_logo_bitmap;
-    wxHtmlWindow*   m_html;
     wxStaticBitmap* m_logo;
     int             m_copy_rights_btn_id { wxID_ANY };
     int             m_copy_version_btn_id { wxID_ANY };
@@ -68,7 +67,6 @@ protected:
     void on_dpi_changed(const wxRect &suggested_rect) override;
     
 private:
-    void onLinkClicked(wxHtmlLinkEvent &event);
     void onCloseDialog(wxEvent &);
     void onCopyrightBtn(wxEvent &);
     void onCopyToClipboard(wxEvent&);

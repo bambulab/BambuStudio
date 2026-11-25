@@ -268,6 +268,16 @@ float calc_filament_change_gap_for_assignment(
     const FilamentChangeTimeParams&   time_params,
     const std::vector<bool>&          ams_preload_enabled = {});
 
+// Walk filament/nozzle change sequences against flush_matrix[extruder][from][to]
+// (already multiplied). Empty-nozzle first load is 0. Used to warn old firmware
+// when any actual flush exceeds the given limit (default 1000 mm^3).
+bool flush_volume_exceeds_limit(
+    const std::vector<int>&                              filament_change_seq,
+    const std::vector<int>&                              nozzle_change_seq,
+    const std::vector<NozzleInfo>&                       nozzle_list,
+    const std::vector<std::vector<std::vector<float>>>&  flush_matrix,
+    float                                                limit = 1000.f);
+
 std::vector<int> find_optimal_physical_assignment(
     const std::vector<int>&           logical_filaments,
     const std::vector<NozzleInfo>&    nozzle_list,

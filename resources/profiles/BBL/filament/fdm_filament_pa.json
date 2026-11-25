@@ -28,23 +28,34 @@
     "fan_min_speed": [
         "0"
     ],
+    "filament_adhesiveness_category": [
+        "400"
+    ],
     "filament_cost": [
         "20"
     ],
     "filament_density": [
         "1.04"
     ],
-    "filament_max_volumetric_speed": [
-        "8"
+    "filament_dev_ams_drying_ams_limitations": [
+        "1",
+        "2"
     ],
-    "filament_metal_stickiness": [
-        "High"
+    "filament_dev_ams_drying_heat_distortion_temperature": [
+        "165",
+        "165",
+        "165",
+        "165"
     ],
-    "filament_type": [
-        "PA"
-    ],
-    "filament_adhesiveness_category": [
-        "400"
+    "filament_dev_ams_drying_temperature": [
+        "65",
+        "85",
+        "65",
+        "85",
+        "85",
+        "85",
+        "75",
+        "75"
     ],
     "filament_dev_ams_drying_time": [
         "12",
@@ -59,30 +70,23 @@
     "filament_dev_chamber_drying_time": [
         "18"
     ],
-    "filament_dev_ams_drying_heat_distortion_temperature": [
-        "165",
-        "165",
-        "165",
-        "165"
-    ],
     "filament_dev_drying_cooling_temperature": [
         "150"
-    ],
-    "filament_dev_ams_drying_temperature": [
-        "65",
-        "85",
-        "65",
-        "85",
-        "85",
-        "85",
-        "65",
-        "65"
     ],
     "filament_dev_drying_softening_temperature": [
         "150",
         "150",
         "150",
         "150"
+    ],
+    "filament_max_volumetric_speed": [
+        "8"
+    ],
+    "filament_metal_stickiness": [
+        "High"
+    ],
+    "filament_type": [
+        "PA"
     ],
     "hot_plate_temp": [
         "100"

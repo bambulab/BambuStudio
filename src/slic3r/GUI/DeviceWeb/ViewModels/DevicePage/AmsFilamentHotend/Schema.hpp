@@ -77,9 +77,12 @@ namespace ams_ext_operation_slot {
 namespace filament_actions {
     inline constexpr const char* can_dry           = "can_dry";
     inline constexpr const char* can_unload        = "can_unload";
+    inline constexpr const char* unload_action_txt = "unload_action_txt";
     inline constexpr const char* can_load          = "can_load";
     inline constexpr const char* can_load_external = "can_load_external";
+    inline constexpr const char* load_external_variant = "load_external_variant";
     inline constexpr const char* can_show_load_auto = "can_show_load_auto";
+    inline constexpr const char* load_auto_action_txt = "load_auto_action_txt";
     inline constexpr const char* show_ams_settings = "show_ams_settings";
     inline constexpr const char* show_auto_refill  = "show_auto_refill";
     // Whether the toolbar's "read all" icon button is shown. Rack-B only
@@ -222,6 +225,7 @@ namespace env_unit {
     inline constexpr const char* zone_addrs   = "zone_addrs";
     inline constexpr const char* temp         = "temp";
     inline constexpr const char* humidity_raw = "humidity_raw";
+    inline constexpr const char* info_side    = "info_side";
 }
 
 } // namespace keys
@@ -239,6 +243,15 @@ namespace mode {
     inline constexpr const char* batch_ams_load = "batch_ams_load";
     inline constexpr const char* batch_ext_load = "batch_ext_load";
     inline constexpr const char* batch_unload   = "batch_unload";
+}
+
+// values for filament_actions::load_external_variant - which wording the Web
+// uses for the external load action (menu item, hint, batch commit button).
+//   * ext    - Rack-B: "EXT Load" + AMS feed inlet hint
+//   * manual - other rack types: "Manual Loading" (default)
+namespace load_external_variant {
+    inline constexpr const char* ext    = "ext";
+    inline constexpr const char* manual = "manual";
 }
 
 namespace card_state {

@@ -4,6 +4,12 @@
     "inherits": "fdm_filament_common",
     "from": "system",
     "instantiation": "false",
+    "effect_plate_temp": [
+        "80"
+    ],
+    "effect_plate_temp_initial_layer": [
+        "80"
+    ],
     "eng_plate_temp": [
         "0"
     ],
@@ -32,7 +38,7 @@
         "75",
         "75",
         "70",
-        "75"
+        "70"
     ],
     "filament_dev_ams_drying_temperature": [
         "65",
@@ -42,7 +48,7 @@
         "65",
         "65",
         "65",
-        "55"
+        "65"
     ],
     "filament_dev_ams_drying_time": [
         "12",
@@ -67,7 +73,7 @@
         "60",
         "60",
         "75",
-        "60"
+        "75"
     ],
     "filament_max_volumetric_speed": [
         "25"

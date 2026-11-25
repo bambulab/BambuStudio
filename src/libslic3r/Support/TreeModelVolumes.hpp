@@ -476,6 +476,11 @@ private:
      */
     std::vector<std::pair<TreeSupportMeshGroupSettings, std::vector<Polygons>>> m_layer_outlines;
     /*!
+     * \brief 与 m_layer_outlines 下标对齐的可挤出轮廓（与悬垂检测的 lslices_extrudable 同口径），
+     * 仅用于顶部 Z 间隙层的碰撞，避免比线宽还细的尖尾起点挡住紧邻其上的悬垂。
+     */
+    std::vector<std::vector<Polygons>> m_layer_outlines_extrudable;
+    /*!
      * \brief Storage for areas that should be avoided, like support blocker or previous generated trees.
      */
     std::vector<Polygons> m_anti_overhang;

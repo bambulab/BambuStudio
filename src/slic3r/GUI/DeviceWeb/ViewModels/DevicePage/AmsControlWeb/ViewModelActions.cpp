@@ -15,6 +15,7 @@
 #include "slic3r/GUI/DeviceCore/DevExtruderSystem.h"
 #include "slic3r/GUI/DeviceCore/DevFilaSwitch.h"
 #include "slic3r/GUI/DeviceCore/DevFilaSystem.h"
+#include "slic3r/GUI/DeviceCore/DevDryer.h"
 #include "slic3r/GUI/DeviceCore/DevInfo.h"
 #include "slic3r/GUI/DeviceCore/DevManager.h"
 #include "slic3r/GUI/Widgets/AMSItem.hpp"
@@ -65,8 +66,17 @@ void show_ams_level_humidity_tip(int humidity_value)
     if (!parent) return;
 
     static AmsHumidityTipPopup* popup = nullptr;
-    if (!popup)
+    static int popup_dpi = 0;
+    if (!popup) {
         popup = new AmsHumidityTipPopup(parent);
+        popup_dpi = get_dpi_for_window(popup);
+    }
+
+    popup->Move(AMSDryCtrWin::DefaultPopupPos(parent));
+    if (const int dpi = get_dpi_for_window(popup); dpi != popup_dpi) {
+        popup->msw_rescale();
+        popup_dpi = dpi;
+    }
 
     if (humidity_value > 0 && humidity_value <= 5)
         popup->set_humidity_level(humidity_value);
@@ -75,11 +85,7 @@ void show_ams_level_humidity_tip(int humidity_value)
     popup->Fit();
     wxGetApp().UpdateDarkUIWin(popup);
 
-    const wxSize  sz     = popup->GetSize();
-    const wxRect  screen = parent->GetScreenRect();
-    const wxPoint pos(screen.x + (screen.width - sz.GetWidth()) / 2,
-                      screen.y + (screen.height - sz.GetHeight()) / 2);
-    popup->Position(pos, wxSize(0, 0));
+    popup->Move(AMSDryCtrWin::DefaultPopupPos(parent, popup->GetSize()));
     popup->Popup();
 }
 
@@ -95,15 +101,14 @@ void open_humidity(const std::string& ams_id)
 
     const DevAmsType type = ams->GetAmsType();
     // Mirrors AMSControl::EVT_AMS_SHOW_HUMIDITY_TIPS: classic AMS uses the
-    // A/B/C/D/E droplet tip; N3 with remote dry uses the dryer window;
+    // A/B/C/D/E droplet tip; an AMS that can dry remotely uses the dryer window;
     // everything else uses the percent / remaining-time dialog.
     if (type == DevAmsType::AMS) {
         show_ams_level_humidity_tip(humidity_display_idx_of(ams));
         return;
     }
 
-    if (machine_obj->is_support_remote_dry &&
-        (type == DevAmsType::N3F || type == DevAmsType::N3S)) {
+    if (const auto dryer = fila_system->GetDryerMgr().Find(ams_id); dryer && dryer->IsSupportRemoteDry(machine_obj)) {
         OpenAmsDryControlDialog(machine_obj, ams_id);
         return;
     }
@@ -116,8 +121,10 @@ void open_humidity(const std::string& ams_id)
     info.left_dry_time        = ams->GetLeftDryTime();
     info.current_temperature  = ams->GetCurrentTemperature();
 
-    uiAmsPercentHumidityDryPopup dlg(wxGetApp().mainframe);
+    wxWindow* parent = wxGetApp().mainframe;
+    uiAmsPercentHumidityDryPopup dlg(parent, AMSDryCtrWin::DefaultPopupPos(parent));
     dlg.Update(&info);
+    dlg.Move(AMSDryCtrWin::DefaultPopupPos(parent, dlg.GetSize()));
     dlg.ShowModal();
 }
 

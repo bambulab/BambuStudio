@@ -271,6 +271,7 @@ FilamentSpool wgtFilaManagerCloudSync::cloud_json_to_spool(const nlohmann::json&
     s.ams_type    = num_i_any({"amsType",  "ams_type"}, -1);
     s.slot_id     = str_any({"slotId",     "slot_id"});
     s.device_name = str_any({"deviceName", "device_name"});
+    s.normalize_ext_spool_mount();
 
     return s;
 }
@@ -383,8 +384,6 @@ void wgtFilaManagerCloudSync::pull_from_cloud()
                     std::set<std::string> cloud_ids;
                     int dropped_local_only = 0;
 
-                    // 判断某台机器当前是否在线（有实时 MQTT 数据）。
-                    // 用 get_my_machine 而非 get_user_machine，避免跨账号误判。
                     auto machine_is_online = [](const std::string& dev_id) -> bool {
                         if (dev_id.empty()) return false;
                         auto* mgr = wxGetApp().getDeviceManager();
@@ -393,6 +392,16 @@ void wgtFilaManagerCloudSync::pull_from_cloud()
                         return obj && obj->is_online();
                     };
 
+                    auto slot_key = [](const FilamentSpool& s) {
+                        return s.dev_id + ":" + std::to_string(s.ams_id) + ":" + s.slot_id;
+                    };
+                    std::map<std::string, std::string> cloud_slot_owner;
+                    for (const auto& item : list) {
+                        const FilamentSpool s = cloud_json_to_spool(item);
+                        if (s.in_printer && !s.dev_id.empty() && s.ams_id >= 0 && !s.slot_id.empty())
+                            cloud_slot_owner[slot_key(s)] = s.spool_id;
+                    }
+
                     for (const auto& item : list) {
                         FilamentSpool cloud_spool = cloud_json_to_spool(item);
                         if (cloud_spool.spool_id.empty()) continue;
@@ -400,14 +409,19 @@ void wgtFilaManagerCloudSync::pull_from_cloud()
                         cloud_ids.insert(cloud_spool.spool_id);
 
                         if (const FilamentSpool* existing = m_store->get_spool(cloud_spool.spool_id)) {
-                            // 判断本地是否有来自该机器的实时 MQTT 数据。
-                            // 条件：existing->dev_id 对应的机器当前在线。
-                            // 不单独判断 in_printer==true，因为断连后该值仍可能为 true。
                             const bool local_is_live = machine_is_online(existing->dev_id);
-                            if (local_is_live) {
-                                // 机器在线时以本地为准，保留本地在位字段，不用云端值覆盖。
-                                // 不在 pull 里反向 push 修正——下次 MQTT 到来时
-                                // notify_ams_synced 会把最新在位字段推上云端。
+                            bool slot_moved_to_other = false;
+                            if (local_is_live && existing->in_printer && existing->mount_hold_count == 0) {
+                                auto owner_it = cloud_slot_owner.find(slot_key(*existing));
+                                slot_moved_to_other = owner_it != cloud_slot_owner.end() && owner_it->second != existing->spool_id;
+                                if (slot_moved_to_other) {
+                                    BOOST_LOG_TRIVIAL(info) << "[FilaCloudSync] pull: slot moved to spool_id=" << owner_it->second
+                                                            << " in cloud, drop stale local mount spool_id=" << existing->spool_id << " "
+                                                            << KV(log_key::dev_id, existing->dev_id) << KV(log_key::ams_id, existing->ams_id)
+                                                            << KV(log_key::slot_id, existing->slot_id);
+                                }
+                            }
+                            if (local_is_live && !slot_moved_to_other) {
                                 cloud_spool.in_printer  = existing->in_printer;
                                 cloud_spool.dev_id      = existing->dev_id;
                                 cloud_spool.ams_sn      = existing->ams_sn;
@@ -416,7 +430,6 @@ void wgtFilaManagerCloudSync::pull_from_cloud()
                                 cloud_spool.slot_id     = existing->slot_id;
                                 cloud_spool.device_name = existing->device_name;
                             }
-                            // local_is_live==false：云端在位字段直接作为历史数据落地
                             m_store->update_spool(cloud_spool);
                         } else {
                             m_store->add_spool(cloud_spool);
@@ -775,6 +788,30 @@ const char* device_state_label(AmsAutoPushThrottle::DeviceState s)
     return s == AmsAutoPushThrottle::DeviceState::Busy ? "busy" : "idle";
 }
 
+// External spools have no AMS module, so their amsSn is always empty; slot-mappings accepts that.
+bool is_ext_spool_type(int ams_type)
+{
+    return ams_type == static_cast<int>(DevAmsType::EXT_SPOOL);
+}
+
+void fill_ext_spool_slot(BBL::SlotMappingItem& item, int ams_id, const std::string& slot_id)
+{
+    item.amsSn   = "";
+    item.amsId   = -1;
+    item.amsType = -1;
+    item.slotId  = ams_id >= 0 ? std::to_string(ams_id) : slot_id;
+}
+
+// Network plugin omits spoolId when it is -1 (0 is still sent as null).
+constexpr int kSlotMappingSpoolIdOmit = -1;
+
+// External spool unbind: the mapping carries only amsSn="" and slotId=<virtual tray id>.
+void mark_ext_spool_unbind(BBL::SlotMappingItem& item)
+{
+    item.spoolId = kSlotMappingSpoolIdOmit;
+    item.rfid.clear();
+}
+
 } // namespace
 
 void wgtFilaManagerCloudSync::notify_ams_synced(
@@ -1070,19 +1107,23 @@ void wgtFilaManagerCloudSync::sync_slot_mappings_to_cloud(
         item.amsId   = snap.ams_id   >= 0 ? snap.ams_id   : 0;
         item.amsType = snap.ams_type >= 0 ? snap.ams_type : 0;
 
-        if (item.amsSn.empty()) {
+        const bool is_ext = is_ext_spool_type(snap.ams_type);
+        if (is_ext) {
+            fill_ext_spool_slot(item, snap.ams_id, snap.slot_id);
+            mark_ext_spool_unbind(item);
+        } else if (item.amsSn.empty()) {
             BOOST_LOG_TRIVIAL(info)
                 << "[FilaCloudSync] sync_slot_mappings_to_cloud: skip spool=" << snap.spool_id
                 << " reason=amsSn_empty";
             continue;
         }
 
-        params.mappings.push_back(std::move(item));
-
         BOOST_LOG_TRIVIAL(info)
             << "[FilaCloudSync] sync_slot_mappings_to_cloud: unplug spool="
-            << snap.spool_id << " amsSn=" << snap.ams_sn
-            << " slotId=" << snap.slot_id;
+            << snap.spool_id << " amsSn=" << item.amsSn
+            << " slotId=" << item.slotId << " ext=" << (is_ext ? 1 : 0);
+
+        params.mappings.push_back(std::move(item));
     }
 
     if (params.mappings.empty()) {
@@ -1103,9 +1144,17 @@ void wgtFilaManagerCloudSync::sync_slot_mappings_to_cloud(
 void wgtFilaManagerCloudSync::sync_slot_bindings_to_cloud(
     const std::string&              dev_id,
     const std::vector<std::string>& spool_ids,
-    bool                            is_bind)
+    bool                            is_bind,
+    std::function<void()>           on_done)
 {
-    if (spool_ids.empty() || !m_client) return;
+    auto finish = [on_done]() {
+        if (on_done) wxGetApp().CallAfter(on_done);
+    };
+
+    if (spool_ids.empty() || !m_client) {
+        finish();
+        return;
+    }
 
     BBL::SlotMappingsSyncParams params;
     params.devId = dev_id;
@@ -1126,7 +1175,10 @@ void wgtFilaManagerCloudSync::sync_slot_bindings_to_cloud(
         item.amsId   = s->ams_id   >= 0 ? s->ams_id   : 0;
         item.amsType = s->ams_type >= 0 ? s->ams_type : 0;
 
-        if (item.amsSn.empty()) {
+        const bool is_ext = is_ext_spool_type(s->ams_type);
+        if (is_ext) {
+            fill_ext_spool_slot(item, s->ams_id, s->slot_id);
+        } else if (item.amsSn.empty()) {
             BOOST_LOG_TRIVIAL(info)
                 << "[FilaCloudSync] sync_slot_bindings_to_cloud: skip sid=" << sid
                 << " reason=amsSn_empty";
@@ -1152,33 +1204,44 @@ void wgtFilaManagerCloudSync::sync_slot_bindings_to_cloud(
                 continue;
             }
             // rfid 只在 spool 有有效 tag_uid 时填（官方 RFID 录入后 tag_uid 非空非零）。
-            if (FilamentSpool::is_valid_tag_uid(s->tag_uid))
+            if (FilamentSpool::is_valid_tag_uid(s->tag_uid)) {
                 item.rfid = s->tag_uid;
+                if (is_ext)
+                    item.spoolId = kSlotMappingSpoolIdOmit;
+            }
 
             BOOST_LOG_TRIVIAL(info)
                 << "[FilaCloudSync] sync_slot_bindings_to_cloud: bind spool_id=" << sid
                 << " spoolId=" << item.spoolId
                 << " amsSn=" << item.amsSn
-                << " slotId=" << item.slotId;
+                << " slotId=" << item.slotId << " ext=" << (is_ext ? 1 : 0);
         } else {
             // is_bind=false：spoolId=0, rfid="" → 云端解读为解绑
+            // 外挂料解绑只带 amsSn="" + slotId，spoolId 置 -1 由插件省略
+            if (is_ext)
+                mark_ext_spool_unbind(item);
             BOOST_LOG_TRIVIAL(info)
                 << "[FilaCloudSync] sync_slot_bindings_to_cloud: unbind spool_id=" << sid
                 << " amsSn=" << item.amsSn
-                << " slotId=" << item.slotId;
+                << " slotId=" << item.slotId << " ext=" << (is_ext ? 1 : 0);
         }
 
         params.mappings.push_back(std::move(item));
     }
 
-    if (params.mappings.empty()) return;
+    if (params.mappings.empty()) {
+        finish();
+        return;
+    }
 
     m_client->sync_slot_mappings(std::move(params),
-        [](const nlohmann::json&) {},
-        [dev_id](int code, const std::string& msg) {
+        [finish](const nlohmann::json&) { finish(); },
+        [dev_id, finish](int code, const std::string& msg) {
             BOOST_LOG_TRIVIAL(warning)
                 << "[FilaCloudSync] sync_slot_bindings_to_cloud failed: dev=" << dev_id
                 << " code=" << code << " msg=" << msg;
+            // Still continue the chain so a failed unbind does not drop the follow-up bind.
+            finish();
         });
 }
 

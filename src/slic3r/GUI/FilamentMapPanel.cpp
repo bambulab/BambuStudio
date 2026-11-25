@@ -2,6 +2,7 @@
 #include "Widgets/MultiNozzleSync.hpp"
 #include "GUI_App.hpp"
 #include "Plater.hpp"
+#include "PartPlate.hpp"
 #include "DeviceCore/DevConfigUtil.h"
 #include "DeviceCore/DevNozzleSystem.h"
 #include <cassert>
@@ -71,30 +72,15 @@ int get_effective_ams_nozzle_idx_for_active_diameter(const ConfigBase& config)
         return -1;
 
     const std::string &ams_diam = slots[ams_idx].diameter;
-    // In multi-diameter mode nozzle_diameter is only the conservative slicing baseline (normally
-    // 0.2), not a filter on which physical nozzles may participate. An AMS attached to a 0.6 nozzle
-    // must therefore remain the AMS group even while that baseline is 0.2; otherwise the manual
-    // grouping UI collapses the AMS nozzle and all fixed nozzles into one group.
+    // In multi-diameter mode nozzle_diameter is only the slicing baseline (the preset value once the
+    // extruder carries several diameters), not a filter on which physical nozzles may participate. An
+    // AMS attached to a 0.6 nozzle must therefore remain the AMS group even while that baseline is 0.4;
+    // otherwise the manual grouping UI collapses the AMS nozzle and all fixed nozzles into one group.
     const bool multi_diameter = multi_nozzle_diameter_mode_enabled(config);
     const bool usable = !slots[ams_idx].empty() &&
         (multi_diameter || active_diameter.empty() || ams_diam.empty() ||
          format_diameter_to_str(std::atof(ams_diam.c_str())) == active_diameter);
     return usable ? ams_idx : -1;
-}
-
-bool has_groupable_tpu285_nozzle(const ConfigBase& config)
-{
-    const auto* nd = dynamic_cast<const ConfigOptionFloatsNullable*>(config.option("nozzle_diameter"));
-    const std::string active_diameter = (nd && !nd->values.empty()) ? format_diameter_to_str(nd->values.front()) : std::string();
-    const bool multi_diameter = multi_nozzle_diameter_mode_enabled(config);
-    for (const NozzleSlot &slot : wxGetApp().preset_bundle->nozzle_inventory.slots(0)) {
-        if (slot.empty() || slot.volume_type != nvtTPU285)
-            continue;
-        if (multi_diameter || active_diameter.empty() || slot.diameter.empty() ||
-            format_diameter_to_str(std::atof(slot.diameter.c_str())) == active_diameter)
-            return true;
-    }
-    return false;
 }
 
 bool is_multi_diameter_without_ams(const ConfigBase& config)
@@ -106,12 +92,12 @@ bool is_multi_diameter_without_ams(const ConfigBase& config)
 
 std::vector<FilamentMapMode> get_single_ext_multi_nozzle_auto_modes(const ConfigBase& config)
 {
-    // Without an AMS every nozzle holds a single filament, so there is no flush to save.
-    // With one, filament saving applies in both single- and multi-diameter mode.
-    std::vector<FilamentMapMode> modes = {fmmAutoForMatch};
-    if (get_effective_ams_nozzle_idx(config) >= 0)
-        modes.insert(modes.begin(), fmmAutoForFlush);
-    return modes;
+    // Filament saving applies with an AMS in both diameter modes, and in single-diameter
+    // mode even without one, where grouping by nozzle type still saves flush. Only
+    // multi-diameter mode without an AMS has no filament-saving choice to offer.
+    if (get_effective_ams_nozzle_idx(config) >= 0 || !multi_nozzle_diameter_mode_enabled(config))
+        return {fmmAutoForFlush, fmmAutoForMatch};
+    return {fmmAutoForMatch};
 }
 
 static std::map<NozzleVolumeType, int> get_fixed_nozzle_counts_from_full_stat(int ams_nozzle_idx, bool has_ams, const std::string& active_diameter, bool& has_full_stat)
@@ -151,16 +137,98 @@ static std::optional<NozzleVolumeType> get_single_fixed_nozzle_volume_from_full_
     return fixed_counts.begin()->first;
 }
 
+// 取一个挤出机上所有已装喷嘴的规格（口径+流量）。
+static std::set<std::pair<std::string, int>> nozzle_specs_of_extruder(const NozzleInventory& nozzle_inventory, int extruder_id)
+{
+    std::set<std::pair<std::string, int>> nozzle_specs;
+    for (const NozzleSlot& slot : nozzle_inventory.slots(extruder_id)) {
+        if (slot.empty() || slot.diameter.empty())
+            continue;
+        // 归一口径写法，"0.40" 与 "0.4" 算同一种。
+        const std::string normalized_diameter = format_diameter_to_str(string_to_double_decimal_point(slot.diameter));
+        nozzle_specs.emplace(normalized_diameter, int(slot.volume_type));
+    }
+    return nozzle_specs;
+}
+
 bool should_skip_filament_grouping(const ConfigBase& config)
 {
-    if (!is_single_ext_multi_nozzle(config) || get_effective_ams_nozzle_idx(config) >= 0)
-        return false;
-    if (multi_nozzle_diameter_mode_enabled(config))
-        return true;
+    // ---------- 阶段 1：单挤出机多喷嘴走原有逻辑，与多挤出机无关 ----------
+    if (is_single_ext_multi_nozzle(config)) {
+        if (get_effective_ams_nozzle_idx(config) >= 0)
+            return false; // 有外置 AMS 可分料，不跳过
+        if (multi_nozzle_diameter_mode_enabled(config))
+            return true; // 多口径靠逐耗材口径选择，不弹分组
 
-    const auto* nd = dynamic_cast<const ConfigOptionFloatsNullable*>(config.option("nozzle_diameter"));
-    const std::string active_diameter = (nd && !nd->values.empty()) ? format_diameter_to_str(nd->values.front()) : std::string();
-    return get_single_fixed_nozzle_volume_from_full_stat(-1, false, active_diameter).has_value();
+        // 单口径：固定喷嘴只有一种流量规格时无可分组，跳过。
+        const auto* nozzle_diameter_opt = dynamic_cast<const ConfigOptionFloatsNullable*>(config.option("nozzle_diameter"));
+        const std::string preset_nozzle_diameter = (nozzle_diameter_opt && !nozzle_diameter_opt->values.empty()) ? format_diameter_to_str(nozzle_diameter_opt->values.front()) : std::string();
+        return get_single_fixed_nozzle_volume_from_full_stat(-1, false, preset_nozzle_diameter).has_value();
+    }
+
+    // Main and auxiliary extruders always retain explicit grouping.
+    if (PartPlate::has_different_extruder_types())
+        return false;
+
+    // ---------- 阶段 2：多挤出机收集喷嘴规格（规格 = 口径 + 流量） ----------
+    // 双挤出机带换喷嘴库的机型尚未适配，保持原有弹窗逻辑；
+    // 判据与 Plater 的 is_dual_extruder_rack 一致：多挤出机且任一头可装多个喷嘴。
+    const auto* nozzle_diameters  = config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
+    const auto* max_nozzle_counts = config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
+    if (nozzle_diameters && nozzle_diameters->values.size() > 1 && max_nozzle_counts &&
+        std::any_of(max_nozzle_counts->values.begin(), max_nozzle_counts->values.end(), [](int count) { return count > 1; }))
+        return false;
+    const bool is_multi_diameter_mode = multi_nozzle_diameter_mode_enabled(config);
+    const NozzleInventory& nozzle_inventory = wxGetApp().preset_bundle->nozzle_inventory;
+    if (nozzle_inventory.extruder_count() < 2)
+        return false; // 普通单挤出机没有分组可言
+    using NozzleSpec = std::pair<std::string, int>;
+
+    // 2a. 每个挤出机装了哪些规格，如挤出机 0 {(0.4, Std)}、挤出机 1 {(0.6, Std)}。
+    std::vector<std::set<NozzleSpec>> nozzle_specs_by_extruder;
+    for (int extruder_id = 0; extruder_id < nozzle_inventory.extruder_count(); ++extruder_id)
+        nozzle_specs_by_extruder.push_back(nozzle_specs_of_extruder(nozzle_inventory, extruder_id));
+
+    // 2b. 全部规格汇总；顺带看有没有一种规格被多个挤出机共有（有则耗材还能在多头之间选）。
+    std::set<NozzleSpec> all_nozzle_specs;
+    int                  extruder_count_with_nozzle = 0;
+    bool                 has_shared_nozzle_spec     = false;
+    for (size_t first_extruder = 0; first_extruder < nozzle_specs_by_extruder.size(); ++first_extruder) {
+        if (!nozzle_specs_by_extruder[first_extruder].empty())
+            ++extruder_count_with_nozzle;
+        all_nozzle_specs.insert(nozzle_specs_by_extruder[first_extruder].begin(), nozzle_specs_by_extruder[first_extruder].end());
+        for (size_t second_extruder = first_extruder + 1; second_extruder < nozzle_specs_by_extruder.size(); ++second_extruder)
+            for (const NozzleSpec& nozzle_spec : nozzle_specs_by_extruder[first_extruder])
+                if (nozzle_specs_by_extruder[second_extruder].count(nozzle_spec))
+                    has_shared_nozzle_spec = true;
+    }
+
+    // 2c. 单口径下真正能用的挤出机（口径与预设一致的那头）及其规格，阶段 3 单口径判定用。
+    std::set<NozzleSpec> usable_nozzle_specs;
+    int                  usable_extruder_count = 0;
+    for (int extruder_id = 0; extruder_id < int(nozzle_specs_by_extruder.size()); ++extruder_id) {
+        if (!nozzle_inventory.in_use(extruder_id))
+            continue;
+        ++usable_extruder_count;
+        usable_nozzle_specs.insert(nozzle_specs_by_extruder[extruder_id].begin(), nozzle_specs_by_extruder[extruder_id].end());
+    }
+
+    // ---------- 阶段 3：按单/多口径判定是否跳过 ----------
+    if (all_nozzle_specs.empty())
+        return false; // 没有喷嘴数据，保守不跳过
+    // 两头以上装了喷嘴且总规格只有一种（如都是 0.4 Std），分到哪头仍有得选，不跳过。
+    if (extruder_count_with_nozzle >= 2 && all_nozzle_specs.size() <= 1)
+        return false;
+    if (is_multi_diameter_mode) {
+        // 多口径：耗材按自带口径/流量落头；没有共有规格时才被唯一钉住，跳过。
+        // 只剩一头有喷嘴时，仅当它也只有一种规格才算钉住。
+        if (has_shared_nozzle_spec)
+            return false;
+        return extruder_count_with_nozzle >= 2 || all_nozzle_specs.size() == 1;
+    }
+    // 单口径：只剩一个能用的挤出机、且只有一种规格时，所有耗材只能去那一头；
+    // 0.4 Std 与 0.4 HF 都可用时不跳过。
+    return usable_extruder_count == 1 && usable_nozzle_specs.size() == 1;
 }
 
 bool can_customize_filament_grouping(const ConfigBase& config)
@@ -224,7 +292,7 @@ static std::vector<std::set<std::string>> get_filament_allowed_diameters(size_t 
     const auto joined = preset_bundle->compute_filament_supported_nozzle_diameters(filament_count);
     for (size_t i = 0; i < filament_count && i < joined.size(); ++i)
         result[i] = split_diameter_set(joined[i]);
-    const bool supports_multi_diameter = is_single_ext_multi_nozzle(
+    const bool supports_multi_diameter = supports_multi_nozzle_diameter_mode(
         preset_bundle->printers.get_edited_preset().config);
     if (supports_multi_diameter && multi_nozzle_diameter_mode_enabled(preset_bundle->project_config)) {
         const auto *selected = preset_bundle->project_config.option<ConfigOptionStrings>("filament_diameter_map");
@@ -553,6 +621,11 @@ std::vector<int> FilamentMapManualPanel::GetFilamentMaps() const
 
 std::vector<int> FilamentMapManualPanel::GetFilamentVolumeMaps() const
 {
+    // In multi-diameter mode the per-filament flow is selected outside this dialog, and the right panel is
+    // not split by flow; dragging only moves a filament between extruders.
+    if (multi_nozzle_diameter_mode_enabled(wxGetApp().preset_bundle->project_config))
+        return m_filament_volume_map;
+
     std::vector<int> volume_map(m_filament_map.size(), 0);
 
     std::vector<int> left_filaments = this->GetLeftFilaments();
@@ -767,6 +840,9 @@ void FilamentMapManualPanel::UpdateNozzleVolumeType()
 {
     auto check_separation = []() {
         auto preset_bundle = wxGetApp().preset_bundle;
+        // The flow sub-panels would let a drag pick the flow, which multi-diameter mode selects per filament.
+        if (multi_nozzle_diameter_mode_enabled(preset_bundle->project_config))
+            return false;
         auto nozzle_volume_values = preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type")->values;
         if (nozzle_volume_values.size() <= 1)
             return false;

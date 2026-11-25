@@ -882,6 +882,9 @@ public:
     bool is_all_plates_selected() { return m_sel_plate_toolbar.m_all_plates_stats_item && m_sel_plate_toolbar.m_all_plates_stats_item->selected; }
     bool is_volumes_selected_and_sinking() const;
     const float get_scale() const;
+    // Scale for gizmo panels whose design pixels were tuned on Windows, where
+    // get_scale() is 1. See get_imgui_layout_scale().
+    const float get_imgui_layout_scale() const;
 
     //BBS
     gcode::GCodeViewer& get_gcode_viewer() const;

@@ -1,0 +1,287 @@
+/*
+ * Pixel targets mirror the wx panel at 100% scaling:
+ * - header / box / image / buttons: StatusBasePanel::create_filament_group (StatusPanel.cpp)
+ * - step list geometry:             FilamentStepIndicator::doRender (StepCtrl.cpp)
+ * - font sizes: Label::sysFont(n) = n * 4/5 pt on Windows, i.e. Body_12 = 12px,
+ *   Body_13 = 13.33px, Body_14 = 14.67px, Head_16 = 16px bold.
+ * Dark colors follow gDarkColors in StateColor.cpp.
+ */
+.filament-load-page {
+  position: relative;
+  width: 100%;
+  max-width: 586px;
+  box-sizing: border-box;
+  overflow: hidden;
+  color: #262e30;
+  font-family: "HarmonyOS Sans SC", "Microsoft YaHei UI", sans-serif;
+  font-size: 12px;
+  line-height: 16px;
+  background: #fff;
+}
+
+.filament-load-page.hidden {
+  display: none;
+}
+
+/* m_scale_panel: 586x40, 20px left spacer, Body_14 title + 24px arrow. */
+.fl-header {
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  width: 100%;
+  height: 40px;
+  margin: 0;
+  padding: 0 0 0 20px;
+  border: 0;
+  background: #fff;
+  color: #1b8844;
+  font-family: inherit;
+  font-size: 14.67px;
+  line-height: 40px;
+  text-align: left;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.fl-title {
+  display: block;
+}
+
+.fl-fold-icon {
+  display: block;
+  flex: 0 0 24px;
+  width: 24px;
+  height: 24px;
+  margin-left: 0;
+}
+
+/* m_filament_load_box: StaticBox, 1px #EEEEEE border that does not take layout space. */
+.fl-body {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 5px 0;
+  border-radius: 5px;
+  background: #fff;
+  box-shadow: inset 0 0 0 1px #eee;
+  overflow: hidden;
+}
+
+/* steps_sizer: FilamentLoad (300x215) + 215px image, top aligned. */
+.fl-main {
+  display: flex;
+  align-items: flex-start;
+}
+
+.fl-steps-panel {
+  box-sizing: border-box;
+  flex: 0 0 300px;
+  width: 300px;
+  min-height: 215px;
+  padding: 20px 0 0 20px;
+}
+
+/* "Loading" text drawn at (20, 20) with Head_16 in #00AE42. */
+.fl-step-heading {
+  color: #00ae42;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 21px;
+  white-space: nowrap;
+}
+
+/* First circle center sits radius*3 = 27px below the heading; rows are 27px apart. */
+.fl-step-list {
+  margin: 13.5px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fl-step {
+  display: flex;
+  align-items: center;
+  min-height: 27px;
+  color: #6b6b6b;
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.fl-step-rail {
+  display: block;
+  flex: 0 0 18px;
+  width: 18px;
+  height: 18px;
+}
+
+/* radius = 9, filled with clr_step (#00AE42) for every step, white Body_12 index. */
+.fl-step-dot {
+  display: block;
+  box-sizing: border-box;
+  width: 18px;
+  height: 18px;
+  border: 0;
+  border-radius: 9px;
+  background: #00ae42;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  text-align: center;
+}
+
+.fl-step-ok-icon {
+  display: block;
+  width: 16px;
+  height: 16px;
+}
+
+.fl-step-line {
+  display: none;
+}
+
+/* Text x = circle center + radius * 1.5; wrap width = 300 - radius * 5. */
+.fl-step-text {
+  display: block;
+  max-width: 255px;
+  padding-left: 4.5px;
+}
+
+.fl-step-done {
+  color: #acacac;
+}
+
+/* Done-step icon is intentionally kept as the current web asset. */
+.fl-step-done .fl-step-dot {
+  width: 16px;
+  height: 16px;
+  margin: 1px;
+  border-radius: 0;
+  background: transparent;
+}
+
+.fl-step-current {
+  color: #323a3d;
+  font-weight: 700;
+}
+
+.fl-image-panel {
+  display: block;
+  flex: 0 0 215px;
+  width: 215px;
+  height: 215px;
+}
+
+.fl-load-image {
+  display: block;
+  width: 215px;
+  height: 215px;
+  object-fit: contain;
+}
+
+/* fila_change_sizer: wxLEFT 28, Retry wxRIGHT 7 + Stop wxLEFT 7. */
+.fl-actions {
+  margin-left: 28px;
+  font-size: 0;
+  line-height: 0;
+}
+
+.fl-action-btn {
+  box-sizing: border-box;
+  min-width: 80px;
+  height: 31px;
+  margin: 0;
+  padding: 0 10px;
+  border: 1px solid #262e30;
+  border-radius: 8px;
+  background: #fff;
+  color: #262e30;
+  font-family: inherit;
+  font-size: 13.33px;
+  line-height: 29px;
+  vertical-align: top;
+  cursor: pointer;
+}
+
+.fl-action-btn + .fl-action-btn {
+  margin-left: 14px;
+}
+
+.fl-action-btn:hover {
+  background: #eee;
+}
+
+.fl-action-btn:active {
+  background: #cecece;
+}
+
+.fl-action-btn:disabled {
+  border-color: #fffffe;
+  background: #cecece;
+  color: #fffffe;
+  cursor: default;
+}
+
+.fl-debug-btn {
+  position: absolute;
+  left: 236px;
+  top: 0;
+  width: 100px;
+  margin-left: 0;
+}
+
+.fl-action-btn + .fl-debug-btn {
+  margin-left: 0;
+}
+
+:root[data-theme='dark'] .filament-load-page,
+:root[data-theme='dark'] .fl-header,
+:root[data-theme='dark'] .fl-body {
+  background: #2d2d31;
+}
+
+:root[data-theme='dark'] .fl-header {
+  color: #1c8a46;
+}
+
+:root[data-theme='dark'] .fl-body {
+  box-shadow: inset 0 0 0 1px #4c4c55;
+}
+
+:root[data-theme='dark'] .fl-step {
+  color: #818183;
+}
+
+:root[data-theme='dark'] .fl-step-done {
+  color: #54545a;
+}
+
+:root[data-theme='dark'] .fl-step-current {
+  color: #e5e5e4;
+}
+
+:root[data-theme='dark'] .fl-step-dot {
+  background: #21a452;
+}
+
+:root[data-theme='dark'] .fl-step-done .fl-step-dot {
+  background: transparent;
+}
+
+:root[data-theme='dark'] .fl-action-btn {
+  border-color: #efeff0;
+  background: #2d2d31;
+  color: #efeff0;
+}
+
+:root[data-theme='dark'] .fl-action-btn:hover {
+  background: #4c4c55;
+}
+
+:root[data-theme='dark'] .fl-action-btn:active,
+:root[data-theme='dark'] .fl-action-btn:disabled {
+  background: #54545b;
+}
+
+:root[data-theme='dark'] .fl-action-btn:disabled {
+  border-color: #fffffe;
+  color: #fffffe;
+}

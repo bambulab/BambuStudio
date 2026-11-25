@@ -133,6 +133,7 @@ protected:
 
 
 using PageShp = std::shared_ptr<Page>;
+
 class Tab: public wxPanel
 {
 	//BBS: GUI refactor
@@ -354,6 +355,13 @@ public:
 	void        rebuild_page_tree();
     void		update_btns_enabling();
     void		update_preset_choice();
+    /**
+     * \brief Bring the tab in line with the collection's edited preset
+     *
+     * Reloads the whole tab when the edited preset was switched without going through select_preset(),
+     * otherwise only repaints the preset combo. Never loads a tab that has not loaded a preset yet.
+     */
+    void        sync_with_edited_preset();
     // Select a new preset, possibly delete the current one.
     bool select_preset(std::string preset_name = "", bool delete_current = false, const std::string &last_selected_ph_printer_name = "", bool force_select = false, bool force_no_transfer = false);
 	bool		may_discard_current_dirty_preset(PresetCollection* presets = nullptr, const std::string& new_printer_name = "", bool no_transfer = false, ForceOption force_op = ForceOption::fopNone);
@@ -434,6 +442,9 @@ public:
 	void			apply_config_from_cache();
 
 private:
+    // Name of the preset the option fields were last loaded from.
+    std::string m_loaded_preset_name;
+
     // when transfer modified options to a new printer, we may need do some work here
     void remap_variant_cache();
 
@@ -463,6 +474,26 @@ public:
     // and must not raise a modal dialog inline. Repeated calls within one event-loop turn collapse
     // into a single recheck.
     static void schedule_support_interface_combo_recheck();
+
+protected:
+    // Applies a process-scope support recommendation to the preset, support z gaps included. On the global Print
+    // tab in multi-diameter mode those gaps are also copied to the project config, as project_gap when set.
+    void apply_support_recommendation(DynamicPrintConfig &conf, std::optional<double> project_gap = std::nullopt);
+    // Shows the keys of the recommendation that differ from the current values and applies them on Yes.
+    // Returns whether a dialog was shown.
+    bool prompt_support_recommendation(const SupportComboRecommendation &rec, const DynamicPrintConfig &recommended_conf);
+    void on_project_config_changed();
+    // Support z gap this tab's scope slices with, -1 while multi-diameter auto still decides it.
+    double effective_support_z_distance(const std::string &opt_key) const;
+    // m_config with the support z gaps replaced by effective_support_z_distance(), for the combo baseline.
+    DynamicPrintConfig support_combo_current_values() const;
+    // Objects whose model materials the support combination is judged on; empty = every object on the plate.
+    virtual std::vector<ModelObject *> support_combo_objects() const { return {}; }
+    // compute_support_interface_recommendation() over this tab's scope.
+    bool support_combo_recommendation(int interface_filament_id, SupportComboRecommendation &rec,
+                                      bool require_interface = true) const;
+
+public:
 
     // Restore the parameters listed in keys_conf to their "default", which depends on the scope
     // the tab edits: the selected preset's system value on the global Print tab, or an object
@@ -553,6 +584,15 @@ public:
 	void		update() override;
 	void		clear_pages() override;
 	bool 		supports_printer_technology(const PrinterTechnology tech) const override { return tech == ptFFF; }
+
+	void		init_options_list() override;
+
+protected:
+	// Multi-diameter support z gaps live on the project config; their field already wrote the new value there.
+	void		on_value_change(const std::string &opt_key, const boost::any &value) override;
+	void		update_custom_dirty(std::vector<std::string> &dirty_options, std::vector<std::string> &nonsys_options) override;
+	// The project gaps stand in for the preset gaps while multi-diameter mode is on.
+	void		toggle_project_support_z_distance_lines();
 
 private:
 	ogStaticText*	m_recommended_thin_wall_thickness_description_line = nullptr;
@@ -661,6 +701,8 @@ public:
 	~TabPrintObject() {}
 protected:
 	virtual void    notify_changed(ObjectBase * object) override;
+	// The selected objects only: an object's interface filament is judged on its own materials.
+	std::vector<ModelObject *> support_combo_objects() const override;
 };
 
 class TabPrintPart : public TabPrintModel
@@ -699,6 +741,10 @@ private:
 	wxWindow*          m_flush_mode_panel {nullptr};
 	int                m_flush_mode_selection {0};
 
+    bool            m_single_hotend_change {false};
+    void            build_filament_page(const PageShp& page);
+    void            update_filament_page();
+
     void            add_filament_overrides_page();
     void            update_filament_overrides_page();
     int             get_override_variant_index(const std::string &opt_key);
@@ -707,6 +753,10 @@ private:
     bool            restore_filament_override_value(Field *field, const std::string &opt_key);
     bool            seed_filament_override_from_printer(ConfigOptionsGroupShp optgroup, Field *field, const std::string &opt_key);
 	void 			update_volumetric_flow_preset_hints();
+    /**
+     * \brief Flag the shown nozzle print temperatures that lie outside the recommended range
+     */
+    void            update_nozzle_temperature_warnings();
 
     std::map<std::string, wxCheckBox*> m_overrides_options;
     // Value each override held before it was unchecked, kept per extruder variant so that
@@ -727,6 +777,7 @@ public:
 	void		update() override;
     void        init_options_list() override;
     void        clear_pages() override;
+    void        activate_selected_page(std::function<void()> throw_if_canceled) override;
 	bool 		supports_printer_technology(const PrinterTechnology tech) const override { return tech == ptFFF; }
 };
 
@@ -766,6 +817,8 @@ public:
 	size_t		m_sys_extruders_count;
 	size_t		m_cache_extruder_count = 0;
 	std::vector<std::string> m_extruder_variant_list;
+	std::vector<int> m_extruder_id_list;
+	int m_master_extruder_id = 1;
 
     PrinterTechnology               m_printer_technology = ptFFF;
 

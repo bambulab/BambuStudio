@@ -630,13 +630,17 @@ private:
     unsigned int                        m_skirt_last_filament = (unsigned int)-1;
     // Has the brim been extruded already? Brim is being extruded only for the first object of a multi-object print.
     bool                                m_brim_done;
-    // Flag indicating whether the nozzle temperature changes from 1st to 2nd layer were performed.
+    // Whether the second layer setup has been performed.
     bool                                m_second_layer_things_done;
     // Whether the bed has switched from its first layer temperature. Multi-diameter first bands rest on the
     // bed above the second physical layer, so this can happen later than m_second_layer_things_done.
     bool                                m_bed_temp_transition_done = false;
+    // Filaments that have completed their first-layer nozzle temperature transition.
+    std::set<unsigned int>              m_nozzle_temp_transition_done;
     // Index of a last object copy extruded.
     std::pair<const PrintObject*, Point> m_last_obj_copy;
+    // Some sparse infill was emitted with a noisy pattern at or above the high-acceleration noise threshold.
+    bool                                m_has_high_accel_noise_infill = false;
     //BBS
     bool m_enable_label_object;
     std::vector<size_t> m_label_objects_ids;
@@ -675,6 +679,8 @@ private:
 
     // BBS
     Print* m_curr_print = nullptr;
+    // 多口径时各耗材的喷嘴口径，导出前算好；为空表示非多口径，支撑细层不降速。
+    std::vector<double> m_multi_diameter_nozzles;
     unsigned int m_toolchange_count;
     std::vector<unsigned int> m_filament_change_sequence;
     std::vector<unsigned int> m_nozzle_change_sequence;

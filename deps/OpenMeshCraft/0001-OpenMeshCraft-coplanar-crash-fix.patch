@@ -1,0 +1,212 @@
+Fix crashes and hangs on coplanar input (OpenMeshCraft @0e8d12c3).
+
+- Triangulation::createTPI: planes[1]/planes[2] were left uninitialized when every
+  triangle listed with a segment is coplanar with the triangle being split (a segment
+  on an edge of a coplanar triangle is only listed with the triangles whose interior
+  it crosses). The TPI was then built from stack garbage: an out-of-range read, or a
+  degenerate point (d == 0) whose predicates return NaN and reach OMC_EXIT. Initialize
+  the planes, test coplanarity exactly instead of only by the coplanar list, and use
+  the plane through the segment's source edge and a point off the triangle's plane
+  when no supporting triangle qualifies.
+- remove_duplicates(tbb::concurrent_vector): shrinking with resize() frees segments of
+  the reserved first block, and a later push_back into them spins forever (oneTBB
+  2021.5 - 2022.1). Clear and refill instead.
+- OMC_EXIT: throw OMC::RuntimeError instead of calling std::exit(), so the host
+  application gets a failed boolean instead of being terminated. The SSI constructor
+  calls OMC_EXIT and was noexcept, where a throw calls std::terminate(); drop the
+  noexcept.
+- IntervalNumber::operator/: the scalar SSE2 path (no AVX, no SSE4.1) declared the
+  rounding protector twice; GCC rejects the redeclaration. Pre-existing, but only
+  reached once AVX is off.
+
+diff --git a/src/OpenMeshCraft/Arrangements/Triangulation.inl b/src/OpenMeshCraft/Arrangements/Triangulation.inl
+index 5b4f90e..789f44d 100644
+--- a/src/OpenMeshCraft/Arrangements/Triangulation.inl
++++ b/src/OpenMeshCraft/Arrangements/Triangulation.inl
+@@ -1064,8 +1064,7 @@ index_t Triangulation<Traits>::createTPI(FTriMesh &subm, index_t seg0_id,
+   index_t t_id = subm.meshInfo();
+ 
+   // find non-coplanar three planes (triangles) to create a TPI point.
+-  std::array<index_t, 3> planes;
+-  planes[0] = t_id;
++  std::array<index_t, 3> planes = {t_id, InvalidIndex, InvalidIndex};
+ 
+   const concurrent_vector<index_t> &copl_tris = ts.coplanarTriangles(t_id);
+   const concurrent_vector<index_t> &e0_s2t = ts.segmentTrianglesList(seg0_id);
+@@ -1082,11 +1081,24 @@ index_t Triangulation<Traits>::createTPI(FTriMesh &subm, index_t seg0_id,
+   }
+   if (planes[0] > t_id)
+     planes[0] = t_id;
++  // copl_tris only lists the coplanar triangles found to overlap t_id; a triangle
++  // supporting the segment can be coplanar without being listed, and its plane
++  // would make the TPI degenerate. Check the geometry when it is not listed.
++  auto coplanar_with_t = [this, t_id, &copl_tris](index_t st_id)
++  {
++    if (std::binary_search(copl_tris.begin(), copl_tris.end(), st_id))
++      return true;
++    for (index_t i = 0; i < 3; i++)
++      if (Orient3D()(ts.triVert(t_id, 0), ts.triVert(t_id, 1), ts.triVert(t_id, 2),
++                     ts.triVert(st_id, i)) != Sign::ZERO)
++        return false;
++    return true;
++  };
+   for (index_t st_id : e0_s2t)
+   {
+     if (st_id == t_id)
+       continue;
+-    if (!std::binary_search(copl_tris.begin(), copl_tris.end(), st_id))
++    if (!coplanar_with_t(st_id))
+     {
+       planes[1] = st_id;
+       break;
+@@ -1096,23 +1108,55 @@ index_t Triangulation<Traits>::createTPI(FTriMesh &subm, index_t seg0_id,
+   {
+     if (st_id == t_id)
+       continue;
+-    if (!std::binary_search(copl_tris.begin(), copl_tris.end(), st_id))
++    if (!coplanar_with_t(st_id))
+     {
+       planes[2] = st_id;
+       break;
+     }
+   }
+ 
+-  std::sort(planes.begin(), planes.end());
+-
+-  auto [t0, t1, t2] = planes;
++  using PlanePnts = std::array<const GPoint3 *, 3>;
++  auto tri_plane  = [this](index_t tri_id) -> PlanePnts
++  { return {&ts.triVert(tri_id, 0), &ts.triVert(tri_id, 1), &ts.triVert(tri_id, 2)}; };
+ 
+-  std::array<const GPoint3 *, 3> t0_pnts = {
+-    &ts.triVert(t0, 0), &ts.triVert(t0, 1), &ts.triVert(t0, 2)};
+-  std::array<const GPoint3 *, 3> t1_pnts = {
+-    &ts.triVert(t1, 0), &ts.triVert(t1, 1), &ts.triVert(t1, 2)};
+-  std::array<const GPoint3 *, 3> t2_pnts = {
+-    &ts.triVert(t2, 0), &ts.triVert(t2, 1), &ts.triVert(t2, 2)};
++  PlanePnts t0_pnts, t1_pnts, t2_pnts;
++  if (is_valid_idx(planes[1]) && is_valid_idx(planes[2]))
++  {
++    std::sort(planes.begin(), planes.end());
++    t0_pnts = tri_plane(planes[0]);
++    t1_pnts = tri_plane(planes[1]);
++    t2_pnts = tri_plane(planes[2]);
++  }
++  else
++  {
++    // A segment lying on an edge of a triangle coplanar with t_id is not listed
++    // with that triangle (only with the triangles whose interior it crosses), so
++    // all of its triangles may be coplanar with t_id. Its supporting plane is then
++    // the plane through its source edge and an explicit point off t_id's plane:
++    // that plane cuts t_id's plane exactly along the segment's line. Of these four
++    // affinely independent points at least one is off any plane.
++    static const std::array<EPoint3, 4> off_plane_pnts = {
++      EPoint3(0., 0., 0.), EPoint3(1., 0., 0.), EPoint3(0., 1., 0.),
++      EPoint3(0., 0., 1.)};
++    const GPoint3 *jolly = nullptr;
++    for (const EPoint3 &jp : off_plane_pnts)
++      if (Orient3D()(ts.triVert(t_id, 0), ts.triVert(t_id, 1),
++                     ts.triVert(t_id, 2), AsGP()(jp)) != Sign::ZERO)
++      {
++        jolly = &AsGP()(jp);
++        break;
++      }
++    auto edge_plane = [this, jolly](index_t seg_id) -> PlanePnts
++    {
++      const index_t e_id = ts.segmentEdgeID(seg_id);
++      OMC_THROW_RUNTIME_ERROR_IF(jolly == nullptr || !is_valid_idx(e_id),
++                                 "no supporting plane for segment {}.", seg_id);
++      return {&ts.edgeVert(e_id, 0), &ts.edgeVert(e_id, 1), jolly};
++    };
++    t0_pnts = tri_plane(planes[0]);
++    t1_pnts = is_valid_idx(planes[1]) ? tri_plane(planes[1]) : edge_plane(seg0_id);
++    t2_pnts = is_valid_idx(planes[2]) ? tri_plane(planes[2]) : edge_plane(seg1_id);
++  }
+ 
+   int cur_thread_idx = tbb::this_task_arena::current_thread_index();
+ 
+diff --git a/src/OpenMeshCraft/Geometry/Primitives/ImplicitPoint3T.h b/src/OpenMeshCraft/Geometry/Primitives/ImplicitPoint3T.h
+index d0aaea5..a8dc75b 100644
+--- a/src/OpenMeshCraft/Geometry/Primitives/ImplicitPoint3T.h
++++ b/src/OpenMeshCraft/Geometry/Primitives/ImplicitPoint3T.h
+@@ -43,7 +43,7 @@ public: /* Constructors ******************************************************/
+    * degenerate.
+    */
+   ImplicitPoint3T_SSI(const EP &_a, const EP &_b, const EP &_p, const EP &_q,
+-                      int _plane) noexcept;
++                      int _plane);
+ 
+   ~ImplicitPoint3T_SSI() noexcept;
+ 
+diff --git a/src/OpenMeshCraft/Geometry/Primitives/ImplicitPoints/ImplicitPoint3T_SSI.inl b/src/OpenMeshCraft/Geometry/Primitives/ImplicitPoints/ImplicitPoint3T_SSI.inl
+index bb36a04..0afe0ae 100644
+--- a/src/OpenMeshCraft/Geometry/Primitives/ImplicitPoints/ImplicitPoint3T_SSI.inl
++++ b/src/OpenMeshCraft/Geometry/Primitives/ImplicitPoints/ImplicitPoint3T_SSI.inl
+@@ -19,7 +19,7 @@ ImplicitPoint3T_SSI<IT, ET>::ImplicitPoint3T_SSI() noexcept
+ template <typename IT, typename ET>
+ ImplicitPoint3T_SSI<IT, ET>::ImplicitPoint3T_SSI(const EP &_a, const EP &_b,
+                                                  const EP &_p, const EP &_q,
+-                                                 int _plane) noexcept
++                                                 int _plane)
+   : GP(PointType::SSI)
+   , ia(&_a)
+   , ib(&_b)
+diff --git a/src/OpenMeshCraft/NumberTypes/IntervalNumber.h b/src/OpenMeshCraft/NumberTypes/IntervalNumber.h
+index b84e709..5bfacc2 100644
+--- a/src/OpenMeshCraft/NumberTypes/IntervalNumber.h
++++ b/src/OpenMeshCraft/NumberTypes/IntervalNumber.h
+@@ -301,8 +301,6 @@ public: /* Binary Operators **************************************************/
+     __m128d r   = _mm_max_pd(d1, d2);
+     return IN(r);
+   #else
+-    OMC_ASSERT((rhs != 0.) == Certainty::TRUE, "divide zero");
+-    InternalProtector _;
+     CastedDouble l1(lhs.inf()), h1(lhs.sup()), l2(rhs.inf()), h2(rhs.sup());
+     uint64_t     cfg = (l1.is_negative() << 3) + (h1.is_negative() << 2) +
+                    (l2.is_negative() << 1) + (h2.is_negative());
+diff --git a/src/OpenMeshCraft/Utils/ContainerOp.h b/src/OpenMeshCraft/Utils/ContainerOp.h
+index a5d161c..38d2ff6 100644
+--- a/src/OpenMeshCraft/Utils/ContainerOp.h
++++ b/src/OpenMeshCraft/Utils/ContainerOp.h
+@@ -34,7 +34,15 @@ template <typename T>
+ inline void remove_duplicates(tbb::concurrent_vector<T> &values)
+ {
+   std::sort(values.begin(), values.end());
+-  values.resize(std::unique(values.begin(), values.end()) - values.begin());
++  const size_t n = std::unique(values.begin(), values.end()) - values.begin();
++  if (n == values.size())
++    return;
++  // Do not shrink with resize(): it frees segments that belong to the reserved first
++  // block, and a later push_back into them spins forever waiting for that segment
++  // (oneTBB 2021.5 - 2022.1). clear() keeps the segments.
++  std::vector<T> unique_values(values.begin(), values.begin() + n);
++  values.clear();
++  values.grow_by(unique_values.begin(), unique_values.end());
+ }
+ 
+ // This function removes duplicate elements from a vector of type T in parallel.
+diff --git a/src/OpenMeshCraft/Utils/Exception.h b/src/OpenMeshCraft/Utils/Exception.h
+index bf3708b..f737b58 100644
+--- a/src/OpenMeshCraft/Utils/Exception.h
++++ b/src/OpenMeshCraft/Utils/Exception.h
+@@ -133,12 +133,14 @@ namespace OMC {
+ #if defined(OMC_ENABLE_ASSERT)
+   #define OMC_ASSERT_AUX_CODE(code) code
+ 
+-  /// Exit program
+-  #define OMC_EXIT(message, ...)                                         \
+-    {                                                                    \
+-      OMC::Logger::fatal(OMC::format("[{}] [{}] " message, __FILENAME__, \
+-                                     __LINE__, ##__VA_ARGS__));          \
+-      std::exit(1);                                                      \
++  /// Abort the current operation. Throws rather than calling std::exit(): this
++  /// is a library, and the host application must survive an unexpected state.
++  #define OMC_EXIT(message, ...)                                               \
++    {                                                                          \
++      std::string fmt_msg = OMC::format("[{}] [{}] " message, __FILENAME__,    \
++                                        __LINE__, ##__VA_ARGS__);              \
++      OMC::Logger::fatal(fmt_msg);                                             \
++      throw OMC::RuntimeError(fmt_msg);                                        \
+     }
+ 
+   /// Assert

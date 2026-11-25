@@ -218,6 +218,7 @@ export interface ExtruderView {
   filament_color: string;
   // C++ AMSextruder::updateNozzleNum asset key.
   icon: string;
+  nozzle_label: string;
 }
 
 export interface ExtruderArea {

@@ -168,8 +168,9 @@ namespace Slic3r
     private:
         std::vector<int> calc_min_flush_group(int* cost = nullptr);
 
+        // enum_groups 是已经按硬约束筛过并去除等价项的分配方案，每项长度与 used_filaments 相同
         std::vector<int> calc_group_by_enum(int k, const std::vector<unsigned int>& used_filaments,
-            const std::unordered_map<int, std::vector<int>>& unplaceable_limits, int* cost = nullptr);
+            const std::vector<std::vector<int>>& enum_groups, int* cost = nullptr);
         std::vector<int> calc_group_by_kmedoids(int k, const std::vector<unsigned int>& used_filaments,
             const std::unordered_map<int, std::vector<int>>& unplaceable_limits, int* cost = nullptr, int timeout_ms = 500);
 
@@ -195,6 +196,9 @@ namespace Slic3r
     std::vector<int> calc_filament_group_for_manual_multi_nozzle(const std::vector<int>& filament_map_manual,const FilamentGroupContext& ctx);
 
     std::vector<int> calc_filament_group_for_match_multi_nozzle(const FilamentGroupContext& ctx);
+
+    // 已安装喷嘴上是否有有效已装料。
+    bool has_installed_loaded_nozzle(const FilamentGroupContext& ctx);
 
     std::vector<int> calc_filament_group_for_nozzle_match(FilamentGroupContext &ctx);
 

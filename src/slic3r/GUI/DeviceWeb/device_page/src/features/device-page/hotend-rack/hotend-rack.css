@@ -1,0 +1,361 @@
+/* Values mirror the native wgtDeviceNozzleRack; dark values follow StateColor gDarkColors. */
+.hotend-rack-page {
+  --hr-surface: #ffffff;
+  --hr-title-bg: #f8f8f8;
+  --hr-separator: #eeeeee;
+  --hr-text: #262e30;
+  --hr-text-strong: #000000;
+  --hr-brand: #00ae42;
+  --hr-danger: #d01b1b;
+  --hr-border: #cecece;
+  --hr-btn-hover: #eeeeee;
+  --hr-btn-pressed: #cecece;
+  --hr-btn-disabled-border: #f0f0f1;
+  --hr-btn-disabled-text: #c0c0c0;
+  --hr-progress: #00ff00;
+  --hr-rows-height: 232px;
+  --hr-footer-height: 32px;
+  width: 586px;
+  box-sizing: border-box;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
+  overflow: hidden;
+  background: var(--hr-surface);
+  color: var(--hr-text);
+  font-family: Inter, HarmonyOS_Sans_SC, system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 18px;
+  user-select: none;
+}
+
+[data-theme='dark'] .hotend-rack-page {
+  --hr-surface: #2d2d31;
+  --hr-title-bg: #36363c;
+  --hr-separator: #4c4c55;
+  --hr-text: #efeff0;
+  --hr-text-strong: #fffffe;
+  --hr-brand: #21a452;
+  --hr-danger: #bb2a3a;
+  --hr-btn-hover: #4c4c55;
+  --hr-btn-disabled-border: #404040;
+}
+
+.hotend-rack-page.hidden {
+  display: none;
+}
+
+.hr-title {
+  box-sizing: border-box;
+  padding: 5px 0;
+  background: var(--hr-title-bg);
+  color: var(--hr-text);
+  font-size: 14px;
+  line-height: 18px;
+  text-align: center;
+}
+
+.hr-separator {
+  width: 1px;
+  flex-shrink: 0;
+  background: var(--hr-separator);
+}
+
+/* Toolhead */
+.hr-toolhead {
+  width: 132px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--hr-surface);
+}
+
+.hr-toolhead-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.hr-toolhead-img {
+  width: 98px;
+  height: 98px;
+  margin-top: 20px;
+  object-fit: contain;
+  display: block;
+}
+
+.hr-toolhead-diameter,
+.hr-toolhead-line {
+  color: var(--hr-text);
+  font-size: 13px;
+  line-height: 17px;
+}
+
+.hr-toolhead-diameter {
+  margin: 5px 0;
+}
+
+/* Rack */
+.hr-rack {
+  /* Fixed like the native simplebook, so the reading page keeps the content width. */
+  width: 405px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--hr-surface);
+}
+
+.hr-rack-content {
+  position: relative;
+}
+
+.hr-rows {
+  display: flex;
+  align-items: stretch;
+  margin-left: 8px;
+}
+
+.hr-slot-rows {
+  flex-shrink: 0;
+}
+
+.hr-slot-row {
+  display: flex;
+  background: var(--hr-surface);
+}
+
+.hr-slot {
+  width: 88px;
+  height: 100px;
+  margin: 8px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--hr-border);
+  border-radius: 5px;
+  background: var(--hr-surface);
+  color: var(--hr-text-strong);
+  overflow: hidden;
+}
+
+.hr-slot-top {
+  display: flex;
+  align-items: flex-start;
+}
+
+.hr-slot-id {
+  margin: 6px 0 0 6px;
+  color: var(--hr-text);
+  font-size: 12px;
+  line-height: 15px;
+}
+
+.hr-slot-icon-box {
+  width: 46px;
+  height: 46px;
+  margin: 10px auto 0;
+  display: flex;
+  justify-content: center;
+}
+
+.hr-slot-icon {
+  width: 20px;
+  height: 46px;
+  object-fit: contain;
+}
+
+.hr-slot-select-placeholder {
+  width: 20px;
+  height: 20px;
+  margin: 2px 2px 0 0;
+  flex-shrink: 0;
+}
+
+.hr-slot-labels {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.hr-slot-label-row {
+  margin-top: 2px;
+  display: flex;
+  align-items: center;
+}
+
+.hr-slot-line {
+  min-height: 15px;
+  color: var(--hr-text-strong);
+  font-size: 12px;
+  line-height: 15px;
+}
+
+.hr-slot-line.error {
+  color: var(--hr-danger);
+}
+
+.hr-slot-error-icon {
+  width: 14px;
+  height: 14px;
+  margin-left: 2px;
+  cursor: pointer;
+}
+
+/* Row position column */
+.hr-position-column {
+  min-width: 85px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  background: var(--hr-surface);
+}
+
+.hr-row-pos {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0 10px;
+  background: var(--hr-surface);
+}
+
+.hr-row-up-btn {
+  width: 25px;
+  height: 25px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.hr-row-up-btn:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.hr-row-up-btn img,
+.hr-home-btn img {
+  width: 25px;
+  height: 25px;
+  display: block;
+  object-fit: contain;
+}
+
+.hr-row-pos-status {
+  color: var(--hr-text);
+  font-size: 12px;
+  line-height: 15px;
+}
+
+.hr-row-pos-label {
+  color: var(--hr-text-strong);
+  font-size: 14px;
+  line-height: 18px;
+}
+
+.hr-row-pos.raised .hr-row-pos-label {
+  color: var(--hr-brand);
+}
+
+.hr-home-btn {
+  width: 25px;
+  height: 25px;
+  margin: 10px auto;
+  padding: 0;
+  border: 0;
+  background: var(--hr-title-bg);
+  cursor: pointer;
+}
+
+.hr-home-btn:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+/* Footer */
+.hr-footer {
+  height: var(--hr-footer-height);
+  display: flex;
+  align-items: center;
+  margin-left: 10px;
+}
+
+.hr-footer-btn {
+  height: var(--hr-footer-height);
+  box-sizing: border-box;
+  margin-right: 5px;
+  padding: 0 10px;
+  border: 1px solid var(--hr-border);
+  border-radius: 8px;
+  background: var(--hr-surface);
+  color: var(--hr-text-strong);
+  font-family: inherit;
+  font-size: 12px;
+  line-height: 15px;
+  cursor: pointer;
+}
+
+.hr-footer-btn:hover:not(:disabled) {
+  background: var(--hr-btn-hover);
+}
+
+.hr-footer-btn:active:not(:disabled) {
+  background: var(--hr-btn-pressed);
+}
+
+.hr-footer-btn:disabled {
+  border-color: var(--hr-btn-disabled-border);
+  color: var(--hr-btn-disabled-text);
+  cursor: default;
+}
+
+/* Reading page replaces rows and footer, like the native simplebook. */
+.hr-reading {
+  height: calc(var(--hr-rows-height) + var(--hr-footer-height));
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--hr-text);
+  font-size: 14px;
+  line-height: 18px;
+}
+
+.hr-reading-icon {
+  width: 25px;
+  height: 25px;
+  object-fit: contain;
+}
+
+.hr-reading-count {
+  color: var(--hr-progress);
+}
+
+/* Debug */
+.hr-debug-btn {
+  position: absolute;
+  right: 8px;
+  bottom: 4px;
+  z-index: 3;
+  height: 22px;
+  padding: 0 8px;
+  border: 1px solid var(--hr-border);
+  border-radius: 9999px;
+  background: var(--hr-surface);
+  color: var(--hr-text);
+  font-family: inherit;
+  font-size: 11px;
+  line-height: 20px;
+  cursor: pointer;
+}
+
+.hr-debug-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}

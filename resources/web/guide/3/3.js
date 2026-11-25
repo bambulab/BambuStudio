@@ -1,16 +1,25 @@
 
 m_Region='US';
+var m_RegionRaw='';
 
 function OnInit()
 {
 	TranslatePage();
 	BindUxProgramPopup();
-	
+
 	//SendPrivacySelect();
-	
+
 	let strRegion=GetQueryString('region');
 	if( strRegion!=null )
+	{
+		m_RegionRaw=strRegion;
 		m_Region=strRegion.toLowerCase();
+	}
+}
+
+function GotoPrevPage()
+{
+	window.location.href="../12/index.html?region="+encodeURIComponent(m_RegionRaw);
 }
 
 function BindUxProgramPopup()

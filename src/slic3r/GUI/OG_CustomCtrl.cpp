@@ -65,6 +65,7 @@ OG_CustomCtrl::OG_CustomCtrl(   wxWindow*            parent,
 
     //m_bmp_mode_sz       = get_bitmap_size(create_scaled_bitmap("mode_simple", this, wxOSX ? 10 : 12));
     m_bmp_blinking_sz   = get_bitmap_size(create_scaled_bitmap("blank_16", this));
+    m_bmp_warning       = ScalableBitmap(this, "warning", 16);
 
     init_ctrl_lines();// from og.lines()
     refresh_nozzle_mirror_context();
@@ -318,6 +319,8 @@ wxPoint OG_CustomCtrl::get_pos(const Line& line, Field* field_in/* = nullptr*/)
                     // BBS: new layout
                     h_pos += field->getWindow()->GetSize().x;
                     add_buttons_width(blinking_button_width);
+                    if (field->m_reserve_warning_icon)
+                        h_pos += blinking_button_width;
                     if (option_set.size() == 1 && option_set.front().opt.full_width)
                         break;
 
@@ -459,6 +462,12 @@ void OG_CustomCtrl::OnMotion(wxMouseEvent& event)
         Field *first_field   = option_set.empty() ? nullptr : opt_group->get_field(option_set.front().opt_id);
         auto  *multi_variant = dynamic_cast<MultiVariantTextCtrl *>(first_field);
 
+        for (size_t opt_idx = 0; opt_idx < line.rects_warning_icon.size() && opt_idx < option_set.size(); opt_idx++)
+            if (is_point_in_rect(pos, line.rects_warning_icon[opt_idx])) {
+                if (Field *field = opt_group->get_field(option_set[opt_idx].opt_id))
+                    tooltip = field->warning();
+                break;
+            }
         for (size_t opt_idx = 0; opt_idx < line.rects_undo_icon.size(); opt_idx++)
             if (is_point_in_rect(pos, line.rects_undo_icon[opt_idx])) {
                 Field *field = nullptr;
@@ -468,7 +477,7 @@ void OG_CustomCtrl::OnMotion(wxMouseEvent& event)
                     field = opt_group->get_field(option_set[opt_idx].opt_id);
                 }
                 if (field)
-                    tooltip = *field->undo_tooltip();
+                    tooltip = field->undo_tooltip();
                 break;
             }
         for (size_t opt_idx = 0; opt_idx < line.rects_undo_to_sys_icon.size(); opt_idx++)
@@ -480,7 +489,7 @@ void OG_CustomCtrl::OnMotion(wxMouseEvent& event)
                     field = opt_group->get_field(option_set[opt_idx].opt_id);
                 }
                 if (field)
-                    tooltip = *field->undo_to_sys_tooltip();
+                    tooltip = field->undo_to_sys_tooltip();
                 break;
             }
         // Mirrored per-nozzle value boxes are read-only and derived from the base value.
@@ -728,6 +737,7 @@ void OG_CustomCtrl::msw_rescale()
 
     //m_bmp_mode_sz = create_scaled_bitmap("mode_simple", this, wxOSX ? 10 : 12).GetSize();
     m_bmp_blinking_sz = create_scaled_bitmap("blank_16", this).GetSize();
+    m_bmp_warning.msw_rescale();
 
     m_max_win_width = 0;
 
@@ -873,6 +883,7 @@ OG_CustomCtrl::CtrlLine::CtrlLine(  wxCoord         height,
     for (size_t i = 0; i < initial_size; i++) {
         rects_undo_icon.emplace_back(wxRect());
         rects_undo_to_sys_icon.emplace_back(wxRect());
+        rects_warning_icon.emplace_back(wxRect());
     }
 }
 
@@ -1088,6 +1099,7 @@ void OG_CustomCtrl::CtrlLine::update_field_visibility()
     if (!show_field) {
         std::fill(rects_undo_icon.begin(), rects_undo_icon.end(), wxRect());
         std::fill(rects_undo_to_sys_icon.begin(), rects_undo_to_sys_icon.end(), wxRect());
+        std::fill(rects_warning_icon.begin(), rects_warning_icon.end(), wxRect());
     }
     const std::vector<Option>& option_set = og_line.get_options();
     for (auto opt : option_set) {
@@ -1134,6 +1146,7 @@ void OG_CustomCtrl::CtrlLine::render_multi_nozzle_auto(wxDC& dc, Field* field)
 
     std::fill(rects_undo_icon.begin(), rects_undo_icon.end(), wxRect());
     std::fill(rects_undo_to_sys_icon.begin(), rects_undo_to_sys_icon.end(), wxRect());
+    std::fill(rects_warning_icon.begin(), rects_warning_icon.end(), wxRect());
 
     wxPoint box_pos;
     wxSize box_size;
@@ -1538,6 +1551,7 @@ void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord h_pos, wxCoord v_pos)
         // BBS: new layout
         if (!ctrl->opt_group->option_label_at_right) {
             offset -= ctrl->m_h_gap; h_pos -= offset;
+            h_pos = draw_warning_bmp(dc, wxPoint(h_pos, v_pos), field, bmp_rect_id);
             draw_buttons(field, bmp_rect_id++);
             h_pos += offset;
         }
@@ -1612,6 +1626,25 @@ wxPoint OG_CustomCtrl::CtrlLine::draw_blinking_bmp(wxDC& dc, wxPoint pos, bool i
     return wxPoint(h_pos, v_pos);
 }
 
+wxCoord OG_CustomCtrl::CtrlLine::draw_warning_bmp(wxDC& dc, wxPoint pos, Field* field, size_t rect_id)
+{
+    // The automatic multi-nozzle view draws its own content in place of the field and its icons
+    if (!field || !field->m_reserve_warning_icon || multi_nozzle_auto_active())
+        return pos.x;
+
+    if (rects_warning_icon.size() <= rect_id)
+        rects_warning_icon.resize(rect_id + 1, wxRect());
+    rects_warning_icon[rect_id] = wxRect();
+    if (!field->warning().IsEmpty()) {
+        const wxBitmap& bmp = ctrl->m_bmp_warning.bmp();
+        const wxSize    sz  = get_bitmap_size(bmp);
+        const wxPoint   at(pos.x, pos.y + lround((content_height() - sz.GetHeight()) / 2));
+        dc.DrawBitmap(bmp, at);
+        rects_warning_icon[rect_id] = wxRect(at, sz);
+    }
+    return pos.x + ctrl->m_bmp_blinking_sz.GetWidth() + ctrl->m_h_gap;
+}
+
 wxCoord OG_CustomCtrl::CtrlLine::draw_act_bmps(wxDC& dc, wxPoint pos, const wxBitmap& bmp_undo_to_sys, const wxBitmap& bmp_undo, bool is_blinking, size_t rect_id, bool skip_vertical_adjust)
 {
 #ifndef DISABLE_BLINKING
@@ -1666,6 +1699,9 @@ void OG_CustomCtrl::CtrlLine::ensure_rects_size(size_t size)
     }
     if (rects_undo_to_sys_icon.size() != size) {
         rects_undo_to_sys_icon.resize(size, wxRect());
+    }
+    if (rects_warning_icon.size() != size) {
+        rects_warning_icon.resize(size, wxRect());
     }
 }
 

@@ -1,4 +1,5 @@
 #include "WebViewDialog.hpp"
+#include "WebViewSecurity.hpp"
 
 #include "I18N.hpp"
 #include "slic3r/GUI/wxExtensions.hpp"
@@ -9,7 +10,6 @@
 #include "../Utils/Http.hpp"
 
 #include <regex>
-#include <set>
 #include <utility>
 #include <algorithm>
 
@@ -29,35 +29,6 @@
 #include "libslic3r/Log.hpp"
 
 namespace pt = boost::property_tree;
-
-namespace {
-
-// Extract "command" without parsing the full JSON payload (STL/3mf base64 can be huge).
-// Only scan the leading key region so a forged "command" inside base64 cannot bypass the
-// MakerLab/MakerWorld allowlist (IsAllowedScriptCommand uses this; handle_web_request still
-// parses real JSON and would otherwise execute the true top-level command).
-std::string extract_web_command(const std::string &payload)
-{
-    constexpr size_t k_max_scan = 512;
-    size_t           scan_end   = std::min(payload.size(), k_max_scan);
-
-    // Do not scan into large binary fields where base64 could embed a fake "command" key.
-    static const char *k_payload_keys[] = {"\"file_data\"", "\"3mf\"", "\"data\""};
-    for (const char *key : k_payload_keys) {
-        const size_t pos = payload.find(key);
-        if (pos != std::string::npos && pos < scan_end)
-            scan_end = pos;
-    }
-
-    const std::string   head = payload.substr(0, scan_end);
-    static const std::regex re("\"command\"\\s*:\\s*\"([^\"]+)\"");
-    std::smatch             m;
-    if (std::regex_search(head, m, re) && m.size() > 1)
-        return m[1].str();
-    return {};
-}
-
-} // namespace
 
 namespace Slic3r {
 namespace GUI {
@@ -1873,6 +1844,14 @@ void WebViewPanel::OnDocumentLoaded(wxWebViewEvent& evt)
     UpdateState();
 }
 
+void WebViewPanel::mark_home_shell_painted()
+{
+    if (m_home_shell_painted)
+        return;
+    m_home_shell_painted = true;
+    perf_mark("startup.webview.home.shell_painted");
+}
+
 void WebViewPanel::OnTitleChanged(wxWebViewEvent &evt)
 {
     BOOST_LOG_TRIVIAL(trace) << evt.GetString().ToUTF8().data();
@@ -1923,61 +1902,92 @@ void WebViewPanel::OnNewWindow(wxWebViewEvent& evt)
     UpdateState();
 }
 
-bool WebViewPanel::IsAllowedScriptCommand(wxWebViewEvent& evt)
+bool WebViewPanel::ResolveWebRequestSource(wxWebViewEvent& evt, WebRequestSource& source)
 {
     const int id = evt.GetId();
 
     const bool is_local =
         (m_browser     && id == m_browser->GetId())     ||
         (m_browserLeft && id == m_browserLeft->GetId()) ||
-        (m_browserWiki && id == m_browserWiki->GetId()) ||
-        (m_browserPH   && id == m_browserPH->GetId());
-    if (is_local)
-        return true;
+        (m_browserWiki && id == m_browserWiki->GetId());
 
     const bool is_makerlab   = (m_browserML && id == m_browserML->GetId());
     const bool is_makerworld = (m_browserMW && id == m_browserMW->GetId());
+    const bool is_print_history = (m_browserPH && id == m_browserPH->GetId());
 
-    static const std::set<std::string> kMakerLabAllowed = {
-        "homepage_makerlab_open_3mf_binary",
-        "homepage_makerlab_stl_download",
-        "common_openurl",  // MakerLab pages use this to open external links (e.g. "Support Creator", "open in browser")
-        "makerworld_model_open",
-        "homepage_login_or_register",
-    };
-    static const std::set<std::string> kMakerWorldAllowed = {
-        "makerworld_model_open",
-        // Used by the MakerWorld page header (logo, external links). The handler in
-        // GUI_App::handle_web_request only launches http/https URLs.
-        "common_openurl",
-        // Used by the MakerWorld search page "back to model library" button to
-        // notify the left-menu panel to switch back to the home/online view.
-        "homepage_leftmenu_switch",
-        "get_web_shortcut",
-        "homepage_login_or_register",
-    };
+    WebViewKind kind = WebViewKind::Unknown;
+    wxWebView *browser = nullptr;
+    const char *source_name = "unknown";
+    if (m_browser && id == m_browser->GetId())
+        browser = m_browser;
+    else if (m_browserLeft && id == m_browserLeft->GetId())
+        browser = m_browserLeft;
+    else if (m_browserWiki && id == m_browserWiki->GetId())
+        browser = m_browserWiki;
 
-    // Avoid full JSON parse here — MakerLab STL/3mf payloads can be multi-MB base64.
-    const std::string payload     = std::string(evt.GetString().ToUTF8().data());
-    const std::string command_str = extract_web_command(payload);
+    if (is_local) {
+        kind        = WebViewKind::Internal;
+        source_name = "internal";
+    } else if (is_makerlab) {
+        kind        = WebViewKind::MakerLab;
+        browser     = m_browserML;
+        source_name = "makerlab";
+    } else if (is_makerworld) {
+        kind        = WebViewKind::MakerWorld;
+        browser     = m_browserMW;
+        source_name = "makerworld";
+    } else if (is_print_history) {
+        kind        = WebViewKind::PrintHistory;
+        browser     = m_browserPH;
+        source_name = "print_history";
+    }
 
-    const std::set<std::string>* allow = nullptr;
-    const char* src = "unknown";
-    if (is_makerlab)        { allow = &kMakerLabAllowed;   src = "makerlab"; }
-    else if (is_makerworld) { allow = &kMakerWorldAllowed; src = "makerworld"; }
+    const auto resolved_source = WebViewSecurity::SourceForWebViewKind(kind);
+    if (!resolved_source) {
+        BOOST_LOG_TRIVIAL(warning) << "OnScriptMessage: blocked command from unknown webview";
+        return false;
+    }
+    source = *resolved_source;
+    if (!browser)
+        return false;
 
-    if (allow && allow->count(command_str))
+    // Script-message events expose the main document URL. WebView2 delivers them only for
+    // that document; the macOS WKWebView backend does not include frameInfo, so a cross-origin
+    // iframe cannot be distinguished here without a wxWidgets backend check.
+    wxString page_url = evt.GetURL();
+    if (page_url.empty())
+        page_url = browser->GetCurrentURL();
+    const std::string resources = resources_dir();
+    if (source != WebRequestSource::Internal &&
+        WebViewSecurity::IsLocalDisconnectPage(page_url, resources)) {
+        source = WebRequestSource::DisconnectPage;
+        return true;
+    }
+    if (source == WebRequestSource::Internal) {
+        if (WebViewSecurity::IsResourcesFileUrl(page_url, resources))
+            return true;
+        BOOST_LOG_TRIVIAL(warning) << "OnScriptMessage: blocked internal command from a non-resource page"
+                                   << " page=" << GetSafeWebUrlForLog(page_url);
+        return false;
+    }
+
+    const wxString trusted_base =
+        wxString::FromUTF8(wxGetApp().get_model_http_url(wxGetApp().app_config->get_country_code()));
+    if (WebViewSecurity::IsTrustedHttpsOrigin(page_url, trusted_base))
         return true;
 
-    BOOST_LOG_TRIVIAL(warning) << "OnScriptMessage: blocked web command from untrusted source"
-                               << " src=" << src
-                               << " cmd=" << (command_str.empty() ? "<none>" : command_str);
+    BOOST_LOG_TRIVIAL(warning) << "OnScriptMessage: blocked command from untrusted origin"
+                               << " src=" << source_name
+                               << " page=" << GetSafeWebUrlForLog(page_url);
     return false;
 }
 
 void WebViewPanel::OnScriptMessage(wxWebViewEvent& evt)
 {
-    BOOST_LOG_TRIVIAL(trace) << evt.GetString().ToUTF8().data();
+    WebRequestSource source = WebRequestSource::Internal;
+    if (!ResolveWebRequestSource(evt, source))
+        return;
+
     // update login status
     if (m_LoginUpdateTimer == nullptr) {
         BOOST_LOG_TRIVIAL(info) << "Create Timer";
@@ -1988,10 +1998,7 @@ void WebViewPanel::OnScriptMessage(wxWebViewEvent& evt)
     if (wxGetApp().get_mode() == comDevelop)
         wxLogMessage("Script message received; value = %s, handler = %s", evt.GetString(), evt.GetMessageHandler());
 
-    if (!IsAllowedScriptCommand(evt))
-        return;
-
-    std::string response = wxGetApp().handle_web_request(evt.GetString().ToUTF8().data());
+    std::string response = wxGetApp().handle_web_request(evt.GetString().ToUTF8().data(), source);
     if (response.empty()) return;
 
     /* remove \n in response string */

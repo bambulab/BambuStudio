@@ -55,6 +55,7 @@ public:
         if (lines.empty())
             return;
 
+        const int64_t snap_distance_squared = int64_t(snap_distance) * int64_t(snap_distance);
         SparsePointGrid<PathsPointIndex<Paths>, PathsPointIndexLocator<Paths>> grid(max_stitch_distance, lines.size() * 2);
 
         // populate grid
@@ -86,16 +87,24 @@ public:
                     chain.reverse();
                 }
                 int64_t chain_length = chain.polylineLength();
+                Point previous_connection_point(0, 0);
+                bool has_previous_connection = false;
 
                 while (true)
                 {
                     Point from = make_point(chain.back());
+                    const bool is_away_from_previous_connection =
+                        has_previous_connection &&
+                        (from.template cast<int64_t>() - previous_connection_point.template cast<int64_t>()).squaredNorm() >=
+                            snap_distance_squared;
 
                     PathsPointIndex<Paths> closest;
                     coord_t closest_distance = std::numeric_limits<coord_t>::max();
                     grid.processNearby(from, max_stitch_distance,
                                        std::function<bool (const PathsPointIndex<Paths>&)> (
-                                           [from, &chain, &closest, &closest_is_closing_polygon, &closest_distance, &processed, &chain_length, go_in_reverse_direction, max_stitch_distance, snap_distance, should_close]
+                                           [from, &chain, &closest, &closest_is_closing_polygon, &closest_distance, &processed, &chain_length,
+                                            previous_connection_point, is_away_from_previous_connection, go_in_reverse_direction,
+                                            max_stitch_distance, snap_distance, snap_distance_squared, should_close]
                                            (const PathsPointIndex<Paths>& nearby)->bool
                                            {
                                                bool is_closing_segment = false;
@@ -104,7 +113,7 @@ public:
                                                {
                                                    return true; // keep looking
                                                }
-                                               if ((nearby.p().template cast<int64_t>() - make_point(chain.front()).template cast<int64_t>()).squaredNorm() < snap_distance * snap_distance)
+                                               if ((nearby.p().template cast<int64_t>() - make_point(chain.front()).template cast<int64_t>()).squaredNorm() < snap_distance_squared)
                                                {
                                                    if (chain_length + dist < 3 * max_stitch_distance // prevent closing of small poly, cause it might be able to continue making a larger polyline
                                                        || chain.size() <= 2) // don't make 2 vert polygons
@@ -127,6 +136,13 @@ public:
                                                else if (processed[nearby.poly_idx])
                                                { // it was already moved to output
                                                    return true; // keep looking for a connection
+                                               }
+                                               if (is_away_from_previous_connection &&
+                                                   (nearby.p().template cast<int64_t>() - previous_connection_point.template cast<int64_t>()).squaredNorm() < snap_distance_squared)
+                                               {
+                                                   // Do not bridge back to the point where the previous path was
+                                                   // connected. That would create an immediate B -> C -> B return.
+                                                   return true;
                                                }
                                                bool nearby_would_be_reversed = nearby.point_idx != 0;
                                                nearby_would_be_reversed = nearby_would_be_reversed != go_in_reverse_direction; // flip nearby_would_be_reversed when searching in the reverse direction
@@ -161,6 +177,8 @@ public:
 
                     coord_t segment_dist = (make_point(chain.back()).template cast<int64_t>() - closest.p().template cast<int64_t>()).norm();
                     assert(segment_dist <= max_stitch_distance + scaled<coord_t>(0.01));
+                    previous_connection_point = closest.p();
+                    has_previous_connection = true;
                     const size_t old_size = chain.size();
                     if (closest.point_idx == 0)
                     {

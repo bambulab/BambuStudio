@@ -434,80 +434,116 @@ static std::string calculate_md5(const std::string &input)
     return md5;
 }
 
-static std::string get_filament_id(std::string vendor_typr_serial)
+namespace {
+
+/**
+ * \brief Finds or creates the filament id for a filament name, for one create operation
+ *
+ * Reuses the id of an existing system, user or loaded preset with the same name.
+ * Otherwise creates a new id that no other filament name uses.
+ *
+ * \note Use one instance for one create operation only.
+ *       It does not see presets that are added or deleted after its first lookup.
+ */
+class FilamentIdIndex
 {
-    std::unordered_map<std::string, std::set<std::string>> filament_id_to_filament_name;
+public:
+    /**
+     * \brief Get the filament id for a filament name
+     *
+     * \param filament_name  preset name without the " @printer" suffix
+     * \return               the existing id, or a new id that later lookups also return
+     */
+    std::string id_for(const std::string &filament_name);
 
-    // temp filament presets
-    PresetBundle temp_preset_bundle;
-    temp_preset_bundle.load_system_filaments_json(Slic3r::ForwardCompatibilitySubstitutionRule::EnableSilent);
+private:
+    void        load();
+    void        add_preset(const std::string &preset_name, const std::string &filament_id);
+    std::string create_unique_id(const std::string &filament_name) const;
+
+    bool                                                   m_loaded = false;
+    std::unordered_map<std::string, std::string>           m_name_to_id;  ///< first usable id per filament name
+    std::unordered_map<std::string, std::set<std::string>> m_id_to_names; ///< every filament name per id, for collision checks
+};
+
+std::string FilamentIdIndex::id_for(const std::string &filament_name)
+{
+    if (!m_loaded)
+        load();
+
+    if (auto it = m_name_to_id.find(filament_name); it != m_name_to_id.end())
+        return it->second;
+
+    std::string filament_id = create_unique_id(filament_name);
+    // Later lookups in the same operation must see this id as taken.
+    m_name_to_id.emplace(filament_name, filament_id);
+    m_id_to_names[filament_id].insert(filament_name);
+    BOOST_LOG_TRIVIAL(info) << "filament name is: " << filament_name << ", create " << KV(log_key::filament_id, filament_id);
+    return filament_id;
+}
+
+void FilamentIdIndex::load()
+{
+    m_loaded = true;
+
+    // The system and user presets on disk, which can differ from the loaded bundle.
+    PresetBundle disk_bundle;
+    disk_bundle.load_system_filaments_json(ForwardCompatibilitySubstitutionRule::EnableSilent);
     std::string dir_user_presets = wxGetApp().app_config->get("preset_folder");
-    if (dir_user_presets.empty()) {
-        temp_preset_bundle.load_user_presets(DEFAULT_USER_FOLDER_NAME, ForwardCompatibilitySubstitutionRule::EnableSilent);
-    } else {
-        temp_preset_bundle.load_user_presets(dir_user_presets, ForwardCompatibilitySubstitutionRule::EnableSilent);
-    }
-    const std::deque<Preset> &filament_presets = temp_preset_bundle.filaments.get_presets();
+    if (dir_user_presets.empty())
+        dir_user_presets = DEFAULT_USER_FOLDER_NAME;
+    disk_bundle.load_user_presets(dir_user_presets, ForwardCompatibilitySubstitutionRule::EnableSilent);
+    for (const Preset &preset : disk_bundle.filaments.get_presets())
+        add_preset(preset.name, preset.filament_id);
 
-    for (const Preset &preset : filament_presets) {
-        std::string preset_name = preset.name;
-        size_t      index_at    = preset_name.find_first_of('@');
-        if (index_at == std::string::npos) {
-            BOOST_LOG_TRIVIAL(info) << "filament preset name has no @ and name is: " << preset_name;
-            continue;
-        }
-        std::string filament_name = preset_name.substr(0, index_at - 1);
-        if (filament_name == vendor_typr_serial && preset.filament_id != "null")
-            return preset.filament_id;
-        filament_id_to_filament_name[preset.filament_id].insert(filament_name);
+    // The loaded bundle comes second, so a name found on disk keeps the id from disk.
+    for (const auto &[filament_id, presets] : wxGetApp().preset_bundle->filaments.get_filament_presets()) {
+        for (const Preset *preset : presets)
+            add_preset(preset->name, preset->filament_id);
     }
-    // global filament presets
-    PresetBundle *                                     preset_bundle               = wxGetApp().preset_bundle;
-    std::map<std::string, std::vector<Preset const *>> temp_filament_id_to_presets = preset_bundle->filaments.get_filament_presets();
-    for (std::pair<std::string, std::vector<Preset const *>> filament_id_to_presets : temp_filament_id_to_presets) {
-        if (filament_id_to_presets.first.empty()) continue;
-        for (const Preset *preset : filament_id_to_presets.second) {
-            std::string preset_name = preset->name;
-            size_t      index_at    = preset_name.find_first_of('@');
-            if (index_at == std::string::npos) {
-                BOOST_LOG_TRIVIAL(info) << "filament preset name has no @ and name is: " << preset_name;
-                continue;
-            }
-            std::string filament_name = preset_name.substr(0, index_at - 1);
-            if (filament_name == vendor_typr_serial && preset->filament_id != "null")
-                return preset->filament_id;
-            filament_id_to_filament_name[preset->filament_id].insert(filament_name);
-        }
-    }
+    BOOST_LOG_TRIVIAL(info) << "filament id index loaded, names " << m_name_to_id.size() << ", ids " << m_id_to_names.size();
+}
 
+void FilamentIdIndex::add_preset(const std::string &preset_name, const std::string &filament_id)
+{
+    size_t index_at = preset_name.find_first_of('@');
+    if (index_at == std::string::npos) {
+        BOOST_LOG_TRIVIAL(info) << "filament preset name has no @ and name is: " << preset_name;
+        return;
+    }
+    // A user preset whose parent is missing keeps an empty id; it has no id to reuse or to collide with.
+    if (filament_id.empty()) {
+        BOOST_LOG_TRIVIAL(debug) << "filament preset has no filament id, name is: " << preset_name;
+        return;
+    }
+    std::string filament_name = preset_name.substr(0, index_at - 1);
+    if (filament_id != "null")
+        m_name_to_id.emplace(filament_name, filament_id); // emplace keeps the first id found
+    m_id_to_names[filament_id].insert(filament_name);
+}
+
+std::string FilamentIdIndex::create_unique_id(const std::string &filament_name) const
+{
     // Include user_id in hash to avoid cross-user collision.
-    std::string hash_input = vendor_typr_serial;
-    NetworkAgent *agent = wxGetApp().getAgent();
+    std::string   hash_input = filament_name;
+    NetworkAgent *agent      = wxGetApp().getAgent();
     if (agent && agent->is_user_login() && !agent->get_user_id().empty()) {
         // '@' is used as separator to avoid ambiguity between filament name and user_id,
         // such as filament name having numbers.
         hash_input += "@" + agent->get_user_id();
     }
-    std::string user_filament_id = "P" + calculate_md5(hash_input).substr(0, 7);
+    std::string filament_id = "P" + calculate_md5(hash_input).substr(0, 7);
 
-    while (filament_id_to_filament_name.find(user_filament_id) != filament_id_to_filament_name.end()) {//find same filament id
-        bool have_same_filament_name = false;
-        for (const std::string &name : filament_id_to_filament_name.find(user_filament_id)->second) {
-            if (name == vendor_typr_serial) {
-                have_same_filament_name = true;
-                break;
-            }
-        }
-        if (have_same_filament_name) {
-            break;
-        }
-        else { //Different names correspond to the same filament id
-            user_filament_id = "P" + calculate_md5(vendor_typr_serial + get_curr_time()).substr(0, 7);
-        }
+    // Any id found here belongs to another name: id_for() already returned for a known name.
+    // A counter salt gives a new hash on each try and the same id on each run.
+    for (int attempt = 1; m_id_to_names.count(filament_id) > 0; ++attempt) {
+        BOOST_LOG_TRIVIAL(warning) << "filament id collision for " << filament_name << ", attempt " << attempt << " " << KV(log_key::filament_id, filament_id);
+        filament_id = "P" + calculate_md5(hash_input + "#" + std::to_string(attempt)).substr(0, 7);
     }
-    BOOST_LOG_TRIVIAL(info) << "filament name is: " << vendor_typr_serial << "and create filament_id is: " << user_filament_id;
-    return user_filament_id;
+    return filament_id;
 }
+
+} // namespace
 
 static json get_config_json(const Preset* preset) {
     json j;
@@ -1080,7 +1116,7 @@ wxBoxSizer *CreateFilamentPresetDialog::create_button_item()
             if (wxID_YES != dlg.ShowModal()) { return; }
         }
 
-        std::string user_filament_id     = get_filament_id(filament_preset_name);
+        std::string user_filament_id     = FilamentIdIndex().id_for(filament_preset_name);
 
         const wxString &curr_create_type = curr_create_filament_type();
 
@@ -2847,6 +2883,9 @@ wxBoxSizer *CreatePrinterPresetDialog::create_page2_btns_item(wxWindow *parent)
         }
 
         std::vector<std::string> successful_preset_names;
+        // One index for the whole operation: building it reloads every system filament preset.
+        FilamentIdIndex filament_ids;
+        auto get_filament_id = [&filament_ids](std::string filament_name) { return filament_ids.id_for(filament_name); };
         if (curr_selected_preset_type == m_create_type.base_template) {
             BOOST_LOG_TRIVIAL(info) << "base template";
             /******************************   clone filament preset    ********************************/

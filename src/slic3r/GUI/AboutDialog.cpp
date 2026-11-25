@@ -2,11 +2,13 @@
 #include "I18N.hpp"
 
 #include "libslic3r/Utils.hpp"
+#include "libslic3r/BuildInfo.hpp"
 #include "GUI.hpp"
 #include "GUI_App.hpp"
 #include "MainFrame.hpp"
 #include "format.hpp"
 #include "Widgets/Button.hpp"
+#include "Widgets/LinkLabel.hpp"
 
 #include <wx/clipbrd.h>
 
@@ -129,6 +131,7 @@ void CopyrightsDialog::fill_entries()
         { "libcurl",                                        "",      "https://curl.se/libcurl" },
         { "Libigl",                                         "",      "https://libigl.github.io" },
         { "libnest2d",                                      "",      "https://github.com/tamasmeszaros/libnest2d" },
+        { "MCUT",                                           "",      "https://cutdigital.github.io/mcut.site/" },
         { "Mesa 3D",                                        "",      "https://mesa3d.org" },
         { "Miniz",                                          "",      "https://github.com/richgel999/miniz" },
         { "Nanosvg",                                        "",      "https://github.com/memononen/nanosvg" },
@@ -307,7 +310,7 @@ AboutDialog::AboutDialog()
         plugin_version_text->SetBackgroundColour(wxColour("#00AF42"));
         vesizer->Add(plugin_version_text, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, FromDIP(5));
 
-        wxString build_time = wxString::Format("Build Time: %s", std::string(SLIC3R_BUILD_TIME));
+        wxString build_time = wxString::Format("Build Time: %s", std::string(Slic3r::build_time()));
         wxStaticText* build_time_text = new wxStaticText(this, wxID_ANY, build_time, wxDefaultPosition, wxDefaultSize);
         build_time_text->SetForegroundColour(wxColour("#FFFFFE"));
         build_time_text->SetBackgroundColour(wxColour("#00AF42"));
@@ -328,70 +331,55 @@ AboutDialog::AboutDialog()
     text_list.push_back(_L("There many parts of the software that come from community contributions, so we're unable to list them one-by-one, and instead, they'll be attributed in the corresponding code comments."));
 
     text_sizer->Add( 0, 0, 0, wxTOP, FromDIP(33));
-    bool is_zh = wxGetApp().app_config->get("language") == "zh_CN";
-    for (int i = 0; i < text_list.size(); i++)
     {
-        auto staticText = new wxStaticText( this, wxID_ANY, wxEmptyString,wxDefaultPosition,wxSize(FromDIP(520), -1), wxALIGN_LEFT );
-        staticText->SetForegroundColour(wxColour(107, 107, 107));
-        staticText->SetBackgroundColour(*wxWHITE);
-        staticText->SetMinSize(wxSize(FromDIP(520), -1));
-        staticText->SetFont(Label::Body_12);
-        if (is_zh) {
-            wxString find_txt = "";
-            wxString count_txt = "";
-            for (auto  o = 0; o < text_list[i].length(); o++) {
-                auto size = staticText->GetTextExtent(count_txt);
-                if (size.x < FromDIP(506)) {
-                    find_txt += text_list[i][o];
-                    count_txt += text_list[i][o];
-                } else {
-                    find_txt += std::string("\n") + text_list[i][o];
-                    count_txt = text_list[i][o];
-                }
+        // One control per wrapped line so that every line, inside and between paragraphs, has the same pitch
+        wxClientDC dc(this);
+        dc.SetFont(Label::Body_12);
+        for (const wxString &paragraph : text_list) {
+            wxString wrapped;
+            Label::split_lines(dc, FromDIP(506), paragraph, wrapped);
+            for (const wxString &line : wxSplit(wrapped, '\n', '\0')) {
+                auto line_text = new wxStaticText(this, wxID_ANY, line, wxDefaultPosition, wxSize(FromDIP(520), FromDIP(21)), wxALIGN_LEFT | wxST_NO_AUTORESIZE);
+                line_text->SetForegroundColour(wxColour(107, 107, 107));
+                line_text->SetBackgroundColour(*wxWHITE);
+                line_text->SetFont(Label::Body_12);
+                line_text->SetMinSize(wxSize(FromDIP(520), FromDIP(21)));
+                text_sizer->Add(line_text, 0, 0, 0);
             }
-            staticText->SetLabel(find_txt);
-        } else {
-            staticText->SetLabel(text_list[i]);
-            staticText->Wrap(FromDIP(520));
         }
-
-        text_sizer->Add( staticText, 0, wxUP | wxDOWN, FromDIP(3));
     }
 
     text_sizer_horiz->Add(text_sizer, 1, wxALL,0);
     ver_sizer->Add(text_sizer_horiz, 0, wxALL,0);
-    ver_sizer->Add( 0, 0, 0, wxTOP, FromDIP(43));
+    ver_sizer->Add( 0, 0, 0, wxTOP, FromDIP(22));
 
-    wxBoxSizer *copyright_ver_sizer = new wxBoxSizer(wxVERTICAL);
-    wxBoxSizer *copyright_hor_sizer = new wxBoxSizer(wxHORIZONTAL);
+    const auto make_link = [this](const wxString &label, const std::string &url) {
+        LinkLabel *link = new LinkLabel(this, label, url);
+        link->SeLinkLabelFColour(wxColour("#00AE42"));
+        link->SeLinkLabelBColour(*wxWHITE);
+        return link;
+    };
 
-    copyright_hor_sizer->Add(copyright_ver_sizer, 0, wxLEFT, FromDIP(20));
+    const bool         is_china    = wxGetApp().app_config->get("region") == "China";
+    const std::string  privacy_url = is_china ? "https://bambulab.cn/zh-cn/policies/privacy" : "https://bambulab.com/en/policies/privacy";
+    const std::string  terms_url   = is_china ? "https://bambulab.cn/zh-cn/policies/terms" : "https://bambulab.com/en/policies/terms";
 
-    wxStaticText *html_text = new wxStaticText(this, wxID_ANY, "Copyright(C) 2021-2025 Lunkuo All Rights Reserved", wxDefaultPosition, wxDefaultSize);
-    html_text->SetForegroundColour(wxColour(107, 107, 107));
+    wxBoxSizer *policy_sizer = new wxBoxSizer(wxHORIZONTAL);
+    policy_sizer->Add(make_link(_L("Privacy Policy"), privacy_url), 0, wxALIGN_CENTER_VERTICAL, 0);
+    policy_sizer->AddSpacer(FromDIP(32));
+    policy_sizer->Add(make_link(_L("Terms of Use"), terms_url), 0, wxALIGN_CENTER_VERTICAL, 0);
+    ver_sizer->Add(policy_sizer, 0, wxALIGN_CENTER_HORIZONTAL, 0);
+    ver_sizer->AddSpacer(FromDIP(25));
 
-    copyright_ver_sizer->Add(html_text, 0, wxALL , 0);
+    Label *copyright_text = new Label(this, Label::Body_14, "Copyright(C) 2021-2025 Lunkuo All Rights Reserved");
+    copyright_text->SetForegroundColour(wxColour("#262E30"));
+    copyright_text->SetBackgroundColour(*wxWHITE);
+    ver_sizer->Add(copyright_text, 0, wxALIGN_CENTER_HORIZONTAL, 0);
+    ver_sizer->AddSpacer(FromDIP(4));
 
-    m_html = new wxHtmlWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxHW_SCROLLBAR_NEVER /*NEVER*/);
-      {
-          wxFont font = get_default_font(this);
-          const int fs = font.GetPointSize()-1;
-          int size[] = {fs,fs,fs,fs,fs,fs,fs};
-          m_html->SetFonts(font.GetFaceName(), font.GetFaceName(), size);
-          m_html->SetMinSize(wxSize(FromDIP(-1), FromDIP(16)));
-          m_html->SetBorders(2);
-          const auto text = from_u8(
-              (boost::format(
-              "<html>"
-              "<body>"
-              "<p style=\"text-align:left\"><a  href=\"www.bambulab.com\">www.bambulab.com</ a></p>"
-              "</body>"
-              "</html>")
-            ).str());
-          m_html->SetPage(text);
-          copyright_ver_sizer->Add(m_html, 0, wxEXPAND, 0);
-          m_html->Bind(wxEVT_HTML_LINK_CLICKED, &AboutDialog::onLinkClicked, this);
-      }
+    ver_sizer->Add(make_link("www.bambulab.com", "https://www.bambulab.com"), 0, wxALIGN_CENTER_HORIZONTAL, 0);
+    ver_sizer->AddSpacer(FromDIP(14));
+
     //Add "Portions copyright" button
     Button* button_portions = new Button(this,_L("Portions copyright"));
     StateColor report_bg(std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Disabled), std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed),
@@ -406,15 +394,8 @@ AboutDialog::AboutDialog()
     button_portions->SetCornerRadius(FromDIP(12));
     button_portions->SetMinSize(wxSize(FromDIP(120), FromDIP(24)));
 
-    wxBoxSizer *copyright_button_ver = new wxBoxSizer(wxVERTICAL);
-    copyright_button_ver->Add( 0, 0, 0, wxTOP, FromDIP(10));
-    copyright_button_ver->Add(button_portions, 0, wxALL,0);
-
-    copyright_hor_sizer->AddStretchSpacer();
-    copyright_hor_sizer->Add(copyright_button_ver, 0, wxRIGHT, FromDIP(20));
-
-    ver_sizer->Add(copyright_hor_sizer, 0, wxEXPAND ,0);
-    ver_sizer->Add( 0, 0, 0, wxTOP, FromDIP(30));
+    ver_sizer->Add(button_portions, 0, wxALIGN_CENTER_HORIZONTAL, 0);
+    ver_sizer->AddSpacer(FromDIP(38));
     button_portions->Bind(wxEVT_BUTTON, &AboutDialog::onCopyrightBtn, this);
 
     wxGetApp().UpdateDlgDarkUI(this);
@@ -429,29 +410,15 @@ void AboutDialog::on_dpi_changed(const wxRect &suggested_rect)
     m_logo_bitmap.msw_rescale();
     m_logo->SetBitmap(m_logo_bitmap.bmp());
 
-    const wxFont& font = GetFont();
-    const int fs = font.GetPointSize() - 1;
-    int font_size[] = { fs, fs, fs, fs, fs, fs, fs };
-    m_html->SetFonts(font.GetFaceName(), font.GetFaceName(), font_size);
-
     const int& em = em_unit();
 
     msw_buttons_rescale(this, em, { wxID_CLOSE, m_copy_rights_btn_id });
-
-    m_html->SetMinSize(wxSize(-1, 16 * em));
-    m_html->Refresh();
 
     const wxSize& size = wxSize(65 * em, 30 * em);
 
     SetMinSize(size);
     Fit();
     Refresh();
-}
-
-void AboutDialog::onLinkClicked(wxHtmlLinkEvent &event)
-{
-    wxGetApp().open_browser_with_warning_dialog(event.GetLinkInfo().GetHref());
-    event.Skip(false);
 }
 
 void AboutDialog::onCloseDialog(wxEvent &)

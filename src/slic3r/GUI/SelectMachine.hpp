@@ -348,7 +348,6 @@ private:
     std::list<PrintOption*>                  m_checkbox_list_order;
 
     std::shared_ptr<int>                m_token = std::make_shared<int>(0);
-    std::vector<wxString>               m_bedtype_list;
     std::vector<MachineObject*>         m_list;
     std::vector<FilamentInfo>           m_filaments;
     std::vector<FilamentInfo>           m_ams_mapping_result;
@@ -479,7 +478,6 @@ protected:
     ReselectMachineDialog*              m_best_pos_dialog{nullptr};
 
 public:
-    static std::vector<wxString> MACHINE_BED_TYPE_STRING;
     static void                  init_machine_bed_types();
     static std::vector<std::string> MachineBedTypeString;
 
@@ -501,7 +499,8 @@ public:
     void show_status(PrintDialogStatus status,
                      std::vector<wxString> params = std::vector<wxString>(),
                      wxString wiki_url = wxEmptyString,
-                     prePrintInfoStyle style = prePrintInfoStyle::Default);
+                     prePrintInfoStyle style = prePrintInfoStyle::Default,
+                     wxString link_label = wxEmptyString);
     void sys_color_changed();
     void reset_timeout();
     void update_user_printer();
@@ -519,6 +518,7 @@ public:
 
     void UpdateStatusCheckWarning_ExtensionTool(MachineObject* obj_);
     void CheckWarningRackStatus(MachineObject* obj_);
+    void CheckWarningBigFlush(MachineObject* obj_);
 
     bool CheckErrorWarningFilamentMapping(MachineObject* obj_);//return true if no errors
     bool IsRelevantAmsSupportAccurateRemain(MachineObject* obj_) const; // mapped/refill-related AMS report accurate remain version
@@ -580,6 +580,8 @@ public:
     void change_materialitem_tip(bool no_ams_only_ext);
     void reset_and_sync_ams_list();
     bool is_hotend_rack() const;
+    bool is_fila_switch_multi_diameter(MachineObject* obj) const;
+    bool use_hotend_material_item(MachineObject* obj = nullptr) const;
     MaterialItem* create_material_item(wxWindow* parent, wxColour colour_rgb, const wxString& display_type, const std::string& filament_id);
     void clone_thumbnail_data();
     void record_edge_pixels_data();
@@ -670,6 +672,8 @@ private:
 
     /* update scroll area size*/
     void update_scroll_area_size();
+    /* shrink the scroll area on short screens so the whole dialog fits, see the definition */
+    void fit_scroll_area_to_screen();
 
     /* update option area*/
     void update_option_opts(MachineObject *obj);
@@ -703,6 +707,11 @@ private:
     // get mapping nozzle display string for rack
     wxString get_mapped_nozzle_str(int fila_id);
     wxString get_nozzle_dia_and_type(const std::string& ams_id, const std::string& slot_id);
+    void     update_material_item_nozzle_info(MaterialItem* m,
+                                              int fila_id,
+                                              MachineObject* obj,
+                                              const std::string& ams_id,
+                                              const std::string& slot_id);
 
     // get mapping nozzle for all
     std::map<int, DevNozzle> get_mapped_nozzles(int fila_id) const;

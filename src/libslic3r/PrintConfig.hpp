@@ -307,6 +307,7 @@ enum BedType {
     btPEI,
     btPTE,
     btSuperTack,
+    bt3DEffect,
     btCount
 };
 
@@ -487,6 +488,9 @@ static std::string bed_type_to_gcode_string(const BedType type)
     case btPTE:
         type_str = "textured_plate";
         break;
+    case bt3DEffect:
+        type_str = "3d_effect_plate";
+        break;
     default:
         type_str = "unknown";
         break;
@@ -512,6 +516,9 @@ static std::string get_bed_temp_key(const BedType type)
     if (type == btPTE)
         return "textured_plate_temp";
 
+    if (type == bt3DEffect)
+        return "effect_plate_temp";
+
     return "";
 }
 
@@ -532,6 +539,9 @@ static std::string get_bed_temp_1st_layer_key(const BedType type)
     if (type == btPTE)
         return "textured_plate_temp_initial_layer";
 
+    if (type == bt3DEffect)
+        return "effect_plate_temp_initial_layer";
+
     return "";
 }
 
@@ -541,7 +551,8 @@ extern bool is_filament_extruder_override_key(const std::string &opt_key);
 // for parse extruder_ams_count
 extern std::vector<std::map<int, int>> get_extruder_ams_count(const std::vector<std::string> &strs);
 // Effective AMS nozzle slot: the configured ams_nozzle_idx when an AMS is actually present
-// (extruder_ams_count has a non-zero slot), otherwise -1 (treat the machine as all fixed nozzles).
+// (extruder_ams_count has a non-zero slot) and a nozzle sits on that slot (extruder_nozzle_slot),
+// otherwise -1 (treat the machine as all fixed nozzles).
 extern int get_effective_ams_nozzle_idx(const ConfigBase &config);
 extern bool is_single_ext_multi_nozzle(const ConfigBase &config);
 extern std::vector<std::string> save_extruder_ams_count_to_string(const std::vector<std::map<int, int>> &extruder_ams_count);
@@ -612,6 +623,7 @@ CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(TopOneWallType)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(ReduceInfillRetractionMode)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(FilamentMetalStickiness)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(CounterboreHoleBridgingOption)
+CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(ExtruderType)
 #undef CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS
 
 // Defines each and every confiuration option of Slic3r, including the properties of the GUI dialogs.
@@ -725,6 +737,13 @@ public:
     // handle_legacy() is called internally by set_deserialize().
     void                handle_legacy(t_config_option_key &opt_key, std::string &value) const override
         { PrintConfigDef::handle_legacy(opt_key, value); }
+    void                handle_legacy_composite(const std::map<std::string, std::string> &key_values) override
+        { this->normalize_legacy_print_extruder_id(key_values); }
+
+    // Some H3C / P3C single-extruder process presets were shipped with print_extruder_id = 2 (valid ids start from 1).
+    // Shift the ids so the smallest one becomes 1, only for presets older than 02.09.00.76
+    // or project_settings saved by Studio older than 02.09.01.73. Returns true if modified.
+    bool                normalize_legacy_print_extruder_id(const std::map<std::string, std::string> &key_values);
 
     //BBS special case Support G/ Support W
     std::string get_filament_type(std::string &displayed_filament_type, int id = 0);
@@ -755,7 +774,11 @@ public:
     //int update_values_from_single_to_multi_2(DynamicPrintConfig& multi_config, std::set<std::string>& key_set);
     //int update_values_from_multi_to_single_2(std::set<std::string>& key_set);
 
-    int update_values_from_multi_to_multi_2(const std::vector<std::string>& src_extruder_variants, const std::vector<std::string>& dst_extruder_variants, const DynamicPrintConfig& dst_config, const std::set<std::string>& key_sets);
+    // Map the variant values (e.g. of an object config) from src_extruder_variants to dst_extruder_variants, in place.
+    // Each value is the dst_config value, or the non-nil src value of the same variant name; with several such src values, the min (bools: the first).
+    // A key is removed if dst_config does not have a value for each dst variant.
+    // variant_index: if not empty, for each dst variant the only src index to take the value from, or -1 for none; the variant names are then not used.
+    int update_values_from_multi_to_multi_2(const std::vector<std::string>& src_extruder_variants, const std::vector<std::string>& dst_extruder_variants, const DynamicPrintConfig& dst_config, const std::set<std::string>& key_sets, const std::vector<int>& variant_index = {});
 
 public:
     // query filament
@@ -779,6 +802,19 @@ extern std::set<std::string> empty_options;
 extern std::set<std::string> filament_dev_options;
 
 extern void update_static_print_config_from_dynamic(ConfigBase& config, const DynamicPrintConfig& dest_config, std::vector<int> variant_index, std::set<std::string>& key_set1, int stride = 1);
+// Whether the extruder ids have different values, i.e. multi-extruder; only then the variants need to be matched by id.
+// It only looks at the ids, so a single extruder config with wrong ids (e.g. all 2) is still regarded as single extruder.
+extern bool has_multiple_extruder_ids(const std::vector<int> &ids);
+// For each dst variant, the index of the src variant with the same name, or -1 if none.
+// A missing id (the ids shorter than the variants) is regarded as 1.
+// With match_id, the extruder id must also be the same.
+// Without match_id, the src variant of extruder preferred_src_id is preferred, otherwise the first one with the name.
+extern std::vector<int> compute_variant_index_by_name(const std::vector<std::string> &src_variants,
+                                                      const std::vector<int>         &src_ids,
+                                                      const std::vector<std::string> &dst_variants,
+                                                      const std::vector<int>         &dst_ids,
+                                                      bool                            match_id,
+                                                      int                             preferred_src_id = 1);
 // Return the default machine row for each value of this override, preserving the input indices.
 extern std::vector<int> filament_override_default_indices(const std::string &opt_key, size_t row_count,
                                                          const DynamicPrintConfig &config, const std::vector<int> &filament_map_indices);
@@ -789,6 +825,13 @@ extern void compute_filament_override_value(const std::string& opt_key, const Co
 // A filament override stored once per filament is spread across that filament's variant slots
 // so later lookups by filament_extruder_variant hit the value the user edited.
 extern void align_filament_variant_overrides(DynamicPrintConfig &config);
+
+// Length check for a project config that contains extruder_variant_list.
+// filament_extruder_variant must have the same length as filament_self_index and be at least
+// as long as filament_colour. A missing filament_self_index counts as one entry per filament_colour.
+// A missing filament_extruder_variant counts as length 0. A config with no extruder_variant_list passes.
+// The config is not modified.
+extern bool filament_variant_lengths_valid(const DynamicPrintConfig &config);
 
 // The P index in "M106 P<index>" is a fixed product convention: the standard
 // auxiliary part cooling fan is always P2, the optional one (fan box) is always P10.
@@ -1058,6 +1101,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionInt,                 raft_layers))
     ((ConfigOptionEnum<SeamPosition>,  seam_position))
     ((ConfigOptionBool,                seam_placement_away_from_overhangs))
+    ((ConfigOptionFloat,               seam_embedded_headroom))
     ((ConfigOptionFloat,               slice_closing_radius))
     ((ConfigOptionEnum<SlicingMode>,   slicing_mode))
     ((ConfigOptionBool,                enable_support))
@@ -1250,6 +1294,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloatsOrPercentsNullable, vertical_shell_speed))
     ((ConfigOptionInt, top_color_penetration_layers))
     ((ConfigOptionInt, bottom_color_penetration_layers))
+    ((ConfigOptionBool, cross_part_color_penetration))
     ((ConfigOptionBool, infill_instead_top_bottom_surfaces))
     ((ConfigOptionEnum<WallSequence>, wall_sequence))
     //BBS
@@ -1585,11 +1630,13 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionInts,               eng_plate_temp))
     ((ConfigOptionInts,               hot_plate_temp)) // hot is short for high temperature
     ((ConfigOptionInts,               textured_plate_temp))
+    ((ConfigOptionInts,               effect_plate_temp))
     ((ConfigOptionInts,               supertack_plate_temp_initial_layer))
     ((ConfigOptionInts,               cool_plate_temp_initial_layer))
     ((ConfigOptionInts,               eng_plate_temp_initial_layer))
     ((ConfigOptionInts,               hot_plate_temp_initial_layer)) // hot is short for high temperature
     ((ConfigOptionInts,               textured_plate_temp_initial_layer))
+    ((ConfigOptionInts,               effect_plate_temp_initial_layer))
     ((ConfigOptionBools,              enable_overhang_bridge_fan))
     ((ConfigOptionInts,               overhang_fan_speed))
     ((ConfigOptionInts,               ironing_fan_speed))
@@ -2235,6 +2282,14 @@ inline bool nozzle_variant_exists(const std::string &diameter, NozzleVolumeType 
     return true;
 }
 
+// Values of the process option process_nozzle_diameter_mode: the multi-diameter mode a user/project process
+// preset was saved in. System presets and presets saved before the option existed carry an empty value.
+inline constexpr const char *process_nozzle_diameter_mode_single() { return "single"; }
+inline constexpr const char *process_nozzle_diameter_mode_multi() { return "multi"; }
+
+// The process_nozzle_diameter_mode value of a process config, empty when missing.
+std::string process_nozzle_diameter_mode_tag(const ConfigBase &config);
+
 // Values of the printer option printer_nozzle_diameter_mode: the multi-diameter mode a user/project printer
 // preset was saved in. System presets and presets saved before the option existed carry an empty value.
 inline constexpr const char *printer_nozzle_diameter_mode_single() { return "single"; }
@@ -2243,33 +2298,56 @@ inline constexpr const char *printer_nozzle_diameter_mode_multi() { return "mult
 // The printer_nozzle_diameter_mode value of a printer config, empty when missing.
 std::string printer_nozzle_diameter_mode_tag(const ConfigBase &config);
 
-// MVP multi-diameter tuning. These values intentionally live in code instead of presets: all nozzle
-// diameters share one machine/process preset while slicing resolves the effective value per filament.
-// Unknown diameters keep the preset value so non-standard/custom nozzles are not silently mistuned.
-double multi_nozzle_retraction_length(double nozzle_diameter, double preset_value);
-double multi_nozzle_ironing_inset(double nozzle_diameter, double preset_value);
-int    multi_nozzle_wall_loops(double nozzle_diameter, int preset_value);
-int    multi_nozzle_top_shell_layers(double nozzle_diameter, int preset_value);
-double multi_nozzle_top_shell_thickness(double nozzle_diameter, double preset_value);
-int    multi_nozzle_bottom_shell_layers(double nozzle_diameter, int preset_value);
-double multi_nozzle_bottom_shell_thickness(double nozzle_diameter, double preset_value);
-int    multi_nozzle_top_color_penetration_layers(double nozzle_diameter, int preset_value);
-int    multi_nozzle_bottom_color_penetration_layers(double nozzle_diameter, int preset_value);
-double multi_nozzle_support_z_distance(double nozzle_diameter, double preset_value);
+// Whether the printer model has a rule set in resources/info/multi_nozzle_rules.json. The table is the list
+// of models that offer multi-diameter mode: a model without one never enters it.
+bool supports_multi_nozzle_diameter_mode(const ConfigBase &config);
+
+// Multi-diameter tuning. All nozzle diameters share one machine/process preset, so these values do not come
+// from the presets: they come from the printer model's rule set in resources/info/multi_nozzle_rules.json, and
+// slicing resolves the effective value per filament. A diameter the rule set has no entry for keeps the preset
+// value, so non-standard/custom nozzles are not silently mistuned. Each lookup throws when the model has no
+// rule set: only a model that offers multi-diameter mode reaches these.
+double multi_nozzle_retraction_length(const ConfigBase &config, double nozzle_diameter, ExtruderType extruder_type, double preset_value);
+double multi_nozzle_ironing_inset(const ConfigBase &config, double nozzle_diameter, double preset_value);
+int    multi_nozzle_wall_loops(const ConfigBase &config, double nozzle_diameter, int preset_value);
+int    multi_nozzle_top_shell_layers(const ConfigBase &config, double nozzle_diameter, int preset_value);
+double multi_nozzle_top_shell_thickness(const ConfigBase &config, double nozzle_diameter, double preset_value);
+int    multi_nozzle_bottom_shell_layers(const ConfigBase &config, double nozzle_diameter, int preset_value);
+double multi_nozzle_bottom_shell_thickness(const ConfigBase &config, double nozzle_diameter, double preset_value);
+int    multi_nozzle_top_color_penetration_layers(const ConfigBase &config, double nozzle_diameter, int preset_value);
+int    multi_nozzle_bottom_color_penetration_layers(const ConfigBase &config, double nozzle_diameter, int preset_value);
+double multi_nozzle_support_top_z_distance(const ConfigBase &config, double nozzle_diameter, double preset_value);
+double multi_nozzle_support_bottom_z_distance(const ConfigBase &config, double nozzle_diameter, double preset_value);
+
+// Project-level override of the multi-diameter support z gaps, -1 is auto. Never written into the process preset.
+inline constexpr const char *project_support_top_z_distance_key    = "project_support_top_z_distance";
+inline constexpr const char *project_support_bottom_z_distance_key = "project_support_bottom_z_distance";
+// Project key paired with support_top_z_distance / support_bottom_z_distance, nullptr for any other key.
+const char *project_support_z_distance_key(const std::string &opt_key);
+// User gap for the paired preset key: >= 0 when set, -1 for auto or when the key is missing.
+double project_support_z_distance(const ConfigOptionResolver &config, const std::string &opt_key);
 
 // Options shown as "Auto" while multi_nozzle_diameter_mode is on: their preset value is not editable there
 // and slicing resolves them per nozzle diameter. Accepts both "key" and "key#idx".
 bool is_multi_nozzle_auto_option(const std::string &opt_key);
 
-// Multi-diameter prime tower defaults. These live in code, like the other multi_nozzle_* tables:
-// the process preset is not editable per nozzle, and slicing applies the value for the filament's
-// nozzle. Unknown diameters keep preset_value.
-// 0.2 mm nozzle: line width 0.4, feedrate factor 1, ramming line width 0.
-// 0.4 / 0.6 / 0.8 mm nozzles: line width 0.8, feedrate factor 1, ramming line width 0.
-// Ramming line width 0 keeps the built-in diameter table.
-double multi_nozzle_prime_tower_line_width(double nozzle_diameter, double preset_value);
-double multi_nozzle_prime_tower_ramming_line_width(double nozzle_diameter, double preset_value);
-double multi_nozzle_prime_tower_feedrate_factor(double nozzle_diameter, double preset_value);
+// Multi-diameter prime tower values, from the same rule set as the other multi_nozzle_* lookups: the
+// process preset is not editable per nozzle, and slicing applies the value for the filament's nozzle.
+// Unknown diameters keep preset_value. A line width of 0 keeps the width derived from the diameter, and a
+// ramming line width of 0 keeps the built-in diameter table.
+double multi_nozzle_prime_tower_line_width(const ConfigBase &config, double nozzle_diameter, double preset_value);
+double multi_nozzle_prime_tower_ramming_line_width(const ConfigBase &config, double nozzle_diameter, double preset_value);
+double multi_nozzle_prime_tower_feedrate_factor(const ConfigBase &config, double nozzle_diameter, double preset_value);
+
+// Single-extruder multi-nozzle machines (handle_hotend_as_extruder) author wide first-layer line widths on their
+// process presets, and multi-diameter mode scales an authored width by the nozzle ratio, which carries those widths
+// far too wide on the large nozzles. While multi-diameter mode is on for such a machine, the system process presets
+// hold multi_nozzle_initial_layer_line_width for these keys, a width authored for the 0.4 nozzle the process preset
+// sits on.
+inline constexpr double multi_nozzle_initial_layer_line_width = 0.42;
+inline constexpr std::array<const char *, 2> multi_nozzle_initial_layer_line_width_keys {
+    "initial_layer_line_width", "initial_layer_infill_line_width" };
+bool uses_multi_nozzle_initial_layer_line_width(const ConfigBase &printer_config, bool multi_nozzle_diameter_mode);
 
 // Whether the printer offers more than one nozzle diameter to pick from. This is the machine capability,
 // not what a print uses: with a single diameter available nothing downstream may behave as multi-diameter.
@@ -2289,7 +2367,15 @@ bool complete_filament_nozzle_diameter_selections(
 // Resolve the nozzle diameter used for slicing a 1-based filament id. An explicit per-filament
 // selection takes precedence; otherwise preserve the historical direct nozzle_diameter lookup.
 // filament_map only controls routing and must not affect slicing geometry.
+// filament_id 0 means "unknown" and falls back to the first extruder's nozzle.
+float nozzle_diameter_for_filament(const ConfigBase &config, unsigned int filament_id);
 float nozzle_diameter_for_filament(const PrintConfig &config, unsigned int filament_id);
+
+// Layer height the pre-slice wipe-tower footprint estimate must divide volume by.
+// In multi-diameter mode the object grid may be finer than the authored layer_height; when any of
+// the given 1-based filaments cannot merge those steps back up, the estimate uses the fine grid
+// height so PartPlate's preview box and Print::wipe_tower_data() stay in agreement.
+double wipe_tower_estimate_layer_height(const ConfigBase &config, const std::vector<int> &filaments);
 
 // Diameter the user selected to switch the machine/process preset (printer_variant).
 // Layer-height validation must use this value, not the smallest installed mixed-diameter slot.

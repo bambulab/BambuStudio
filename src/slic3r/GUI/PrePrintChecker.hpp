@@ -159,6 +159,7 @@ enum PrintDialogStatus : unsigned int {
     PrintStatusRackNozzleMappingWarning,
     PrintStatusFilaSwitcherSlicingNotMatch,
     PrintStatusNozzleHRCMismatch,
+    PrintStatusBigFlushWarning,
     PrintStatusPrinterWarningEnd,
 
     // Warnings for filament
@@ -213,7 +214,7 @@ public:
 public:
     void clear();
     /*auto merge*/
-    void add(PrintDialogStatus state, wxString msg, wxString tip, const wxString& wiki_url, prePrintInfoStyle style);
+    void add(PrintDialogStatus state, wxString msg, wxString tip, const wxString& wiki_url, prePrintInfoStyle style, const wxString& link_label = wxEmptyString);
     void add_with_link(PrintDialogStatus state, wxString msg, wxString link_label, std::function<void()> callback, prePrintInfoStyle style);
     static ::std::string get_print_status_info(PrintDialogStatus status);
 

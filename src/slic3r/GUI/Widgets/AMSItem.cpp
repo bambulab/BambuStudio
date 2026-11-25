@@ -2845,6 +2845,7 @@ Description:AMSPreview
 // Rows top to bottom, values are 0-based slot ids.
 static const std::map<DevAmsType, std::vector<std::vector<int>>> AMS_PREVIEW_SLOT_GRID = {
     { DevAmsType::ZMULTI_A, { { 1, 3, 5, 7 }, { 0, 2, 4, 6, 8 } } },
+    { DevAmsType::ZMULTI_B, { { 1, 3, 5 }, { 0, 2, 4, 6 } } },
 };
 
 AMSPreview::AMSPreview(wxWindow* parent, wxWindowID id, AMSinfo amsinfo, const wxPoint& pos, const wxSize& size)
@@ -2852,7 +2853,7 @@ AMSPreview::AMSPreview(wxWindow* parent, wxWindowID id, AMSinfo amsinfo, const w
     wxWindow::Create(parent, id, pos);
 
     const auto& itemType = amsinfo.ams_type;
-    if (itemType == DevAmsType::AMS || itemType == DevAmsType::AMS_LITE || itemType == DevAmsType::N3F || itemType == DevAmsType::ZMULTI_A) {
+    if (itemType == DevAmsType::AMS || itemType == DevAmsType::AMS_LITE || itemType == DevAmsType::N3F || devAmsTypeUtil::IsRackAms(itemType)) {
         create(parent, id, pos, AMS_PREV_FOUR_SIZE);
     }
     else {
@@ -2888,7 +2889,7 @@ void AMSPreview::Update(AMSinfo amsinfo)
     m_amsinfo = amsinfo;
     m_ams_item_type = amsinfo.ams_type;
 
-    if (m_ams_item_type == DevAmsType::AMS || m_ams_item_type == DevAmsType::AMS_LITE || m_ams_item_type == DevAmsType::N3F || m_ams_item_type == DevAmsType::ZMULTI_A) {
+    if (m_ams_item_type == DevAmsType::AMS || m_ams_item_type == DevAmsType::AMS_LITE || m_ams_item_type == DevAmsType::N3F || devAmsTypeUtil::IsRackAms(m_ams_item_type)) {
         SetMinSize(AMS_PREV_FOUR_SIZE);
         SetMaxSize(AMS_PREV_FOUR_SIZE);
     } else {
@@ -2940,14 +2941,60 @@ void AMSPreview::UnSelected()
 
 bool AMSPreview::Enable(bool enable) { return wxWindow::Enable(enable); }
 
+void AMSPreview::set_backdrop(bool backdrop)
+{
+    if (m_backdrop == backdrop) return;
+    m_backdrop = backdrop;
+    load_bitmaps();
+    Refresh();
+}
+
+void AMSPreview::set_dimmed(bool dimmed)
+{
+    if (m_dimmed == dimmed) return;
+    m_dimmed = dimmed;
+    Refresh();
+}
+
 void AMSPreview::paintEvent(wxPaintEvent &evt)
 {
     wxPaintDC dc(this);
     render(dc);
 }
 
+// wxWidgets has no opacity for a child window, so the preview draws on its background colour and then
+// mixes each pixel halfway back to that colour.
+void AMSPreview::render_dimmed(wxDC &dc)
+{
+    const wxSize size = GetSize();
+    if (size.x <= 0 || size.y <= 0) return;
+
+    const wxColour bg = GetBackgroundColour();
+    wxBitmap       bmp(size.x, size.y);
+    {
+        wxMemoryDC memdc(bmp);
+        memdc.SetBackground(wxBrush(bg));
+        memdc.Clear();
+        wxGCDC gcdc(memdc);
+        doRender(gcdc);
+    }
+
+    wxImage        image = bmp.ConvertToImage();
+    unsigned char *px    = image.GetData();
+    for (int i = 0; i < size.x * size.y; ++i, px += 3) {
+        px[0] = static_cast<unsigned char>((px[0] + bg.Red()) / 2);
+        px[1] = static_cast<unsigned char>((px[1] + bg.Green()) / 2);
+        px[2] = static_cast<unsigned char>((px[2] + bg.Blue()) / 2);
+    }
+    dc.DrawBitmap(wxBitmap(image), 0, 0);
+}
+
 void AMSPreview::render(wxDC &dc)
 {
+    if (m_dimmed) {
+        render_dimmed(dc);
+        return;
+    }
 #ifdef __WXMSW__
     wxSize     size = GetSize();
     wxMemoryDC memdc;
@@ -2973,11 +3020,13 @@ void AMSPreview::load_bitmaps()
     m_ts_bitmap_cube = ScalableBitmap(this, "ts_bitmap_cube", 12);
     m_ts_bitmap_cube_dark = ScalableBitmap(this, "ts_bitmap_cube_dark", 12);
 
-    m_four_slot_bitmap = ScalableBitmap(this, "four_slot_ams_item", 32);
-    m_four_slot_bitmap_dark = ScalableBitmap(this, "four_slot_ams_item_dark", 32);
+    // Without the backdrop, the frames lose their filled surround too, so only the unit itself shows.
+    const std::string frame = m_backdrop ? "_ams_item" : "_ams_item_bare";
+    m_four_slot_bitmap = ScalableBitmap(this, "four_slot" + frame, 32);
+    m_four_slot_bitmap_dark = ScalableBitmap(this, "four_slot" + frame + "_dark", 32);
 
-    m_single_slot_bitmap = ScalableBitmap(this, "single_slot_ams_item", 32);
-    m_single_slot_bitmap_dark = ScalableBitmap(this, "single_slot_ams_item_dark", 32);
+    m_single_slot_bitmap = ScalableBitmap(this, "single_slot" + frame, 32);
+    m_single_slot_bitmap_dark = ScalableBitmap(this, "single_slot" + frame + "_dark", 32);
 
     m_bitmaps_dark = wxGetApp().dark_mode();
 }
@@ -2992,21 +3041,27 @@ void AMSPreview::doRender(wxDC &dc)
     BOOST_LOG_TRIVIAL(info) << "AMS Info: " << KV(log_key::ams_id, m_amsinfo.ams_id) << "ams_type = " << static_cast<int>(m_amsinfo.ams_type)
                             << ", cans_count = " << m_amsinfo.cans.size();
 
-    // draw background
-    if (wxGetApp().dark_mode())
-    {
-        dc.SetBrush(StateColor::darkModeColorFor(*wxWHITE));
-    }
-    else
-    {
-        dc.SetBrush(AMS_CONTROL_DEF_BLOCK_BK_COLOUR);
-    }
-    dc.DrawRoundedRectangle(0, 0, size.x, size.y, 0);
+    if (m_backdrop) {
+        // draw background
+        if (wxGetApp().dark_mode())
+        {
+            dc.SetBrush(StateColor::darkModeColorFor(*wxWHITE));
+        }
+        else
+        {
+            dc.SetBrush(AMS_CONTROL_DEF_BLOCK_BK_COLOUR);
+        }
+        dc.DrawRoundedRectangle(0, 0, size.x, size.y, 0);
 
-    // draw container
-    auto color = *wxWHITE;
-    dc.SetBrush(StateColor::darkModeColorFor(color));
-    dc.DrawRoundedRectangle(0, 0, size.x, size.y, FromDIP(3));
+        // draw container
+        auto color = *wxWHITE;
+        dc.SetBrush(StateColor::darkModeColorFor(color));
+        dc.DrawRoundedRectangle(0, 0, size.x, size.y, FromDIP(3));
+    } else {
+        // The owner's surface, so the unit's own frame is the only shape that shows.
+        dc.SetBrush(GetBackgroundColour());
+        dc.DrawRectangle(0, 0, size.x, size.y);
+    }
 
     auto left = 0;
     if (AMS_PREVIEW_SLOT_GRID.find(m_ams_item_type) != AMS_PREVIEW_SLOT_GRID.end()) {
@@ -3215,10 +3270,13 @@ void AMSPreview::renderMultiRowGrid(wxDC &dc, const wxSize &size)
     const int          row_count = static_cast<int>(rows.size());
     const int          row_h     = (size.y - 2 * pad - (row_count - 1) * gap) / row_count;
 
+    size_t max_cols = 1;
+    for (const auto &row : rows) max_cols = std::max(max_cols, row.size());
+    const int col_w = (size.x - 2 * pad - (static_cast<int>(max_cols) - 1) * gap) / static_cast<int>(max_cols);
+
     int y = pad;
     for (const auto &row : rows) {
         const int col_count = static_cast<int>(row.size());
-        const int col_w     = (size.x - 2 * pad - (col_count - 1) * gap) / col_count;
         const int row_w = col_count * col_w + (col_count - 1) * gap;
         int x = pad + (size.x - 2 * pad - row_w) / 2;
 

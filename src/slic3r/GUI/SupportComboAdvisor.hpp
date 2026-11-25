@@ -4,8 +4,8 @@
 // Support-material combination advisor.
 //
 // A "support-material combination" is an interface filament that pairs with the model material in
-// a way we have recommended parameters for (soluble interface, PLA-on-TPU, a match in
-// support_recommended_params.json, ...). Two directions are built on that predicate:
+// a way support_recommended_params.json has recommended parameters for (printer entries first,
+// then the default entries). Two directions are built on that predicate:
 //
 //   forward  -- the user picks such an interface filament: offer the recommended parameters.
 //   backward -- the combination stops holding: offer to put those parameters back to default.
@@ -14,6 +14,7 @@
 // need a config plus the global preset bundle / plater. The parts that actually write the
 // parameters back stay on Tab, where the per-scope state (presets, object overrides) lives.
 
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -34,12 +35,9 @@ class ConfigManipulation;
 struct SupportComboRecommendation
 {
     DynamicPrintConfig conf;                          // the recommended parameter values
-    std::string        interface_filament_type;       // raw filament_type of the interface filament
     std::string        support_material_display_name; // its alias, or the type when it has none
-    std::string        model_material_display_name;   // only set when the JSON lookup matched
-    bool               from_json                       = false;
-    bool               soluble_suggestion              = false; // paragraph dialog instead of a list
-    bool               soluble_bottom_z                = false;
+    std::string        model_material_display_name;   // empty when the entry matches any model material
+    bool               use_as_support_base             = false; // fit for the support base as well
     bool               thick_bridges_in_recommendation = false;
 };
 
@@ -76,14 +74,17 @@ void capture_object_support_combo_snapshot();
 // snapshot, so a delete that raises no dialog cannot leak state into the next one.
 std::vector<ModelObject *> take_objects_losing_support_combo(DynamicPrintConfig &keys_out);
 
-// Looks up (JSON, then hardcoded fallback) whether interface_filament_id constitutes a
-// support-material combination with the model on one plate, and if so assembles the full
-// set of support-specific parameter recommendations (including the support_filament /
-// tree_support_wall_count / thick_bridges follow-on tweaks). config supplies the scope's current
-// values (support_filament, thick_bridges). plate_idx selects the plate to scan; -1 = the current
-// one. Returns false and leaves out.conf empty if no recommendation applies.
+// Looks up in the JSON table whether interface_filament_id constitutes a support-material combination with
+// every model material in scope, and if so assembles the full set of support-specific parameter
+// recommendations (including the support_filament / thick_bridges follow-on tweaks). config supplies the
+// scope's current values (thick_bridges, support_top_z_distance). The scope is objects when given, otherwise
+// every object on one plate: plate_idx selects it, -1 = the current one. Returns false if no recommendation applies.
+// require_interface: no support interface layers means no recommendation; a support base check passes false,
+// since whether a filament suits the support base does not depend on the interface.
 bool compute_support_interface_recommendation(const DynamicPrintConfig &config, int interface_filament_id,
-                                              SupportComboRecommendation &out, int plate_idx = -1);
+                                              SupportComboRecommendation &out, int plate_idx = -1,
+                                              const std::vector<ModelObject *> &objects = {},
+                                              bool require_interface = true);
 
 // Index of the plate compute_support_interface_recommendation() scans when passed -1.
 int current_support_combo_plate_index();
@@ -92,9 +93,9 @@ int current_support_combo_plate_index();
 // the support filament combo box does. Empty when the key has no config definition.
 wxString generate_support_param_description(const std::string &key, const ConfigOption *opt);
 
-// The same suggestion text is used for the support base and the support interface, so that both
-// dialogs read alike.
-wxString soluble_support_suggestion_text(bool with_bottom_z_distance, bool with_normal_auto_support);
+// Header plus one line per key of conf, closed by the apply question. Shared by the support base
+// and support interface suggestions, so that both dialogs read alike.
+wxString support_recommendation_dialog_text(const SupportComboRecommendation &rec, const DynamicPrintConfig &conf);
 
 // Object name for dialog text, truncated so a long one cannot blow out the dialog width.
 wxString shorten_object_name(const std::string &name);
@@ -119,12 +120,10 @@ wxString build_support_revert_dialog_text(SupportRevertLead lead, const DynamicP
                                           const std::vector<ModelObject *> &listed_objects,
                                           bool offer_choice = false, bool also_global = false);
 
-// When applying a zero-gap support recommendation, also turn off thick bridges to avoid a
-// follow-up Suggestion dialog (paragraph-style dialogs cannot list this key).
-void append_disable_thick_bridges_if_needed(DynamicPrintConfig &conf, const DynamicPrintConfig &current);
-
 // Show Suggestion dialog recommending thick_bridges = Off. Returns true if the dialog was shown.
-bool suggest_disable_thick_bridges_if_needed(DynamicPrintConfig *config, ConfigManipulation &config_manipulation);
+// top_z_distance replaces the config's support_top_z_distance when the gap in force lives elsewhere.
+bool suggest_disable_thick_bridges_if_needed(DynamicPrintConfig *config, ConfigManipulation &config_manipulation,
+                                             std::optional<double> top_z_distance = std::nullopt);
 
 } // namespace GUI
 } // namespace Slic3r

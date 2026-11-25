@@ -1243,8 +1243,8 @@ struct MultiNozzleSupportCombo
 };
 
 // BBS multi-diameter: the support z distances are resolved per nozzle here, which would override the zero gap a
-// support material combination needs. Only an object whose materials all match the selected interface may use
-// an object-wide zero top or bottom gap.
+// support material combination needs. The object takes the zero gaps of the recommendation for all its materials,
+// the same one the support interface suggestion offers.
 static MultiNozzleSupportCombo multi_nozzle_support_combo(const DynamicPrintConfig &full_config, const PrintObjectConfig &object_config,
                                                           const ModelObject &model_object)
 {
@@ -1280,16 +1280,10 @@ static MultiNozzleSupportCombo multi_nozzle_support_combo(const DynamicPrintConf
     const auto       *printer_model_opt = full_config.option<ConfigOptionString>("printer_model");
     const std::string printer_model     = printer_model_opt != nullptr ? printer_model_opt->value : std::string();
 
-    combo.zero_top = true;
-    combo.zero_bottom = true;
-    for (const SupportMaterialProperties &material : model_materials) {
-        const SupportMaterialCombination material_result =
-            evaluate_support_material_combination(interface_material, material, printer_model);
-        combo.zero_top &= material_result.zero_top;
-        combo.zero_bottom &= material_result.zero_bottom;
-        if (! combo.zero_top && ! combo.zero_bottom)
-            break;
-    }
+    const SupportMaterialCombination result =
+        evaluate_support_material_combination(interface_material, model_materials, printer_model);
+    combo.zero_top    = result.zero_top;
+    combo.zero_bottom = result.zero_bottom;
     return combo;
 }
 
@@ -1385,7 +1379,7 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
         };
 
         // check custon_gcode
-        has_scarf_joint_seam = check_gcode_scarf_seam_type(scarf_seam_type, model) ||
+        has_scarf_joint_seam = (CustomGCode::tool_changes_active(new_full_config) && check_gcode_scarf_seam_type(scarf_seam_type, model)) ||
             std::any_of(model.objects.begin(), model.objects.end(), [scarf_seam_type, &check_object_scarf_seam_type](const ModelObject *obj) {
             return check_object_scarf_seam_type(scarf_seam_type, obj);
         });
@@ -1522,10 +1516,10 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
                 old_opt->set(new_opt);
                 m_config.filament_map = *new_opt;
             }
-            // With multi-diameter mode on a single-extruder multi-nozzle machine the flow is the user's
-            // per-filament selection rather than a grouping result, so a change must regroup.
+            // With multi-diameter mode on the flow is the user's per-filament selection rather than a
+            // grouping result, so a change must regroup.
             if (print_diff_set.find("filament_volume_map") != print_diff_set.end() &&
-                !(is_single_ext_multi_nozzle(new_full_config) && multi_nozzle_diameter_mode_enabled(new_full_config))) {
+                !multi_nozzle_diameter_mode_enabled(new_full_config)) {
                 print_diff_set.erase("filament_volume_map");
                 //full_config_diff.erase("filament_volume_map");
                 ConfigOptionInts* old_opt = m_full_print_config.option<ConfigOptionInts>("filament_volume_map", true);
@@ -1694,10 +1688,17 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
             default_support_nozzle :
             nozzle_diameter_for_filament(m_config, support_filament);
         const MultiNozzleSupportCombo combo = multi_nozzle_support_combo(m_full_print_config, config, model_object);
-        config.support_top_z_distance.value = combo.zero_top ? 0. : multi_nozzle_support_z_distance(
-            nozzle_diameter, config.support_top_z_distance.value);
-        config.support_bottom_z_distance.value = combo.zero_bottom ? 0. : multi_nozzle_support_z_distance(
-            nozzle_diameter, config.support_bottom_z_distance.value);
+        // Like the other multi-diameter options, an object override does not apply: the project value is the
+        // user's gap, and only auto follows the combination and nozzle.
+        auto tune_gap = [&](ConfigOptionFloat &gap, const char *opt_key, bool zero,
+                            double (*auto_gap)(const ConfigBase &, double, double)) {
+            if (const double user_gap = project_support_z_distance(m_full_print_config, opt_key); user_gap >= 0.)
+                gap.value = user_gap;
+            else
+                gap.value = zero ? 0. : auto_gap(m_full_print_config, nozzle_diameter, gap.value);
+        };
+        tune_gap(config.support_top_z_distance, "support_top_z_distance", combo.zero_top, multi_nozzle_support_top_z_distance);
+        tune_gap(config.support_bottom_z_distance, "support_bottom_z_distance", combo.zero_bottom, multi_nozzle_support_bottom_z_distance);
     };
     // The support combination also depends on the filament properties, the volume filaments and the printer model,
     // so the tuning is redone on every apply in multi-diameter mode. An unchanged result diffs empty and
@@ -1723,14 +1724,18 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
         m_objects.clear();
         print_regions_reshuffled = true;
         m_model.assign_copy(model);
+        // The Print's model keeps the custom G-codes as they take effect, so that everything reading
+        // print.model() skips the ToolChange items that do not.
+        for (auto &plate_custom_gcodes : m_model.plates_custom_gcodes)
+            plate_custom_gcodes.second = CustomGCode::effective_custom_gcodes(plate_custom_gcodes.second, new_full_config);
 		for (const ModelObject *model_object : m_model.objects)
 			model_object_status_db.add(*model_object, ModelObjectStatus::New);
     } else {
         //BBS: replace model custom gcode with current plate custom gcode
         m_model.curr_plate_index = model.curr_plate_index;
-        if (m_model.get_curr_plate_custom_gcodes() != model.get_curr_plate_custom_gcodes()) {
+        const CustomGCode::Info new_custom_gcodes = CustomGCode::effective_custom_gcodes(model.get_curr_plate_custom_gcodes(), new_full_config);
+        if (m_model.get_curr_plate_custom_gcodes() != new_custom_gcodes) {
             const CustomGCode::Info &old_custom_gcodes = m_model.get_curr_plate_custom_gcodes();
-            const CustomGCode::Info &new_custom_gcodes = model.get_curr_plate_custom_gcodes();
             const bool tool_changes_differ = num_extruders > 1 &&
                 custom_per_printz_gcodes_tool_changes_differ(old_custom_gcodes.gcodes, new_custom_gcodes.gcodes);
             update_apply_status(num_extruders_changed ||
@@ -1742,7 +1747,7 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
                 this->invalidate_steps({ psWipeTower, psGCodeExport }) :
                 // There is no change in Tool Changes stored in custom_gcode_per_print_z, therefore there is no need to update Tool Ordering.
                 this->invalidate_step(psGCodeExport));
-            m_model.plates_custom_gcodes[m_model.curr_plate_index] = model.get_curr_plate_custom_gcodes();
+            m_model.plates_custom_gcodes[m_model.curr_plate_index] = new_custom_gcodes;
         }
         if (model_object_list_equal(m_model, model)) {
             // The object list did not change.
@@ -2319,6 +2324,17 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
                 update_apply_status(object->invalidate_state_by_config_options(object->config(), tuned_config, diff));
                 object->config_apply_only(tuned_config, diff, true);
             }
+        }
+    }
+    // Whether the support generators keep the top gap instead of following the overhang nozzle. Switching between
+    // a user gap and auto can keep the same value (0.2 both ways) yet change how the tree support splits the gap
+    // per overhang nozzle, so a flip regenerates the support on its own.
+    const bool support_top_z_fixed = multi_diameter_mode &&
+        project_support_z_distance(m_full_print_config, "support_top_z_distance") >= 0.;
+    for (PrintObject *object : m_objects) {
+        if (support_top_z_fixed != object->m_support_top_z_fixed) {
+            update_apply_status(object->invalidate_step(posSupportMaterial));
+            object->m_support_top_z_fixed = support_top_z_fixed;
         }
     }
 

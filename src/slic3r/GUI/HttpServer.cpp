@@ -1,4 +1,5 @@
 #include "HttpServer.hpp"
+#include "TicketLoginGuard.hpp"
 #include "GUI_App.hpp"
 #include "slic3r/Utils/Http.hpp"
 #include "slic3r/Utils/NetworkAgent.hpp"
@@ -358,14 +359,19 @@ void session::handle_login()
     auto login_params = parse_login_params(req_);
 
     if (login_params) {
-        auto login_info = TicketLoginTask::perform_sync(login_params->ticket);
-        if (login_info.empty()) {
+        auto result = TicketLoginTask::perform_sync(login_params->ticket);
+        if (result.status == TicketLoginTask::Status::Duplicate) {
+            // A repeated browser callback must not apply the user or publish
+            // another login event. Preserve an already successful login.
+            do_write_302(*login_params, wxGetApp().is_user_login());
+        }
+        else if (result.status == TicketLoginTask::Status::Failed) {
             BOOST_LOG_TRIVIAL(info) << "third_party_login: login info empty, login failed";
             do_write_302(*login_params, false);
         }
         else {
             NetworkAgent *agent = wxGetApp().getAgent();
-            agent->change_user(login_info);
+            agent->change_user(result.login_info);
             if (agent->is_user_login()) {
                 wxGetApp().request_user_login(1);
                 BOOST_LOG_TRIVIAL(info) << "third_party_login: all good, login successful";
@@ -491,20 +497,29 @@ void session::handle_request()
     }
 }
 
-std::string TicketLoginTask::perform_sync(const std::string &ticket)
+TicketLoginTask::Result TicketLoginTask::perform_sync(const std::string &ticket)
 {
+    if (ticket.empty())
+        return {};
+
+    static TicketLoginGuard guard;
+    if (!guard.try_begin(ticket)) {
+        BOOST_LOG_TRIVIAL(info) << "ticket_login: duplicate ticket ignored";
+        return {Status::Duplicate, {}};
+    }
+
     auto login_info = do_request_login_info(ticket);
+    guard.finish(ticket);
     if (login_info)
-        return (*login_info);
+        return {Status::Success, std::move(*login_info)};
     else
         return {};
 }
 
-void TicketLoginTask::perform_async(const std::string &ticket, std::function<void(std::string)> cb)
+void TicketLoginTask::perform_async(const std::string &ticket, std::function<void(Result)> cb)
 {
     boost::thread([cb = std::move(cb), ticket]() {
-        auto login_info = do_request_login_info(ticket);
-        auto result     = login_info ? *login_info : std::string();
+        auto result = perform_sync(ticket);
         if (wxTheApp) {
             wxTheApp->CallAfter([cb, result = std::move(result)]() mutable { cb(std::move(result)); });
         } else {
@@ -518,7 +533,7 @@ std::optional<std::string> TicketLoginTask::do_request_login_info(const std::str
     try
     {
         NetworkAgent *agent = wxGetApp().getAgent();
-        unsigned int  http_code;
+        unsigned int  http_code = 0;
         std::string   http_body;
         if (agent->get_my_token(ticket, &http_code, &http_body) < 0) {
             BOOST_LOG_TRIVIAL(info) << "third_party_login: get_my_token failed " << KV(log_key::http_code, http_code);

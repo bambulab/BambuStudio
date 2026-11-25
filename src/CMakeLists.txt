@@ -137,9 +137,9 @@ if (APPLE)
     endforeach()
 endif()
 if (WIN32)
-    add_library(BambuStudio SHARED BambuStudio.cpp BambuStudio.hpp)
+    add_library(BambuStudio SHARED BambuStudio.cpp BambuStudio.hpp CLIUtils.cpp CLIUtils.hpp)
 else ()
-    add_executable(BambuStudio BambuStudio.cpp BambuStudio.hpp)
+    add_executable(BambuStudio BambuStudio.cpp BambuStudio.hpp CLIUtils.cpp CLIUtils.hpp)
 endif ()
 
 # Apple clang 21 segfaults in the loop vectorizer (VPlanTransforms::narrowInterleaveGroups); see libslic3r/CMakeLists.txt.

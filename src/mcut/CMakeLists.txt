@@ -297,6 +297,12 @@ endif()
 
 # TODO: package documentation files
 
+# BBL: MCUT is linked statically into BambuStudio via add_subdirectory().
+# Only install/package MCUT artifacts (lib, headers, LICENSE.txt, README.md)
+# when it is built as a standalone project, otherwise they end up in the
+# BambuStudio install prefix and get shipped in the installer.
+if(MCUT_TOPLEVEL_PROJECT)
+
 if(MCUT_BUILD_AS_SHARED_LIB)
 	#
 	# dynamic libs
@@ -413,5 +419,7 @@ set (CPACK_STRIP_FILES TRUE)
 
 
 include(CPack)
+
+endif() # MCUT_TOPLEVEL_PROJECT
 
 # eof

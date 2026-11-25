@@ -1,11 +1,13 @@
 #include "Exception.hpp"
 #include "MeshBoolean.hpp"
+#include "MeshDiagnostics.hpp"
 #include "libslic3r/TriangleMesh.hpp"
 #include "libslic3r/TryCatchSignal.hpp"
 
 #include <OpenMeshCraft/OpenMeshCraftBoolean.h>
 
 #include <array>
+#include <chrono>
 #include "libslic3r/Log.hpp"
 
 namespace Slic3r {
@@ -108,24 +110,59 @@ void append_oriented_result(TriangleMesh &&mesh, std::vector<TriangleMesh> &dst_
 
 } // namespace
 
-void make_boolean(const TriangleMesh &src_mesh, const TriangleMesh &cut_mesh, std::vector<TriangleMesh> &dst_mesh, const std::string &boolean_opts, const BooleanCancelCB& cancel_cb, const BooleanProgressCB& progress_cb, const BooleanFailedCB& failed_cb)
+namespace {
+
+// Shared by both entry points: operands[0] is the first operand, see MeshBoolean.hpp.
+void run_boolean(const std::vector<BooleanOperand> &operands, std::vector<TriangleMesh> &dst_mesh,
+                 const std::string &boolean_opts, const BooleanCancelCB &cancel_cb,
+                 const BooleanProgressCB &progress_cb, const BooleanFailedCB &failed_cb)
 {
     try {
-        BOOST_LOG_TRIVIAL(info) << "Mesh boolean backend: OpenMeshCraft, op='" << boolean_opts << "'";
+        size_t mesh_count = 0;
+        for (const BooleanOperand &operand : operands)
+            mesh_count += operand.size();
+        BOOST_LOG_TRIVIAL(info) << "Mesh boolean backend: OpenMeshCraft, op='" << boolean_opts << "' "
+                                << KV(log_key::operand_count, operands.size()) << KV(log_key::mesh_count, mesh_count);
+        const auto start = std::chrono::steady_clock::now();
         if (progress_cb)
             progress_cb(5.0f);
         if (cancel_cb && cancel_cb())
             return;
 
-        if (boolean_opts != "UNION" && boolean_opts != "INTERSECTION" &&
-            boolean_opts != "A_NOT_B" && boolean_opts != "B_NOT_A")
+        if (boolean_opts != "UNION" && boolean_opts != "INTERSECTION" && boolean_opts != "A_NOT_B")
             throw Slic3r::RuntimeError("Unsupported OpenMeshCraft boolean operation: " + boolean_opts);
+        if (operands.empty())
+            throw Slic3r::RuntimeError("OpenMeshCraft boolean without operands");
 
-        OMCInput  src_input = triangle_mesh_to_openmeshcraft(src_mesh);
-        OMCInput  cut_input = triangle_mesh_to_openmeshcraft(cut_mesh);
+        // OpenMeshCraft decides inside/outside by ray casting, which is only defined for
+        // closed, edge-manifold meshes. On anything else it returns arbitrary results or
+        // reaches OMC_EXIT, which calls std::exit(). MCUT rejected such input up front.
+        for (const BooleanOperand &operand : operands)
+            for (const TriangleMesh *mesh : operand) {
+                const MeshDiagnosticStats stats = its_edge_diagnostics(mesh->its);
+                if (stats.open_edges > 0 || stats.non_manifold_edges > 0) {
+                    BOOST_LOG_TRIVIAL(error) << KV(log_key::open_edges, stats.open_edges)
+                                             << KV(log_key::non_manifold_edges, stats.non_manifold_edges)
+                                             << "OpenMeshCraft boolean refused, input is not a closed manifold mesh, op '"
+                                             << boolean_opts << "'";
+                    if (failed_cb)
+                        failed_cb();
+                    return;
+                }
+            }
+
+        std::vector<OMCInput>                  inputs;
+        std::vector<std::vector<BambuOMCMesh>> views(operands.size());
+        std::vector<BambuOMCOperand>           omc_operands;
+        inputs.reserve(mesh_count); // views point into inputs: no reallocation
+        for (size_t i = 0; i < operands.size(); ++i) {
+            for (const TriangleMesh *mesh : operands[i]) {
+                inputs.push_back(triangle_mesh_to_openmeshcraft(*mesh));
+                views[i].push_back(inputs.back().view());
+            }
+            omc_operands.push_back({views[i].data(), views[i].size()});
+        }
         OMCOutput result;
-        const BambuOMCMesh src_view = src_input.view();
-        const BambuOMCMesh cut_view = cut_input.view();
 
         // Degenerate inputs (e.g. overlapping/coplanar cylinders) can drive
         // OpenMeshCraft into edge cases. Failure modes:
@@ -148,11 +185,9 @@ void make_boolean(const TriangleMesh &src_mesh, const TriangleMesh &cut_mesh, st
                         operation = BAMBU_OMC_INTERSECTION;
 
                     std::array<char, 1024> error_message{};
-                    const BambuOMCMesh &first = boolean_opts == "B_NOT_A" ? cut_view : src_view;
-                    const BambuOMCMesh &second = boolean_opts == "B_NOT_A" ? src_view : cut_view;
-                    boolean_ok = bambu_omc_boolean(
-                        &first,
-                        &second,
+                    boolean_ok = bambu_omc_boolean_operands(
+                        omc_operands.data(),
+                        omc_operands.size(),
                         operation,
                         receive_openmeshcraft_result,
                         &result,
@@ -197,6 +232,9 @@ void make_boolean(const TriangleMesh &src_mesh, const TriangleMesh &cut_mesh, st
         }
 
         append_oriented_result(openmeshcraft_to_triangle_mesh(result), dst_mesh);
+        BOOST_LOG_TRIVIAL(info) << "OpenMeshCraft mesh boolean finished, op='" << boolean_opts << "' "
+                                << KV(log_key::elapsed_ms, std::chrono::duration_cast<std::chrono::milliseconds>(
+                                                               std::chrono::steady_clock::now() - start).count());
         if (progress_cb)
             progress_cb(100.0f);
     } catch (const std::exception &e) {
@@ -204,6 +242,21 @@ void make_boolean(const TriangleMesh &src_mesh, const TriangleMesh &cut_mesh, st
             failed_cb();
         BOOST_LOG_TRIVIAL(error) << "OpenMeshCraft mesh boolean failed: " << e.what();
     }
+}
+
+} // namespace
+
+void make_boolean(const TriangleMesh &src_mesh, const TriangleMesh &cut_mesh, std::vector<TriangleMesh> &dst_mesh, const std::string &boolean_opts, const BooleanCancelCB& cancel_cb, const BooleanProgressCB& progress_cb, const BooleanFailedCB& failed_cb)
+{
+    if (boolean_opts == "B_NOT_A")
+        run_boolean({{&cut_mesh}, {&src_mesh}}, dst_mesh, "A_NOT_B", cancel_cb, progress_cb, failed_cb);
+    else
+        run_boolean({{&src_mesh}, {&cut_mesh}}, dst_mesh, boolean_opts, cancel_cb, progress_cb, failed_cb);
+}
+
+void make_boolean(const std::vector<BooleanOperand> &operands, std::vector<TriangleMesh> &dst_mesh, const std::string &boolean_opts, const BooleanCancelCB& cancel_cb, const BooleanProgressCB& progress_cb, const BooleanFailedCB& failed_cb)
+{
+    run_boolean(operands, dst_mesh, boolean_opts, cancel_cb, progress_cb, failed_cb);
 }
 
 } // namespace openmeshcraft

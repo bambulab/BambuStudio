@@ -9,6 +9,7 @@
  * */
 
 #include "libslic3r/PrintConfig.hpp"
+#include "libslic3r/SupportRecommendedParams.hpp"
 #include "Field.hpp"
 #include <wx/string.h>
 #include <set>
@@ -75,9 +76,15 @@ public:
     void    apply_null_fff_config(DynamicPrintConfig *config, std::vector<std::string> const &keys, std::map<ObjectBase*, ModelConfig*> const & configs);
 
     //BBS: FFF filament nozzle temperature range
-    void    check_nozzle_recommended_temperature_range(DynamicPrintConfig *config);
-    void    check_nozzle_temperature_range(DynamicPrintConfig* config);
-    void    check_nozzle_temperature_initial_layer_range(DynamicPrintConfig* config);
+    /**
+     * \brief Tell the user a typed nozzle temperature is outside the allowed range and gets reset
+     *
+     * \param entered     typed temperature
+     * \param min_allowed lower bound of the allowed range
+     * \param max_allowed upper bound of the allowed range
+     * \note Call before the value is clamped; the change caused by the clamp shows no further warning
+     */
+    void    report_nozzle_temperature_out_of_range(long entered, int min_allowed, int max_allowed);
     void    check_tower_interface_print_temp(DynamicPrintConfig* config, int variant_idx);
     void    check_filament_max_volumetric_speed(DynamicPrintConfig *config);
     void    check_filament_scarf_setting(DynamicPrintConfig *config);
@@ -90,20 +97,18 @@ public:
 
     int    show_spiral_mode_settings_dialog(bool is_object_config = false);
 
-private:
-    bool get_temperature_range(DynamicPrintConfig *config, int &range_low, int &range_high);
 };
 
-// 根据用户已选择的支撑料和模型主体料，查询是否有推荐参数
-// support_filament_index: 用户选择的支撑料索引 (0-based)
-// model_material_type: 模型主体料类型 (如 "PLA")
-// model_material_name: 模型主体料名称 (如 "Bambu PLA Basic")
-// 返回 true 表示找到推荐参数，out_config 包含推荐配置
+// 按支撑料与主体料查推荐表（每种主体料先查机型条目再查默认条目），命中时把推荐参数写入 out_config
+// support_filament_index: 支撑料索引 (0-based)
+// 多种主体料时每种都须命中；命中不同条目时取优先级最低的一条（同优先级取先出现的），
+// out_model_index 为其下标；可作支撑主体须所有主体料都允许
 bool query_support_recommended_params_for_combination(
     int support_filament_index,
-    const std::string& model_material_type,
-    const std::string& model_material_name,
-    DynamicPrintConfig& out_config);
+    const std::vector<SupportMaterialProperties> &model_materials,
+    DynamicPrintConfig& out_config,
+    SupportMaterialCombination &out_combination,
+    size_t &out_model_index);
 
 } // GUI
 } // Slic3r

@@ -229,6 +229,19 @@ void Layer::make_perimeters()
         return ! a.group_top;
     };
 
+    // Parts that limit color penetration to themselves cast no shadow on the other parts
+    // below them, but still cover their own material: use the shadow-free upper coverage
+    // so top-only walls are not drawn around their footprint on the layer underneath.
+    ExPolygons        no_shadow_upper_slices;
+    const ExPolygons *no_shadow_upper_ptr = nullptr;
+    if (this->upper_layer != nullptr && ! this->part_limited_transparent.empty() && ! m_regions.empty()) {
+        const float opening_r = m_regions.front()->flow(frExternalPerimeter).scaled_width() / 10.f;
+        no_shadow_upper_slices = opening_ex(
+            diff_ex(this->upper_layer->lslices, this->part_limited_transparent, ApplySafetyOffset::Yes),
+            opening_r);
+        no_shadow_upper_ptr = &no_shadow_upper_slices;
+    }
+
     for (LayerRegionPtrs::iterator layerm = m_regions.begin(); layerm != m_regions.end(); ++ layerm) {
         const bool has_first_band_source = std::any_of(
             (*layerm)->adaptive_merge_patches.begin(), (*layerm)->adaptive_merge_patches.end(),
@@ -284,7 +297,8 @@ void Layer::make_perimeters()
             auto generate_region_perimeters = [&](LayerRegion *lm, const SurfaceCollection &src,
                                                   SurfaceCollection *out_fill, ExPolygons *out_no_overlap) {
                 if (lm->adaptive_merge_patches.empty()) {
-                    lm->make_perimeters(src, perimeter_regions, out_fill, out_no_overlap, this->loop_nodes);
+                    lm->make_perimeters(src, perimeter_regions, out_fill, out_no_overlap, this->loop_nodes,
+                                        0., true, nullptr, no_shadow_upper_ptr);
                     return;
                 }
 
@@ -296,7 +310,7 @@ void Layer::make_perimeters()
                     // to pass through shell discovery, otherwise a solid layer inside the band disappears
                     // before combine_adaptive_infill() can promote it.
                     lm->make_perimeters(src, perimeter_regions, out_fill, out_no_overlap,
-                                        this->loop_nodes, 0., true, nullptr, nullptr, true);
+                                        this->loop_nodes, 0., true, nullptr, no_shadow_upper_ptr, true);
                     return;
                 }
 
@@ -318,6 +332,14 @@ void Layer::make_perimeters()
                         }
                     }
                     upper_slices_storage = union_ex(upper_footprint);
+                    // Same shadow-free coverage as the regular path above.
+                    if (const ExPolygons &transparent_above_top = this->object()->get_layer(int(top_idx))->part_limited_transparent;
+                        ! transparent_above_top.empty()) {
+                        const float opening_r = lm->flow(frExternalPerimeter).scaled_width() / 10.f;
+                        upper_slices_storage = opening_ex(
+                            diff_ex(upper_slices_storage, transparent_above_top, ApplySafetyOffset::Yes),
+                            opening_r);
+                    }
                     upper_slices = &upper_slices_storage;
                 }
 
@@ -353,6 +375,31 @@ void Layer::make_perimeters()
                                         this->loop_nodes, patch.merged_height, ! generated,
                                         lower_slices, upper_slices, false, patch.bottom_idx == 0);
                     generated = true;
+                }
+
+                // The part of the region a slab above extrudes still needs its fill surfaces here, as on a fully
+                // swallowed layer: without them discover_vertical_shells() sees no sparse infill there and turns
+                // the neighbouring layers solid. combine_adaptive_infill() handles them like any swallowed fill.
+                Polygons swallowed_here;
+                Polygons extruded_here;
+                for (const AdaptiveMergePatch &patch : lm->adaptive_merge_patches)
+                    polygons_append(patch.group_top ? extruded_here : swallowed_here, to_polygons(patch.area()));
+                if (! swallowed_here.empty()) {
+                    SurfaceCollection swallowed_fill;
+                    ExPolygons        swallowed_no_overlap;
+                    lm->make_perimeters(src, perimeter_regions, &swallowed_fill, &swallowed_no_overlap,
+                                        this->loop_nodes, 0., true, nullptr, no_shadow_upper_ptr, true);
+                    const ExPolygons swallowed_area = union_ex(swallowed_here);
+                    const ExPolygons extruded       = union_ex(extruded_here);
+                    auto clip_to_swallowed = [&](const ExPolygons &area) {
+                        ExPolygons clipped = intersection_ex(area, swallowed_area);
+                        return extruded.empty() ? clipped : diff_ex(clipped, extruded);
+                    };
+                    for (const Surface &surface : swallowed_fill.surfaces)
+                        for (ExPolygon &expolygon : clip_to_swallowed(ExPolygons{ surface.expolygon }))
+                            out_fill->surfaces.emplace_back(surface, std::move(expolygon));
+                    if (out_no_overlap != nullptr)
+                        append(*out_no_overlap, clip_to_swallowed(swallowed_no_overlap));
                 }
                 if (! generated) {
                     lm->perimeters.clear();
@@ -635,15 +682,15 @@ void Layer::simplify_support_entity_collection(ExtrusionEntityCollection* entity
     }
 }
 //BBS: method to simplify support path
+// 支撑始终做圆弧拟合，不受 enable_arc_fitting 控制，避免低分辨率支撑圆共振和倒塌；
+// 保持 SUPPORT_RESOLUTION 阈值，过大会导致支撑圆上下错层易断裂
 void Layer::simplify_support_path(ExtrusionPath * path)
 {
     const auto print_config = this->object()->print()->config();
     const bool spiral_mode = print_config.spiral_mode;
-    const bool enable_arc_fitting = print_config.enable_arc_fitting;
     const auto scaled_resolution = scaled<double>(print_config.resolution.value);
 
-    if (enable_arc_fitting &&
-        !spiral_mode) {
+    if (!spiral_mode) {
         path->simplify_by_fitting_arc(SCALED_SUPPORT_RESOLUTION);
     } else {
         path->simplify(scaled_resolution);
@@ -654,12 +701,10 @@ void Layer::simplify_support_multi_path(ExtrusionMultiPath* multipath)
 {
     const auto print_config = this->object()->print()->config();
     const bool spiral_mode = print_config.spiral_mode;
-    const bool enable_arc_fitting = print_config.enable_arc_fitting;
     const auto scaled_resolution = scaled<double>(print_config.resolution.value);
 
     for (size_t i = 0; i < multipath->paths.size(); ++i) {
-        if (enable_arc_fitting &&
-            !spiral_mode) {
+        if (!spiral_mode) {
             multipath->paths[i].simplify_by_fitting_arc(SCALED_SUPPORT_RESOLUTION);
         } else {
             multipath->paths[i].simplify(scaled_resolution);
@@ -671,12 +716,10 @@ void Layer::simplify_support_loop(ExtrusionLoop* loop)
 {
     const auto print_config = this->object()->print()->config();
     const bool spiral_mode = print_config.spiral_mode;
-    const bool enable_arc_fitting = print_config.enable_arc_fitting;
     const auto scaled_resolution = scaled<double>(print_config.resolution.value);
 
     for (size_t i = 0; i < loop->paths.size(); ++i) {
-        if (enable_arc_fitting &&
-            !spiral_mode) {
+        if (!spiral_mode) {
             loop->paths[i].simplify_by_fitting_arc(SCALED_SUPPORT_RESOLUTION);
         } else {
             loop->paths[i].simplify(scaled_resolution);

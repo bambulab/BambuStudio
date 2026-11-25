@@ -43,7 +43,8 @@
 			"support_extrusion_cali": true,
 			"support_user_preset": false,
 			"bed_temperature_limit": 80,
-			"support_ams_ext_mix_print": true
+			"support_ams_ext_mix_print": true,
+			"support_big_flush_check": false
 		},
 		"model_id": "N1",
 		"sn_prefix": "030",

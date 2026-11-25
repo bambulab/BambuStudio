@@ -43,7 +43,9 @@ struct SlicingParameters
         const std::vector<unsigned int> &object_extruders,
         int                      layer_grid_subdivision = 1,
         int                      layer_grid_multiplier = 1,
-        double                   single_diameter_layering_nozzle = 0.);
+        double                   single_diameter_layering_nozzle = 0.,
+        int                      raft_filament_id = 0,
+        double                   preset_nozzle_diameter = 0.);
 
     // Has any raft layers?
     bool        has_raft() const { return raft_layers() > 0; }
@@ -66,6 +68,14 @@ struct SlicingParameters
     coordf_t    base_raft_layer_height { 0 };
     coordf_t    interface_raft_layer_height { 0 };
     coordf_t    contact_raft_layer_height { 0 };
+    // Height of the first raft layer. Equal to first_print_layer_height unless the raft is pinned to a filament.
+    coordf_t    raft_first_layer_height { 0 };
+    // BBS multi-diameter: 1-based filament of an automatic raft and its nozzle; 0 keeps the regular resolution.
+    int         raft_filament_id { 0 };
+    coordf_t    raft_nozzle_diameter { 0 };
+    // Raft interface layers: the explicit support interface filament, else the raft filament.
+    int         raft_interface_filament_id { 0 };
+    coordf_t    raft_interface_nozzle_diameter { 0 };
 
 	// The regular layer height, applied for all but the first layer, if not overridden by layer ranges
 	// or by the variable layer thickness table.
@@ -131,6 +141,7 @@ inline bool equal_layering(const SlicingParameters &sp1, const SlicingParameters
             sp1.base_raft_layer_height              == sp2.base_raft_layer_height               &&
             sp1.interface_raft_layer_height         == sp2.interface_raft_layer_height          &&
             sp1.contact_raft_layer_height           == sp2.contact_raft_layer_height            &&
+            sp1.raft_first_layer_height             == sp2.raft_first_layer_height              &&
             sp1.layer_height                        == sp2.layer_height                         &&
             sp1.layer_grid_subdivision               == sp2.layer_grid_subdivision               &&
             sp1.layer_grid_multiplier                == sp2.layer_grid_multiplier                &&

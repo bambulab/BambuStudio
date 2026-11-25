@@ -151,7 +151,7 @@ export function DetailDialog({ open, spool, filteredSpools, onClose, onEdit, onN
               {spool.diameter || 1.75} mm｜{spool.color_name || '—'}
               {spool.in_printer === true && (() => {
                 const multiExt = spool.dev_id ? multiExtDevIds.has(spool.dev_id) : false;
-                const loc = formatSlotLocation(spool.device_name, spool.ams_type, spool.slot_id, t, spool.tray_label, multiExt);
+                const loc = formatSlotLocation(spool.device_name, spool.ams_type, spool.slot_id, t, spool.tray_label, multiExt, spool.ams_id);
                 return loc ? <>｜{loc}</> : null;
               })()}
             </div>

@@ -178,6 +178,64 @@ TEST_CASE("A diameter switch filters the rack, not the slots", "[nozzle_inventor
     }
 }
 
+TEST_CASE("An empty extruder stays empty", "[nozzle_inventory]")
+{
+    const PrinterSpec DUAL_RACK_04{"Dual rack 0.4 nozzle", "DualRack", "0.4", {0.4, 0.4}, {1, 6}, {nvtStandard, nvtStandard}};
+    Rig rig;
+    const auto installed = [&rig](int eid) {
+        const ExtruderSlots &slots = rig.inventory.slots(eid);
+        return std::count_if(slots.begin(), slots.end(), [](const NozzleSlot &s) { return !s.empty(); });
+    };
+    rig.select(DUAL_RACK_04);
+    rig.inventory.sync_machine("DualRack", {{nozzle("0.4", nvtStandard)},
+                                            {nozzle("0.2", nvtStandard), nozzle("0.4", nvtStandard), NozzleSlot(), NozzleSlot(), nozzle("0.4", nvtHighFlow), NozzleSlot()}});
+    REQUIRE(installed(1) == 3);
+
+    // The history now holds the right rack; an empty sync must not bring it back.
+    rig.inventory.sync_machine("DualRack", {{nozzle("0.4", nvtStandard)}, ExtruderSlots(6)});
+    CHECK(rig.inventory.slots(0)[0].diameter == "0.4");
+    CHECK(installed(1) == 0);
+
+    SECTION("the left extruder empty too")
+    {
+        rig.inventory.sync_machine("DualRack", {ExtruderSlots(1), {nozzle("0.8", nvtHighFlow), NozzleSlot(), NozzleSlot(), NozzleSlot(), NozzleSlot(), NozzleSlot()}});
+        CHECK(installed(0) == 0);
+        CHECK(installed(1) == 1);
+    }
+    SECTION("a user emptying an extruder")
+    {
+        rig.inventory.sync_machine("DualRack", {{nozzle("0.4", nvtStandard)},
+                                                {nozzle("0.4", nvtStandard), NozzleSlot(), NozzleSlot(), NozzleSlot(), NozzleSlot(), NozzleSlot()}});
+        rig.inventory.user_set_slots(1, ExtruderSlots(6));
+        CHECK(installed(0) == 1);
+        CHECK(installed(1) == 0);
+    }
+}
+
+TEST_CASE("Without a rack an empty extruder stays empty", "[nozzle_inventory]")
+{
+    Rig rig;
+    rig.select(DUAL_04);
+    rig.inventory.sync_machine("Dual", {{nozzle("0.4", nvtHighFlow)}, {nozzle("0.4", nvtTPUHighFlow)}});
+    rig.inventory.sync_machine("Dual", {{nozzle("0.4", nvtHighFlow)}, ExtruderSlots(1)});
+    CHECK(rig.inventory.slots(1)[0].empty());
+
+    // The sync owns 0.4 only; 0.2 gets its own nozzles, and a switch back brings the sync back.
+    rig.select(DUAL_02);
+    CHECK(rig.inventory.slots(0)[0].diameter == "0.2");
+    rig.select(DUAL_04);
+    CHECK(rig.inventory.slots(0)[0].volume_type == nvtHighFlow);
+    CHECK(rig.inventory.slots(1)[0].empty());
+
+    SECTION("a machine with no nozzle owns every variant")
+    {
+        rig.inventory.sync_machine("Dual", {ExtruderSlots(1), ExtruderSlots(1)});
+        rig.select(DUAL_02);
+        CHECK(rig.inventory.slots(0)[0].empty());
+        CHECK(rig.inventory.slots(1)[0].empty());
+    }
+}
+
 TEST_CASE("A diameter switch without a rack drops the other diameter", "[nozzle_inventory]")
 {
     Rig rig;
@@ -188,6 +246,75 @@ TEST_CASE("A diameter switch without a rack drops the other diameter", "[nozzle_
     CHECK(rig.inventory.volume_type(0) == nvtStandard);
     rig.select(DUAL_04);
     CHECK(rig.inventory.volume_type(0) == nvtHighFlow);
+}
+
+TEST_CASE("Without a rack a sync owns the variants it carries", "[nozzle_inventory]")
+{
+    const PrinterSpec DUAL_06{"Dual 0.6 nozzle", "Dual", "0.6", {0.6, 0.6}, {1, 1}, {nvtStandard, nvtStandard}};
+    Rig rig;
+    rig.select(DUAL_04);
+    rig.inventory.sync_machine("Dual", {{nozzle("0.4", nvtStandard)}, {nozzle("0.6", nvtTPUHighFlow)}});
+
+    // Under 0.4 the 0.4 nozzle is synced; the 0.6 extruder cannot print with the variant and falls back.
+    CHECK(rig.inventory.slots(0)[0].diameter == "0.4");
+    CHECK(rig.inventory.slots(0)[0].volume_type == nvtStandard);
+    CHECK(rig.inventory.slots(1)[0].diameter == "0.4");
+
+    // The sync owns 0.6 too, for the extruder that carries it.
+    rig.select(DUAL_06);
+    CHECK(rig.inventory.slots(0)[0].diameter == "0.6");
+    CHECK(rig.inventory.slots(1)[0].diameter == "0.6");
+    CHECK(rig.inventory.slots(1)[0].volume_type == nvtTPUHighFlow);
+
+    // The sync says nothing about 0.2.
+    rig.select(DUAL_02);
+    CHECK(rig.inventory.slots(0)[0].diameter == "0.2");
+    CHECK(rig.inventory.slots(1)[0].diameter == "0.2");
+}
+
+TEST_CASE("Without the per-extruder diameter a mixed sync does not come back", "[nozzle_inventory]")
+{
+    // A dual-extruder machine reports 0.2 and 0.4; the user settles on 0.2, then switches to 0.4.
+    Rig rig;
+    rig.select(DUAL_04);
+    rig.inventory.sync_machine("Dual", {{nozzle("0.2", nvtStandard)}, {nozzle("0.4", nvtStandard)}});
+    rig.select(DUAL_02);
+    rig.inventory.user_unify_diameter("0.2");
+    REQUIRE(rig.inventory.slots(0)[0].diameter == "0.2");
+    REQUIRE(rig.inventory.slots(1)[0].diameter == "0.2");
+
+    rig.select(DUAL_04);
+    CHECK(rig.inventory.slots(0)[0].diameter == "0.4");
+    CHECK(rig.inventory.slots(1)[0].diameter == "0.4");
+    CHECK(rig.mirror.option<ConfigOptionFloats>("extruder_nozzle_diameter")->values == std::vector<double>{0.4, 0.4});
+}
+
+TEST_CASE("Without the per-extruder diameter a mixed project opens on the selected diameter", "[nozzle_inventory]")
+{
+    Rig rig;
+    rig.select(DUAL_04);
+    // The per-slot keys of a 3mf saved with 0.2 on the left and 0.4 on the right.
+    DynamicPrintConfig file;
+    file.option<ConfigOptionInts>("extruder_nozzle_count", true)->values               = {1, 1};
+    file.option<ConfigOptionEnumsGeneric>("extruder_nozzle_volume_type", true)->values = {int(nvtStandard), int(nvtStandard)};
+    file.option<ConfigOptionFloats>("extruder_nozzle_diameter", true)->values         = {0.2, 0.4};
+    file.option<ConfigOptionInts>("extruder_nozzle_slot", true)->values               = {0, 1};
+    rig.inventory.open_project(rig.printers, file);
+
+    CHECK(rig.inventory.slots(0)[0].diameter == "0.4");
+    CHECK(rig.inventory.slots(1)[0].diameter == "0.4");
+}
+
+TEST_CASE("A user edit on another variant does not hide the sync", "[nozzle_inventory]")
+{
+    Rig rig;
+    rig.select(DUAL_04);
+    rig.inventory.sync_machine("Dual", {{nozzle("0.4", nvtTPUHighFlow)}, {nozzle("0.4", nvtTPUHighFlow)}});
+    rig.select(DUAL_02);
+    rig.inventory.user_set_volume_type(0, nvtStandard);
+    rig.select(DUAL_04);
+    CHECK(rig.inventory.volume_type(0) == nvtTPUHighFlow);
+    CHECK(rig.inventory.volume_type(1) == nvtTPUHighFlow);
 }
 
 TEST_CASE("Legacy keys still give the nozzles", "[nozzle_inventory]")

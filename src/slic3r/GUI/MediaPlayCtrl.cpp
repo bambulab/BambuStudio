@@ -372,20 +372,21 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
     m_button_camera_switch->Enable(should_show && is_playing);
     update_camera_switch_tooltip();
 
-    // Check camera validity only for machines with camera switching support
-    // For old machines (liveview_current_camera == -1) or single-camera machines, skip to avoid clearing existing status
-    if (obj && is_support_switch_cam(obj->support_liveview_cams)) {
-        if (!is_valid_camera(obj->liveview_current_camera)) {
-            SetStatus(_L("Current camera is abnormal"), false);
-            BOOST_LOG_TRIVIAL(warning) << "invalid camera " << obj->liveview_current_camera;
-        } else if (m_last_state == MEDIASTATE_IDLE) {
-            SetStatus(_L(""), false);
-        }
+    // Camera id is only meaningful for machines with camera switching support
+    wxString camera_error;
+    if (obj) {
+        if (is_support_switch_cam(obj->support_liveview_cams) && !is_valid_camera(obj->liveview_current_camera))
+            camera_error = _L("Current camera is abnormal");
+        else if (obj->GetCamera()->GetIpcamReadyState() == DevCamera::IPCAM_RELEASED)
+            camera_error = _L("Camera preparing, please try again later...");
+        else if (!obj->GetCamera()->IsIpcamReady())
+            camera_error = _L("Printer camera is malfunctioning.");
     }
+    SetCameraError(camera_error);
 
     if (obj) {
         m_obj            = obj;
-        m_camera_exists  = obj->has_ipcam;
+        m_ipcam_ready_state = obj->GetCamera()->GetIpcamReadyState();
         m_support_liveview_preview = obj->is_support_liveview_preview;
         m_dev_ver        = obj->get_ota_version();
         m_lan_mode       = obj->is_lan_mode_printer();
@@ -397,7 +398,7 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
         m_tutk_state     = obj->tutk_state;
     } else {
         m_obj = nullptr;
-        m_camera_exists = false;
+        m_ipcam_ready_state = DevCamera::IPCAM_NOT_PRESENT;
         m_support_liveview_preview = false;
         m_lan_mode = false;
         m_lan_proto = MachineObject::LVL_None;
@@ -573,7 +574,11 @@ void MediaPlayCtrl::Play()
         m_failed_retry = 0;
         return;
     }
-    if (!m_camera_exists) {
+    if (m_ipcam_ready_state == DevCamera::IPCAM_RELEASED) {
+        Stop(_L("Camera preparing, please try again later..."));
+        return;
+    }
+    if (m_ipcam_ready_state != DevCamera::IPCAM_READY) {
         Stop(_L("Printer camera is malfunctioning."));
         return;
     }
@@ -846,7 +851,10 @@ void MediaPlayCtrl::ToggleStream()
         // create stream pipeline
         bool need_install = false;
         if (!start_stream_service(&need_install)) {
-            if (!need_install) return;
+            if (!need_install) {
+                BOOST_LOG_TRIVIAL(warning) << "start vcamera stream service failed";
+                return;
+            }
             auto res = MessageDialog(this->GetParent(), _L("Virtual Camera Tools is required for this task!\nDo you want to install them?"), _L("Info"),
                                     wxOK | wxCANCEL).ShowModal();
             if (res == wxID_OK) {
@@ -929,6 +937,8 @@ void MediaPlayCtrl::ToggleStream()
 #endif
 
         CallAfter([this, m, url] {
+            BOOST_LOG_TRIVIAL(info) << KV(log_key::dev_id, m) << "vcamera url callback, machine changed " << (m != m_machine)
+                                    << ", url valid " << (!url.empty() && boost::algorithm::starts_with(url, "bambu:///"));
             if (m != m_machine) return;
             if (url.empty() || !boost::algorithm::starts_with(url, "bambu:///")) {
                 MessageDialog(this->GetParent(), wxString::Format(_L("Virtual camera initialize failed (%s)!"), url.empty() ? _L("Network unreachable") : from_u8(url)), _L("Information"),
@@ -1262,6 +1272,25 @@ void MediaPlayCtrl::SetStatus(wxString const &msg2, bool hyperlink)
     OutputDebugStringA(msg.ToUTF8().data());
     OutputDebugStringA("\n");
 #endif // __WXMSW__
+
+    m_status_msg       = msg;
+    m_status_hyperlink = hyperlink;
+    RefreshStatusLabel();
+}
+
+void MediaPlayCtrl::SetCameraError(wxString const &err)
+{
+    if (err == m_camera_error)
+        return;
+    m_camera_error = err;
+    RefreshStatusLabel();
+}
+
+void MediaPlayCtrl::RefreshStatusLabel()
+{
+    const bool      has_error = !m_camera_error.empty();
+    const wxString &msg       = has_error ? m_camera_error : m_status_msg;
+    const bool      hyperlink = !has_error && m_status_hyperlink;
 
     wxGCDC dc;
     wxSize msg_size = dc.GetTextExtent(msg);

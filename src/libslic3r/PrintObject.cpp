@@ -12,6 +12,7 @@
 #include "Support/TreeSupport.hpp"
 #include "Surface.hpp"
 #include "Slicing.hpp"
+#include "SupportRecommendedParams.hpp"
 #include "Tesselate.hpp"
 #include "Time.hpp"
 #include "TriangleMeshSlicer.hpp"
@@ -1697,6 +1698,7 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "top_shell_layers"
             || opt_key == "top_color_penetration_layers"
             || opt_key == "bottom_color_penetration_layers"
+            || opt_key == "cross_part_color_penetration"
             || opt_key == "infill_instead_top_bottom_surfaces") {
 
             steps.emplace_back(posSlice);
@@ -1823,6 +1825,7 @@ bool PrintObject::invalidate_state_by_config_options(
         } else if (
                opt_key == "seam_position"
             || opt_key == "seam_placement_away_from_overhangs"
+            || opt_key == "seam_embedded_headroom"
             || opt_key == "seam_slope_conditional"
             || opt_key == "scarf_angle_threshold"
             || opt_key == "seam_slope_entire_loop"
@@ -1939,6 +1942,85 @@ void PrintObject::reset_slice_surfaces(const std::vector<std::vector<SurfaceColl
     }
 }
 
+static const VolumeSlices *find_volume_slices(const PrintObject &print_object, ObjectID volume_id)
+{
+    for (const VolumeSlices &volume_slices : print_object.firstLayerObjSlice())
+        if (volume_slices.volume_id == volume_id)
+            return &volume_slices;
+    return nullptr;
+}
+
+bool PrintObject::limits_color_penetration(const ModelVolume &volume) const
+{
+    if (! volume.is_model_part())
+        return false;
+    if (const auto *opt = volume.config.get().option<ConfigOptionBool>("cross_part_color_penetration"))
+        return ! opt->value;
+    if (const auto *opt = this->model_object()->config.get().option<ConfigOptionBool>("cross_part_color_penetration"))
+        return ! opt->value;
+    return ! this->print()->default_region_config().cross_part_color_penetration.value;
+}
+
+void PrintObject::build_part_limited_transparent()
+{
+    for (Layer *layer : m_layers)
+        layer->part_limited_transparent.clear();
+    if (this->print()->config().filament_diameter.size() <= 1 || ! this->is_mm_painted())
+        return;
+    // Fast path: with no part opted in, stay empty after this one config scan and
+    // never touch any slice geometry.
+    const bool has_limited_part = std::any_of(
+        this->model_object()->volumes.begin(), this->model_object()->volumes.end(),
+        [this](const ModelVolume *mv) { return mv->is_model_part() && this->limits_color_penetration(*mv); });
+    if (! has_limited_part)
+        return;
+    const size_t num_layers = m_layers.size();
+    if (num_layers == 0)
+        return;
+    // Build-local aggregates, discarded once the transparency is derived: union of
+    // part-limited parts / of all other model parts per layer, and the area a limited
+    // part covers with its own material continuing one layer up. The self coverage is
+    // paired per volume, so one limited part never "self-covers" another below it.
+    std::vector<ExPolygons> limited_slices(num_layers), non_limited_slices(num_layers), self_coverage_slices(num_layers);
+    for (const ModelVolume *mv : this->model_object()->volumes) {
+        if (! mv->is_model_part())
+            continue;
+        const VolumeSlices *volume_slices = find_volume_slices(*this, mv->id());
+        if (volume_slices == nullptr)
+            continue;
+        const std::vector<ExPolygons> &slices = volume_slices->slices;
+        const size_t layer_limit = std::min(num_layers, slices.size());
+        if (this->limits_color_penetration(*mv)) {
+            for (size_t i = 0; i < layer_limit; ++ i) {
+                append(limited_slices[i], slices[i]);
+                if (i + 1 < layer_limit && ! slices[i].empty() && ! slices[i + 1].empty())
+                    append(self_coverage_slices[i], intersection_ex(slices[i + 1], slices[i]));
+            }
+        } else {
+            for (size_t i = 0; i < layer_limit; ++ i)
+                append(non_limited_slices[i], slices[i]);
+        }
+    }
+    auto union_layers = [](std::vector<ExPolygons> &layers) {
+        for (ExPolygons &layer_slices : layers)
+            if (layer_slices.size() > 1)
+                layer_slices = union_ex(layer_slices);
+    };
+    union_layers(limited_slices);
+    union_layers(non_limited_slices);
+    union_layers(self_coverage_slices);
+    // Transparent above layer i: covered by limited parts only -- not by other parts,
+    // and not by a limited part's own material continuing into layer i.
+    for (size_t i = 0; i + 1 < num_layers; ++ i) {
+        if (limited_slices[i + 1].empty())
+            continue;
+        ExPolygons transparent = diff_ex(limited_slices[i + 1], non_limited_slices[i + 1]);
+        if (! self_coverage_slices[i].empty())
+            transparent = diff_ex(transparent, self_coverage_slices[i]);
+        m_layers[i]->part_limited_transparent = std::move(transparent);
+    }
+}
+
 // This function analyzes slices of a region (SurfaceCollection slices).
 // Each region slice (instance of Surface) is analyzed, whether it is supported or whether it is the top surface.
 // Initially all slices are of type stInternal.
@@ -2021,9 +2103,23 @@ void PrintObject::detect_surfaces_type(std::vector<std::vector<SurfaceCollection
                     Surfaces top;
                     if (detect_top) {
                         if (upper_layer) {
-                            ExPolygons upper_slices = interface_shells ?
-                                diff_ex(layerm_slices_surfaces, upper_layer->m_regions[region_id]->slices.surfaces, ApplySafetyOffset::Yes) :
-                                diff_ex(layerm_slices_surfaces, upper_layer->lslices, ApplySafetyOffset::Yes);
+                            // Parts that limit color penetration to themselves cast no shadow on
+                            // the other parts below them, but still cover their own material.
+                            const ExPolygons &transparent_upper = layer->part_limited_transparent;
+                            ExPolygons upper_slices;
+                            if (! transparent_upper.empty()) {
+                                const ExPolygons coverage = opening_ex(
+                                    diff_ex(
+                                        interface_shells ? to_expolygons(upper_layer->m_regions[region_id]->slices.surfaces) :
+                                                           upper_layer->lslices,
+                                        transparent_upper,
+                                        ApplySafetyOffset::Yes),
+                                    offset);
+                                upper_slices = diff_ex(layerm_slices_surfaces, coverage, ApplySafetyOffset::Yes);
+                            } else
+                                upper_slices = interface_shells ?
+                                    diff_ex(layerm_slices_surfaces, upper_layer->m_regions[region_id]->slices.surfaces, ApplySafetyOffset::Yes) :
+                                    diff_ex(layerm_slices_surfaces, upper_layer->lslices, ApplySafetyOffset::Yes);
                             surfaces_append(top, opening_ex(upper_slices, offset), stTop);
                         }
                         else {
@@ -2277,9 +2373,9 @@ static EffectiveShellParameters effective_top_shell_parameters(
 
     const double nozzle_diameter = nozzle_diameter_for_filament(
         object.print()->config(), (unsigned int) config.solid_infill_filament.value);
-    out.layers = multi_nozzle_top_shell_layers(nozzle_diameter, out.layers);
+    out.layers = multi_nozzle_top_shell_layers(object.print()->full_print_config(), nozzle_diameter, out.layers);
     out.layers *= shell_band_size(object, nozzle_diameter, base_layer_height);
-    out.thickness = multi_nozzle_top_shell_thickness(nozzle_diameter, out.thickness);
+    out.thickness = multi_nozzle_top_shell_thickness(object.print()->full_print_config(), nozzle_diameter, out.thickness);
     return out;
 }
 
@@ -2292,9 +2388,9 @@ static EffectiveShellParameters effective_bottom_shell_parameters(
 
     const double nozzle_diameter = nozzle_diameter_for_filament(
         object.print()->config(), (unsigned int) config.solid_infill_filament.value);
-    out.layers = multi_nozzle_bottom_shell_layers(nozzle_diameter, out.layers);
+    out.layers = multi_nozzle_bottom_shell_layers(object.print()->full_print_config(), nozzle_diameter, out.layers);
     out.layers *= shell_band_size(object, nozzle_diameter, base_layer_height);
-    out.thickness = multi_nozzle_bottom_shell_thickness(nozzle_diameter, out.thickness);
+    out.thickness = multi_nozzle_bottom_shell_thickness(object.print()->full_print_config(), nozzle_diameter, out.thickness);
     return out;
 }
 
@@ -2364,7 +2460,7 @@ void PrintObject::discover_vertical_shells()
                         if (multi_nozzle_diameter_mode_enabled(this->print()->full_print_config())) {
                             const double nozzle_diameter = nozzle_diameter_for_filament(
                                 this->print()->config(), (unsigned int) region_config.wall_filament.value);
-                            wall_loops = multi_nozzle_wall_loops(nozzle_diameter, wall_loops);
+                            wall_loops = multi_nozzle_wall_loops(this->print()->full_print_config(), nozzle_diameter, wall_loops);
                         }
                         perimeters += wall_loops;
                         // Then calculate the infill offset.
@@ -3844,6 +3940,54 @@ void PrintObject::update_slicing_parameters()
     m_slicing_params = this->compute_slicing_parameters(this->print()->single_diameter_layering_nozzle());
 }
 
+// 多口径自动 raft 耗材：从贴床零件耗材中选，非 TPU 优先，其次口径更大。
+// 候选都是本对象耗材，无需检查支撑料组合；返回 0 表示不启用（支撑主体手动指定等）。
+static int automatic_raft_filament(const PrintObject &object)
+{
+    const PrintObjectConfig &config       = object.config();
+    const PrintConfig       &print_config = object.print()->config();
+    if (config.raft_layers.value <= 0 || config.support_filament.value != 0 ||
+        ! multi_nozzle_diameter_mode_enabled(object.print()->full_print_config()))
+        return 0;
+
+    const ModelObject *model_object = object.model_object();
+    if (model_object == nullptr || model_object->instances.empty())
+        return 0;
+    // Parts reaching down to the object's bottom, within the first grid step.
+    const Transform3d   &inst_matrix  = model_object->instances.front()->get_transformation().get_matrix(true);
+    const double         bottom_z     = model_object->raw_bounding_box().min.z();
+    const double         first_step   = print_config.initial_layer_print_height.value /
+                                        double(std::max(1, layer_grid_subdivision(object.print()->full_print_config())));
+    const GlobalFeatureFilaments global_features =
+        GlobalFeatureFilaments::from_config(object.print()->default_region_config(), print_config.filament_diameter.size());
+    std::vector<int> filaments;
+    for (const ModelVolume *volume : model_object->volumes) {
+        if (! volume->is_model_part())
+            continue;
+        if (volume->mesh().transformed_bounding_box(inst_matrix * volume->get_matrix()).min.z() > bottom_z + first_step + EPSILON)
+            continue;
+        append(filaments, volume->get_extruders(global_features));
+    }
+    sort_remove_duplicates(filaments);
+
+    int    best        = 0;
+    bool   best_is_tpu = true;
+    double best_nozzle = 0.;
+    for (int filament_id : filaments) {
+        if (filament_id <= 0 || size_t(filament_id) > print_config.filament_type.values.size() ||
+            print_config.filament_soluble.get_at(filament_id - 1) || print_config.filament_is_support.get_at(filament_id - 1))
+            continue;
+        const bool   tpu    = is_tpu_filament_type(print_config.filament_type.values[filament_id - 1]);
+        const double nozzle = nozzle_diameter_for_filament(print_config, (unsigned int) filament_id);
+        if (best == 0 || (best_is_tpu && ! tpu) || (best_is_tpu == tpu && nozzle > best_nozzle + EPSILON)) {
+            best        = filament_id;
+            best_is_tpu = tpu;
+            best_nozzle = nozzle;
+        }
+    }
+    return best;
+}
+
 SlicingParameters PrintObject::compute_slicing_parameters(double single_diameter_layering_nozzle) const
 {
     const DynamicPrintConfig &full_config = this->print()->full_print_config();
@@ -3856,7 +4000,8 @@ SlicingParameters PrintObject::compute_slicing_parameters(double single_diameter
                                                   m_config.layer_height.value / double(std::max(1, subdivision))));
     return SlicingParameters::create_from_config(
         this->print()->config(), m_config, this->model_object()->bounding_box().max.z(), this->object_extruders(),
-        subdivision, multiplier, single_diameter_layering_nozzle);
+        subdivision, multiplier, single_diameter_layering_nozzle,
+        automatic_raft_filament(*this), primary_nozzle_diameter(full_config));
 }
 
 SlicingParameters PrintObject::slicing_parameters(const DynamicPrintConfig& full_config, const ModelObject& model_object, float object_max_z, std::vector<int> variant_index)
@@ -4405,6 +4550,9 @@ void PrintObject::compute_adaptive_merge_groups()
         // A too-thin bottom face resting on nothing. It is dropped rather than absorbed: the slab above keeps
         // its own floor, and the step above the face is typed as the bridge over it instead.
         bool                     floating { false };
+        // A too-thin local top nothing stands on: the fringe of a shrinking shape, laid bare as top surface.
+        // It is dropped like any fringe; absorbing it would print each one as an island with its own walls.
+        bool                     exposed { false };
     };
     std::vector<PendingOrphan> pending_orphans;
     for (size_t region_id = 0; region_id < region_count; ++ region_id) {
@@ -4754,10 +4902,28 @@ void PrintObject::compute_adaptive_merge_groups()
             // is rediscovering it later from the raw slices, where it cannot be told from a fringe.
             const ExPolygons unassigned = diff_ex(area, assigned);
             if (thin_bottom_idx <= slab.top_idx && ! unassigned.empty()) {
-                const bool floating = thin_bottom_idx > 0 && ! adaptive_printable_pieces(
-                    diff_ex(unassigned, m_layers[thin_bottom_idx - 1]->lslices), event.nozzle).empty();
-                pending_orphans.push_back({ region_id, event.range, event.nozzle,
-                                            thin_bottom_idx, slab.top_idx, "too-thin", unassigned, floating });
+                // A local top slab ends inside the band. Where nothing stands on it, its too-thin part is the
+                // fringe by which a shrinking shape - a dome, the top of a head - exceeds the contour above, laid
+                // bare as top surface. Leaving it out costs one base step on that surface, the underfill every
+                // sloped wall has. Lifting the slab below over it would print each such fringe as an island of
+                // its own, walled and seamed, on every band up the slope. Only what something stands on has to
+                // be taken back, or it leaves a hole under that material.
+                ExPolygons covered = unassigned;
+                ExPolygons exposed;
+                if (slab.top_idx != live.top_idx) {
+                    const ExPolygons &above = m_layers[slab.top_idx + 1]->lslices;
+                    exposed = diff_ex(unassigned, above);
+                    covered = intersection_ex(unassigned, above);
+                }
+                if (! covered.empty()) {
+                    const bool floating = thin_bottom_idx > 0 && ! adaptive_printable_pieces(
+                        diff_ex(covered, m_layers[thin_bottom_idx - 1]->lslices), event.nozzle).empty();
+                    pending_orphans.push_back({ region_id, event.range, event.nozzle,
+                                                thin_bottom_idx, slab.top_idx, "too-thin", std::move(covered), floating });
+                }
+                if (! exposed.empty())
+                    pending_orphans.push_back({ region_id, event.range, event.nozzle,
+                                                thin_bottom_idx, slab.top_idx, "too-thin", std::move(exposed), false, true });
                 band_orphans.push_back({ thin_bottom_idx, slab.top_idx, unassigned });
             }
 
@@ -4827,7 +4993,8 @@ void PrintObject::compute_adaptive_merge_groups()
     //   2. the slab below lifts its top over the run, within 0.7D;
     //   3. the run is re-cut with the slab below into two slabs inside the window;
     //   4. as 1. and 2., up to the relaxed ceiling.
-    // A floating face skips all of them: the slab above keeps its floor and bridges over it.
+    // A floating face skips all of them: the slab above keeps its floor and bridges over it. So does an exposed
+    // fringe: nothing stands on it, so leaving it out is the underfill every sloped wall has.
     //
     // A run nobody can absorb keeps its empty group top. That marker is the established "nothing is
     // extruded here": it clears the perimeters and makes combine_adaptive_infill() void the fill, so the
@@ -4935,7 +5102,7 @@ void PrintObject::compute_adaptive_merge_groups()
             return remaining.empty();
         };
 
-        if (! orphan.floating &&
+        if (! orphan.floating && ! orphan.exposed &&
             (recover(Recovery::FromAbove, orphan.range.max_height) ||
              recover(Recovery::FromBelow, orphan.range.max_height) ||
              recover(Recovery::Split, orphan.range.max_height) ||
@@ -4956,7 +5123,8 @@ void PrintObject::compute_adaptive_merge_groups()
         }
         BOOST_LOG_TRIVIAL(debug) << "[adaptive_merge] orphan region=" << orphan.region_id
                                  << " [" << orphan.bottom_idx << "," << orphan.top_idx << "]"
-                                 << " " << orphan.source << (orphan.floating ? " floating" : "") << " suppressed";
+                                 << " " << orphan.source << (orphan.floating ? " floating" : "")
+                                 << (orphan.exposed ? " exposed" : "") << " suppressed";
     }
 
     for (const PlannedPatch &planned_patch : planned) {
@@ -5933,6 +6101,28 @@ void PrintObject::_generate_support_material()
         support_material.generate(*this);
     }
 
+    // BBS multi-diameter: pin the raft layers to the filament the raft was sized for, so ToolOrdering and the
+    // G-code export print them with it instead of whatever "don't care" filament is active.
+    if (m_slicing_params.raft_filament_id > 0) {
+        const PrintConfig &print_config = this->print()->config();
+        const bool tree = is_tree(m_config.support_type.value) &&
+            resolve_support_style(m_config.support_style.value, m_config.support_type.value,
+                                  this->has_variable_layer_heights, m_slicing_params.soluble_interface,
+                                  config_flag_or_false(print_config, "heat_preserve_mode"),
+                                  config_flag_or_false(print_config, "enable_support_ring"),
+                                  this->print()->uses_multiple_nozzle_diameters()) != smsTreeOrganic;
+        for (size_t layer_id = 0; layer_id < this->support_layer_count(); ++layer_id) {
+            SupportLayer *layer = this->get_support_layer(int(layer_id));
+            if (layer_id >= m_slicing_params.raft_layers() &&
+                (! tree || layer->print_z > m_slicing_params.object_print_z_min + EPSILON))
+                break;
+            layer->planned_filament_id               = m_slicing_params.raft_filament_id;
+            layer->planned_nozzle_diameter           = m_slicing_params.raft_nozzle_diameter;
+            layer->planned_interface_filament_id     = m_slicing_params.raft_interface_filament_id;
+            layer->planned_interface_nozzle_diameter = m_slicing_params.raft_interface_nozzle_diameter;
+        }
+    }
+
     const long long support_elapsed =
         Slic3r::Utils::get_current_milliseconds_time_monotonic() - support_begin_time;
     const long long child_time_after =
@@ -6071,7 +6261,8 @@ void PrintObject::warn_uncovered_overhangs()
                 double(nozzle_diameter_for_filament(print_config, config.solid_infill_filament.value))});
         }
         if (max_nozzle > EPSILON) {
-            if (search_top_z > EPSILON)
+            // A gap the user set is the one the support keeps, see TreeSupport::init_top_z_by_nozzle().
+            if (search_top_z > EPSILON && ! this->support_top_z_fixed())
                 search_top_z = support_top_z_for_nozzle(max_nozzle);
             const AdaptiveLayerHeightRange height_range = adaptive_layer_height_range(max_nozzle);
             search_max_layer_height = height_range.max_height;
@@ -6081,6 +6272,16 @@ void PrintObject::warn_uncovered_overhangs()
     const coordf_t search_depth = search_top_z + search_max_layer_height + search_min_layer_height;
     const float    coverage_offset = float(scale_(
         resolved_support_object_xy_distance(m_print->config(), m_config)));
+
+    // resolve_support_style() matches SupportParameters, including Default / Grid / Snug.
+    const PrintConfig &print_config = this->print()->config();
+    const SupportMaterialStyle resolved_style =
+        resolve_support_style(m_config.support_style.value, m_config.support_type.value,
+                              this->has_variable_layer_heights, m_slicing_params.soluble_interface,
+                              config_flag_or_false(print_config, "heat_preserve_mode"),
+                              config_flag_or_false(print_config, "enable_support_ring"),
+                              this->print()->uses_multiple_nozzle_diameters());
+    const bool hybrid_tree = resolved_style == smsTreeHybrid;
 
     // One overhang island worth reporting, with everything the passes below need from it.
     struct Island {
@@ -6097,7 +6298,8 @@ void PrintObject::warn_uncovered_overhangs()
         size_t              support_begin  = 0;
         size_t              support_end    = 0;
         double              uncovered_area = 0.;
-        size_t              num_uncovered  = 0;
+        // Indices into islands of the uncovered ones, grouped into regions below.
+        std::vector<size_t> uncovered_islands;
     };
     std::vector<LayerWork> work(m_layers.size());
 
@@ -6105,7 +6307,7 @@ void PrintObject::warn_uncovered_overhangs()
     // This only walks geometry that already exists, and it lets the two passes below skip the layers -
     // usually the vast majority - with nothing left to check.
     tbb::parallel_for(tbb::blocked_range<size_t>(0, m_layers.size()),
-        [this, &support_zs, search_depth, coverage_offset, &work](const tbb::blocked_range<size_t> &range) {
+        [this, &support_zs, search_depth, coverage_offset, hybrid_tree, &work](const tbb::blocked_range<size_t> &range) {
             for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++ layer_idx) {
                 m_print->throw_if_canceled();
                 const Layer *layer = m_layers[layer_idx];
@@ -6117,6 +6319,7 @@ void PrintObject::warn_uncovered_overhangs()
                     const ExPolygon *island;
                     BoundingBox      bbox;
                     double           area_mm2;
+                    bool             wall_band;
                 };
                 std::vector<Candidate> candidate_islands;
                 BoundingBox           candidate_bbox;
@@ -6129,7 +6332,12 @@ void PrintObject::warn_uncovered_overhangs()
                         continue;
                     const BoundingBox bbox = get_extents(island);
                     if (bbox.defined) {
-                        candidate_islands.push_back({ &island, bbox, island_area });
+                        // A tip keeps the xy gap to the wall below, so that band of the overhang cannot take a
+                        // branch. Sharp tails keep their outline; hybrid trees lay contacts on big flat / thin plates.
+                        const int  type      = island_with_type.second;
+                        const bool wall_band = ! (type & TreeSupport::SharpTail) &&
+                            ! (hybrid_tree && (type & (TreeSupport::BigFlat | TreeSupport::ThinPlate)));
+                        candidate_islands.push_back({ &island, bbox, island_area, wall_band });
                         candidate_bbox.merge(bbox);
                     }
                 }
@@ -6150,6 +6358,11 @@ void PrintObject::warn_uncovered_overhangs()
                     append(model_below, ClipperUtils::clip_clipper_polygons_with_subject_bbox(
                         model_layer->lslices, model_bbox));
                 }
+                Polygons wall_band;
+                if (layer->lower_layer != nullptr)
+                    wall_band = offset(ClipperUtils::clip_clipper_polygons_with_subject_bbox(
+                        layer->lower_layer->lslices_extrudable, model_bbox.inflated(coord_t(coverage_offset) + SCALED_EPSILON)),
+                        coverage_offset);
 
                 auto add_island = [&w, coverage_offset](const ExPolygon &island, double island_area) {
                     if (island_area < MIN_REPORTED_OVERHANG_AREA_MM2)
@@ -6164,9 +6377,12 @@ void PrintObject::warn_uncovered_overhangs()
                 };
                 w.islands.reserve(candidate_islands.size());
                 for (const Candidate &candidate : candidate_islands) {
-                    const Polygons model_near = model_below.empty() ? Polygons{} :
+                    Polygons model_near = model_below.empty() ? Polygons{} :
                         ClipperUtils::clip_clipper_polygons_with_subject_bbox(
                             model_below, candidate.bbox.inflated(SCALED_EPSILON));
+                    if (candidate.wall_band && ! wall_band.empty())
+                        append(model_near, ClipperUtils::clip_clipper_polygons_with_subject_bbox(
+                            wall_band, candidate.bbox.inflated(SCALED_EPSILON)));
                     if (model_near.empty())
                         add_island(*candidate.island, candidate.area_mm2);
                     else
@@ -6274,7 +6490,8 @@ void PrintObject::warn_uncovered_overhangs()
                     }
                 }
 
-                for (const Island &island : w.islands) {
+                for (size_t island_idx = 0; island_idx < w.islands.size(); ++ island_idx) {
+                    const Island &island = w.islands[island_idx];
                     double covered_area = 0.;
                     if (support_below != nullptr) {
                         // Whole-cache rejection: a single supporting layer whose overall bounds cannot
@@ -6297,7 +6514,7 @@ void PrintObject::warn_uncovered_overhangs()
                     }
                     if (covered_area < MIN_SUPPORTED_OVERHANG_RATIO * island.area_mm2) {
                         w.uncovered_area += island.area_mm2;
-                        ++ w.num_uncovered;
+                        w.uncovered_islands.emplace_back(island_idx);
                     }
                 }
             }
@@ -6310,31 +6527,77 @@ void PrintObject::warn_uncovered_overhangs()
     for (size_t layer_idx = 0; layer_idx < work.size(); ++ layer_idx) {
         const LayerWork &w = work[layer_idx];
         total_significant += w.islands.size();
-        if (w.num_uncovered == 0)
+        if (w.uncovered_islands.empty())
             continue;
         if (total_uncovered == 0)
             lowest_z = m_layers[layer_idx]->print_z;
         total_uncovered_area += w.uncovered_area;
-        total_uncovered      += w.num_uncovered;
+        total_uncovered      += w.uncovered_islands.size();
     }
+
+    // Pass 4: one overhang spans many layers. Merge uncovered islands within one support gap in Z whose
+    // footprints touch, so the warning counts regions instead of layers. Only uncovered islands take part.
+    std::vector<std::pair<size_t, const Island *>> uncovered;
+    uncovered.reserve(total_uncovered);
+    for (size_t layer_idx = 0; layer_idx < work.size(); ++ layer_idx)
+        for (size_t island_idx : work[layer_idx].uncovered_islands)
+            uncovered.emplace_back(layer_idx, &work[layer_idx].islands[island_idx]);
+
+    std::vector<size_t> parent(uncovered.size());
+    std::iota(parent.begin(), parent.end(), size_t(0));
+    auto find_root = [&parent](size_t i) {
+        while (parent[i] != i)
+            i = parent[i] = parent[parent[i]];
+        return i;
+    };
+    // Sorted by layer, so the scan back stops at the first island out of Z reach.
+    for (size_t i = 0; i < uncovered.size(); ++ i) {
+        const coordf_t reach_z = m_layers[uncovered[i].first]->bottom_z() - search_depth - EPSILON;
+        for (size_t j = i; j-- > 0;) {
+            if (uncovered[j].first == uncovered[i].first)
+                continue;
+            if (m_layers[uncovered[j].first]->print_z < reach_z)
+                break;
+            const size_t  ri = find_root(i), rj = find_root(j);
+            const Island &a  = *uncovered[i].second, &b = *uncovered[j].second;
+            if (ri != rj && a.bbox.overlap(b.bbox) && overlaps(a.coverage_area, b.coverage_area))
+                parent[ri] = rj;
+        }
+    }
+
+    // Sorted by layer, so the first island of a region is its lowest and the last its highest.
+    struct Region {
+        size_t      min_layer;
+        size_t      max_layer;
+        double      area_mm2 = 0.;
+        BoundingBox bbox;
+    };
+    std::map<size_t, Region> regions;
+    for (size_t i = 0; i < uncovered.size(); ++ i) {
+        const auto &[layer_idx, island] = uncovered[i];
+        Region &r = regions.try_emplace(find_root(i), Region{ layer_idx, layer_idx }).first->second;
+        r.max_layer = layer_idx;
+        r.area_mm2 += island->area_mm2;
+        r.bbox.merge(island->bbox);
+    }
+
+    // One line per region so each one can be located in the preview.
+    const Point shift = m_instances.empty() ? Point::Zero() : m_instances.front().shift;
+    for (const auto &[root, r] : regions)
+        BOOST_LOG_TRIVIAL(info) << "Uncovered overhang region: z=" << m_layers[r.min_layer]->print_z << "-"
+                                << m_layers[r.max_layer]->print_z << " x=" << unscale<double>(r.bbox.center().x() + shift.x())
+                                << " y=" << unscale<double>(r.bbox.center().y() + shift.y()) << " area=" << r.area_mm2;
 
     if (total_uncovered > 0)
         BOOST_LOG_TRIVIAL(info) << "Uncovered overhang check on object " << this->model_object()->name << ": "
-                                << total_uncovered << " of " << total_significant << " region(s) uncovered, "
+                                << regions.size() << " region(s) from " << total_uncovered << " of " << total_significant
+                                << " layer island(s) uncovered, "
                                 << total_uncovered_area << " mm2, lowest_z=" << lowest_z;
 
     if (total_uncovered_area < MIN_TOTAL_UNCOVERED_AREA_MM2)
         return;
 
     // Name build-plate-only only when the resolved style still walks drop_nodes.
-    // resolve_support_style() matches SupportParameters, including Default / Grid / Snug.
-    const PrintConfig &print_config = this->print()->config();
-    const SupportMaterialStyle resolved_style =
-        resolve_support_style(m_config.support_style.value, m_config.support_type.value,
-                              this->has_variable_layer_heights, m_slicing_params.soluble_interface,
-                              config_flag_or_false(print_config, "heat_preserve_mode"),
-                              config_flag_or_false(print_config, "enable_support_ring"),
-                              this->print()->uses_multiple_nozzle_diameters());
     const bool classic_tree_drop = resolved_style != smsTreeOrganic;
     std::string warning_message;
     PrintStateBase::SlicingNotificationType warning_id = PrintStateBase::SlicingSupportIncomplete;
@@ -6344,13 +6607,13 @@ void PrintObject::warn_uncovered_overhangs()
             _u8L("Unsupported overhangs were detected.\n"
                  "Model \"%1%\" has %2% overhang region(s). Because \"Support on build plate only\" is enabled, "
                  "supports cannot grow down to the build plate. Try turning this option off."),
-            this->model_object()->name, total_uncovered);
+            this->model_object()->name, regions.size());
     } else
         warning_message = Slic3r::format(
             _u8L("Unsupported overhangs were detected.\n"
                  "Model \"%1%\" has %2% overhang region(s) that could not get support. "
                  "Try adjusting the support settings or re-orienting the object."),
-            this->model_object()->name, total_uncovered);
+            this->model_object()->name, regions.size());
     this->active_step_add_warning(PrintStateBase::WarningLevel::NON_CRITICAL, warning_message, warning_id);
 }
 

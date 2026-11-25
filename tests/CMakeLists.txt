@@ -52,6 +52,7 @@ add_subdirectory(fila_manager)
 add_subdirectory(filament_group)
 add_subdirectory(nozzle_inventory)
 add_subdirectory(libslic3r_utils)
+add_subdirectory(alert_dialog_gallery EXCLUDE_FROM_ALL) # interactive, build explicitly
 
 # These suites were not kept in sync with libslic3r after the fork and no longer compile.
 # They are left out of the default build; build a target explicitly to work on reviving it.
@@ -61,3 +62,5 @@ add_subdirectory(sla_print EXCLUDE_FROM_ALL)
 
 add_subdirectory(cpp17 EXCLUDE_FROM_ALL)    # does not have to be built all the time
 # add_subdirectory(example)
+
+add_subdirectory(material_color_label)

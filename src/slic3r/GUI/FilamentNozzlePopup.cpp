@@ -36,35 +36,6 @@ namespace {
 wxString missing_nozzle_tip() { return _L("To pick this, change the nozzle settings first"); }
 wxString unusable_nozzle_tip() { return _L("The filament in this slot cannot print with this nozzle"); }
 
-// Whether the printer is sold with a nozzle of this flow type, going by the preset that carries
-// `diameter` -- i.e. whether print profiles exist for that extruder variant at all. Says nothing
-// about whether one is installed, nor about whether a given filament can print with it.
-bool printer_offers_flow(const std::string &diameter, NozzleVolumeType volume_type)
-{
-    PresetBundle *preset_bundle = wxGetApp().preset_bundle;
-    const Preset *printer_preset = preset_bundle->get_similar_printer_preset({}, diameter);
-    if (printer_preset == nullptr)
-        return false;
-
-    auto *extruder_variants = printer_preset->config.option<ConfigOptionStrings>("extruder_variant_list");
-    auto *extruders_def      = printer_preset->config.def()->get("extruder_type");
-    auto *extruders          = printer_preset->config.option<ConfigOptionEnumsGeneric>("extruder_type");
-    auto *nozzle_volumes_def = preset_bundle->project_config.def()->get("nozzle_volume_type");
-    if (extruder_variants == nullptr || extruders_def == nullptr || extruders == nullptr || nozzle_volumes_def == nullptr)
-        return false;
-
-    for (size_t idx = 0; idx < extruder_variants->values.size() && idx < extruders->values.size(); ++idx) {
-        const std::string type = extruders_def->enum_labels[extruders->values[idx]];
-        for (size_t j = 0; j < nozzle_volumes_def->enum_labels.size(); ++j) {
-            if ((NozzleVolumeType) nozzle_volumes_def->enum_keys_map->at(nozzle_volumes_def->enum_values[j]) != volume_type)
-                continue;
-            if (boost::algorithm::contains(extruder_variants->values[idx], type + " " + nozzle_volumes_def->enum_labels[j]))
-                return true;
-        }
-    }
-    return false;
-}
-
 } // anonymous namespace
 
 FilamentNozzlePopup::FilamentNozzlePopup(wxWindow *parent) : CascadeMenuPopup(parent)
@@ -312,6 +283,8 @@ void FilamentNozzlePopup::apply_pick(const std::string &diameter, NozzleVolumeTy
         }
     }
 
+    // Per-plate overrides live in the plates, outside the project config comparison.
+    bool plate_override_changed = false;
     auto *global_volume_map = preset_bundle->project_config.option<ConfigOptionInts>("filament_volume_map");
     if (global_volume_map != nullptr) {
         if ((int) global_volume_map->values.size() <= m_filament_idx)
@@ -327,6 +300,8 @@ void FilamentNozzlePopup::apply_pick(const std::string &diameter, NozzleVolumeTy
             if ((int) plate_volume_map.size() <= m_filament_idx)
                 plate_volume_map.resize(m_filament_idx + 1, (int) NozzleVolumeType::nvtStandard);
             plate_volume_map[m_filament_idx] = (int) volume;
+            if (plate_volume_map != plate->get_filament_volume_maps())
+                plate_override_changed = true;
             plate->set_filament_volume_maps(plate_volume_map);
         }
     }
@@ -336,6 +311,8 @@ void FilamentNozzlePopup::apply_pick(const std::string &diameter, NozzleVolumeTy
     Plater *plater = wxGetApp().plater();
     plater->sidebar().refresh_filament_diameter_buttons(true);
     plater->update_project_dirty_from_presets();
+    if (plate_override_changed)
+        plater->mark_project_dirty();
     preset_bundle->export_selections(*wxGetApp().app_config);
     plater->on_config_change(preset_bundle->full_config());
 
@@ -357,15 +334,23 @@ void apply_nozzle_manual_maps_to_plates()
 {
     PresetBundle *preset_bundle = wxGetApp().preset_bundle;
     if (preset_bundle == nullptr) return;
-    // Gated on is_single_ext_multi_nozzle: the all-1s filament_map / nozzle_map derivation below is
-    // only correct there. Dual-extruder machines have their own filament_map semantics handled by
-    // FilamentMapDialog, so this must NOT run for them.
-    // Also gated on multi_nozzle_diameter_mode: with the toggle off the per-slot selector is hidden
+    // Gated on multi_nozzle_diameter_mode: with the toggle off the per-slot selector is hidden
     // and fmmNozzleManual isn't the authoritative mode, so forcing it here would clobber whatever
     // filament_map_mode the user set via FilamentMapDialog for that (non-multi-diameter) state.
-    if (!is_single_ext_multi_nozzle(preset_bundle->full_config())) return;
     if (!multi_nozzle_diameter_mode_enabled(preset_bundle->project_config)) return;
-    
+    // The per-slot flow picked in the selector is pushed to every plate on any machine.
+    // Dual-extruder machines keep their own filament_map semantics handled by FilamentMapDialog,
+    // so the all-1s filament_map / nozzle_map derivation below is only for single-extruder racks.
+    if (!is_single_ext_multi_nozzle(preset_bundle->full_config())) {
+        const auto *g_vol_map = preset_bundle->project_config.option<ConfigOptionInts>("filament_volume_map");
+        if (g_vol_map == nullptr)
+            return;
+        for (PartPlate *plate : wxGetApp().plater()->get_partplate_list().get_plate_list())
+            if (plate != nullptr && !plate->get_filament_volume_maps().empty())
+                plate->set_filament_volume_maps(g_vol_map->values);
+        return;
+    }
+
     //auto *mode_opt = preset_bundle->project_config.option<ConfigOptionEnum<FilamentMapMode>>("filament_map_mode");
     //if (mode_opt && mode_opt->value != fmmNozzleManual) mode_opt->value = fmmNozzleManual;
     const auto     full_config = preset_bundle->full_config();

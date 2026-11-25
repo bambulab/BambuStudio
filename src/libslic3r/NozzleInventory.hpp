@@ -25,6 +25,7 @@
 #include <map>
 #include <memory>
 #include <optional>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -75,10 +76,10 @@ using ExtruderSlots = std::vector<NozzleSlot>;
  * | sync_machine   | Machine | machine nozzles win, saved as history  | a sync with a connected machine            |
  * | user_*         | User    | user nozzles win, saved as history     | a user action in a nozzle dialog or combo  |
  *
- * The newest layer wins until a newer write, but only for its own printer model, and only if it
- * holds the selected diameter; else the history wins, else the preset defaults. On a printer with a
- * nozzle rack any installed nozzle holds the selected diameter, so a diameter selection never changes
- * the slots.
+ * The newest layer for the selected printer wins for every extruder until a newer write, even an
+ * extruder without a nozzle; else the history wins, else the preset defaults. A layer is for its own
+ * printer model and, without a rack, for the diameters its nozzles have. On a printer with a nozzle
+ * rack a diameter selection never changes the nozzles.
  *
  * A call from the wrong event puts its data in the wrong layer, and shadowing then gives wrong
  * nozzles; for example user_set_slots() in a sync handler hides the next project open.
@@ -92,8 +93,8 @@ public:
     /**
      * \brief Create an inventory that writes every change into \p mirror
      *
-     * \param mirror  project config; receives nozzle_volume_type, the per-slot keys and the legacy counts.
-     *                It must outlive the inventory.
+     * \param mirror  project config; receives nozzle_volume_type, the per-slot keys and the legacy
+     *                counts. It must outlive the inventory.
      */
     explicit NozzleInventory(DynamicPrintConfig &mirror);
     ~NozzleInventory();
@@ -198,6 +199,30 @@ public:
     void user_set_volume_type(int extruder_id, NozzleVolumeType type);
 
     /**
+     * \brief The user picked the diameter of an extruder with one nozzle slot
+     *
+     * The nozzle keeps its volume type. Applies in the multi-diameter mode, and to a printer with two
+     * or more single-nozzle extruders that supports that mode, whose nozzles may differ in any mode.
+     * Elsewhere every extruder takes the selected variant's diameter, and an extruder with a rack
+     * derives its diameters from its slots; there this logs a warning and does nothing.
+     *
+     * \param extruder_id  0-based extruder
+     * \param diameter     the picked diameter, such as "0.4"
+     */
+    void user_set_diameter(int extruder_id, const std::string &diameter);
+
+    /**
+     * \brief The user picked the diameter and the volume type of an extruder with one nozzle slot, as one edit
+     *
+     * Applies where \ref user_set_diameter applies; elsewhere this logs a warning and does nothing.
+     *
+     * \param extruder_id  0-based extruder
+     * \param diameter     the picked diameter, such as "0.4"
+     * \param type         the picked volume type; not hybrid
+     */
+    void user_set_nozzle(int extruder_id, const std::string &diameter, NozzleVolumeType type);
+
+    /**
      * \brief The user picked one diameter for all extruders
      *
      * Every installed nozzle of the newest layer takes \p diameter and keeps its volume type, so a
@@ -211,6 +236,33 @@ public:
     // ---- Read ----
 
     /**
+     * \brief Check if an extruder prints with the selected nozzles
+     *
+     * True for every installed nozzle in the multi-diameter mode, on a printer with a rack, or with
+     * one extruder. Else an extruder prints if its nozzle has the selected variant's diameter, so
+     * nozzles of one diameter all print.
+     *
+     * \param extruder_id  0-based extruder
+     */
+    bool in_use(int extruder_id) const;
+
+    /**
+     * \brief Pick the diameter that prints, on a printer with one nozzle per extruder
+     *
+     * A nozzle prints only if it has this diameter. So the result is a diameter that a nozzle has.
+     * Call it after a nozzle change, or when the multi-diameter mode ends.
+     *
+     * Caution: only for a printer with two or more extruders and no rack.
+     *
+     * \param preferred  the diameter to keep if a nozzle has it, such as the selected variant
+     * \return
+     * - \p preferred if a nozzle has it
+     * - else the diameter of the first extruder with a nozzle
+     * - \p preferred if no extruder has a nozzle
+     */
+    std::string diameter_to_print(const std::string &preferred) const;
+
+    /**
      * \brief Number of extruders of the selected printer
      */
     int extruder_count() const;
@@ -222,6 +274,18 @@ public:
      * \return             the slots; empty for an unknown extruder
      */
     const ExtruderSlots &slots(int extruder_id) const;
+
+    /**
+     * \brief Distinct diameters of the nozzles that the next slice prints with
+     *
+     * Only extruders that are in_use() count. In the multi-diameter mode every installed nozzle
+     * counts. Else an extruder counts the slots of the selected diameter, or all installed slots if
+     * none has it, the same rule as counts(). So on a rack printer in the single-diameter mode, a
+     * nozzle of another diameter on the rack does not count.
+     *
+     * \return the diameters in ascending order; empty if no extruder prints
+     */
+    std::set<std::string> printing_diameters() const;
 
     /**
      * \brief Number of slots per volume type

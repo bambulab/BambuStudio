@@ -132,7 +132,9 @@ std::optional<TrayData> MakeTrayData(MachineObject*    obj,
     td.ams_type = tray->ams_type;
     if (tray->ams_type != DevAmsType::EXT_SPOOL) {
         td.slot_id = tray_id;
-        if (ams) {
+        if (tray->ams_type == DevAmsType::N3S) {
+            td.id = ams_id + td.slot_id;
+        } else if (ams) {
             td.id = ams->GetTrayId(td.slot_id);
         }
     } else {

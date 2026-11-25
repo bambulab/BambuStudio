@@ -182,6 +182,8 @@ enum class NotificationType
     BBLBedHeatSoakInfo,
     BBLSingleExtruderMixedFilamentRisk,
     BBLMixedSublayerVariableLayerHeight,
+    // Filament changes on the sliced plate that multi-diameter mode keeps in the project but does not print.
+    BBLInactiveFilamentChange,
     AssemblyWarning,
     AssemblyInfo,
     BBLIsolatedVolumeInfo,

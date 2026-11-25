@@ -192,6 +192,9 @@ MachineInfoPanel::MachineInfoPanel(wxWindow* parent, wxWindowID id, const wxPoin
     createHotendAmsWidgets(m_main_left_sizer);
     show_hotend_ams(false);
 
+    createDryingModuleWidgets(m_main_left_sizer);
+    show_drying_module(false);
+
     m_staticline = new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL);
     m_staticline->SetBackgroundColour(wxColour(206,206,206));
     m_staticline->Show(false);
@@ -529,7 +532,7 @@ wxString MachineInfoPanel::get_device_info_text() const
     }
 
     const uiDeviceUpdateVersion* modules[] = {
-        m_air_pump_version, m_rotary_version, m_cutting_version, m_laser_version,
+        m_drying_module_version, m_air_pump_version, m_rotary_version, m_cutting_version, m_laser_version,
         m_extinguish_version, m_amshub_version, m_filatrack_version, m_exhaustfan_version,
     };
     for (const auto* module : modules) {
@@ -563,6 +566,31 @@ void MachineInfoPanel::createHotendAmsWidgets(wxBoxSizer* main_left_sizer)
 
     main_left_sizer->Add(m_hotend_ams_line_above, 0, wxEXPAND | wxLEFT, FromDIP(40));
     main_left_sizer->Add(m_hotend_ams_sizer, 0, wxEXPAND, 0);
+}
+
+void MachineInfoPanel::createDryingModuleWidgets(wxBoxSizer* main_left_sizer)
+{
+    m_drying_module_line_above = new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL);
+    m_drying_module_line_above->SetBackgroundColour(wxColour(206, 206, 206));
+
+    m_drying_module_img = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(FromDIP(200), FromDIP(200)));
+    m_drying_module_img->SetBitmap(m_img_drying_module.bmp());
+
+    auto        panel_drying_module = new wxPanel(this);
+    wxBoxSizer* content_sizer_v     = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer* content_sizer_h     = new wxBoxSizer(wxHORIZONTAL);
+
+    m_drying_module_version = new uiDeviceUpdateVersion(panel_drying_module, wxID_ANY);
+    content_sizer_h->Add(m_drying_module_version, 0, wxALIGN_CENTER, 0);
+    content_sizer_v->Add(content_sizer_h, 1, wxLEFT, 0);
+    panel_drying_module->SetSizer(content_sizer_v);
+
+    m_drying_module_sizer = new wxBoxSizer(wxHORIZONTAL);
+    m_drying_module_sizer->Add(m_drying_module_img, 0, wxALIGN_TOP | wxALL, FromDIP(5));
+    m_drying_module_sizer->Add(panel_drying_module, 1, wxEXPAND, 0);
+
+    main_left_sizer->Add(m_drying_module_line_above, 0, wxEXPAND | wxLEFT, FromDIP(40));
+    main_left_sizer->Add(m_drying_module_sizer, 0, wxEXPAND, 0);
 }
 
 void MachineInfoPanel::createAirPumpWidgets(wxBoxSizer* main_left_sizer)
@@ -783,6 +811,7 @@ void MachineInfoPanel::init_bitmaps()
         m_img_printer     = ScalableBitmap(this, "printer_thumbnail_png", 160);
         m_img_monitor_ams = ScalableBitmap(this, "monitor_upgrade_ams_png", 150);
         m_img_hotend_ams  = ScalableBitmap(this, "monitor_upgrade_ams_png", 150);
+        m_img_drying_module = ScalableBitmap(this, "monitor_upgrade_rack_b_drying", 150);
         m_img_ext         = ScalableBitmap(this, "monitor_upgrade_ext", 160);
         m_img_air_pump    = ScalableBitmap(this, "air_pump", 160);
         m_img_extra_ams   = ScalableBitmap(this, "extra_icon_png", 160);
@@ -815,6 +844,10 @@ void MachineInfoPanel::rescale_bitmaps()
     m_printer_img->SetBitmap(m_img_printer.bmp());
     m_img_monitor_ams.msw_rescale();
     m_ams_img->SetBitmap(m_img_monitor_ams.bmp());
+    m_img_hotend_ams.msw_rescale();
+    if (m_hotend_ams_img) m_hotend_ams_img->SetBitmap(m_img_hotend_ams.bmp());
+    m_img_drying_module.msw_rescale();
+    if (m_drying_module_img) m_drying_module_img->SetBitmap(m_img_drying_module.bmp());
     m_img_ext.msw_rescale();
     m_ext_img->SetBitmap(m_img_ext.bmp());
     upgrade_green_icon.msw_rescale();
@@ -940,6 +973,8 @@ void MachineInfoPanel::update(MachineObject* obj)
 
         update_rack_imgs(obj);
         update_hotend_ams(obj);
+        update_drying_module_imgs(obj);
+        update_drying_module(obj);
 
         // update ams and extension
         update_ams_ext(obj);
@@ -1441,6 +1476,50 @@ void MachineInfoPanel::update_hotend_ams(MachineObject* obj)
     }
 }
 
+void MachineInfoPanel::update_drying_module_imgs(MachineObject* obj)
+{
+    if (!obj || m_drying_imgs_printer_type == obj->printer_type) { return; }
+    m_drying_imgs_printer_type = obj->printer_type;
+
+    std::string drying_img = DevPrinterConfigUtil::get_drying_module_img(obj->printer_type);
+    if (drying_img.empty()) { drying_img = "monitor_upgrade_rack_b_drying"; }
+
+    try {
+        m_img_drying_module = ScalableBitmap(this, drying_img, 150);
+        if (m_drying_module_img) {
+            m_drying_module_img->SetBitmap(m_img_drying_module.bmp());
+            m_drying_module_img->Refresh();
+        }
+    }
+    catch (const std::exception& e) {
+        BOOST_LOG_TRIVIAL(error) << "drying module img error : " << e.what();
+    }
+    catch (...) {
+        BOOST_LOG_TRIVIAL(error) << "drying module img failed: unknown error";
+    }
+}
+
+void MachineInfoPanel::update_drying_module(MachineObject* obj)
+{
+    if (obj && (obj->drying_module_version_info.isValid() || !obj->drying_module_version_info.sw_ver.empty())) {
+        DevFirmwareVersionInfo info = obj->drying_module_version_info;
+        if (info.product_name.empty()) { info.product_name = L("Optional Drying Module"); }
+        if (info.sn.empty()) { info.sn = "-"; }
+        if (info.sw_new_ver.empty()) {
+            if (auto upgrade_ptr = obj->GetUpgrade().lock()) {
+                const auto& new_ver_list = upgrade_ptr->GetNewVersionList();
+                if (auto it = new_ver_list.find(info.name); it != new_ver_list.end() && !it->second.sw_new_ver.empty()) {
+                    info.sw_new_ver = it->second.sw_new_ver;
+                }
+            }
+        }
+        m_drying_module_version->UpdateInfo(info);
+        show_drying_module(true);
+    } else {
+        show_drying_module(false);
+    }
+}
+
 void MachineInfoPanel::update_air_pump(MachineObject* obj)
 {
     if (obj && obj->air_pump_version_info.isValid())
@@ -1662,6 +1741,15 @@ void MachineInfoPanel::show_hotend_ams(bool show)
         m_hotend_ams_img->Show(show);
         m_hotend_ams_line_above->Show(show);
         m_hotend_ams_version->Show(show);
+    }
+}
+
+void MachineInfoPanel::show_drying_module(bool show)
+{
+    if (m_drying_module_version->IsShown() != show) {
+        m_drying_module_img->Show(show);
+        m_drying_module_line_above->Show(show);
+        m_drying_module_version->Show(show);
     }
 }
 

@@ -13,6 +13,6 @@
     "middle_texture_rect": "13,240,236.12,10",
     "machine_tech": "FFF",
     "model_id": "N6",
-    "not_support_bed_type": "Cool Plate",
+    "not_support_bed_type": "Cool Plate;3D Effect Plate",
     "default_materials": "Bambu PLA Matte @BBL X2D;Bambu PLA Basic @BBL X2D;Bambu TPU 95A @BBL X2D;Generic TPU @BBL X2D;Bambu PETG Basic @BBL X2D;Bambu PETG HF @BBL X2D;Bambu ABS @BBL X2D;Bambu PC @BBL X2D;Bambu PLA Pure @BBL X2D 0.4 nozzle"
 }

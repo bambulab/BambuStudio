@@ -117,5 +117,37 @@ void install_titlebar_zoom_workaround(void * window)
     });
 }
 
+// ---------------------------------------------------------------------------
+// 弹出窗口跟随原生全屏的 Space
+//
+// 背景：弹窗（DropDown 等）是 NSPanel，层级 NSPopUpMenuWindowLevel(101)，远高于主窗口
+//       的 NSNormalWindowLevel(0)。但窗口只在自己所属的 Space 上绘制，跨 Space 时层级
+//       不起作用 —— 这正是「层级明明够高却看不见」的原因。
+// 成因：弹窗在它的 ComboBox 构造时（Sidebar 建立阶段）就创建好，绑定在当时的 Space；
+//       之后 toggleFullScreen: 把主窗口搬进新建的 Space，弹窗留在原地。
+// 实测：macOS 13.4.1 上主窗口全屏后在 Space 467，下拉框仍在 Space 1，全屏下不可见；
+//       非全屏时两者同为 Space 1，显示正常。
+//
+// 选 MoveToActiveSpace 而非 CanJoinAllSpaces：弹窗是瞬态的，只需出现在用户当前所看的
+// Space，不该常驻每一个 Space。
+// FullScreenAuxiliary 不能省：否则在全屏窗口之上 orderFront 可能把主窗口踢出全屏。
+//
+// 生效范围：新版 macOS 自己会迁移这类面板，那里本调用是幂等的，不改变行为。
+// ---------------------------------------------------------------------------
+
+void mac_popup_follow_active_space(void * window)
+{
+    if (window == nullptr)
+        return;
+    NSWindow * win = [(NSView *) window window];
+    if (win == nil)
+        return;
+
+    // collectionBehavior 是窗口的持久属性，创建时设一次即可，不必每次弹出都设。
+    [win setCollectionBehavior:[win collectionBehavior]
+        | NSWindowCollectionBehaviorMoveToActiveSpace
+        | NSWindowCollectionBehaviorFullScreenAuxiliary];
+}
+
 } // namespace GUI
 } // namespace Slic3r

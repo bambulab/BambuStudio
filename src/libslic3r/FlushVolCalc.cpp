@@ -12,6 +12,7 @@ const int g_min_flush_volume_from_support = 700;
 const int g_flush_volume_to_support = 230;
 
 const int g_max_flush_volume = 900;
+const int g_max_flush_volume_manual = 2000;
 
 static float to_radians(float degree)
 {

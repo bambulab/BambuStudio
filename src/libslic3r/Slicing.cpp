@@ -68,7 +68,9 @@ SlicingParameters SlicingParameters::create_from_config(
 	const std::vector<unsigned int> &object_extruders,
 	int                      layer_grid_subdivision,
 	int                      layer_grid_multiplier,
-	double                   single_diameter_layering_nozzle)
+	double                   single_diameter_layering_nozzle,
+	int                      raft_filament_id,
+	double                   preset_nozzle_diameter)
 {
     SlicingParameters params;
     params.layer_grid_subdivision = std::max(1, layer_grid_subdivision);
@@ -175,6 +177,35 @@ SlicingParameters SlicingParameters::create_from_config(
         params.contact_raft_layer_height    = std::max(params.layer_height, 0.75 * support_material_interface_extruder_dmr);
         params.first_object_layer_height    = params.layer_height;
     }
+    params.raft_first_layer_height = initial_layer_print_height;
+
+    // 多口径自动 raft：各层按所选口径定层高，上面按最细口径算出的层高对粗口径太薄；
+    // 首层按口径比例换算设定的首层层高，与指定支撑耗材时的树支撑首层一致。
+    if (params.raft_layers() > 0 && raft_filament_id > 0) {
+        const double raft_nozzle = nozzle_diameter_for_filament(print_config, (unsigned int) raft_filament_id);
+        // 接触面耗材手动指定时，raft 接触面层用它打印；其中仍有 raft 耗材打的主体，层高须两种口径都能打。
+        const int    interface_filament = object_config.support_interface_filament.value > 0 ?
+            object_config.support_interface_filament.value : raft_filament_id;
+        const double interface_nozzle   = nozzle_diameter_for_filament(print_config, (unsigned int) interface_filament);
+        const AdaptiveLayerHeightRange range           = adaptive_layer_height_range(raft_nozzle);
+        const AdaptiveLayerHeightRange interface_range = adaptive_layer_height_range(interface_nozzle);
+        const double interface_min = std::max(range.min_height, interface_range.min_height);
+        const double interface_max = std::min(range.max_height, interface_range.max_height);
+        // 单层 raft 整层都是接触面，或两种口径没有共同层高时，不启用自动选料。
+        if (raft_nozzle > EPSILON && interface_nozzle > EPSILON && interface_min <= interface_max + EPSILON &&
+            ! (interface_filament != raft_filament_id && params.raft_layers() == 1)) {
+            const double first = preset_nozzle_diameter > EPSILON ?
+                authored_initial_layer_height * raft_nozzle / preset_nozzle_diameter : authored_initial_layer_height;
+            params.raft_filament_id               = raft_filament_id;
+            params.raft_nozzle_diameter           = raft_nozzle;
+            params.raft_interface_filament_id     = interface_filament;
+            params.raft_interface_nozzle_diameter = interface_nozzle;
+            params.raft_first_layer_height        = std::clamp(first, range.min_height, range.max_height);
+            params.base_raft_layer_height         = std::clamp(0.75 * raft_nozzle, range.min_height, range.max_height);
+            params.interface_raft_layer_height    = std::clamp(0.75 * interface_nozzle, interface_min, interface_max);
+            params.contact_raft_layer_height      = params.interface_raft_layer_height;
+        }
+    }
 
     if (params.has_raft()) {
         // Raise first object layer Z by the thickness of the raft itself plus the extra distance required by the support material logic.
@@ -187,15 +218,15 @@ SlicingParameters SlicingParameters::create_from_config(
             // top Z = initial_layer_print_height. Otherwise interface_raft_layer_height
             // remains at max(layer_height, 0.75 * nozzle_dmr) and TreeSupport prints the
             // single raft layer too thick, sinking the first object layer into the raft.
-            params.contact_raft_layer_height   = initial_layer_print_height;
-            params.interface_raft_layer_height = initial_layer_print_height;
-            params.base_raft_layer_height      = initial_layer_print_height;
-            params.raft_contact_top_z          = initial_layer_print_height;
+            params.contact_raft_layer_height   = params.raft_first_layer_height;
+            params.interface_raft_layer_height = params.raft_first_layer_height;
+            params.base_raft_layer_height      = params.raft_first_layer_height;
+            params.raft_contact_top_z          = params.raft_first_layer_height;
 		} else {
             assert(params.base_raft_layers > 0);
             assert(params.interface_raft_layers > 0);
             // Number of the base raft layers is decreased by the first layer.
-            params.raft_base_top_z       = initial_layer_print_height + coordf_t(params.base_raft_layers - 1) * params.base_raft_layer_height;
+            params.raft_base_top_z       = params.raft_first_layer_height + coordf_t(params.base_raft_layers - 1) * params.base_raft_layer_height;
             // Number of the interface raft layers is decreased by the contact layer.
             params.raft_interface_top_z  = params.raft_base_top_z + coordf_t(params.interface_raft_layers - 1) * params.interface_raft_layer_height;
 			params.raft_contact_top_z    = params.raft_interface_top_z + params.contact_raft_layer_height;

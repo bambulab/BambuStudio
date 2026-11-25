@@ -112,6 +112,13 @@ enum class BooleanTargetMode {
     Unknown = -1
 };
 
+struct MeshBooleanRepairRow {
+    ObjectID object_id;
+    ObjectID volume_id;
+    std::string name;
+    bool needs_repair;
+};
+
 // ========================== VOLUME LIST MANAGEMENT ==========================
 
 class VolumeListManager {
@@ -125,7 +132,8 @@ public:
     VolumeListManager();
 
     // Core operations
-    bool selection_changed(const Selection& selection);
+    using IndexMap = std::unordered_map<unsigned int, unsigned int>;
+    void remap_indices(const IndexMap& old_to_new);
     void init_part_mode_lists(const Selection& selection);
     void init_object_mode_lists(const Selection& selection);
     void clear_all();
@@ -316,20 +324,12 @@ private:
         const std::string& operation) const;
 
     // ========================== ASYNC CORE LOGIC ==========================
-    // Core boolean logic with CGAL fallback - used by async version
-    std::optional<TriangleMesh> execute_boolean_on_meshes_async(
-        const std::vector<TriangleMesh>& meshes,
+    // Boolean of all operands in one backend call; each operand is the union of its meshes.
+    std::optional<TriangleMesh> execute_boolean_on_operands_async(
+        const std::vector<std::vector<const TriangleMesh*>>& operands,
         const std::string& operation,
         std::function<bool()> cancel_cb = nullptr,
         std::function<void(float)> progress_cb = nullptr) const;
-
-    // Pairwise union reduced as a balanced tree (1+2, 3+4, ... then the results), so the
-    // two operands of every union stay comparable in size instead of one growing mesh
-    // absorbing each part in turn.
-    std::optional<TriangleMesh> union_meshes_tree(
-        const std::vector<TriangleMesh>& meshes,
-        std::function<bool()> cancel_cb,
-        std::function<void(float)> progress_cb) const;
 
     // ========================== MODEL MANIPULATION HELPERS ==========================
     // source_world: world matrix the source volume was baked with (its instance * volume matrix).
@@ -434,6 +434,7 @@ protected:
     virtual CommonGizmosDataID on_get_requirements() const override;
     virtual void on_render_input_window(float x, float y, float bottom_limit);
     virtual void on_change_color_mode(bool is_dark) override;
+    void data_changed(bool) override { m_scene_dirty = true; }
     void on_load(cereal::BinaryInputArchive &ar) override;
     void on_save(cereal::BinaryOutputArchive &ar) const override;
 
@@ -454,39 +455,42 @@ private:
     void reset_gizmo();
     void execute_mesh_boolean();
     void init_volume_manager();
+    bool sync_volume_manager();
+    // GLVolume indices can change on reload. The model-volume/instance ID pair does not.
+    using SceneIndices = std::map<std::pair<size_t, size_t>, unsigned int>;
+    static SceneIndices selected_scene_indices(const Selection& selection);
+    static bool same_scene_ids(const SceneIndices& a, const SceneIndices& b);
+    static VolumeListManager::IndexMap remap_scene_indices(const SceneIndices& before, const SceneIndices& after,
+                                                          ObjectID old_volume = {}, ObjectID new_volume = {});
+    SceneIndices m_scene_selection;
+    bool m_scene_dirty{true};
     bool get_cur_entity_only() const;
     void save_object_visibility() const;
     void restore_object_visibility() const;
     BooleanTargetMode update_cur_mode(const Selection& selection) const;
 
     // ========================== ASYNC JOB METHODS ==========================
-    BooleanJobData::VolumeData prepare_volume_data(const BooleanOperationEngine::VolumeInfo& vol_info) const;
-    BooleanJobData prepare_job_data();
+    struct Operand {
+        const ModelVolume* volume;
+        const GLVolume* gl_volume;
+    };
+    struct Operands {
+        std::vector<Operand> a, b;
+    };
+    Operands collect_operands() const;
+    const std::string* operand_count_error(const Operands& operands) const;
+    void update_operand_status(const Operands& operands);
+    void sync_panel_settings();
+    static BooleanJobData::VolumeData prepare_volume_data(const Operand& operand);
+    BooleanJobData prepare_job_data(Operands operands);
     BooleanOperationResult perform_boolean_operation_async(BooleanJobData& data, JobNew::Ctl& ctl);
     void apply_boolean_result_from_job(const BooleanJobData& job_data);
 
-    // Helper: Group volumes by object and union within each object (for Object mode).
-    // Returns an empty vector on failure or cancellation.
-    std::vector<TriangleMesh> group_and_union_by_object(
+    // Helper: one operand per object (Object mode) or per part (Part mode). The pointers
+    // refer to the meshes in `volumes`.
+    static std::vector<std::vector<const TriangleMesh*>> operands_for_operation(
         const std::vector<BooleanJobData::VolumeData>& volumes,
-        std::function<bool()> cancel_cb,
-        std::function<void(float)> progress_cb = nullptr);
-
-    // Helper: Prepare meshes for operation (group by object if in Object mode, otherwise extract directly)
-    std::vector<TriangleMesh> prepare_meshes_for_operation(
-        const std::vector<BooleanJobData::VolumeData>& volumes,
-        BooleanTargetMode target_mode,
-        std::function<bool()> cancel_cb,
-        std::function<void(float)> progress_cb = nullptr);
-
-    // Helper: Accumulate boolean operations on a list of meshes (for Union/Intersection)
-    std::optional<TriangleMesh> accumulate_boolean_operations(
-        const std::vector<TriangleMesh>& meshes,
-        const std::string& operation,
-        BooleanJobData& data,
-        JobNew::Ctl& ctl,
-        BooleanOperationResult& result,
-        const std::function<void(float)>& progress_cb);
+        BooleanTargetMode target_mode);
 
     // Thread-safe: stores the progress (0-100) and status shown in the panel and asks the UI
     // thread for a redraw. Callable from the worker thread.
@@ -500,6 +504,13 @@ private:
     bool m_entity_only = true;
     bool m_preserve_color = true;
     size_t m_last_snapshot_time = 0;
+    std::set<ObjectID> m_repaired_volume_ids;
+    size_t m_repair_revision{0};   // Invalidates deferred actions on close, reopen or history load.
+    bool m_repair_busy{false};     // Includes a queued click and the native modal dialog.
+    bool m_repair_refreshing{false};
+    bool is_operation_busy() const { return m_async_job_running || m_object_union_job_running || m_repair_busy; }
+    void queue_part_repair(ObjectID object_id, ObjectID volume_id);
+    void repair_part(size_t revision, ObjectID object_id, ObjectID volume_id);
 
     // ========================== ASYNC JOB TRACKING ==========================
     std::shared_ptr<BooleanJobData> m_current_job_data;  // Shared data with running job

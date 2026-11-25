@@ -68,6 +68,12 @@ public:
 
     void clear_hms_tag();
 
+    // Rows the panel lists for obj; internal codes are excluded.
+    static int count_shown(MachineObject *obj);
+
+    // True if the panel clears its rows for this monitor status.
+    static bool clears_rows(int status);
+
     MachineObject *obj { nullptr };
     std::map<std::string, DevHMSItem>    temp_hms_list;
 };

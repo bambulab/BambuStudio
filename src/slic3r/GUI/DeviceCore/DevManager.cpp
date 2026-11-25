@@ -125,6 +125,9 @@ namespace Slic3r
             std::string dev_name        = j["dev_name"].get<std::string>();
             std::string dev_id          = j["dev_id"].get<std::string>();
             std::string dev_ip          = j["dev_ip"].get<std::string>();
+            if (!DevUtil::is_valid_ipv4(dev_ip)) {
+                return;
+            }
             std::string printer_type_str= j["dev_type"].get<std::string>();
             std::string printer_signal  = j["dev_signal"].get<std::string>();
             std::string connect_type    = j["connect_type"].get<std::string>();

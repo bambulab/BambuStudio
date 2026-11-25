@@ -68,7 +68,7 @@ PurgeModeDialog::PurgeModeDialog(wxWindow *parent, PurgeModeDialogType dialog_ty
     } else {
         // Multi-nozzle: Prime Saving option
         m_saving_panel = new PurgeModeBtnPanel(options_panel, _L("Prime Saving"),
-                                               _L("Reduces prime waste and prints faster. May cause slight color mixing(only for H2C and H3C external 1st/2nd Gen AMS nozzles) or small surface defects."), "leaf");
+                                               _L("Reduces prime waste and prints faster. May cause slight color mixing(only for H2C and Bambu Lab H3C external 1st/2nd Gen AMS nozzles) or small surface defects."), "leaf");
         m_saving_panel->SetMinSize(wxSize(FromDIP(200), -1));
         m_saving_panel->Select(mode == pvmSaving);
         m_saving_panel->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &) { select_option(pvmSaving); });

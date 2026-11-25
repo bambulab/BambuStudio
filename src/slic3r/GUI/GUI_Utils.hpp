@@ -30,6 +30,9 @@
 class wxCheckBox;
 class wxTopLevelWindow;
 class wxRect;
+#ifdef _WIN32
+struct tagRECT;
+#endif
 
 #define wxVERSION_EQUAL_OR_GREATER_THAN(major, minor, release) ((wxMAJOR_VERSION > major) || ((wxMAJOR_VERSION == major) && (wxMINOR_VERSION > minor)) || ((wxMAJOR_VERSION == major) && (wxMINOR_VERSION == minor) && (wxRELEASE_NUMBER >= release)))
 #define ICON_SINGLE_SIZE FromDIP(16)//don't change,if need new value,self create in cpp
@@ -90,6 +93,20 @@ void on_window_geometry(wxTopLevelWindow *tlw, std::function<void()> callback);
 enum { DPI_DEFAULT = 96 };
 
 int get_dpi_for_window(const wxWindow *window);
+
+#ifdef _WIN32
+/**
+ * \brief Get the non-client frame of a window with \p style, at the DPI of the monitor \p hwnd is on
+ *
+ * Same result as AdjustWindowRectEx() on an empty rect, but that one always uses the primary
+ * monitor's DPI, which is wrong for a window on a monitor with another scale.
+ *
+ * \param hwnd   window whose DPI is used
+ * \param style  window style to measure the frame for
+ * \param frame  receives the frame; left/top are negative, right/bottom positive
+ */
+void get_window_frame_for_dpi(WXHWND hwnd, unsigned long style, ::tagRECT &frame);
+#endif
 wxFont get_default_font_for_dpi(const wxWindow* window, int dpi);
 inline wxFont get_default_font(const wxWindow* window) { return get_default_font_for_dpi(window, get_dpi_for_window(window)); }
 
@@ -161,7 +178,13 @@ public:
         this->Bind(wxEVT_DPI_CHANGED, [this](wxDPIChangedEvent& evt) {
 	            m_scale_factor = (float)evt.GetNewDPI().x / (float)DPI_DEFAULT;
 	            m_new_font_point_size = get_default_font_for_dpi(this, evt.GetNewDPI().x).GetPointSize();
-	            if (m_can_rescale && (m_force_rescale || is_new_scale_factor()))
+	            const bool do_rescale = m_can_rescale && (m_force_rescale || is_new_scale_factor());
+	            // wx has already scaled min sizes, borders and spacers by new/old DPI before this event.
+	            BOOST_LOG_TRIVIAL(info) << "DPI changed window=\"" << this->GetName() << "\" old_dpi=" << evt.GetOldDPI().y
+	                                    << " new_dpi=" << evt.GetNewDPI().y << " prev_scale=" << m_prev_scale_factor
+	                                    << " new_scale=" << m_scale_factor << " can_rescale=" << m_can_rescale
+	                                    << " force=" << m_force_rescale << " rescale=" << do_rescale;
+	            if (do_rescale)
 	                rescale(wxRect());
             });
 #else
@@ -194,6 +217,10 @@ public:
             m_can_rescale = is_new_scale_factor();
 
             // If scale factor is different after moving of MainFrame ...
+            if (m_can_rescale) {
+                BOOST_LOG_TRIVIAL(info) << "rescale after move window=\"" << this->GetName() << "\" prev_scale=" << m_prev_scale_factor
+                                        << " new_scale=" << m_scale_factor;
+            }
             if (m_can_rescale)
                 // ... rescale application
                 rescale(event.GetRect());
@@ -571,6 +598,9 @@ private:
     wxString    m_wiki_text;
     wxString    m_tooltip;
 };
+
+
+wxString get_printer_short_display_name(const wxString &full_name);
 
 /* Image Generator */
 #define _3MF_COVER_SIZE                  wxSize(240, 240)

@@ -1077,8 +1077,9 @@ public:
             if (need_change_flow) {
                 if (i == 1) {
                     // using bridge flow in bridge area, and add notes for gcode-check when flow changed
-                    set_extrusion_flow(wipe_tower->extrusion_flow_for(0.2f, m_line_width));
-                    append(";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Height) + std::to_string(0.2) + "\n");
+                    const float bridge_height = wipe_tower->bridge_flow_height(m_current_tool, m_layer_height, ld.y());
+                    set_extrusion_flow(wipe_tower->extrusion_flow_for(bridge_height, m_line_width));
+                    append(";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Height) + std::to_string(bridge_height) + "\n");
                     flow_changed = true;
                 } else if (i == 2 && flow_changed) {
                     set_extrusion_flow(saved_flow);
@@ -1094,8 +1095,9 @@ public:
         bool need_change_flow = wipe_tower->need_thick_bridge_flow(p0.y(), m_layer_height);
         const float saved_flow = m_extrusion_flow;
         if (need_change_flow) {
-            set_extrusion_flow(wipe_tower->extrusion_flow_for(0.2f, m_line_width));
-            append(";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Height) + std::to_string(0.2) + "\n");
+            const float bridge_height = wipe_tower->bridge_flow_height(m_current_tool, m_layer_height, p0.y());
+            set_extrusion_flow(wipe_tower->extrusion_flow_for(bridge_height, m_line_width));
+            append(";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Height) + std::to_string(bridge_height) + "\n");
         }
         if (abs(x() - p0.x()) > abs(x() - p1.x())) std::swap(p0, p1);
         travel(p0.x(), y());
@@ -2049,16 +2051,16 @@ void WipeTower::set_extruder(size_t idx, const PrintConfig& config, size_t confi
     if (nozzle_diameter <= 0.f)
         nozzle_diameter = float(config.nozzle_diameter.get_at(idx));
     m_filpar[idx].nozzle_diameter = nozzle_diameter;
-    // Multi-diameter mode uses the hardcoded per-diameter defaults. The process values stay
-    // editable only while that mode is off.
+    // Multi-diameter mode uses the per-diameter values of the printer model's rule set. The process
+    // values stay editable only while that mode is off.
     const float line_width = m_per_nozzle_tower_params ?
-        float(multi_nozzle_prime_tower_line_width(nozzle_diameter, config.prime_tower_line_width.value)) :
+        float(multi_nozzle_prime_tower_line_width(config, nozzle_diameter, config.prime_tower_line_width.value)) :
         float(config.prime_tower_line_width.value);
     const float ramming_line_width = m_per_nozzle_tower_params ?
-        float(multi_nozzle_prime_tower_ramming_line_width(nozzle_diameter, config.prime_tower_ramming_line_width.value)) :
+        float(multi_nozzle_prime_tower_ramming_line_width(config, nozzle_diameter, config.prime_tower_ramming_line_width.value)) :
         float(config.prime_tower_ramming_line_width.value);
     const float feedrate_factor = m_per_nozzle_tower_params ?
-        float(multi_nozzle_prime_tower_feedrate_factor(nozzle_diameter, config.prime_tower_feedrate_factor.value)) :
+        float(multi_nozzle_prime_tower_feedrate_factor(config, nozzle_diameter, config.prime_tower_feedrate_factor.value)) :
         float(config.prime_tower_feedrate_factor.value);
     m_filpar[idx].perimeter_width = line_width > 0 ? line_width : nozzle_diameter * Width_To_Nozzle_Ratio;
     m_filpar[idx].nozzle_change_perimeter_width = ramming_line_width > 0 ?
@@ -2201,7 +2203,7 @@ std::vector<WipeTower::ToolChangeResult> WipeTower::prime(
 float WipeTower::wipe_line_spacing(bool solid_toolchange)
 {
     const float tool_width = filament_perimeter_width(m_current_tool);
-    if (solid_toolchange || is_first_layer())
+    if (solid_toolchange || is_first_layer_for_slab(slab_height_for(m_current_tool, m_cur_layer_id, m_layer_height)))
         return tool_width;
     return m_layer_info->extra_spacing * get_block_gap_width(m_current_tool, false);
 }
@@ -2815,8 +2817,9 @@ void WipeTower::toolchange_Wipe(
 
         // BBS: check the bridging area and use the bridge flow
         if (need_change_flow || need_thick_bridge_flow(writer.y(), m_layer_height)) {
-            writer.set_extrusion_flow(extrusion_flow(0.2));
-            writer.append(";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Height) + std::to_string(0.2) + "\n");
+            const float bridge_height = bridge_flow_height(m_current_tool, m_layer_height, writer.y());
+            writer.set_extrusion_flow(extrusion_flow(bridge_height));
+            writer.append(";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Height) + std::to_string(bridge_height) + "\n");
             need_change_flow = true;
         }
 
@@ -3806,7 +3809,7 @@ WipeTower::NozzleChangeResult WipeTower::ramming(int old_filament_id, int new_fi
         float nozzle_change_speed = 60.0f * max_e_ramming_speed / nz_extrusion_flow;
         if (solid_infill)
             nozzle_change_speed = std::min(40.f * 60.f, nozzle_change_speed);
-        float bridge_speed = std::min(60.0f * max_e_ramming_speed / extrusion_flow_for(0.2f, nc_width), nozzle_change_speed);
+        float bridge_speed = std::min(60.0f * max_e_ramming_speed / extrusion_flow_for(bridge_flow_height(old_filament_id, ramming_slab_height, cleaning_box.ru.y()), nc_width), nozzle_change_speed);
 
         const float &xl = cleaning_box.ld.x();
         const float &xr = cleaning_box.rd.x();
@@ -3837,8 +3840,9 @@ WipeTower::NozzleChangeResult WipeTower::ramming(int old_filament_id, int new_fi
         LimitFlow LimitRamming = extruder_change ? LimitFlow::LimitRammingFlow : LimitFlow::LimitRammingFlowNC;
         for (int i = 0; true; ++i) {
             if (need_thick_bridge_flow(writer.pos().y(), ramming_slab_height)) {
-                writer.set_extrusion_flow(extrusion_flow_for(0.2f, nc_width));
-                writer.append(";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Height) + std::to_string(0.2) + "\n");
+                const float bridge_height = bridge_flow_height(old_filament_id, ramming_slab_height, writer.pos().y());
+                writer.set_extrusion_flow(extrusion_flow_for(bridge_height, nc_width));
+                writer.append(";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Height) + std::to_string(bridge_height) + "\n");
                 need_change_flow = true;
             }
             if (m_left_to_right)
@@ -4538,8 +4542,19 @@ WipeTower::ToolChangeResult WipeTower::finish_block_solid(const WipeTowerBlock &
     float       extrusion_height = slab_height;
     float       e_flow = slab_height * (fill_width - slab_height * (1.f - float(M_PI) / 4.f)) / filament_area_val;
     const float e_flow_02 = 0.2f * (fill_width - 0.2f * (1.f - float(M_PI) / 4.f)) / filament_area_val;
-    if (!m_merged_slabs_active && m_cur_layer_id > 1 &&
-        block.layers_type[m_cur_layer_id - 1] == WipeTowerLayerType::Normal && e_flow < e_flow_02) {
+    bool over_sparse_layer = m_cur_layer_id > 1 && block.layers_type[m_cur_layer_id - 1] == WipeTowerLayerType::Normal;
+    if (! m_layer_dropped_by_compaction.empty()) {
+        // A compacted tower lays this block on the last layer it printed. That layer's wipe lines may well
+        // cover the whole band, so only the dense front it reached tells whether anything is bridged.
+        int below_layer = int(m_cur_layer_id) - 1;
+        while (below_layer >= 0 && layer_dropped_by_compaction(below_layer))
+            --below_layer;
+        const float band_end = block.start_depth + band_fill_depth(block, m_cur_layer_id) - fill_width;
+        over_sparse_layer = below_layer > first_printed_layer_idx() &&
+                            block.layers_type[below_layer] == WipeTowerLayerType::Normal &&
+                            block.finish_depth[below_layer] + EPSILON < band_end;
+    }
+    if (!m_merged_slabs_active && over_sparse_layer && e_flow < e_flow_02) {
         extrusion_height = 0.2f;
         e_flow = e_flow_02;
     }
@@ -5125,8 +5140,9 @@ void WipeTower::toolchange_wipe_new(WipeTowerWriter &writer, const box_coordinat
         bool need_change_flow = need_thick_bridge_flow(writer.y(), wipe_slab_height);
         // BBS: check the bridging area and use the bridge flow
         if (need_change_flow) {
-            writer.set_extrusion_flow(extrusion_flow_for(0.2f, tool_width));
-            writer.append(";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Height) + std::to_string(0.2) + "\n");
+            const float bridge_height = bridge_flow_height(m_current_tool, wipe_slab_height, writer.y());
+            writer.set_extrusion_flow(extrusion_flow_for(bridge_height, tool_width));
+            writer.append(";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Height) + std::to_string(bridge_height) + "\n");
         }
         float flat_iron_area = m_filpar[m_current_tool].flat_iron_area;
         float ironing_length = 3.;
@@ -5686,6 +5702,15 @@ void WipeTower::generate_wipe_tower_blocks(bool add_solid_flag)
             layers_used_categories.push_back(std::move(used_categories));
         }
 
+        auto block_slab_on_bed = [this](const WipeTowerBlock &block, int layer_id) {
+            float height = layer_slab_height(layer_id, m_plan[layer_id].height);
+            if (layer_id < (int) m_block_slab_height.size()) {
+                const auto iter = m_block_slab_height[layer_id].find(block.block_key);
+                if (iter != m_block_slab_height[layer_id].end() && iter->second > 0.f)
+                    height = iter->second;
+            }
+            return slab_touches_bed(layer_id, height);
+        };
         for (WipeTowerBlock &block : m_wipe_tower_blocks) {
             const int block_category = decode_block_category(block.block_key);
             auto      solid_has_band = [&](int layer_id) {
@@ -5694,7 +5719,24 @@ void WipeTower::generate_wipe_tower_blocks(bool add_solid_flag)
             };
             for (int layer_id = 0; layer_id < all_layer_category_to_depth.size(); ++layer_id) {
                 std::unordered_map<int, float> &category_to_depth = all_layer_category_to_depth[layer_id];
-                if (category_to_depth[block.block_key] < block.layer_depths[layer_id] - m_perimeter_width) {
+                if (m_sparse_layers_skipped) {
+                    // A compacted tower drops every layer without a tool change, so the dense floor has to go on
+                    // a layer that prints, and the bands above it are the next printed layers, not planned ones.
+                    if (!m_plan[layer_id].tool_changes.empty() &&
+                        category_to_depth[block.block_key] < block.layer_depths[layer_id] - m_perimeter_width) {
+                        const bool cur_has_category = solid_has_band(layer_id);
+                        int        printed_above    = 0;
+                        for (int up = layer_id + 1; up < int(all_layer_category_to_depth.size()) && printed_above < solid_infill_layer_low; ++up) {
+                            if (m_plan[up].tool_changes.empty())
+                                continue;
+                            ++printed_above;
+                            if (cur_has_category != solid_has_band(up)) {
+                                block.layers_type[layer_id] = WipeTowerLayerType::Solid;
+                                break;
+                            }
+                        }
+                    }
+                } else if (category_to_depth[block.block_key] < block.layer_depths[layer_id] - m_perimeter_width) {
                     const bool cur_has_category = solid_has_band(layer_id);
                     for (int layer_count = solid_infill_layer_low; layer_count > 0; --layer_count) {
                         if (layer_id + layer_count >= int(all_layer_category_to_depth.size()))
@@ -5706,11 +5748,23 @@ void WipeTower::generate_wipe_tower_blocks(bool add_solid_flag)
                         }
                     }
                 }
-                if (layer_id > 0) {
+                // A compacted tower only prints the layers carrying a tool change, so a band lands on the last
+                // of those, or on the bed when there is none, never on the planned layer right below.
+                int prev_layer = layer_id - 1;
+                if (m_sparse_layers_skipped) {
+                    if (m_plan[layer_id].tool_changes.empty())
+                        continue;
+                    while (prev_layer >= 0 && m_plan[prev_layer].tool_changes.empty())
+                        --prev_layer;
+                }
+                if (prev_layer >= 0) {
                     bool cur_has_block_category = layers_used_categories[layer_id].count(block_category);
-                    bool pre_has_block_category = layers_used_categories[layer_id - 1].count(block_category);
-                    if (cur_has_block_category != pre_has_block_category) { block.layers_type[layer_id] = WipeTowerLayerType::Contact; }
-                    if (block.layers_type[layer_id - 1] == WipeTowerLayerType::Contact && block.layers_type[layer_id] != WipeTowerLayerType::Contact) {
+                    bool pre_has_block_category = layers_used_categories[prev_layer].count(block_category);
+                    // A merged slab reaching down to the bed lands on nothing, whatever the layers it spans held.
+                    if (cur_has_block_category != pre_has_block_category && !(merged_fill && block_slab_on_bed(block, layer_id))) {
+                        block.layers_type[layer_id] = WipeTowerLayerType::Contact;
+                    }
+                    if (block.layers_type[prev_layer] == WipeTowerLayerType::Contact && block.layers_type[layer_id] != WipeTowerLayerType::Contact) {
                         block.layers_type[layer_id] = WipeTowerLayerType::Contact_UP;
                     }
                 }
@@ -6822,6 +6876,12 @@ void WipeTower::plan_merged_block_fill()
                             height = carrier;
                     }
                     const float bottom_z = m_plan[top_layer].z - height;
+                    // The Contact flags were set before this ladder existed, against a thinner slab. One that
+                    // now reaches the bed lands on nothing, so it must not carry or inherit an interface.
+                    const bool  on_bed   = slab_touches_bed(top_layer, height);
+                    auto        is_contact = [](WipeTowerLayerType type) {
+                        return type == WipeTowerLayerType::Contact || type == WipeTowerLayerType::Contact_UP;
+                    };
                     for (int step = 0; step < n; ++step) {
                         const int   layer_id = printed[step];
                         const float z        = m_plan[layer_id].z;
@@ -6837,10 +6897,12 @@ void WipeTower::plan_merged_block_fill()
                         block.layer_reserved[layer_id] = 1;
                         // A same-material support run stays sparse. Promoting Solid from a swallowed
                         // layer would turn the whole slab solid just because the TPU category flickered.
-                        if (!keep_sparse &&
+                        if (!keep_sparse && !(on_bed && is_contact(block.layers_type[layer_id])) &&
                             type_rank(block.layers_type[layer_id]) > type_rank(block.layers_type[top_layer]))
                             block.layers_type[top_layer] = block.layers_type[layer_id];
                     }
+                    if (on_bed && is_contact(block.layers_type[top_layer]))
+                        block.layers_type[top_layer] = WipeTowerLayerType::Solid;
                     if (keep_sparse)
                         block.layers_type[top_layer] = WipeTowerLayerType::Normal;
                     // Remember which filament this slab actually extrudes. A later category check
@@ -6905,8 +6967,10 @@ void WipeTower::plan_merged_block_fill()
                 const int last_layer  = printed[groups.back().top_step];
                 if (prev_category >= 0 && prev_category != category)
                     block.layers_type[first_layer] = WipeTowerLayerType::Contact;
-                if (meets_band && category != block_category)
-                    block.layers_type[last_layer] = WipeTowerLayerType::Contact;
+                // The band's own material lands on this fill: only that upper slab is the interface, the fill
+                // just needs a dense top to carry it.
+                if (meets_band && category != block_category && block.layers_type[last_layer] == WipeTowerLayerType::Normal)
+                    block.layers_type[last_layer] = WipeTowerLayerType::Solid;
             };
             if (prefer_max_fill) {
                 int prev_category = -1;
@@ -7032,11 +7096,10 @@ void WipeTower::plan_merged_block_fill()
     }
 
     // Each block is one adhesiveness category, but the slot under it is often printed by a
-    // filament from another block. Those two meet on a plane, and both slabs are the interface.
-    // PLA in a TPU block is only a fill, so it was already marked. TPU's own layers are the
-    // purge: skipping those left the TPU side of the same joint sparse. A run of one category
-    // stays sparse except at the joint. Layers 1-5 PLA, 6-7 TPU, 8-10 PLA, then TPU again
-    // mark 5, 6, 7, 8 and 10.
+    // filament from another block. Those two meet on a plane. As on a single-diameter tower, only
+    // the slab laid on top of the other material is the interface; the slab it lands on is kept
+    // dense so the interface does not bridge a sparse grid. Layers 1-5 PLA, 6-7 TPU, 8-10 PLA,
+    // then TPU again: 6, 8 and 11 are Contact, 5, 7 and 10 are Solid.
     for (WipeTowerBlock &block : m_wipe_tower_blocks) {
         struct PrintedSlab {
             int   layer_id;
@@ -7079,8 +7142,9 @@ void WipeTower::plan_merged_block_fill()
                 continue;
             if (get_filament_category(support->filament) == get_filament_category(upper.filament))
                 continue;
-            block.layers_type[support->layer_id] = WipeTowerLayerType::Contact;
-            block.layers_type[upper.layer_id]    = WipeTowerLayerType::Contact;
+            if (block.layers_type[support->layer_id] == WipeTowerLayerType::Normal)
+                block.layers_type[support->layer_id] = WipeTowerLayerType::Solid;
+            block.layers_type[upper.layer_id] = WipeTowerLayerType::Contact;
         }
     }
 }
@@ -7332,8 +7396,24 @@ void WipeTower::plan_tower_new()
                 for (auto &toolchange : info.tool_changes) {
                     toolchange.required_depth *= m_extra_spacing;
                     toolchange.nozzle_change_depth *= m_extra_spacing;
-                    toolchange.wipe_length = volume_to_length(toolchange.wipe_volume, filament_perimeter_width(toolchange.new_tool),
-                                                              slab_height_for(toolchange.new_tool, idx, info.height));
+                    const float wipe_height = slab_height_for(toolchange.new_tool, idx, info.height);
+                    toolchange.wipe_length = volume_to_length(toolchange.wipe_volume, filament_perimeter_width(toolchange.new_tool), wipe_height);
+                    // A merged slab that spans down to the bed is a first layer for its band and is laid densely
+                    // at runtime, so stretch the extrusion to fill the reserved depth like the foundation layer.
+                    const float new_tool_width    = filament_perimeter_width(toolchange.new_tool);
+                    const float old_tool_nc_width = filament_nozzle_change_width(toolchange.old_tool);
+                    if (slab_touches_bed(idx, wipe_height)) {
+                        const float wipe_depth  = toolchange.required_depth - toolchange.nozzle_change_depth;
+                        const float line_len    = m_wipe_tower_width - 2 * new_tool_width;
+                        toolchange.wipe_length  = std::max(toolchange.wipe_length, wipe_depth / new_tool_width * line_len);
+                        toolchange.wipe_volume  = length_to_volume(toolchange.wipe_length, new_tool_width, wipe_height);
+                    }
+                    if (toolchange.nozzle_change_depth > WT_EPSILON &&
+                        slab_touches_bed(idx, slab_height_for(toolchange.old_tool, idx, info.height))) {
+                        const int nozzle_change_line_count = int((toolchange.nozzle_change_depth + WT_EPSILON) / old_tool_nc_width);
+                        const float nozzle_change_box_width = m_wipe_tower_width - (old_tool_nc_width + filament_perimeter_width(toolchange.old_tool));
+                        toolchange.nozzle_change_length    = std::max(toolchange.nozzle_change_length, nozzle_change_line_count * nozzle_change_box_width);
+                    }
                 }
             }
         }
@@ -7782,10 +7862,25 @@ void WipeTower::generate_new(std::vector<std::vector<WipeTower::ToolChangeResult
 
     std::vector<WipeTower::ToolChangeResult> layer_result;
     int index = 0;
+    m_printed_layer_z.clear();
+    m_layer_dropped_by_compaction.clear();
+    if (m_sparse_layers_skipped) {
+        m_printed_layer_z.assign(m_plan.size(), 0.f);
+        m_layer_dropped_by_compaction.assign(m_plan.size(), 0);
+    }
     for (auto layer : m_plan) {
         reset_block_status();
         m_cur_layer_id = index++;
         set_layer(layer.z, layer_slab_height(m_cur_layer_id, layer.height), 0, false, layer.z == m_plan.back().z);
+        if (m_sparse_layers_skipped) {
+            // A layer without a tool change only carries a sparse grid, which G-code export drops from a
+            // compacted tower; the layers that do print stack up from the bed (compute_compacted_wipe_tower_z).
+            const bool dropped  = layer.tool_changes.empty();
+            const bool prints   = ! dropped && ! layer_is_skipped(m_cur_layer_id) && m_layer_info->depth >= m_perimeter_width;
+            const float below_z = m_cur_layer_id > 0 ? m_printed_layer_z[m_cur_layer_id - 1] : 0.f;
+            m_layer_dropped_by_compaction[m_cur_layer_id] = dropped ? 1 : 0;
+            m_printed_layer_z[m_cur_layer_id] = below_z + (prints ? layer_slab_height(m_cur_layer_id, layer.height) : 0.f);
+        }
         if (layer_is_skipped(m_cur_layer_id)) {
             // The nozzle that would fill this layer cannot lay down what is left of it, so the tower waits:
             // no tool change happens here, and the height rolls into the next layer the tower does print.
@@ -8481,10 +8576,15 @@ bool WipeTower::get_floating_area(float &start_pos_y, float &end_pos_y) const {
     // layer may contain only a sparse grid, and its actual finish depth is what makes the overhanging part
     // of the current wipe lines require 0.2 mm equivalent bridge flow.
     if (!m_merged_slabs_active) {
-        if (m_layer_info == m_plan.begin() || (m_layer_info - 1) == m_plan.begin())
+        // A compacted tower never prints its sparse layers, so the support is the last layer it did print.
+        int below = int(m_cur_layer_id) - 1;
+        while (below >= 0 && layer_dropped_by_compaction(below))
+            --below;
+        const int first_printed = m_layer_dropped_by_compaction.empty() ? 0 : first_printed_layer_idx();
+        if (below < 0 || below <= first_printed)
             return false;
         end_pos_y   = m_cur_block->start_depth + m_cur_block->depth - m_perimeter_width;
-        start_pos_y = m_cur_block->finish_depth[m_cur_layer_id - 1];
+        start_pos_y = m_cur_block->finish_depth[below];
         return true;
     }
 
@@ -8492,7 +8592,7 @@ bool WipeTower::get_floating_area(float &start_pos_y, float &end_pos_y) const {
     // the band reserved as a trench, or that the whole tower skipped, do not move its supporting surface.
     int below = -1;
     for (int layer_id = int(m_cur_layer_id) - 1; layer_id >= 0; --layer_id) {
-        if (layer_is_skipped(layer_id))
+        if (layer_is_skipped(layer_id) || layer_dropped_by_compaction(layer_id))
             continue;
         const bool purge = layer_id < int(m_block_slab_height.size()) &&
                            m_block_slab_height[layer_id].count(m_cur_block->block_key) != 0;
@@ -8521,6 +8621,22 @@ bool WipeTower::get_floating_area(float &start_pos_y, float &end_pos_y) const {
     end_pos_y   = last_layer_wipe_depth - m_perimeter_width;
 #endif
     return true;
+}
+
+float WipeTower::dense_support_z(float pos_y) const
+{
+    if (!m_cur_block)
+        return 0.f;
+    // finish_depth is the dense front a layer reached in this band; past it that layer was only a sparse grid
+    // or nothing. A skipped layer only carries the front of the layer below and laid nothing itself.
+    for (int layer_id = int(m_cur_layer_id) - 1; layer_id >= 0; --layer_id) {
+        if (layer_is_skipped(layer_id) || layer_dropped_by_compaction(layer_id) ||
+            layer_id >= int(m_cur_block->finish_depth.size()))
+            continue;
+        if (pos_y <= m_cur_block->finish_depth[layer_id] + EPSILON)
+            return printed_layer_z(layer_id);
+    }
+    return 0.f;
 }
 
 bool WipeTower::need_thick_bridge_flow(float pos_y, float slab_height) const {

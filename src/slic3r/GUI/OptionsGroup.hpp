@@ -121,6 +121,12 @@ public:
 	int				ctrl_horiz_alignment{ wxALIGN_LEFT};
     column_t		extra_column {nullptr};
     t_change		m_on_change { nullptr };
+	/// Forwarded to the fields when they are built, so set it before the group is activated;
+	/// see Field::m_on_out_of_range
+	t_out_of_range	m_on_out_of_range { nullptr };
+	/// Keep room for a warning icon after every field of the group, so its columns stay aligned.
+	/// Set before the group is activated, see Field::set_warning
+	bool			reserve_warning_icons { false };
 	// To be called when the field loses focus, to assign a new initial value to the field.
 	// Used by the relative position / rotation / scale manipulation fields of the Object Manipulation UI.
     t_kill_focus    m_fill_empty_value { nullptr };
@@ -355,6 +361,10 @@ public:
 	boost::any	get_config_value2(const DynamicPrintConfig& config, const std::string& opt_key, int opt_index = -1);
 	Field*		get_fieldc(const t_config_option_key& opt_key, int opt_index);
 	std::pair<OG_CustomCtrl*, bool*>	get_custom_ctrl_with_blinking_ptr(const t_config_option_key& opt_key, int opt_index/* = -1*/);
+
+	// Optional per-option redirect: when it returns a config, that option is read from and written to it
+	// instead of m_config. nullptr keeps m_config.
+	std::function<DynamicPrintConfig*(const std::string &opt_key)> m_redirect_config { nullptr };
 
 	// BBS. Change private to protected to make change_opt_value() method available to
 	// its child class.

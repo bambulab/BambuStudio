@@ -2545,6 +2545,9 @@ protected:
     // If the opt_key is no more valid in this version of Slic3r, opt_key is cleared by handle_legacy().
     // handle_legacy() is called internally by set_deserialize().
     virtual void                    handle_legacy(t_config_option_key &/*opt_key*/, std::string &/*value*/) const {}
+    // Fix legacy values that depend on several keys or on file metadata (version, name, inherits).
+    // handle_legacy_composite() is called once at the end of load_from_json() and load_string_map().
+    virtual void                    handle_legacy_composite(const std::map<std::string, std::string> &/*key_values*/) {}
 
 public:
 	using ConfigOptionResolver::option;

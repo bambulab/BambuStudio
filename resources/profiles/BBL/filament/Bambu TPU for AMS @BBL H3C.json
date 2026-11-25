@@ -26,6 +26,9 @@
     "filament_change_length_nc": [
         "0"
     ],
+    "filament_dev_drying_cooling_temperature": [
+        "100"
+    ],
     "filament_flow_ratio": [
         "0.97",
         "0.97"

@@ -760,6 +760,11 @@ std::string Preset::label(bool no_alias) const
         + ((no_alias || this->alias.empty()) ? this->name : this->alias);
 }
 
+const std::string& Preset::name_for_3mf() const
+{
+    return this->name_from_3mf.empty() ? this->name : this->name_from_3mf;
+}
+
 std::string Preset::display_name() const
 {
     std::string result;
@@ -1065,9 +1070,9 @@ bool Preset::has_cali_lines(PresetBundle* preset_bundle)
 static std::vector<std::string> s_Preset_print_options {
     "layer_height", "initial_layer_print_height", "wall_loops", "slice_closing_radius", "spiral_mode", "spiral_mode_smooth", "spiral_mode_max_xy_smoothing", "slicing_mode",
     "top_shell_layers", "top_shell_thickness", "bottom_shell_layers", "bottom_shell_thickness", "ensure_vertical_shell_thickness", "reduce_crossing_wall", "detect_thin_wall",
-    "detect_overhang_wall", "top_color_penetration_layers", "bottom_color_penetration_layers",
+    "detect_overhang_wall", "top_color_penetration_layers", "bottom_color_penetration_layers", "cross_part_color_penetration",
     "infill_instead_top_bottom_surfaces",
-    "smooth_speed_discontinuity_area","smooth_coefficient", "seam_position", "seam_placement_away_from_overhangs", "wall_sequence", "is_infill_first", "sparse_infill_density", "fill_multiline",
+    "smooth_speed_discontinuity_area","smooth_coefficient", "seam_position", "seam_placement_away_from_overhangs", "seam_embedded_headroom", "wall_sequence", "is_infill_first", "sparse_infill_density", "fill_multiline",
     "sparse_infill_pattern", "conformal_infill", "conformal_stagger", "conformal_link_keep_layers", "conformal_link_flip_layers", "conformal_pole", "conformal_ray_count", "conformal_hub_radius", "sparse_infill_anchor", "sparse_infill_anchor_max", "top_surface_pattern", "monotonic_travel_into_wall",
     "locked_skin_infill_pattern", "locked_skeleton_infill_pattern",
     "bottom_surface_pattern", "internal_solid_infill_pattern", "sub_top_surface_pattern", "infill_direction", "bridge_angle", "infill_shift_step", "skeleton_infill_density", "infill_lock_depth", "skin_infill_depth", "skin_infill_density",
@@ -1116,6 +1121,7 @@ static std::vector<std::string> s_Preset_print_options {
     "enable_circle_compensation", "circle_compensation_manual_offset", "apply_scarf_seam_on_circles",
     "wipe_tower_no_sparse_layers", "compatible_printers", "compatible_printers_condition", "inherits",
     "flush_into_infill", "flush_into_objects", "flush_into_support","process_notes", "enable_mixed_color_sublayer",
+    "process_nozzle_diameter_mode",
     // BBS
      "tree_support_branch_angle", "tree_support_wall_count", "tree_support_branch_distance", "tree_support_branch_diameter",
     "tree_support_branch_diameter_angle", "tree_support_tip_diameter",
@@ -1150,6 +1156,7 @@ static std::vector<std::string> s_Preset_filament_options {/*"filament_colour", 
     // BBS
     "cool_plate_temp", "eng_plate_temp", "hot_plate_temp", "textured_plate_temp", "cool_plate_temp_initial_layer", "eng_plate_temp_initial_layer", "hot_plate_temp_initial_layer","textured_plate_temp_initial_layer",
     "supertack_plate_temp_initial_layer", "supertack_plate_temp",
+    "effect_plate_temp_initial_layer", "effect_plate_temp",
     "circle_compensation_speed", "counter_coef_1", "counter_coef_2", "counter_coef_3", "hole_coef_1", "hole_coef_2", "hole_coef_3",
     "counter_limit_min", "counter_limit_max", "hole_limit_min", "hole_limit_max", "diameter_limit",
     // "bed_type",
@@ -1839,10 +1846,11 @@ std::vector<Preset*> PresetCollection::get_project_embedded_presets()
 }
 
 //BBS: reset project embedded presets
-bool PresetCollection::reset_project_embedded_presets()
+bool PresetCollection::reset_project_embedded_presets(bool *out_removed)
 {
     std::deque<Preset>::iterator it = m_presets.begin();
     bool re_select = false;
+    bool removed_any = false;
     int count = -1;
 
     lock();
@@ -1851,7 +1859,8 @@ bool PresetCollection::reset_project_embedded_presets()
         count++;
         //if (preset.type != Preset::get_type_from_string(type)) continue;
         if (it->is_project_embedded) {
-            BOOST_LOG_TRIVIAL(debug) << boost::format("type %1% , delete preset %2%")%Preset::get_type_string(m_type) % it->name;
+            removed_any = true;
+            BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" type %1% , delete preset %2%")%Preset::get_type_string(m_type) % it->name;
             if ((!re_select) && (m_idx_selected == count))
                 re_select = true;
             if (m_idx_selected > count) {
@@ -1868,6 +1877,9 @@ bool PresetCollection::reset_project_embedded_presets()
         m_idx_selected = -1;
 
     unlock();
+
+    if (out_removed)
+        *out_removed = removed_any;
 
     return re_select;
 }
@@ -2267,7 +2279,7 @@ static bool profile_print_params_same(const DynamicPrintConfig &cfg_old, const D
     for (const char *key : { "compatible_prints", "compatible_prints_condition",
                              "compatible_printers", "compatible_printers_condition", "inherits",
                              "print_settings_id", "filament_settings_id", "sla_print_settings_id", "sla_material_settings_id", "printer_settings_id",
-                             "printer_nozzle_diameter_mode",
+                             "process_nozzle_diameter_mode", "printer_nozzle_diameter_mode",
                              "printer_model", "printer_variant", "default_print_profile", "default_filament_profile", "default_sla_print_profile", "default_sla_material_profile"
                              })
         diff.erase(std::remove(diff.begin(), diff.end(), key), diff.end());
@@ -2505,6 +2517,7 @@ std::pair<Preset*, bool> PresetCollection::load_external_preset(
     BOOST_LOG_TRIVIAL(info) << preset.name << " " << KV(log_key::filament_id, preset.filament_id) << KV(log_key::base_id, preset.base_id);
     if (from_project) {
         preset.is_project_embedded = true;
+        preset.name_from_3mf = original_name;
     }
     else {
         //external config
@@ -2516,6 +2529,7 @@ std::pair<Preset*, bool> PresetCollection::load_external_preset(
     if (&this->get_selected_preset() == &preset) {
         this->get_edited_preset().is_external = true;
         this->get_edited_preset().is_project_embedded = preset.is_project_embedded;
+        this->get_edited_preset().name_from_3mf = preset.name_from_3mf;
     }
 
     //BBS: add config related logs
@@ -2721,6 +2735,8 @@ void PresetCollection::save_current_preset(const std::string &new_name, bool det
         std::string  &inherits = preset.inherits();
         std::string   old_name = preset.name;
         preset.name = new_name;
+        // The user chose this name, so the 3mf file keeps it without change.
+        preset.name_from_3mf.clear();
         preset.vendor = nullptr;
 		preset.alias.clear();
         preset.renamed_from.clear();
@@ -3241,7 +3257,7 @@ inline t_config_option_keys deep_diff(const ConfigBase &config_this, const Confi
 
 static constexpr const std::initializer_list<const char*> optional_keys { "compatible_prints", "compatible_printers" };
 //BBS: skip these keys for dirty check
-static std::set<std::string> skipped_in_dirty = {"printer_settings_id", "print_settings_id", "filament_settings_id", "printer_nozzle_diameter_mode"};
+static std::set<std::string> skipped_in_dirty = {"printer_settings_id", "print_settings_id", "filament_settings_id", "process_nozzle_diameter_mode", "printer_nozzle_diameter_mode"};
 
 bool PresetCollection::is_dirty(const Preset *edited, const Preset *reference)
 {
@@ -3304,6 +3320,23 @@ std::vector<std::string> PresetCollection::dirty_options_without_option_list(con
         }
     }
     return changed;
+}
+
+void PresetCollection::set_preset_float(size_t idx, const std::string &opt_key, double value, bool copies_follow)
+{
+    Preset            &preset   = m_presets[idx];
+    ConfigOptionFloat *opt      = preset.config.option<ConfigOptionFloat>(opt_key);
+    const double       previous = opt->value;
+    opt->value = value;
+    if (!copies_follow)
+        return;
+    for (Preset *copy : { &m_edited_preset, &m_saved_preset }) {
+        if (copy->name != preset.name)
+            continue;
+        ConfigOptionFloat *copy_opt = copy->config.option<ConfigOptionFloat>(opt_key);
+        if (copy_opt->value == previous)
+            copy_opt->value = value;
+    }
 }
 
 // Select a new preset. This resets all the edits done to the currently selected preset.

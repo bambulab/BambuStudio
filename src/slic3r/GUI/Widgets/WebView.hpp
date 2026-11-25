@@ -31,6 +31,10 @@ public:
     static void CancelRecovery(wxWebView *webView);
     static void RecreateAll();
 
+    // Re-apply the "enable_webview_devtools" preference to every live webview,
+    // so toggling it in Preferences takes effect without restarting Studio.
+    static void ApplyDevToolsSetting();
+
     // Cookies.
     // Remove WebView cookies named "token" on domains containing "bambulab".
     // Windows: WebView2 CookieManager; macOS: WKHTTPCookieStore (default data store).

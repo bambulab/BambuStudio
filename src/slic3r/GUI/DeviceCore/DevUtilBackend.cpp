@@ -60,19 +60,22 @@ static std::unordered_map<std::string, DevAmsType> s_ams_type_map = {
     {"0", DevAmsType::N3F},
     {"1", DevAmsType::N3S},
     {"2", DevAmsType::ZMULTI_A},
+    {"3", DevAmsType::ZMULTI_B},
 };
 
 namespace {
 // filament_dev_ams_drying_temperature / filament_dev_ams_drying_time share
 // the same linear array layout:
 //   [0]=N3F idle, [1]=N3S idle, [2]=N3F print, [3]=N3S print,
-//   [4]=ZMULTI_A idle, [5]=ZMULTI_A print
+//   [4]=ZMULTI_A idle, [5]=ZMULTI_A print, [6]=ZMULTI_B idle, [7]=ZMULTI_B print
 constexpr size_t AMS_DRY_IDX_N3F_IDLE      = 0;
 constexpr size_t AMS_DRY_IDX_N3S_IDLE      = 1;
 constexpr size_t AMS_DRY_IDX_N3F_PRINT     = 2;
 constexpr size_t AMS_DRY_IDX_N3S_PRINT     = 3;
 constexpr size_t AMS_DRY_IDX_ZMULTI_A_IDLE = 4;
 constexpr size_t AMS_DRY_IDX_ZMULTI_A_PRINT = 5;
+constexpr size_t AMS_DRY_IDX_ZMULTI_B_IDLE = 6;
+constexpr size_t AMS_DRY_IDX_ZMULTI_B_PRINT = 7;
 
 // filament_dev_drying_softening_temperature / filament_dev_ams_drying_heat_distortion_temperature
 // share a per-type linear array layout (no idle/print split):
@@ -132,6 +135,8 @@ std::optional<DevFilamentDryingPreset> FillDryingPresetFromConfig(const DynamicP
         info.filament_dev_ams_drying_temperature_on_print[DevAmsType::N3S] = opt->get_at(AMS_DRY_IDX_N3S_PRINT);
         info.filament_dev_ams_drying_temperature_on_idle[DevAmsType::ZMULTI_A] = opt->get_at(AMS_DRY_IDX_ZMULTI_A_IDLE);
         info.filament_dev_ams_drying_temperature_on_print[DevAmsType::ZMULTI_A] = opt->get_at(AMS_DRY_IDX_ZMULTI_A_PRINT);
+        info.filament_dev_ams_drying_temperature_on_idle[DevAmsType::ZMULTI_B] = opt->get_at(AMS_DRY_IDX_ZMULTI_B_IDLE);
+        info.filament_dev_ams_drying_temperature_on_print[DevAmsType::ZMULTI_B] = opt->get_at(AMS_DRY_IDX_ZMULTI_B_PRINT);
     }
 
     if (config.has("filament_dev_ams_drying_time")) {
@@ -142,6 +147,8 @@ std::optional<DevFilamentDryingPreset> FillDryingPresetFromConfig(const DynamicP
         info.filament_dev_ams_drying_time_on_print[DevAmsType::N3S] = opt->get_at(AMS_DRY_IDX_N3S_PRINT);
         info.filament_dev_ams_drying_time_on_idle[DevAmsType::ZMULTI_A] = opt->get_at(AMS_DRY_IDX_ZMULTI_A_IDLE);
         info.filament_dev_ams_drying_time_on_print[DevAmsType::ZMULTI_A] = opt->get_at(AMS_DRY_IDX_ZMULTI_A_PRINT);
+        info.filament_dev_ams_drying_time_on_idle[DevAmsType::ZMULTI_B] = opt->get_at(AMS_DRY_IDX_ZMULTI_B_IDLE);
+        info.filament_dev_ams_drying_time_on_print[DevAmsType::ZMULTI_B] = opt->get_at(AMS_DRY_IDX_ZMULTI_B_PRINT);
     }
 
     if (config.has("filament_dev_drying_softening_temperature")) {

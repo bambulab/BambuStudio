@@ -17,6 +17,9 @@
     "eng_plate_temp_initial_layer": [
         "100"
     ],
+    "fan_cooling_layer_time": [
+        "40"
+    ],
     "fan_max_speed": [
         "70"
     ],

@@ -12,7 +12,6 @@
 #include "libslic3r/PrintConfig.hpp"
 #include "Widgets/Button.hpp"
 #include "Widgets/Label.hpp"
-#include "Widgets/AMSItem.hpp"
 
 class wxStaticText;
 class wxBoxSizer;
@@ -173,11 +172,10 @@ private:
 };
 
 /**
- * \brief Every extruder's nozzle rack as one row of slot tiles, with the AMS units under it.
+ * \brief Every extruder's nozzle rack as one row of slot tiles.
  *
- * One extruder numbers its slots 1..N. Two extruders number them L then R1..Rn, draw the dual-head
- * hotend, and show their AMS units as a left half and a right half split by a divider. All of this
- * follows from the extruder count of the last \ref UpdateNozzles call.
+ * One extruder numbers its slots 1..N. Two extruders number them L then R1..Rn and draw the
+ * dual-head hotend. Both follow from the extruder count of the last \ref UpdateNozzles call.
  */
 class NozzleRackPanel : public wxPanel
 {
@@ -189,30 +187,9 @@ public:
      *
      * \param extruders         nozzle configs per extruder, left first; its size sets the extruder count
      * \param selected_diameter the printing diameter; slots on another one are dimmed unless the
-     *                          single-extruder multi-diameter mode is on
+     *                          multi-diameter mode is on
      */
     void UpdateNozzles(const std::vector<std::vector<NozzleConfig>> &extruders, const wxString &selected_diameter);
-
-    /// \brief Number of extruders given to the last \ref UpdateNozzles call; 1 before the first one.
-    int extruder_count() const { return m_extruder_count; }
-
-    /// \brief Set how many AMS units of each kind \p extruder has, then redraw the AMS row.
-    void set_ams_count(int extruder, int n4, int n1);
-
-    /// \brief The AMS unit counts of \p extruder, as {4-slot units, 1-slot units}.
-    std::pair<int, int> ams_count(int extruder) const;
-
-    /**
-     * \brief Re-read the machine's AMS units of \p extruder, then redraw if any changed.
-     *
-     * A null \p obj is allowed only with empty lists, which forgets what was read before.
-     */
-    void sync_ams(int                            extruder,
-                  MachineObject const           *obj,
-                  std::vector<DevAms *> const   &ams_internal,
-                  std::vector<DevAms *> const   &ams4,
-                  std::vector<DevAms *> const   &ams1,
-                  std::vector<DevAmsTray> const &ext);
 
     /**
      * \brief Show what the printer reports in the slots the project leaves empty
@@ -229,27 +206,8 @@ public:
 private:
     static constexpr int MAX_EXTRUDERS = 2;
 
-    // One extruder's AMS units: the count the user configured, what the machine reported, and the
-    // previews that draw them.
-    struct ExtruderAms
-    {
-        int                       n4{0};
-        int                       n1{0};
-        std::vector<AMSinfo>      ams_4;
-        std::vector<AMSinfo>      ams_1;
-        std::vector<AMSinfo>      ams_internal;
-        std::vector<AMSinfo>      ext;
-        std::string               device_id;
-        Label                    *side{nullptr}; // L or R ahead of the units, two extruders only
-        wxBoxSizer               *sizer{nullptr};
-        std::vector<AMSPreview *> previews; // fixed pool, opened or closed by update_ams
-    };
-
-    wxSizer *CreateAmsRow();
-    void     update_ams();
-    void     show_ams_units(int extruder, ExtruderAms &ams, bool visible, bool enabled);
-    void     rebuild_tiles(); // from the project slots and the printer's slots
-    void     add_extruder_tiles(int extruder, bool multi_diameter);
+    void rebuild_tiles(); // from the project slots and the printer's slots
+    void add_extruder_tiles(int extruder, bool multi_diameter);
 
     // Two sources at two rates: the project slots change on user edits and sync (UpdateNozzles), the
     // printer's slots on every printer message (sync_machine_slots). Either one rebuilds the tiles.
@@ -257,11 +215,8 @@ private:
     wxString                               m_selected_diameter;
     std::array<std::vector<MachineSlot>, MAX_EXTRUDERS> m_machine_slots;
 
-    int                                   m_extruder_count{1};
-    wxBoxSizer                           *m_tile_row{nullptr};
-    std::array<ExtruderAms, MAX_EXTRUDERS> m_ams;
-    std::array<bool, MAX_EXTRUDERS>        m_ams_enabled{{true, true}};
-    wxSizerItem                          *m_ams_divider{nullptr}; // the line between the left and right AMS units, with its gaps
+    int         m_extruder_count{1};
+    wxBoxSizer *m_tile_row{nullptr};
 };
 
 } // namespace Slic3r::GUI

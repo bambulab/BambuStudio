@@ -13,6 +13,8 @@
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
 
+#include <algorithm>
+#include <cctype>
 #include <chrono>
 #include <ctime>
 #include <iomanip>
@@ -81,18 +83,22 @@ nlohmann::json FilamentSpool::to_json() const
         {"ams_type",        ams_type},
         {"slot_id",         slot_id},
         {"device_name",     device_name},
-        {"tray_label",      [this]() -> std::string {
-            if (ams_id < 0 || slot_id.empty()) return {};
-            try {
-                return DevFilaSystem::GetTrayNameByAmsSlotId(dev_id, ams_id, std::stoi(slot_id), (DevAmsType)ams_type);
-            } catch (...) {
-                BOOST_LOG_TRIVIAL(warning) << current_exception_message();
-                return {};
-            }
-
-            return {};
-        }()}
+        {"tray_label",      tray_label()}
     };
+}
+
+std::string FilamentSpool::tray_label() const
+{
+    if (ams_id < 0 || slot_id.empty()) return {};
+    try {
+        // External spools are numbered by their virtual tray id (ams_id); their slot_id is always "0".
+        const bool is_ext    = ams_type == static_cast<int>(DevAmsType::EXT_SPOOL);
+        const int  name_slot = is_ext ? ams_id : std::stoi(slot_id);
+        return DevFilaSystem::GetTrayNameByAmsSlotId(dev_id, ams_id, name_slot, (DevAmsType)ams_type);
+    } catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+        return {};
+    }
 }
 
 SoftMatchFilamentItem SoftMatchFilamentItem::from_json(const nlohmann::json& j)
@@ -196,7 +202,24 @@ FilamentSpool FilamentSpool::from_json(const nlohmann::json& j)
     get("ams_type",        s.ams_type);
     get("slot_id",         s.slot_id);
     get("device_name",     s.device_name);
+    s.normalize_ext_spool_mount();
     return s;
+}
+
+void FilamentSpool::normalize_ext_spool_mount()
+{
+    if (!ams_sn.empty() || ams_id >= 0) return;
+    if (ams_type != -1 && ams_type != static_cast<int>(DevAmsType::EXT_SPOOL)) return;
+    if (slot_id.empty() || slot_id.size() > 3 ||
+        !std::all_of(slot_id.begin(), slot_id.end(), [](unsigned char c) { return std::isdigit(c) != 0; }))
+        return;
+
+    const int vt_id = std::stoi(slot_id);
+    if (vt_id <= 0 || vt_id > VIRTUAL_TRAY_MAIN_ID) return;
+
+    ams_id   = vt_id;
+    slot_id  = "0";
+    ams_type = static_cast<int>(DevAmsType::EXT_SPOOL);
 }
 
 nlohmann::json FilamentSpool::to_json_with_runtime() const
@@ -375,34 +398,6 @@ std::vector<std::string> wgtFilaManagerStore::all_spool_ids() const
     ids.reserve(m_spools.size());
     for (auto& [id, _] : m_spools) ids.push_back(id);
     return ids;
-}
-
-const FilamentSpool* wgtFilaManagerStore::find_by_setting_and_color(
-    const std::string& setting_id, const std::string& color) const
-{
-    if (setting_id.empty()) return nullptr;
-
-    // 规范化 color 到不带 # 的 6 位大写 RRGGBB：
-    //   AMS 上报格式为 "RRGGBBAA"（8位无#），store 存储格式为 "#RRGGBB"（6位带#）。
-    auto normalize = [](const std::string& c) -> std::string {
-        std::string s = c;
-        if (!s.empty() && s[0] == '#') s = s.substr(1);
-        if (s.size() == 8) s = s.substr(0, 6);
-        for (auto& ch : s) ch = static_cast<char>(toupper(static_cast<unsigned char>(ch)));
-        return s;
-    };
-
-    const std::string norm_color = normalize(color);
-
-    const FilamentSpool* match = nullptr;
-    int count = 0;
-    for (auto& [id, spool] : m_spools) {
-        if (spool.filament_id == setting_id && normalize(spool.color_code) == norm_color) {
-            match = &spool;
-            ++count;
-        }
-    }
-    return count == 1 ? match : nullptr;
 }
 
 // ---------- JSON for WebView ----------

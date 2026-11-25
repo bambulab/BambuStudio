@@ -125,6 +125,16 @@ struct SupportParameters {
             print_config.initial_layer_line_width : this->support_base_width;
         this->preset_nozzle_diameter = float(primary_nozzle_diameter(object.print()->full_print_config()));
         this->multi_nozzle_diameter_mode = multi_nozzle_diameter_mode_enabled(object.print()->full_print_config());
+        this->raft_base_flow = this->support_material_flow;
+        // BBS multi-diameter: an automatic raft is pinned to one filament, size its lines for that nozzle.
+        // With a raft no other support reaches the bed, so the first layer flow only serves the raft.
+        if (slicing_params.raft_nozzle_diameter > EPSILON) {
+            const double raft_nozzle = slicing_params.raft_nozzle_diameter;
+            this->first_layer_flow    = this->support_material_first_layer_flow_for_nozzle(raft_nozzle, float(slicing_params.raft_first_layer_height));
+            this->raft_base_flow      = this->support_material_flow_for_nozzle(raft_nozzle, float(slicing_params.base_raft_layer_height));
+            this->raft_interface_flow = this->support_material_interface_flow_for_nozzle(
+                slicing_params.raft_interface_nozzle_diameter, float(slicing_params.interface_raft_layer_height));
+        }
 
         // Calculate a minimum support layer height as a minimum over all extruders, but not smaller than 10um.
         this->support_layer_height_min = scaled<coord_t>(0.01);
@@ -333,6 +343,8 @@ struct SupportParameters {
     Flow 		support_material_bottom_interface_flow;
 	// Flow at raft inteface & contact layers.
 	Flow    				raft_interface_flow;
+    // Flow at raft base layers.
+    Flow                    raft_base_flow;
     // BBS multi-diameter: the line width option behind the support flows, so base and interface slabs can be
     // rebuilt for the nozzle selected by the support merge plan.
     ConfigOptionFloat support_base_width;

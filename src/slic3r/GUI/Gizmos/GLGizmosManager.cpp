@@ -208,22 +208,23 @@ bool GLGizmosManager::init_icon_textures()
     else
         return false;
 
-     if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/text_B.svg", 20, 20, texture_id))
+     // Rasterize above the old 20px so the glyph stays sharp when the button matches the font-size box.
+     if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/text_B.svg", 80, 80, texture_id))
         icon_list.insert(std::make_pair((int)IC_TEXT_B, texture_id));
     else
         return false;
 
-     if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/text_B_dark.svg", 20, 20, texture_id))
+     if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/text_B_dark.svg", 80, 80, texture_id))
          icon_list.insert(std::make_pair((int)IC_TEXT_B_DARK, texture_id));
      else
          return false;
 
-     if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/text_T.svg", 20, 20, texture_id))
+     if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/text_T.svg", 80, 80, texture_id))
         icon_list.insert(std::make_pair((int)IC_TEXT_T, texture_id));
     else
         return false;
 
-     if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/text_T_dark.svg", 20, 20, texture_id))
+     if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/text_T_dark.svg", 80, 80, texture_id))
          icon_list.insert(std::make_pair((int)IC_TEXT_T_DARK, texture_id));
      else
          return false;
@@ -1133,6 +1134,20 @@ bool GLGizmosManager::on_char(wxKeyEvent& evt)
         case WXK_ESCAPE:
         {
             if (m_current != Undefined) {
+#ifdef __APPLE__
+                if (m_current == Measure || m_current == Assembly) {
+                    // One physical Escape can arrive as two wxEVT_CHAR events, which
+                    // would pop every selected feature instead of the latest one.
+                    static long last_escape_ts = -1000;
+                    const long ts = evt.GetTimestamp();
+                    if (ts >= last_escape_ts && ts - last_escape_ts < 80)
+                        processed = true;
+                    else
+                        last_escape_ts = ts;
+                }
+                if (processed)
+                    break;
+#endif
                 if ((m_current == Measure || m_current == Assembly) && gizmo_event(SLAGizmoEventType::Escape)) {
                     // do nothing
                 } else if ((m_current != SlaSupports && m_current != BrimEars) || !gizmo_event(SLAGizmoEventType::DiscardChanges))
@@ -1151,7 +1166,11 @@ bool GLGizmosManager::on_char(wxKeyEvent& evt)
             }
             break;
         }
-        //case WXK_BACK:
+        // The Mac Delete key is WXK_BACK. Leaving it unhandled lets the canvas
+        // delete the selection and close the gizmo instead of restarting the pick.
+#ifdef __APPLE__
+        case WXK_BACK:
+#endif
         case WXK_DELETE: {
             if ((m_current == Cut || m_current == Measure || m_current == Assembly || m_current == BrimEars) && gizmo_event(SLAGizmoEventType::Delete))
                 processed = true;
@@ -1751,10 +1770,16 @@ void* GLGizmosManager::ensure_icon_loaded(MENU_ICON_NAME icon)
         case IC_VIEW_LEFT_DARK:             path = "/images/view_left_dark.svg"; w = h = 64; break;
         case IC_VIEW_RIGHT_DARK:            path = "/images/view_right_dark.svg"; w = h = 64; break;
         case IC_VIEW_ISO_DARK:              path = "/images/view_iso_dark.svg"; w = h = 64; break;
-        case IC_TEXT_B:                     path = "/images/text_B.svg"; w = h = 20; break;
-        case IC_TEXT_B_DARK:                path = "/images/text_B_dark.svg"; w = h = 20; break;
-        case IC_TEXT_T:                     path = "/images/text_T.svg"; w = h = 20; break;
-        case IC_TEXT_T_DARK:                path = "/images/text_T_dark.svg"; w = h = 20; break;
+        case IC_TEXT_B:                     path = "/images/text_B.svg"; w = h = 80; break;
+        case IC_TEXT_B_DARK:                path = "/images/text_B_dark.svg"; w = h = 80; break;
+        case IC_TEXT_T:                     path = "/images/text_T.svg"; w = h = 80; break;
+        case IC_TEXT_T_DARK:                path = "/images/text_T_dark.svg"; w = h = 80; break;
+        case IC_TEXT_CHAR_GAP:              path = "/images/text_char_gap.svg"; w = h = 32; break;
+        case IC_TEXT_LINE_GAP:              path = "/images/text_line_gap.svg"; w = h = 32; break;
+        case IC_TEXT_CHAR_GAP_DARK:         path = "/images/text_char_gap_dark.svg"; w = h = 32; break;
+        case IC_TEXT_LINE_GAP_DARK:         path = "/images/text_line_gap_dark.svg"; w = h = 32; break;
+        case IC_TEXT_EXPAND:                path = "/images/text_expand.svg"; w = h = 56; break;
+        case IC_TEXT_COLLAPSE:              path = "/images/texte_collapse.svg"; w = h = 56; break;
         case IC_ALIGN_X_MIN:                path = "/images/align_x_min.svg"; w = h = 32; break;
         case IC_ALIGN_X_CENTER:             path = "/images/align_x_center.svg"; w = h = 32; break;
         case IC_ALIGN_X_MAX:                path = "/images/align_x_max.svg"; w = h = 32; break;

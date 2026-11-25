@@ -275,6 +275,7 @@ function buildDisplay(
           has_filament: !!loadedTray,
           filament_color: loadedTray?.color ?? '',
           icon: 'single_nozzle_xp',
+          nozzle_label: '0.4 Std',
         },
       ],
     },

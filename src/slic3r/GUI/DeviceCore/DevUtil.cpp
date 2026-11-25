@@ -1,6 +1,7 @@
 #include "DevUtil.h"
 #include "fast_float/fast_float.h"
 #include "libslic3r/Log.hpp"
+#include <boost/asio/ip/address_v4.hpp>
 
 namespace Slic3r
 {
@@ -151,6 +152,13 @@ std::string DevUtil::convertToIp(long long ip)
     std::stringstream ss;
     ss << ((ip >> 0) & 0xFF) << "." << ((ip >> 8) & 0xFF) << "." << ((ip >> 16) & 0xFF) << "." << ((ip >> 24) & 0xFF);
     return ss.str();
+}
+
+bool DevUtil::is_valid_ipv4(const std::string& ip)
+{
+    boost::system::error_code ec;
+    boost::asio::ip::make_address_v4(ip, ec);
+    return !ec;
 }
 
 std::string DevJsonValParser::get_longlong_val(const nlohmann::json& j)

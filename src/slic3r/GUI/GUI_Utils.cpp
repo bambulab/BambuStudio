@@ -1,6 +1,7 @@
 #include "GUI.hpp"
 #include "GUI_Utils.hpp"
 #include "GUI_App.hpp"
+#include "I18N.hpp"
 
 #include <algorithm>
 #include <boost/lexical_cast.hpp>
@@ -158,6 +159,26 @@ template<class F> typename F::FN winapi_get_function(const wchar_t *dll, const c
 
     if (dll_handle == nullptr) { return nullptr; }
     return (typename F::FN)GetProcAddress(dll_handle, fn_name);
+}
+#endif
+
+#ifdef _WIN32
+void get_window_frame_for_dpi(WXHWND hwnd, unsigned long style, RECT &frame)
+{
+    // Both exist since Windows 10 1607; older systems only have the system DPI anyway.
+    struct GetDpiForWindow_t { typedef UINT (WINAPI *FN)(HWND hwnd); };
+    struct AdjustWindowRectExForDpi_t { typedef BOOL (WINAPI *FN)(LPRECT rect, DWORD style, BOOL menu, DWORD ex_style, UINT dpi); };
+    static auto GetDpiForWindow_fn          = winapi_get_function<GetDpiForWindow_t>(L"User32.dll", "GetDpiForWindow");
+    static auto AdjustWindowRectExForDpi_fn = winapi_get_function<AdjustWindowRectExForDpi_t>(L"User32.dll", "AdjustWindowRectExForDpi");
+
+    SetRectEmpty(&frame);
+    if (GetDpiForWindow_fn != nullptr && AdjustWindowRectExForDpi_fn != nullptr) {
+        const UINT dpi = GetDpiForWindow_fn((HWND) hwnd);
+        if (dpi != 0 && AdjustWindowRectExForDpi_fn(&frame, style, FALSE, 0, dpi))
+            return;
+        SetRectEmpty(&frame);
+    }
+    AdjustWindowRectEx(&frame, style, FALSE, 0);
 }
 #endif
 
@@ -603,6 +624,16 @@ void WikiPanel::msw_rescale()
     if (m_wiki_icon_hover) {
         m_wiki_icon_hover->msw_rescale();
     }
+}
+
+wxString get_printer_short_display_name(const wxString &full_name)
+{
+    wxString name = full_name;
+    name.Replace("Bambu Lab", "", false);
+    name.Trim(true).Trim(false);
+    if (name == "H3C")
+        return wxString::Format(_L("Bambu Lab %s"), name);
+    return name;
 }
 
 }

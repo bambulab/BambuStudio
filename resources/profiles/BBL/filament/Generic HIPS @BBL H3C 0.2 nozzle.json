@@ -5,6 +5,9 @@
     "from": "system",
     "setting_id": "GFSS98_22",
     "instantiation": "true",
+    "additional_cooling_fan_speed": [
+        "10"
+    ],
     "close_optional_fan_first_x_layers": [
         "1"
     ],
@@ -54,7 +57,7 @@
         "240"
     ],
     "optional_cooling_fan_speed": [
-        "0"
+        "10"
     ],
     "optional_fan_full_speed_layer": [
         "0"

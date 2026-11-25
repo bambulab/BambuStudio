@@ -219,8 +219,8 @@ public:
     std::vector<Caninfo>    cans;
     std::string             current_can_id;
     AMSPassRoadSTEP         current_step = AMSPassRoadSTEP::AMS_ROAD_STEP_NONE;
-    AMSAction               current_action;
-    int                     curreent_filamentstep;
+    AMSAction               current_action = AMSAction::AMS_ACTION_NONE;
+    int                     curreent_filamentstep = 0;
     int                     ams_humidity = 0;
     int                     ams_humidity_percent = -1;
     int                     left_dray_time = 0;
@@ -745,6 +745,21 @@ public:
     void         msw_rescale();
     bool         IsSelected() const;
 
+    /**
+     * \brief Draw the whole preview at half strength. Off by default.
+     *
+     * Only the look changes: the preview still takes hover and clicks.
+     */
+    void set_dimmed(bool dimmed);
+
+    /**
+     * \brief Draw the square backdrop and the rounded plate behind the unit. On by default.
+     *
+     * Turn it off to draw the unit straight on the window's background colour, with a frame that has
+     * no filled surround, for an owner whose surface is already the unit's surround.
+     */
+    void set_backdrop(bool backdrop);
+
     DevAmsType   get_ams_type() const { return m_ams_item_type; }
     std::string  get_ams_id() const { return m_amsinfo.ams_id; };
 
@@ -774,6 +789,10 @@ protected:
 
 private:
     void renderMultiRowGrid(wxDC& dc, const wxSize& size);
+    void render_dimmed(wxDC& dc);
+
+    bool m_dimmed{false};
+    bool m_backdrop{true};
 };
 
 

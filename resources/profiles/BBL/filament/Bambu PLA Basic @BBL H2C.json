@@ -14,11 +14,11 @@
     "counter_coef_3": [
         "0.014"
     ],
-    "counter_limit_min": [
-        "0.014"
-    ],
     "counter_limit_max": [
         "0.076"
+    ],
+    "counter_limit_min": [
+        "0.014"
     ],
     "eng_plate_temp": [
         "55"
@@ -31,6 +31,12 @@
     ],
     "fan_min_speed": [
         "60"
+    ],
+    "filament_change_length": [
+        "4"
+    ],
+    "filament_change_length_nc": [
+        "4"
     ],
     "filament_cooling_before_tower": [
         "10",
@@ -45,35 +51,20 @@
     "filament_max_volumetric_speed": [
         "25",
         "40",
-        "25"
-    ],
-    "filament_retraction_length": [
-        "0.4",
-        "0.8",
-        "0.4"
-    ],
-    "filament_wipe": [
-        "1",
-        "1",
-        "1"
-    ],
-    "filament_wipe_distance": [
-        "1",
-        "1",
-        "1"
-    ],
-    "filament_prime_volume_nc": [
-        "30"
-    ],
-    "filament_z_hop_types": [
-        "Spiral Lift",
-        "Spiral Lift",
-        "Spiral Lift"
+        "40"
     ],
     "filament_pre_cooling_temperature_nc": [
         "180",
         "180",
         "180"
+    ],
+    "filament_preheat_temperature_delta": [
+        "20",
+        "20",
+        "20"
+    ],
+    "filament_prime_volume_nc": [
+        "30"
     ],
     "filament_ramming_travel_time": [
         "0",
@@ -90,11 +81,25 @@
         "18",
         "18"
     ],
-    "filament_change_length": [
-        "4"
+    "filament_retraction_length": [
+        "0.4",
+        "0.8",
+        "0.4"
     ],
-    "filament_change_length_nc": [
-        "4"
+    "filament_wipe": [
+        "1",
+        "1",
+        "1"
+    ],
+    "filament_wipe_distance": [
+        "1",
+        "1",
+        "1"
+    ],
+    "filament_z_hop_types": [
+        "Spiral Lift",
+        "Spiral Lift",
+        "Spiral Lift"
     ],
     "first_x_layer_fan_speed": [
         "0"
@@ -105,16 +110,11 @@
     "hole_coef_3": [
         "0.12"
     ],
-    "hole_limit_min": [
-        "0.05"
-    ],
     "hole_limit_max": [
         "0.12"
     ],
-    "filament_preheat_temperature_delta": [
-        "20",
-        "20",
-        "20"
+    "hole_limit_min": [
+        "0.05"
     ],
     "include": [
         "fdm_filament_template_direct_dual_e3d"
@@ -132,16 +132,16 @@
     "pre_start_fan_time": [
         "2"
     ],
+    "slow_down_min_speed": [
+        "20",
+        "20",
+        "20"
+    ],
     "supertack_plate_temp": [
         "40"
     ],
     "supertack_plate_temp_initial_layer": [
         "40"
-    ],
-    "slow_down_min_speed": [
-        "20",
-        "20",
-        "20"
     ],
     "compatible_printers": [
         "Bambu Lab H2C 0.4 nozzle"

@@ -851,38 +851,40 @@ void SyncMachineInfoDialog::BuildButtonBar(wxBoxSizer *root)
 
 bool tryPopUpSyncMachineInfoDialog(MachineObject *obj)
 {
-    if (!obj) return true;
-
-    std::vector<HotendEntry> entries = CollectHotendEntries(obj);
-    if (entries.empty()) return true;
-
-#if 0
-    // clang-format off
-    entries = {
-        {1, false, {}, false, "", 100, "0.4 mm", _L("Standard"), false, false, NozzleCardState::Empty}, // empty / 空 (bug) — keeps any_empty true
-
-        // single colour: opaque / transparent / translucent
-        {2, true, {"#FF6B00"},   false, "Single",      100, "0.4 mm", _L("Standard"), false, true, NozzleCardState::Normal}, // opaque
-        {3, true, {"#00000000"}, false, "Transparent", 100, "0.4 mm", _L("Standard"), false, true, NozzleCardState::Empty}, // α=00 → checkerboard (透明)
-        {4, true, {"#FF6B0080"}, false, "Translucent", 100, "0.4 mm", _L("Standard"), false, true, NozzleCardState::Abnormal}, // α≈50% → tinted checker (半透明)
-
-        // multicolour (拼色): concentric bands, colors[0] innermost
-        {5, true, {"#FF6B00", "#2E7CF6", "#00AE42", "#E1007F"}, false, "Multi x4", 100, "0.6 mm", _L("Standard"), false, true, NozzleCardState::Unknown},          // 4 bands
-        {6, true, {"#FF6B00", "#2E7CF6", "#00AE42", "#E1007F", "#FFD400"}, false, "Multi x5", 40, "0.6 mm", _L("Standard"), false, true, NozzleCardState::Normal}, // N>4 + partial remain
-        {7, true, {"#FF6B0080", "#2E7CF680"}, false, "Multi clear", 100, "0.6 mm", _L("Standard"), false, true, NozzleCardState::Lost},                          // translucent bands (拼色+透明)
-
-        // gradient: smooth radial blend, hub → rim
-        {8, true, {"#FF0080", "#FFD400", "#00AE42"}, true, "Gradient x3", 100, "0.4 mm", _L("Standard"), false, true, NozzleCardState::Normal}, // 3 stops
-        {9, true, {"#FF008080", "#FFD40080"}, true, "Gradient clear", 60, "0.4 mm", _L("Standard"), false, true, NozzleCardState::Normal},      // translucent + partial remain
-    };
-    // clang-format on
-#endif
-
-    const bool any_empty = std::any_of(entries.begin(), entries.end(), [](const HotendEntry &e) { return !e.filament_loaded; });
-    if (!any_empty) return true;
-
-    SyncMachineInfoDialog dlg(wxGetApp().plater_, obj, entries);
-    return dlg.ShowModal() == wxID_OK;
+    // Dialog disabled temporarily. Restore the code below to enable it again.
+    return true;
+//     if (!obj) return true;
+//
+//     std::vector<HotendEntry> entries = CollectHotendEntries(obj);
+//     if (entries.empty()) return true;
+//
+// #if 0
+//     // clang-format off
+//     entries = {
+//         {1, false, {}, false, "", 100, "0.4 mm", _L("Standard"), false, false, NozzleCardState::Empty}, // empty / 空 (bug) — keeps any_empty true
+//
+//         // single colour: opaque / transparent / translucent
+//         {2, true, {"#FF6B00"},   false, "Single",      100, "0.4 mm", _L("Standard"), false, true, NozzleCardState::Normal}, // opaque
+//         {3, true, {"#00000000"}, false, "Transparent", 100, "0.4 mm", _L("Standard"), false, true, NozzleCardState::Empty}, // α=00 → checkerboard (透明)
+//         {4, true, {"#FF6B0080"}, false, "Translucent", 100, "0.4 mm", _L("Standard"), false, true, NozzleCardState::Abnormal}, // α≈50% → tinted checker (半透明)
+//
+//         // multicolour (拼色): concentric bands, colors[0] innermost
+//         {5, true, {"#FF6B00", "#2E7CF6", "#00AE42", "#E1007F"}, false, "Multi x4", 100, "0.6 mm", _L("Standard"), false, true, NozzleCardState::Unknown},          // 4 bands
+//         {6, true, {"#FF6B00", "#2E7CF6", "#00AE42", "#E1007F", "#FFD400"}, false, "Multi x5", 40, "0.6 mm", _L("Standard"), false, true, NozzleCardState::Normal}, // N>4 + partial remain
+//         {7, true, {"#FF6B0080", "#2E7CF680"}, false, "Multi clear", 100, "0.6 mm", _L("Standard"), false, true, NozzleCardState::Lost},                          // translucent bands (拼色+透明)
+//
+//         // gradient: smooth radial blend, hub → rim
+//         {8, true, {"#FF0080", "#FFD400", "#00AE42"}, true, "Gradient x3", 100, "0.4 mm", _L("Standard"), false, true, NozzleCardState::Normal}, // 3 stops
+//         {9, true, {"#FF008080", "#FFD40080"}, true, "Gradient clear", 60, "0.4 mm", _L("Standard"), false, true, NozzleCardState::Normal},      // translucent + partial remain
+//     };
+//     // clang-format on
+// #endif
+//
+//     const bool any_empty = std::any_of(entries.begin(), entries.end(), [](const HotendEntry &e) { return !e.filament_loaded; });
+//     if (!any_empty) return true;
+//
+//     SyncMachineInfoDialog dlg(wxGetApp().plater_, obj, entries);
+//     return dlg.ShowModal() == wxID_OK;
 }
 
 } // namespace Slic3r::GUI

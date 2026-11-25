@@ -93,6 +93,17 @@ static void append_multi_nozzle_auto_line(const ConfigOptionsGroupShp& group, co
     group->append_line(line);
 }
 
+// The global support z gaps live on the project config while multi-diameter mode is on, not in the preset.
+static bool project_holds_support_z_distance(Preset::Type type)
+{
+    return type == Preset::TYPE_PRINT && multi_nozzle_diameter_mode_enabled(wxGetApp().preset_bundle->project_config);
+}
+
+static bool is_project_support_z_distance_key(const std::string &opt_key)
+{
+    return opt_key == project_support_top_z_distance_key || opt_key == project_support_bottom_z_distance_key;
+}
+
 static std::pair<std::string, std::string> extruder_variant_keys[]{
     {},                                                  // invalid
     {"print_extruder_id", "print_extruder_variant"},     // Preset::TYPE_PRINT
@@ -258,8 +269,14 @@ void Tab::create_preset_tab()
                     m_preset_bundle->physical_printers.unselect_printer();
 
                 // select preset
-                std::string preset_name = m_presets_choice->preset_name_for_selection(selection);
-                select_preset(Preset::remove_suffix_modified(preset_name));
+                std::string preset_name = Preset::remove_suffix_modified(m_presets_choice->preset_name_for_selection(selection));
+                if (m_type == Preset::TYPE_PRINTER && wxGetApp().plater() != nullptr) {
+                    const MultiDiameterPresetMigrationResult result =
+                        wxGetApp().plater()->sidebar().try_migrate_multi_diameter_printer_preset(preset_name);
+                    if (result != MultiDiameterPresetMigrationResult::NotHandled)
+                        return;
+                }
+                select_preset(preset_name);
             }
         });
     }
@@ -1859,7 +1876,7 @@ void Tab::refresh_support_interface_combo_baseline(bool only_if_plate_changed)
     int interface_filament_id = m_config->opt_int("support_interface_filament") - 1;
 
     SupportComboRecommendation rec;
-    bool found_recommendation = compute_support_interface_recommendation(*m_config, interface_filament_id, rec);
+    bool found_recommendation = support_combo_recommendation(interface_filament_id, rec);
     m_support_combo_baseline.seed(interface_filament_id, plate_idx, found_recommendation, rec.conf);
 }
 
@@ -1879,7 +1896,7 @@ bool Tab::maybe_prompt_support_interface_revert(bool found_recommendation, int c
     if (current_plate_idx != m_support_combo_baseline.plate_idx)
         return false;
 
-    DynamicPrintConfig still_applied_conf = m_support_combo_baseline.still_applied(*m_config);
+    DynamicPrintConfig still_applied_conf = m_support_combo_baseline.still_applied(support_combo_current_values());
     // Drop what this scope cannot restore by itself, so the dialog never lists a parameter it
     // will not change.
     for (const auto &key : still_applied_conf.keys())
@@ -1932,8 +1949,24 @@ void Tab::restore_support_specific_params_to_default(const DynamicPrintConfig &k
     if (reset_conf.empty())
         return;
 
-    m_config_manipulation.apply(m_config, &reset_conf);
+    // The preset gets the system gaps back; the multi-diameter project gaps go back to auto (-1).
+    apply_support_recommendation(reset_conf, -1.);
     wxGetApp().plater()->update();
+}
+
+DynamicPrintConfig Tab::support_combo_current_values() const
+{
+    DynamicPrintConfig current = *m_config;
+    if (project_holds_support_z_distance(m_type))
+        for (const char *opt_key : {"support_top_z_distance", "support_bottom_z_distance"})
+            current.set_key_value(opt_key, new ConfigOptionFloat(effective_support_z_distance(opt_key)));
+    return current;
+}
+
+bool Tab::support_combo_recommendation(int interface_filament_id, SupportComboRecommendation &rec, bool require_interface) const
+{
+    return compute_support_interface_recommendation(*m_config, interface_filament_id, rec, -1, support_combo_objects(),
+                                                    require_interface);
 }
 
 // Model-side entry point, used only by the filament-delete path: deleting a filament remaps
@@ -1953,7 +1986,7 @@ DynamicPrintConfig Tab::take_support_combo_leftovers()
     int plate_idx             = current_support_combo_plate_index();
 
     SupportComboRecommendation rec;
-    bool found_recommendation = compute_support_interface_recommendation(*m_config, interface_filament_id, rec);
+    bool found_recommendation = support_combo_recommendation(interface_filament_id, rec);
 
     // Report whenever the combination stopped holding, not only when the slot index moved: merging
     // a slot into the next one, or deleting a model-body filament, breaks the combination while
@@ -1961,7 +1994,7 @@ DynamicPrintConfig Tab::take_support_combo_leftovers()
     // combination" refers to that plate's model, not this one.
     if (m_support_combo_baseline.was_combo && !found_recommendation &&
         plate_idx == m_support_combo_baseline.plate_idx)
-        leftovers = m_support_combo_baseline.still_applied(*m_config);
+        leftovers = m_support_combo_baseline.still_applied(support_combo_current_values());
 
     // Re-seed unconditionally: slots shift on delete, so the cached id (and the support_filament
     // value inside the snapshot) would otherwise point at a different filament.
@@ -2018,6 +2051,67 @@ void Tab::schedule_support_interface_combo_recheck()
         if (print_tab)
             print_tab->refresh_support_interface_combo_baseline();
     });
+}
+
+double Tab::effective_support_z_distance(const std::string &opt_key) const
+{
+    if (project_holds_support_z_distance(m_type))
+        return project_support_z_distance(wxGetApp().preset_bundle->project_config, opt_key);
+    return m_config->opt_float(opt_key);
+}
+
+void Tab::apply_support_recommendation(DynamicPrintConfig &conf, std::optional<double> project_gap)
+{
+    bool moved = false;
+    if (project_holds_support_z_distance(m_type)) {
+        for (const char *opt_key : {"support_top_z_distance", "support_bottom_z_distance"}) {
+            const auto *gap = conf.option<ConfigOptionFloat>(opt_key);
+            if (gap == nullptr)
+                continue;
+            // The real gap stays in conf and goes into the preset with the rest of the recommendation, so the preset
+            // holds a whole set for single-diameter mode; the project gap mirrors it, or goes back to auto (-1).
+            const double value = project_gap.value_or(std::max(gap->value, -1.));
+            wxGetApp().preset_bundle->project_config.set_key_value(project_support_z_distance_key(opt_key), new ConfigOptionFloat(value));
+            // The stashed single-diameter edit of this gap is superseded by the value written into the preset now.
+            wxGetApp().sidebar().forget_stashed_process_edits({opt_key});
+            moved = true;
+        }
+    }
+    m_config_manipulation.apply(m_config, &conf);
+    if (moved)
+        on_project_config_changed();
+}
+
+bool Tab::prompt_support_recommendation(const SupportComboRecommendation &rec, const DynamicPrintConfig &recommended_conf)
+{
+    // Only the keys that differ; multi-diameter z gaps compare against the gap in force, not the hidden preset one,
+    // and a gap left out here must not reach the multi-diameter project gaps.
+    DynamicPrintConfig filtered_conf;
+    const DynamicPrintConfig current_conf = support_combo_current_values();
+    for (const auto &key : recommended_conf.keys()) {
+        const ConfigOption *current_opt = current_conf.option(key);
+        const ConfigOption *new_opt     = recommended_conf.option(key);
+        if (current_opt && new_opt && current_opt->serialize() != new_opt->serialize())
+            filtered_conf.set_key_value(key, new_opt->clone());
+    }
+    if (filtered_conf.empty())
+        return false;
+
+    MessageDialog dialog(wxGetApp().plater(), support_recommendation_dialog_text(rec, filtered_conf), "Suggestion",
+                         wxICON_WARNING | wxYES | wxNO);
+    if (dialog.ShowModal() == wxID_YES)
+        apply_support_recommendation(filtered_conf);
+    wxGetApp().plater()->update();
+    return true;
+}
+
+// Refresh after the project support gaps changed outside m_config, which the config manipulation does not see.
+void Tab::on_project_config_changed()
+{
+    reload_config();
+    // Also refreshes the project dirty state, via on_presets_changed().
+    update_dirty();
+    update();
 }
 
 void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
@@ -2184,7 +2278,8 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         opt_key == "eng_plate_temp" || opt_key == "eng_plate_temp_initial_layer" ||
         opt_key == "hot_plate_temp" || opt_key == "hot_plate_temp_initial_layer" ||
         opt_key == "textured_plate_temp" || opt_key == "textured_plate_temp_initial_layer" ||
-        opt_key == "supertack_plate_temp" || opt_key == "supertack_plate_temp_initial_layer") {
+        opt_key == "supertack_plate_temp" || opt_key == "supertack_plate_temp_initial_layer" ||
+        opt_key == "effect_plate_temp" || opt_key == "effect_plate_temp_initial_layer") {
         std::string printer_id = m_preset_bundle->printers.get_edited_preset().get_printer_type(m_preset_bundle);
         int bed_temperature_limit = DevPrinterConfigUtil::get_bed_temperature_limit(printer_id);
         if (bed_temperature_limit > 0 && bed_temperature_limit < BED_TEMP_LIMIT) {
@@ -2283,74 +2378,27 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         }
 
         int filament_id           = m_config->opt_int("support_filament") - 1; // the displayed id is based from 1, while internal id is based from 0
-        int interface_filament_id = m_config->opt_int("support_interface_filament") - 1;
-        auto           &filament_presets      = Slic3r::GUI::wxGetApp().preset_bundle->filament_presets;
-        auto           &filaments             = Slic3r::GUI::wxGetApp().preset_bundle->filaments;
-        bool            support_TPU           = false;
-        bool            support_PVA           = false;
-        // PVA supporting PLA additionally requires 0 bottom z distance, no matter which printer is selected
-        bool            support_PVA_for_PLA   = false;
-        if (filament_id >= 0 && filament_id < filament_presets.size()) {
-            Slic3r::Preset *filament      = filaments.find_preset(filament_presets[filament_id]);
-            if (filament) {
-                std::string filament_type = filament->config.option<ConfigOptionStrings>("filament_type")->values[0];
-                support_TPU               = filament_type == "PLA" && has_filaments({"TPU", "TPU-AMS"});
-                support_PVA               = filament_type == "PVA";
-                support_PVA_for_PLA       = support_PVA && has_filaments({"PLA"});
-            }
-        }
-        if (is_support_filament(filament_id, false) && !is_soluble_filament(filament_id) && !has_filaments({"TPU", "TPU-AMS"})) {
-            wxString           msg_text = _L("Non-soluble support materials are not recommended for support base. \n"
-                                                       "Are you sure to use them for support base? \n");
-            MessageDialog      dialog(wxGetApp().plater(), msg_text, "", wxICON_WARNING | wxYES | wxNO);
-            DynamicPrintConfig new_conf = *m_config;
-            if (dialog.ShowModal() == wxID_NO) {
-                new_conf.set_key_value("support_filament", new ConfigOptionInt(0));
-                m_config_manipulation.apply(m_config, &new_conf);
-                on_value_change(opt_key, 0);
-            }
-            wxGetApp().plater()->update();
-        }
-        if ((is_soluble_filament(filament_id) || support_TPU) &&
-            !((!support_PVA || m_config->opt_enum<SupportType>("support_type") == stNormalAuto) &&
-              (!support_PVA || m_config->opt_int("tree_support_wall_count") == 1) &&
-              m_config->opt_float("support_top_z_distance") == 0 && m_config->opt_float("support_interface_spacing") == 0 &&
-              m_config->opt_float("support_object_xy_distance") == 0 /*&& m_config->opt_bool("top_z_overrides_xy_distance")*/ &&
-              (!support_PVA_for_PLA || m_config->opt_float("support_bottom_z_distance") == 0) &&
-              m_config->opt_enum<SupportMaterialInterfacePattern>("support_interface_pattern") == SupportMaterialInterfacePattern::smipRectilinearInterlaced &&
-              filament_id == interface_filament_id)) {
-            wxString msg_text;
-            if (support_TPU)
-                msg_text = _L("When using PLA to support TPU, We recommend the following settings:\n"
-                              "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
-                              "independent support layer height and use PLA for both support interface and support base");
-            else
-                msg_text = soluble_support_suggestion_text(support_PVA_for_PLA, support_PVA);
-            msg_text += "\n\n" + _L("Change these settings automatically? \n"
-                                    "Yes - Change these settings automatically\n"
-                                    "No  - Do not change these settings for me");
-            MessageDialog      dialog(wxGetApp().plater(), msg_text, "Suggestion", wxICON_WARNING | wxYES | wxNO);
-            DynamicPrintConfig new_conf = *m_config;
-            if (dialog.ShowModal() == wxID_YES) {
-                if (support_PVA) {
-                    new_conf.set_key_value("support_type", new ConfigOptionEnum<SupportType>(stNormalAuto));
-                    new_conf.set_key_value("tree_support_wall_count", new ConfigOptionInt(1));
+        // Same table lookup as for the interface: a combination fit for the support base gets its recommendation,
+        // with this filament taking over the interface too; any other combination is warned against. Judged even
+        // without interface layers, which do not change whether the filament suits the support base.
+        SupportComboRecommendation rec;
+        if (support_combo_recommendation(filament_id, rec, false)) {
+            if (rec.use_as_support_base) {
+                DynamicPrintConfig recommended_conf = rec.conf;
+                recommended_conf.set_key_value("support_interface_filament", new ConfigOptionInt(filament_id + 1));
+                prompt_support_recommendation(rec, recommended_conf);
+            } else {
+                wxString      msg_text = _L("This filament is not recommended for support base. \n"
+                                            "Are you sure to use it for support base? \n");
+                MessageDialog dialog(wxGetApp().plater(), msg_text, "", wxICON_WARNING | wxYES | wxNO);
+                if (dialog.ShowModal() == wxID_NO) {
+                    DynamicPrintConfig new_conf = *m_config;
+                    new_conf.set_key_value("support_filament", new ConfigOptionInt(0));
+                    m_config_manipulation.apply(m_config, &new_conf);
+                    on_value_change(opt_key, 0);
                 }
-                new_conf.set_key_value("support_top_z_distance", new ConfigOptionFloat(0));
-                new_conf.set_key_value("support_interface_spacing", new ConfigOptionFloat(0));
-                new_conf.set_key_value("support_object_xy_distance", new ConfigOptionFloat(0));
-                if (support_PVA_for_PLA)
-                    new_conf.set_key_value("support_bottom_z_distance", new ConfigOptionFloat(0));
-                new_conf.set_key_value("support_interface_pattern",
-                                       new ConfigOptionEnum<SupportMaterialInterfacePattern>(SupportMaterialInterfacePattern::smipRectilinearInterlaced));
-                //new_conf.set_key_value("top_z_overrides_xy_distance", new ConfigOptionBool(true));
-                new_conf.set_key_value("independent_support_layer_height", new ConfigOptionBool(false));
-                new_conf.set_key_value("support_interface_filament", new ConfigOptionInt(filament_id + 1));
-                // Paragraph dialog cannot list thick_bridges; apply together to avoid a second popup.
-                append_disable_thick_bridges_if_needed(new_conf, *m_config);
-                m_config_manipulation.apply(m_config, &new_conf);
+                wxGetApp().plater()->update();
             }
-            wxGetApp().plater()->update();
         }
     }
 
@@ -2369,8 +2417,7 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         int interface_filament_id = m_config->opt_int("support_interface_filament") - 1;
 
         SupportComboRecommendation rec;
-        bool found_recommendation = compute_support_interface_recommendation(*m_config, interface_filament_id, rec);
-        const DynamicPrintConfig &recommended_conf = rec.conf;
+        bool found_recommendation = support_combo_recommendation(interface_filament_id, rec);
 
         // Detect "undo support material setup": the previous interface filament was a
         // support-material combination and the new one is not. It can only fire when
@@ -2378,74 +2425,15 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         int plate_idx = current_support_combo_plate_index();
         maybe_prompt_support_interface_revert(found_recommendation, plate_idx);
 
-        bool thick_bridges_handled_in_dialog = false;
-        if (found_recommendation && !recommended_conf.empty()) {
-            // 过滤掉当前配置已经是推荐值的参数
-            DynamicPrintConfig filtered_conf;
-            for (const auto& key : recommended_conf.keys()) {
-                const ConfigOption* current_opt = m_config->option(key);
-                const ConfigOption* new_opt     = recommended_conf.option(key);
-                if (current_opt && new_opt && current_opt->serialize() != new_opt->serialize()) {
-                    filtered_conf.set_key_value(key, new_opt->clone());
-                }
-            }
-
-            if (!filtered_conf.empty()) {
-                wxString msg_text;
-                if (rec.soluble_suggestion) {
-                    msg_text = soluble_support_suggestion_text(rec.soluble_bottom_z, rec.interface_filament_type == "PVA");
-                    msg_text += "\n\n" + _L("Change these settings automatically? \n"
-                                            "Yes - Change these settings automatically\n"
-                                            "No  - Do not change these settings for me");
-                } else {
-                    wxString msg_header;
-                    if (rec.from_json) {
-                        // JSON 推荐：显示支撑料名称和匹配的主体料
-                        msg_header = wxString::Format(_L("When using %s to support %s, We recommend the following settings:"), wxString::FromUTF8(rec.support_material_display_name), wxString::FromUTF8(rec.model_material_display_name));
-                    } else if (rec.support_material_display_name == "PLA" && has_filaments({"TPU", "TPU-AMS"})) {
-                        msg_header = _L("When using PLA to support TPU, We recommend the following settings:");
-                    } else {
-                        msg_header = _L("When using support material for the support interface, We recommend the following settings:");
-                    }
-
-                    msg_text = msg_header + "\n\n";
-                    for (const auto& key : filtered_conf.keys()) {
-                        const ConfigOption* opt = filtered_conf.option(key);
-                        if (!opt) continue;
-                        wxString desc = generate_support_param_description(key, opt);
-                        if (!desc.empty()) {
-                            // Wide literal: a narrow U+2022 escape would be UTF-8 bytes under
-                            // /utf-8, then re-decoded by wxConvLibc with the system ANSI code page.
-                            msg_text += L"  \u2022 " + desc + "\n";
-                        }
-                    }
-                    msg_text += "\n" + _L("Do you want to apply these settings?");
-                }
-
-                MessageDialog dialog(wxGetApp().plater(), msg_text, "Suggestion", wxICON_WARNING | wxYES | wxNO);
-                if (dialog.ShowModal() == wxID_YES) {
-                    if (rec.soluble_suggestion && rec.thick_bridges_in_recommendation)
-                        append_disable_thick_bridges_if_needed(filtered_conf, *m_config);
-                    m_config_manipulation.apply(m_config, &filtered_conf);
-                    // List dialog showed thick_bridges, or soluble Yes applied it silently.
-                    if (rec.thick_bridges_in_recommendation)
-                        thick_bridges_handled_in_dialog = true;
-                } else if (!rec.soluble_suggestion && rec.thick_bridges_in_recommendation) {
-                    // User already declined a list that included thick_bridges: Off.
-                    thick_bridges_handled_in_dialog = true;
-                }
-                wxGetApp().plater()->update();
-            }
-        }
-
-        // Standalone thick-bridges suggestion when not already answered/applied above.
-        if (!thick_bridges_handled_in_dialog)
-            suggest_disable_thick_bridges_if_needed(m_config, m_config_manipulation);
+        // The list already showed thick_bridges: Off, whatever the answer; otherwise suggest it on its own.
+        const bool dialog_shown = found_recommendation && prompt_support_recommendation(rec, rec.conf);
+        if (!(dialog_shown && rec.thick_bridges_in_recommendation))
+            suggest_disable_thick_bridges_if_needed(m_config, m_config_manipulation, effective_support_z_distance("support_top_z_distance"));
 
         // Refresh the baseline unconditionally, whatever the user answered above, so the *next*
         // change to this option can tell whether this interface filament was a support-material
         // combination.
-        m_support_combo_baseline.seed(interface_filament_id, plate_idx, found_recommendation, recommended_conf);
+        m_support_combo_baseline.seed(interface_filament_id, plate_idx, found_recommendation, rec.conf);
     }
 
     // Optional suggestion: lowering top surface speed when ironing is enabled.
@@ -2495,7 +2483,7 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         if (!m_postpone_update_ui) {
             auto const &applying = m_config_manipulation.applying_keys();
             if (std::find(applying.begin(), applying.end(), opt_key) == applying.end())
-                suggest_disable_thick_bridges_if_needed(m_config, m_config_manipulation);
+                suggest_disable_thick_bridges_if_needed(m_config, m_config_manipulation, effective_support_z_distance("support_top_z_distance"));
         }
     }
 
@@ -2723,7 +2711,15 @@ void Tab::activate_option(const std::string& opt_key, const wxString& category)
 #endif // WIN32
     };
 
+    int opt_index = -1;
     Field* field = get_field(opt_key);
+    if (!field) {
+        // Use a non-const int variable: a constant 0 is ambiguous with the Page** overload.
+        int first_index = 0;
+        field = get_field(opt_key, first_index);
+        if (field)
+            opt_index = first_index;
+    }
 
     // focused selected field
     if (field) {
@@ -2765,7 +2761,7 @@ void Tab::activate_option(const std::string& opt_key, const wxString& category)
     //        set_focus(field->getWindow());
     //}
 
-    m_highlighter.init(get_custom_ctrl_with_blinking_ptr(opt_key));
+    m_highlighter.init(get_custom_ctrl_with_blinking_ptr(opt_key, opt_index));
 }
 
 void Tab::apply_searcher()
@@ -3126,6 +3122,7 @@ void TabPrint::build()
         optgroup = page->new_optgroup(L("Seam"), L"param_seam");
         optgroup->append_single_option_line("seam_position", "Seam");
         optgroup->append_single_option_line("seam_placement_away_from_overhangs", "Seam");
+        optgroup->append_single_option_line("seam_embedded_headroom", "Seam");
         optgroup->append_single_option_line("seam_gap", "Seam");
         optgroup->append_single_option_line("seam_slope_conditional", "Seam");
         optgroup->append_single_option_line("scarf_angle_threshold", "Seam");
@@ -3211,6 +3208,7 @@ void TabPrint::build()
         append_multi_nozzle_auto_line(optgroup, "bottom_shell_layers");
         append_multi_nozzle_auto_line(optgroup, "bottom_shell_thickness");
         append_multi_nozzle_auto_line(optgroup, "bottom_color_penetration_layers");
+        optgroup->append_single_option_line("cross_part_color_penetration");
         optgroup->append_single_option_line("infill_instead_top_bottom_surfaces");
         optgroup->append_single_option_line("internal_solid_infill_pattern");
 
@@ -3360,8 +3358,31 @@ void TabPrint::build()
         optgroup->append_single_option_line("raft_first_layer_density");   // not only for raft, but for support too
         optgroup->append_single_option_line("raft_first_layer_expansion"); // not only for raft, but for support too
         optgroup->append_single_option_line("tree_support_wall_count");
-        append_multi_nozzle_auto_line(optgroup, "support_top_z_distance", "support#top-z-distance");
-        append_multi_nozzle_auto_line(optgroup, "support_bottom_z_distance", "support#bottom-z-distance");
+        if (m_type != Preset::TYPE_PRINT) {
+            // Object pages: like the other multi-diameter options, objects follow the project gap or auto.
+            append_multi_nozzle_auto_line(optgroup, "support_top_z_distance", "support#top-z-distance");
+            append_multi_nozzle_auto_line(optgroup, "support_bottom_z_distance", "support#bottom-z-distance");
+        } else {
+            optgroup->append_single_option_line("support_top_z_distance", "support#top-z-distance");
+            optgroup->append_single_option_line("support_bottom_z_distance", "support#bottom-z-distance");
+            // Multi-diameter stand-ins for the two lines above, edited on the project config. Only one pair shows.
+            optgroup->append_single_option_line(project_support_top_z_distance_key, "support#top-z-distance");
+            optgroup->append_single_option_line(project_support_bottom_z_distance_key, "support#bottom-z-distance");
+            optgroup->m_redirect_config = [](const std::string &opt_key) -> DynamicPrintConfig * {
+                return is_project_support_z_distance_key(opt_key) ? &wxGetApp().preset_bundle->project_config : nullptr;
+            };
+            // Like a preset value, a set gap reads as a change from auto, and both undo targets are auto.
+            auto with_auto_gaps = [](std::function<DynamicPrintConfig()> base) {
+                return [base]() {
+                    DynamicPrintConfig config = base();
+                    config.set_key_value(project_support_top_z_distance_key, new ConfigOptionFloat(-1));
+                    config.set_key_value(project_support_bottom_z_distance_key, new ConfigOptionFloat(-1));
+                    return config;
+                };
+            };
+            optgroup->m_get_initial_config = with_auto_gaps(optgroup->m_get_initial_config);
+            optgroup->m_get_sys_config     = with_auto_gaps(optgroup->m_get_sys_config);
+        }
         optgroup->append_single_option_line("support_base_pattern", "support#base-pattern");
         optgroup->append_single_option_line("support_base_pattern_spacing", "support#base-pattern");
         optgroup->append_single_option_line("support_angle");
@@ -3541,6 +3562,7 @@ void TabPrint::toggle_options()
     }
 
     m_config_manipulation.toggle_print_fff_options(m_config, int(intptr_t(m_variant_switch->GetClientData())), m_type < Preset::TYPE_COUNT);
+    toggle_project_support_z_distance_lines();
 
     Field *field = m_active_page->get_field("support_style");
     auto   support_type = m_config->opt_enum<SupportType>("support_type");
@@ -3600,6 +3622,64 @@ void TabPrint::clear_pages()
     m_top_bottom_shell_thickness_explanation = nullptr;
 }
 
+void TabPrint::init_options_list()
+{
+    Tab::init_options_list();
+    if (m_type == Preset::TYPE_PRINT) {
+        m_options_list.emplace(project_support_top_z_distance_key, m_opt_status_value);
+        m_options_list.emplace(project_support_bottom_z_distance_key, m_opt_status_value);
+    }
+}
+
+// The project gaps have no preset value; auto stands in for it, so a set gap is both modified and non-system.
+void TabPrint::update_custom_dirty(std::vector<std::string> &dirty_options, std::vector<std::string> &nonsys_options)
+{
+    if (m_type != Preset::TYPE_PRINT)
+        return;
+    for (const char *opt_key : {"support_top_z_distance", "support_bottom_z_distance"})
+        if (project_support_z_distance(wxGetApp().preset_bundle->project_config, opt_key) >= 0.) {
+            dirty_options.emplace_back(project_support_z_distance_key(opt_key));
+            nonsys_options.emplace_back(project_support_z_distance_key(opt_key));
+        }
+}
+
+// Multi-diameter mode edits the project gaps; otherwise the preset gaps. Only one pair is ever shown.
+void TabPrint::toggle_project_support_z_distance_lines()
+{
+    if (m_type != Preset::TYPE_PRINT || !m_active_page)
+        return;
+    const bool multi_nozzle = project_holds_support_z_distance(m_type);
+    const bool have_support = m_config->opt_bool("enable_support") || m_config->opt_int("raft_layers") > 0;
+    for (const char *opt_key : {"support_top_z_distance", "support_bottom_z_distance"}) {
+        toggle_line(opt_key, !multi_nozzle);
+        toggle_line(project_support_z_distance_key(opt_key), multi_nozzle);
+        toggle_option(project_support_z_distance_key(opt_key), have_support);
+    }
+}
+
+void TabPrint::on_value_change(const std::string &opt_key, const boost::any &value)
+{
+    // The project gaps are no preset option, none of the preset handling in Tab applies to them.
+    if (!is_project_support_z_distance_key(opt_key)) {
+        Tab::on_value_change(opt_key, value);
+        return;
+    }
+    // Anything below 0 is auto, stored as -1 exactly.
+    if (auto *gap = wxGetApp().preset_bundle->project_config.option<ConfigOptionFloat>(opt_key); gap && gap->value < 0. && gap->value != -1.) {
+        gap->value = -1.;
+        on_project_config_changed();
+    }
+    if (opt_key == project_support_top_z_distance_key && !m_postpone_update_ui)
+        suggest_disable_thick_bridges_if_needed(m_config, m_config_manipulation, effective_support_z_distance("support_top_z_distance"));
+    wxGetApp().plater()->update();
+    if (m_postpone_update_ui)
+        return;
+    // The soluble lines read the effective gap, so refresh the toggles as Tab::on_value_change() would.
+    update();
+    if (m_active_page)
+        m_active_page->update_visibility(m_mode, true);
+    m_page_view->GetParent()->Layout();
+}
 //BBS: GUI refactor
 
 static std::vector<std::string> intersect(std::vector<std::string> const& l, std::vector<std::string> const& r)
@@ -4390,6 +4470,15 @@ void TabPrintObject::notify_changed(ObjectBase * object)
     wxGetApp().obj_list()->object_config_options_changed({obj, nullptr});
 }
 
+std::vector<ModelObject *> TabPrintObject::support_combo_objects() const
+{
+    std::vector<ModelObject *> objects;
+    for (const auto &item : m_object_configs)
+        if (auto *obj = dynamic_cast<ModelObject *>(item.first))
+            objects.push_back(obj);
+    return objects;
+}
+
 //BBS: GUI refactor
 
 TabPrintPart::TabPrintPart(ParamsPanel* parent) :
@@ -4440,6 +4529,13 @@ void TabPrintPart::toggle_options()
     toggle_line("periodic_modifier_skip_layers", show_nm);
     toggle_line("periodic_modifier_apply_layers", show_nm);
     toggle_line("modifier_ignore_infill", is_modifier);
+    // Color penetration limiting only applies to model parts, not to modifiers.
+    const bool all_model_parts = ! m_object_configs.empty() && std::all_of(
+        m_object_configs.begin(), m_object_configs.end(), [](const auto &item) {
+            const auto *vol = dynamic_cast<const ModelVolume *>(item.first);
+            return vol != nullptr && vol->is_model_part();
+        });
+    toggle_line("cross_part_color_penetration", all_model_parts);
 }
 
 void TabPrintPart::notify_changed(ObjectBase * object)
@@ -4450,7 +4546,7 @@ void TabPrintPart::notify_changed(ObjectBase * object)
 
 static std::string layer_height = "layer_height";
 TabPrintLayer::TabPrintLayer(ParamsPanel* parent) :
-    TabPrintModel(parent, concat({ layer_height }, PrintRegionConfig().keys()))
+    TabPrintModel(parent, substruct(concat({ layer_height }, PrintRegionConfig().keys()), { "cross_part_color_penetration" }))
 {
     m_parent_tab = wxGetApp().get_model_tab();
 }
@@ -4565,7 +4661,7 @@ bool TabFilament::restore_filament_override_value(Field *field, const std::strin
         return false;
 
     field->set_value(it->second, false);
-    field->set_last_meaningful_value();
+    field->field_changed();
     return true;
 }
 
@@ -4589,12 +4685,16 @@ bool TabFilament::seed_filament_override_from_printer(ConfigOptionsGroupShp optg
     if (printer_idx < 0)
         return false;
 
+    const auto *printer_option = dynamic_cast<const ConfigOptionVectorBase *>(printer_config.option(printer_key));
+    if (!printer_option || printer_idx >= static_cast<int>(printer_option->size()) || printer_option->is_nil(printer_idx))
+        return false;
+
     boost::any printer_value = optgroup->get_config_value(printer_config, printer_key, printer_idx);
     if (printer_value.empty())
         return false;
 
     field->set_value(printer_value, false);
-    field->set_last_meaningful_value();
+    field->field_changed();
     return true;
 }
 
@@ -4777,12 +4877,8 @@ void TabFilament::update_filament_overrides_page()
     }
 }
 
-void TabFilament::build()
+void TabFilament::build_filament_page(const PageShp& page)
 {
-    m_presets = &m_preset_bundle->filaments;
-    load_initial_data();
-
-    auto page = add_options_page(L("Filament"), "spool");
         //BBS
         auto optgroup = page->new_optgroup(L("Basic information"), L"param_information");
         // Set size as all another fields for a better alignment
@@ -4822,23 +4918,27 @@ void TabFilament::build()
         //BBS
         Line line = {L("Filament prime volume"), L("The volume of material to prime extruder on tower.")};
         line.append_option(optgroup->get_option("filament_prime_volume"));
-        line.append_option(optgroup->get_option("filament_prime_volume_nc"));
+        if (!m_single_hotend_change)
+            line.append_option(optgroup->get_option("filament_prime_volume_nc"));
         optgroup->append_line(line);
 
 
         line = {L("Filament ramming length"), L("Filament length used in ramming.")};
         line.append_option(optgroup->get_option("filament_change_length"));
-        line.append_option(optgroup->get_option("filament_change_length_nc"));
+        if (!m_single_hotend_change)
+            line.append_option(optgroup->get_option("filament_change_length_nc"));
         optgroup->append_line(line);
 
         line = {L("Travel time after ramming"), L("A reverse travel movement after ramming.")};
         line.append_option(optgroup->get_option("filament_ramming_travel_time",0));
-        line.append_option(optgroup->get_option("filament_ramming_travel_time_nc",0));
+        if (!m_single_hotend_change)
+            line.append_option(optgroup->get_option("filament_ramming_travel_time_nc",0));
         optgroup->append_line(line);
 
         line = { L("Precooling target temperature"), L("Precooling target temperature during ramming.") };
         line.append_option(optgroup->get_option("filament_pre_cooling_temperature",0));
-        line.append_option(optgroup->get_option("filament_pre_cooling_temperature_nc",0));
+        if (!m_single_hotend_change)
+            line.append_option(optgroup->get_option("filament_pre_cooling_temperature_nc",0));
         optgroup->append_line(line);
 
         optgroup->append_single_option_line("filament_idle_travel_cooling_enabled");
@@ -4852,10 +4952,7 @@ void TabFilament::build()
             DynamicPrintConfig &filament_config = m_preset_bundle->filaments.get_edited_preset().config;
 
             update_dirty();
-            if (!m_postpone_update_ui && (opt_key == "nozzle_temperature_range_low" || opt_key == "nozzle_temperature_range_high")) {
-                m_config_manipulation.check_nozzle_recommended_temperature_range(&filament_config);
-            }
-            else if (!m_postpone_update_ui && opt_key == "filament_tower_interface_print_temp") {
+            if (!m_postpone_update_ui && opt_key == "filament_tower_interface_print_temp") {
                 m_config_manipulation.check_tower_interface_print_temp(&filament_config, m_variant_combo ? m_variant_combo->GetSelection() : 0);
             }
             on_value_change(opt_key, value);
@@ -4891,6 +4988,12 @@ void TabFilament::build()
         line.append_option(optgroup->get_option("textured_plate_temp"));
         optgroup->append_line(line);
 
+        // Hide 3D Effect Plate bed temperatures from the filament settings page.
+        // line = {L("3D Effect Plate"), L("Bed temperature when 3D Effect Plate is installed. Value 0 means the filament does not support to print on the 3D Effect Plate")};
+        // line.append_option(optgroup->get_option("effect_plate_temp_initial_layer"));
+        // line.append_option(optgroup->get_option("effect_plate_temp"));
+        // optgroup->append_line(line);
+
         optgroup->m_on_change = [this, optgroup](t_config_option_key opt_key, boost::any value)
         {
             DynamicPrintConfig& filament_config = m_preset_bundle->filaments.get_edited_preset().config;
@@ -4908,17 +5011,25 @@ void TabFilament::build()
             else if (opt_key == "textured_plate_temp" || opt_key == "textured_plate_temp_initial_layer") {
                 m_config_manipulation.check_bed_temperature_difference(BedType::btPTE, &filament_config);
             }
-            else */if (opt_key == "nozzle_temperature") {
-                m_config_manipulation.check_nozzle_temperature_range(&filament_config);
-            }
-            else if (opt_key == "nozzle_temperature_initial_layer") {
-                m_config_manipulation.check_nozzle_temperature_initial_layer_range(&filament_config);
-            }
+            */
+            // Nozzle temperatures outside the recommended range are flagged on the field, see update_nozzle_temperature_warnings()
             // Variant fields keep their registration suffix, e.g. "nozzle_temperature#0".
             if (!m_postpone_update_ui && opt_key.substr(0, opt_key.find('#')) == "nozzle_temperature")
                 m_config_manipulation.check_tower_interface_print_temp(&filament_config, m_variant_combo ? m_variant_combo->GetSelection() : 0);
 
             on_value_change(opt_key, value);
+        };
+
+        // Nozzle temperatures outside the recommended range get a warning icon; every row keeps
+        // the room so the columns stay aligned
+        optgroup->reserve_warning_icons = true;
+        // Other fields of this group are clamped silently on commit
+        optgroup->m_on_out_of_range = [this](const t_config_option_key &opt_id, long entered) {
+            const std::string opt_key = opt_id.substr(0, opt_id.find('#'));
+            if (opt_key != "nozzle_temperature" && opt_key != "nozzle_temperature_initial_layer")
+                return;
+            if (const ConfigOptionDef *def = print_config_def.get(opt_key))
+                m_config_manipulation.report_nozzle_temperature_out_of_range(entered, int(def->min), int(def->max));
         };
 
         line = { L("Nozzle"), L("Nozzle temperature when printing") };
@@ -4932,7 +5043,8 @@ void TabFilament::build()
         optgroup->append_single_option_line("filament_max_volumetric_speed", "", 0);
         line = {L("Ramming volumetric speed"), L("The maximum volumetric speed for ramming, where -1 means using the maximum volumetric speed.")};
         line.append_option(optgroup->get_option("filament_ramming_volumetric_speed", 0));
-        line.append_option(optgroup->get_option("filament_ramming_volumetric_speed_nc", 0));
+        if (!m_single_hotend_change)
+            line.append_option(optgroup->get_option("filament_ramming_volumetric_speed_nc", 0));
         optgroup->append_line(line);
         optgroup->append_single_option_line("filament_prime_tower_speed_factor_curve", "", 0);
 
@@ -4963,10 +5075,19 @@ void TabFilament::build()
         //};
         //optgroup->append_line(line);
 
-    page = add_options_page(L("Cooling"), "empty");
+}
 
-        optgroup = page->new_optgroup(L("Part cooling fan"), L"param_cooling_fan");
-        line = {L("Initial layer fan"),
+void TabFilament::build()
+{
+    m_presets = &m_preset_bundle->filaments;
+    load_initial_data();
+    m_single_hotend_change = m_preset_bundle->printers.get_edited_preset().config.opt_bool("handle_hotend_as_extruder");
+    build_filament_page(add_options_page(L("Filament"), "spool"));
+
+    auto page = add_options_page(L("Cooling"), "empty");
+
+        auto optgroup = page->new_optgroup(L("Part cooling fan"), L"param_cooling_fan");
+        Line line = {L("Initial layer fan"),
                 L("Set the part cooling fan speed for the first few layers. "
                   "Set to 0 to keep the fan off for better bed adhesion")};
         line.label_path = "auto-cooling";
@@ -5082,7 +5203,7 @@ void TabFilament::build()
         optgroup->m_on_change = [this, optgroup](const t_config_option_key& opt_key, const boost::any& value) {
             validate_custom_gcode_cb(this, optgroup, opt_key, value);
         };
-        option = optgroup->get_option("filament_start_gcode");
+        Option option = optgroup->get_option("filament_start_gcode");
         option.opt.full_width = true;
         option.opt.is_code = true;
         option.opt.height = gcode_field_height;// 150;
@@ -5145,9 +5266,49 @@ void TabFilament::build()
 // Reload current config (aka presets->edited_preset->config) into the UI fields.
 void TabFilament::reload_config()
 {
+    update_filament_page();
     this->compatible_widget_reload(m_compatible_printers);
     this->compatible_widget_reload(m_compatible_prints);
     Tab::reload_config();
+}
+
+void TabFilament::update_filament_page()
+{
+    const bool single_hotend_change = m_preset_bundle->printers.get_edited_preset().config.opt_bool("handle_hotend_as_extruder");
+    if (m_pages.empty() || single_hotend_change == m_single_hotend_change)
+        return;
+
+    // Change the layout only when the printer switches between one and two parameter columns.
+    // Keep the Page and its edited configuration; the other filament pages are unaffected.
+    m_single_hotend_change = single_hotend_change;
+    const auto& page = m_pages.front();
+    const bool had_controls = std::any_of(page->m_optgroups.begin(), page->m_optgroups.end(),
+                                         [](const auto& group) { return group->sizer != nullptr; });
+    wxWindowUpdateLocker locker(m_page_view);
+    if (had_controls) {
+        m_highlighter.invalidate();
+        page->clear();
+        m_parent->clear_page();
+    }
+    // Some page callbacks capture their own group. Release them before replacing the groups.
+    for (auto& group : page->m_optgroups)
+        group->m_on_change = nullptr;
+    page->m_optgroups.clear();
+    page->m_opt_id_map.clear();
+    build_filament_page(page);
+    switch_excluder(-1, false);
+    if (had_controls) {
+        page->activate(m_mode, [](){});
+        toggle_options();
+        update_changed_ui();
+        m_parent->Layout();
+    }
+}
+
+void TabFilament::activate_selected_page(std::function<void()> throw_if_canceled)
+{
+    update_filament_page();
+    Tab::activate_selected_page(throw_if_canceled);
 }
 
 //void TabFilament::update_volumetric_flow_preset_hints()
@@ -5175,10 +5336,39 @@ void TabFilament::update_description_lines()
     //    this->update_volumetric_flow_preset_hints();
 }
 
+void TabFilament::update_nozzle_temperature_warnings()
+{
+    const auto *range_low  = m_config->option<ConfigOptionInts>("nozzle_temperature_range_low");
+    const auto *range_high = m_config->option<ConfigOptionInts>("nozzle_temperature_range_high");
+    // The single field shows whichever variant is picked in the variant combo
+    int field_index = 0; // not a constant: a literal 0 would also match the Page** overload
+    for (const std::string opt_key : {"nozzle_temperature_initial_layer", "nozzle_temperature"}) {
+        Field *field = get_field(opt_key, field_index);
+        if (!field)
+            continue;
+        const auto *temps = m_config->option<ConfigOptionIntsNullable>(opt_key);
+        const int   idx   = get_override_variant_index(opt_key);
+        wxString    warning;
+        if (temps && range_low && range_high && !temps->is_nil(idx)) {
+            const int temp = temps->get_at(idx);
+            const int low  = range_low->get_at(idx);
+            const int high = range_high->get_at(idx);
+            // 0 means the preset gives no recommendation for that bound
+            if (high > 0 && temp > high)
+                warning = _L("Print temperature exceeds the recommended range. Use with caution.");
+            else if (low > 0 && temp < low)
+                warning = _L("Print temperature is below the recommended range. Use with caution.");
+        }
+        field->set_warning(warning);
+    }
+}
+
 void TabFilament::toggle_options()
 {
     if (!m_active_page)
         return;
+
+    update_nozzle_temperature_warnings();
 
     bool is_BBL_printer = false;
     if (m_preset_bundle) {
@@ -5262,7 +5452,8 @@ void TabFilament::toggle_options()
         bool support_chamber_temp_control = this->m_preset_bundle->printers.get_edited_preset().config.opt_bool("support_chamber_temp_control");
         toggle_line("chamber_temperatures", support_chamber_temp_control);
 
-        for (auto el : {"supertack_plate_temp", "supertack_plate_temp_initial_layer", "cool_plate_temp", "cool_plate_temp_initial_layer", "eng_plate_temp", "eng_plate_temp_initial_layer", "textured_plate_temp", "textured_plate_temp_initial_layer"})
+        // effect_plate_temp / effect_plate_temp_initial_layer stay hidden with the 3D Effect Plate row above.
+        for (auto el : {"supertack_plate_temp", "supertack_plate_temp_initial_layer", "cool_plate_temp", "cool_plate_temp_initial_layer", "eng_plate_temp", "eng_plate_temp_initial_layer", "textured_plate_temp", "textured_plate_temp_initial_layer" /*, "effect_plate_temp", "effect_plate_temp_initial_layer"*/})
             toggle_line(el, is_BBL_printer);
 
         std::string volumetric_speed_cos = m_config->opt_string("volumetric_speed_coefficients", (unsigned int)(m_variant_combo->GetSelection()));
@@ -5467,6 +5658,8 @@ void TabPrinter::build_fff()
     auto   *nozzle_diameter = dynamic_cast<const ConfigOptionFloatsNullable*>(m_config->option("nozzle_diameter"));
     m_initial_extruders_count = m_extruders_count = nozzle_diameter->values.size();
     m_extruder_variant_list = m_config->option<ConfigOptionStrings>("printer_extruder_variant")->values;
+    m_extruder_id_list = m_config->option<ConfigOptionInts>("printer_extruder_id")->values;
+    m_master_extruder_id = m_config->opt_int("master_extruder_id");
     // BBS
     //wxGetApp().obj_list()->update_objects_list_filament_column(m_initial_extruders_count);
 
@@ -6174,6 +6367,8 @@ void TabPrinter::on_preset_loaded()
         extruders_count_changed(extruders_count);
 
     m_extruder_variant_list = m_config->option<ConfigOptionStrings>("printer_extruder_variant")->values;
+    m_extruder_id_list = m_config->option<ConfigOptionInts>("printer_extruder_id")->values;
+    m_master_extruder_id = m_config->opt_int("master_extruder_id");
 
     if (base_name != m_base_preset_name) {
         const bool model_changed = base_model != m_base_preset_model;
@@ -6657,8 +6852,11 @@ void Tab::load_current_preset()
 {
     BOOST_LOG_TRIVIAL(info) <<boost::format("enter, m_type %1%")%Preset::get_type_string(m_type);
     const Preset& preset = m_presets->get_edited_preset();
+    m_loaded_preset_name = preset.name;
     std::vector<std::string> prev_variant_list;
+    std::vector<int> prev_extruder_ids;
     int prev_extruder_count = 0;
+    int prev_master_extruder_id = 1;
 
     update_btns_enabling();
 
@@ -6666,7 +6864,9 @@ void Tab::load_current_preset()
         // For the printer profile, generate the extruder pages.
         if (preset.printer_technology() == ptFFF) {
             prev_variant_list = static_cast<TabPrinter*>(this)->m_extruder_variant_list;
+            prev_extruder_ids = static_cast<TabPrinter*>(this)->m_extruder_id_list;
             prev_extruder_count = static_cast<TabPrinter*>(this)->m_extruders_count;
+            prev_master_extruder_id = static_cast<TabPrinter*>(this)->m_master_extruder_id;
             on_preset_loaded();
         }
         else
@@ -6765,10 +6965,20 @@ void Tab::load_current_preset()
             }
             //update the object config due to extruder count change
             DynamicPrintConfig& new_print_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
-            std::vector<std::string> new_variant_list = wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionStrings>("printer_extruder_variant")->values;
+            const DynamicPrintConfig& new_printer_config = wxGetApp().preset_bundle->printers.get_edited_preset().config;
+            std::vector<std::string> new_variant_list = new_printer_config.option<ConfigOptionStrings>("printer_extruder_variant")->values;
             int new_extruder_count = wxGetApp().preset_bundle->get_printer_extruder_count();
             if (prev_extruder_count != new_extruder_count || prev_variant_list.size() != new_variant_list.size())
             {
+                //multi -> single: use the values of the master extruder of the previous printer, the same as the process values (remap_variant_cache) and the CLI
+                //otherwise variant_index is empty, and the min of the values with the same variant name is used
+                std::vector<int> variant_index;
+                if (prev_extruder_count > 1 && new_extruder_count == 1) {
+                    variant_index = compute_variant_index_by_name(prev_variant_list, prev_extruder_ids, new_variant_list,
+                        new_printer_config.option<ConfigOptionInts>("printer_extruder_id")->values, false, prev_master_extruder_id);
+                    BOOST_LOG_TRIVIAL(info) << boost::format("multi -> single extruder, map the object configs by the master extruder %1%, variant index %2%")
+                        % prev_master_extruder_id % ConfigOptionInts(variant_index).serialize();
+                }
                 //process the object params here
                 Model& model = wxGetApp().plater()->model();
                 size_t num_objects = model.objects.size();
@@ -6776,14 +6986,14 @@ void Tab::load_current_preset()
                     ModelObject* object = model.objects[i];
                     DynamicPrintConfig object_config = object->config.get();
                     if (!object_config.empty()) {
-                        object_config.update_values_from_multi_to_multi_2(prev_variant_list, new_variant_list, new_print_config, print_options_with_variant);
+                        object_config.update_values_from_multi_to_multi_2(prev_variant_list, new_variant_list, new_print_config, print_options_with_variant, variant_index);
                         object->config.assign_config(std::move(object_config));
                     }
                     for (ModelVolume* v : object->volumes) {
                         if (v->is_model_part() || v->is_modifier()) {
                             DynamicPrintConfig volume_config = v->config.get();
                             if (!volume_config.empty()) {
-                                volume_config.update_values_from_multi_to_multi_2(prev_variant_list,new_variant_list,new_print_config, print_options_with_variant);
+                                volume_config.update_values_from_multi_to_multi_2(prev_variant_list,new_variant_list,new_print_config, print_options_with_variant, variant_index);
                                 v->config.assign_config(std::move(volume_config));
                             }
                         }
@@ -6793,7 +7003,7 @@ void Tab::load_current_preset()
                         ModelConfig& layer_model_config = layer_config_it.second;
                         DynamicPrintConfig layer_config = layer_model_config.get();
                         if (!layer_config.empty()) {
-                            layer_config.update_values_from_multi_to_multi_2(prev_variant_list,new_variant_list,new_print_config, print_options_with_variant);
+                            layer_config.update_values_from_multi_to_multi_2(prev_variant_list,new_variant_list,new_print_config, print_options_with_variant, variant_index);
                             layer_model_config.assign_config(std::move(layer_config));
                        }
                     }
@@ -6902,6 +7112,18 @@ void Tab::update_preset_choice()
     if (m_presets_choice)
         m_presets_choice->update();
     update_btns_enabling();
+}
+
+void Tab::sync_with_edited_preset()
+{
+    // A tab that never loaded a preset shows nothing stale, and may be asked before the main frame exists.
+    const std::string &edited_name = m_presets->get_edited_preset().name;
+    if (m_loaded_preset_name.empty() || edited_name == m_loaded_preset_name) {
+        update_preset_choice();
+        return;
+    }
+    BOOST_LOG_TRIVIAL(info) << "edited preset switched outside the tab, reload it, from " << m_loaded_preset_name << " to " << edited_name;
+    load_current_preset();
 }
 
 // Called by the UI combo box when the user switches profiles, and also to delete the current profile.
@@ -7232,6 +7454,10 @@ bool Tab::select_preset(
 
     if (technology_changed)
         wxGetApp().mainframe->technology_changed();
+    // The process picked after a printer switch or a deletion only follows compatibility, so it may be a
+    // user/project process of the other multi-diameter mode.
+    if (!canceled && (print_tab || printer_tab) && wxGetApp().plater() != nullptr)
+        wxGetApp().plater()->sidebar().replace_mismatched_process_for_multi_nozzle_mode();
     BOOST_LOG_TRIVIAL(info) << boost::format("select preset, exit");
 
     return !canceled;
@@ -7640,7 +7866,7 @@ void Tab::OnKeyDown(wxKeyEvent& event)
 
 void Tab::compare_preset()
 {
-    wxGetApp().mainframe->diff_dialog.show(m_type);
+    wxGetApp().mainframe->diff_dialog().show(m_type);
 }
 
 // Save the current preset into file.
@@ -7718,6 +7944,8 @@ void Tab::save_preset(std::string name /*= ""*/, bool detach, bool save_to_proje
 
     if (m_type == Preset::TYPE_PRINTER)
         m_preset_bundle->stamp_printer_nozzle_diameter_mode();
+    else if (m_type == Preset::TYPE_PRINT)
+        m_preset_bundle->stamp_process_nozzle_diameter_mode();
 
     // Save the preset into Slic3r::data_dir / presets / section_name / preset_name.ini
     m_presets->save_current_preset(name, detach, save_to_project, nullptr, &extra_map);
@@ -7800,8 +8028,9 @@ void Tab::save_preset(std::string name /*= ""*/, bool detach, bool save_to_proje
             wxGetApp().get_tab(preset_type)->update_tab_ui();
     }
 
-    // update preset comboboxes in DiffPresetDlg
-    wxGetApp().mainframe->diff_dialog.update_presets(m_type);
+    // update preset comboboxes in DiffPresetDlg (skip if never opened)
+    if (wxGetApp().mainframe->m_diff_dialog)
+        wxGetApp().mainframe->m_diff_dialog->update_presets(m_type);
 }
 
 // Called for a currently selected preset.
@@ -8106,6 +8335,9 @@ void TabPrinter::on_nozzles_changed(std::optional<int> extruder_id)
         on_value_change((boost::format("nozzle_volume_type#%1%") % eid).str(), type);
     }
     update_dirty();
+    // The filament tab's variant graying and nozzle chips follow the nozzles.
+    if (Tab *filament_tab = wxGetApp().get_tab(Preset::TYPE_FILAMENT))
+        filament_tab->update_extruder_variants(-1, false);
 }
 
 // Return a callback to create a TabPrinter widget to edit bed shape
@@ -8296,9 +8528,9 @@ void Tab::update_extruder_variants(int extruder_id, bool reload)
         m_variant_combo->SetOptions(options);
         for (int i = 0; i < m_variant_combo->GetCount(); ++i) {
             auto flow_type = get_actual_nozzle_flow_type(i);
-            auto             r_nozzles = collect_configured_nozzles(MAIN_EXTRUDER_ID, flow_type);
-            std::vector<int> l_nozzles;
-            if (m_preset_bundle->get_printer_extruder_count() > 1) l_nozzles = collect_configured_nozzles(DEPUTY_EXTRUDER_ID, flow_type);
+            auto             l_nozzles = collect_configured_nozzles(LOGIC_L_EXTRUDER_ID, flow_type);
+            std::vector<int> r_nozzles;
+            if (m_preset_bundle->get_printer_extruder_count() > 1) r_nozzles = collect_configured_nozzles(LOGIC_R_EXTRUDER_ID, flow_type);
             if (r_nozzles.empty() && l_nozzles.empty()) {
                 Button *btn = m_variant_combo->GetButton(i);
                 if (btn) {
@@ -8786,9 +9018,10 @@ void Tab::update_nozzle_status_display()
     int selection = m_variant_combo ? m_variant_combo->GetSelection() : -1;
     NozzleFlowType flow_type = get_actual_nozzle_flow_type(selection);
 
-    auto             r_nozzles = collect_configured_nozzles(MAIN_EXTRUDER_ID, flow_type);
-    std::vector<int> l_nozzles;
-    if (m_preset_bundle->get_printer_extruder_count() > 1) l_nozzles = collect_configured_nozzles(DEPUTY_EXTRUDER_ID, flow_type);
+    // The inventory uses config extruder ids (0 = left), not device ids (0 = right).
+    auto             l_nozzles = collect_configured_nozzles(LOGIC_L_EXTRUDER_ID, flow_type);
+    std::vector<int> r_nozzles;
+    if (m_preset_bundle->get_printer_extruder_count() > 1) r_nozzles = collect_configured_nozzles(LOGIC_R_EXTRUDER_ID, flow_type);
     if (r_nozzles.empty() && l_nozzles.empty()) {
         auto bmp = ScalableBitmap(this, "warning", 16);
         auto warning_icon = new wxStaticBitmap(this, wxID_ANY, bmp.bmp(), wxDefaultPosition, wxDefaultSize, 0);

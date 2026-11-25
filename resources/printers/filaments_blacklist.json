@@ -105,7 +105,7 @@
       "type": "TPU",
       "action": "prohibition",
       "calib_mode": "auto_pa",
-      "model_id": ["O1D", "O1E", "N10"],
+      "model_id": ["O1D", "O1E", "N9", "N10", "N11"],
       "description": "Auto dynamic flow calibration is not supported for TPU filament."
     },
     {
@@ -170,7 +170,15 @@
       "model_id":["N10"],
       "hide_in": ["double_check"],
       "description": "Special attention should be paid to the feeding method of TPU.",
-      "wiki": "https://wiki.bambulab.com/zh/h3c/tpu-printing-guide"
+      "wiki": "https://e.bambulab.com/t?c=NslBZddIdsBrLEoG"
+    },
+    {
+      "types": ["TPU"],
+      "action": "warning",
+      "model_id":["N11"],
+      "hide_in": ["double_check"],
+      "description": "Special attention should be paid to the feeding method of TPU.",
+      "wiki": "https://e.bambulab.com/t?c=bbA3Iszb0jmcphvz"
     },
     {
       "types": ["TPU", "TPU-AMS"],
@@ -206,7 +214,7 @@
     },
     {
       "type": "PPS-CF",
-      "model_id":["N10"],
+      "model_id":["N10", "N11"],
       "action": "warning",
       "slot": "ext",
       "description": "PPS-CF is brittle and could break in bended PTFE tube above Toolhead.",
@@ -214,7 +222,7 @@
     },
     {
       "type": "PPA-CF",
-      "model_id":["N10"],
+      "model_id":["N10", "N11"],
       "action": "warning",
       "slot": "ext",
       "description": "PPA-CF is brittle and could break in bended PTFE tube above Toolhead.",
@@ -252,7 +260,7 @@
       "vendor": "Bambu Lab",
       "type": "PLA",
       "name": "Bambu PLA Glow",
-      "model_id": ["N10"],
+      "model_id": ["N10", "N11"],
       "action": "warning",
       "slot": "ams",
       "ams_type_id": [6],
@@ -274,11 +282,11 @@
       "description": "%s does not support %s printing, as filament may break in the bent PTFE tube above the toolhead."
     },
     {
-      "types": ["PET-CF", "PA6-CF", "PA6-GF", "ASA-CF", "PAHT-CF", "PPS-CF", "PPA-CF"],
-      "model_id": ["N10"],
+      "types": ["PET-CF", "PA6-GF", "PA-GF", "ASA-CF", "PAHT-CF", "PPS-CF", "PPA-CF"],
+      "model_id": ["N10", "N11"],
       "action": "warning",
       "slot": "ams",
-      "ams_type_id": [6],
+      "ams_type_id": [6, 7],
       "group": "ams_6_7_cf_gf_feeding",
       "priority": 0,
       "description": "%s filament is brittle and has high feeding resistance. Use caution when loading it through %s."
@@ -286,7 +294,7 @@
     {
       "vendor": "Bambu Lab",
       "type": "PPA-CF",
-      "model_id": ["N10"],
+      "model_id": ["N10", "N11"],
       "action": "prohibition",
       "slot": "ams",
       "ams_type_id": [6],
@@ -296,7 +304,7 @@
     },
     {
       "type": "PC",
-      "model_id": ["N10"],
+      "model_id": ["N10", "N11"],
       "action": "warning",
       "slot": "ams",
       "ams_type_id": [1, 2, 3, 4, 5, 6],
@@ -306,7 +314,7 @@
       "vendor": "Bambu Lab",
       "type": "PLA",
       "name": "Bambu PLA Translucent",
-      "model_id": ["N10"],
+      "model_id": ["N10", "N11"],
       "action": "warning",
       "slot": "ams",
       "ams_type_id": [6],
@@ -383,7 +391,7 @@
       "type_suffix": "CF",
       "nozzle_flows": ["High Flow"],
       "nozzle_diameters": [ 0.4 ],
-      "model_id": ["O1D", "O1S", "O1E", "O1C", "O1C2", "N7", "N10"],
+      "model_id": ["O1D", "O1S", "O1E", "O1C", "O1C2", "N7", "N10", "N11"],
       "action": "warning",
       "slot": "ext",
       "description": "%s has a risk of nozzle clogging when using 0.4mm high-flow nozzles. Use with caution."
@@ -392,7 +400,7 @@
       "name_suffix": "PA6-GF",
       "nozzle_flows": ["High Flow"],
       "nozzle_diameters": [ 0.4 ],
-      "model_id": ["O1D", "O1S", "O1E", "O1C", "O1C2", "N7", "N6", "N10"],
+      "model_id": ["O1D", "O1S", "O1E", "O1C", "O1C2", "N7", "N6", "N10", "N11"],
       "action": "warning",
       "slot": "ext",
       "description": "%s has a risk of nozzle clogging when using 0.4mm high-flow nozzles. Use with caution."
@@ -401,7 +409,7 @@
       "type_suffix": "CF",
       "nozzle_flows": ["High Flow"],
       "nozzle_diameters": [ 0.4 ],
-      "model_id": ["O1D", "O1S", "O1E", "O1C", "O1C2", "N7", "N6", "N10"],
+      "model_id": ["O1D", "O1S", "O1E", "O1C", "O1C2", "N7", "N6", "N10", "N11"],
       "action": "warning",
       "slot": "ams",
       "description": "%s filaments are hard and brittle and could break in AMS, and there is also a risk of nozzle clogging when using 0.4mm high-flow nozzles. Use with caution."
@@ -410,7 +418,7 @@
       "type_suffix": "GF",
       "nozzle_flows": ["High Flow"],
       "nozzle_diameters": [ 0.4 ],
-      "model_id": ["O1D", "O1S", "O1E", "O1C", "O1C2", "N7", "N6", "N10"],
+      "model_id": ["O1D", "O1S", "O1E", "O1C", "O1C2", "N7", "N6", "N10", "N11"],
       "action": "warning",
       "slot": "ams",
       "group": "cf_gf_ams",
@@ -421,7 +429,7 @@
       "name_suffix": "PA6-GF",
       "nozzle_flows": ["High Flow"],
       "nozzle_diameters": [ 0.4 ],
-      "model_id": ["O1D", "O1S", "O1E", "O1C", "O1C2", "N7", "N6", "N10"],
+      "model_id": ["O1D", "O1S", "O1E", "O1C", "O1C2", "N7", "N6", "N10", "N11"],
       "action": "warning",
       "slot": "ams",
       "group": "cf_gf_ams",
@@ -432,7 +440,7 @@
       "name_suffix": "TPU 85A",
       "nozzle_flows": ["High Flow"],
       "nozzle_diameters": [ 0.4, 0.6, 0.8 ],
-      "model_id": ["O1D", "O1S", "O1E", "O1C", "O1C2", "N7", "N6", "N10"],
+      "model_id": ["O1D", "O1S", "O1E", "O1C", "O1C2", "N7", "N6", "N10", "N11"],
       "action": "warning",
       "slot": "ext",
       "description": "%s has a risk of nozzle clogging when using 0.4, 0.6, 0.8mm high-flow nozzles. Use with caution."
@@ -441,7 +449,7 @@
       "name_suffix": "TPU 90A",
       "nozzle_flows": ["High Flow"],
       "nozzle_diameters": [ 0.4, 0.6, 0.8 ],
-      "model_id": ["O1D", "O1S", "O1E", "O1C", "O1C2", "N7", "N6", "N10"],
+      "model_id": ["O1D", "O1S", "O1E", "O1C", "O1C2", "N7", "N6", "N10", "N11"],
       "action": "warning",
       "slot": "ext",
       "description": "%s has a risk of nozzle clogging when using 0.4, 0.6, 0.8mm high-flow nozzles. Use with caution."
@@ -452,7 +460,7 @@
       "name": "Bambu PLA Galaxy",
       "nozzle_flows": ["Standard"],
       "nozzle_diameters": [ 0.2 ],
-      "model_id": ["N10"],
+      "model_id": ["N10", "N11"],
       "action": "warning",
       "description": "%s filament has a higher risk of clogging when printed with a 0.2mm hotend. Use another compatible hotend before printing."
     },
