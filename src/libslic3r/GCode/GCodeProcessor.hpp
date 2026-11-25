@@ -385,6 +385,16 @@ namespace Slic3r {
 #endif
             return *this;
         }
+        // Takes the move and line buffers instead of copying them, and assigns everything else as the copy above does
+        GCodeProcessorResult& operator=(GCodeProcessorResult &&other)
+        {
+            auto other_moves      = std::move(other.moves);
+            auto other_lines_ends = std::move(other.lines_ends);
+            *this      = static_cast<const GCodeProcessorResult &>(other);
+            moves      = std::move(other_moves);
+            lines_ends = std::move(other_lines_ends);
+            return *this;
+        }
         void  lock() const { result_mutex.lock(); }
         void  unlock() const { result_mutex.unlock(); }
     };
