@@ -6380,6 +6380,8 @@ int CLI::run(int argc, char **argv)
                     arrange_cfg.cleareance_radius                   = cleareance_radius;
                     arrange_cfg.printable_height                    = print_height;
                     arrange_cfg.min_obj_distance                    = 0;
+                    // Raster nester (real silhouettes incl. holes). BBS_LEGACY_ARRANGE=1 restores the libnest2d nester.
+                    arrange_cfg.use_raster_nester = !(std::getenv("BBS_LEGACY_ARRANGE") && std::string(std::getenv("BBS_LEGACY_ARRANGE")) == "1");
                     if (arrange_cfg.is_seq_print) {
                         arrange_cfg.bed_shrink_x = BED_SHRINK_SEQ_PRINT;
                         arrange_cfg.bed_shrink_y = BED_SHRINK_SEQ_PRINT;
@@ -6389,6 +6391,10 @@ int CLI::run(int argc, char **argv)
                     }
 
                     arrangement::update_arrange_params(arrange_cfg, m_print_config, selected);
+                    if (arrange_cfg.use_raster_nester && !arrange_cfg.is_seq_print) {
+                        update_support_areas(selected, m_print_config);
+                        update_support_areas(unselected, m_print_config);
+                    }
                     arrangement::update_selected_items_inflation(selected, m_print_config, arrange_cfg);
                     arrangement::update_unselected_items_inflation(unselected, m_print_config, arrange_cfg);
 
@@ -6753,6 +6759,8 @@ int CLI::run(int argc, char **argv)
                     arrange_cfg.cleareance_radius                   = cleareance_radius;
                     arrange_cfg.printable_height                    = print_height;
                     arrange_cfg.min_obj_distance                    = 0;
+                    // Raster nester (real silhouettes incl. holes). BBS_LEGACY_ARRANGE=1 restores the libnest2d nester.
+                    arrange_cfg.use_raster_nester = !(std::getenv("BBS_LEGACY_ARRANGE") && std::string(std::getenv("BBS_LEGACY_ARRANGE")) == "1");
                     if (arrange_cfg.is_seq_print) {
                         arrange_cfg.bed_shrink_x = BED_SHRINK_SEQ_PRINT;
                         arrange_cfg.bed_shrink_y = BED_SHRINK_SEQ_PRINT;
@@ -6762,6 +6770,10 @@ int CLI::run(int argc, char **argv)
                     }
 
                     arrangement::update_arrange_params(arrange_cfg, m_print_config, selected);
+                    if (arrange_cfg.use_raster_nester && !arrange_cfg.is_seq_print) {
+                        update_support_areas(selected, m_print_config);
+                        update_support_areas(unselected, m_print_config);
+                    }
                     arrangement::update_selected_items_inflation(selected, m_print_config, arrange_cfg);
                     arrangement::update_unselected_items_inflation(unselected, m_print_config, arrange_cfg);
 

@@ -1,4 +1,5 @@
 ﻿#include "Arrange.hpp"
+#include "RasterArrange.hpp"
 #include "Print.hpp"
 #include "BoundingBox.hpp"
 
@@ -124,6 +125,7 @@ void update_selected_items_inflation(ArrangePolygons& selected, const DynamicPri
     // do not inflate brim_width. Objects are allowed to have overlapped brim.
     Points      bedpts = get_shrink_bedpts(print_cfg, params);
     BoundingBox bedbb = Polygon(bedpts).bounding_box();
+    const bool  raster_mode = params.use_raster_nester && !params.is_seq_print;
     params.brim_max = 0;
     params.plate_has_tree_support = false;
     std::for_each(selected.begin(), selected.end(), [&](ArrangePolygon& ap) {
@@ -135,13 +137,22 @@ void update_selected_items_inflation(ArrangePolygons& selected, const DynamicPri
         // 2. if there is an object with tree support, all objects use the max tree branch radius (brim_max=branch diameter)
         // 3. otherwise, use each object's own brim width
         ap.inflation = params.min_obj_distance != 0 ? params.min_obj_distance / 2 : params.plate_has_tree_support ? scaled(params.brim_max / 2) : scaled(ap.brim_width);
+        // Raster nester: the room the supports of an object need is part of its shape
+        // (ArrangePolygon::support_area), so the inflation is only the gap between objects. This also
+        // holds with a user defined distance, which therefore can not push supports off the bed or
+        // into a neighbour. Without a support area, fall back to the old per-object margin.
+        if (raster_mode && params.min_obj_distance == 0)
+            ap.inflation = !ap.support_area.empty() ? 0 : ap.has_tree_support ? scaled(ap.brim_width / 2) : scaled(ap.brim_width);
         // STUDIO: 调用方可通过 params.min_inflation_floor 显式要求"最小可见间隙"。
         // 仅在自动档位（用户没显式设 min_obj_distance）下生效，避免污染显式间距语义。
         // 默认 0 = 关闭，保持各 arrange 路径的旧行为；FillBedJob 会在调用前主动设置。
         if (params.min_obj_distance == 0 && params.min_inflation_floor > 0)
             ap.inflation = std::max(ap.inflation, params.min_inflation_floor);
         });
-    params.brim_skirt_distance = std::max(params.brim_skirt_distance, float(params.brim_max));
+    // In raster mode the support areas keep supports on the bed, so the whole bed does not have to
+    // shrink by the widest support margin.
+    if (!raster_mode)
+        params.brim_skirt_distance = std::max(params.brim_skirt_distance, float(params.brim_max));
 }
 
 void update_unselected_items_inflation(ArrangePolygons& unselected, const DynamicPrintConfig & print_cfg, const ArrangeParams& params)
@@ -160,8 +171,11 @@ void update_unselected_items_inflation(ArrangePolygons& unselected, const Dynami
     // 屏蔽区域只需要膨胀brim宽度，防止brim长过去；挤出标定区域不需要膨胀，brim可以长过去。
     // 以前我们认为还需要膨胀clearance_radius/2，这其实是不需要的，因为这些区域并不会真的摆放物体，
     // 其他物体的膨胀轮廓是可以跟它们重叠的。
+    const bool raster_mode = params.use_raster_nester && !params.is_seq_print;
     std::for_each(unselected.begin(), unselected.end(), [&](auto &ap) {
-        ap.inflation = !ap.is_virt_object                                  ? (params.min_obj_distance == 0 ? scaled(ap.brim_width) : params.min_obj_distance / 2) :
+        // raster nester: supports are covered by the support area, see update_selected_items_inflation()
+        const coord_t auto_gap = raster_mode && !ap.support_area.empty() ? 0 : scaled(ap.brim_width);
+        ap.inflation = !ap.is_virt_object                                  ? (params.min_obj_distance == 0 ? auto_gap : params.min_obj_distance / 2) :
                        (ap.is_wipe_tower && params.plate_has_tree_support) ? scaled(params.brim_max / 2) :
                                                                              (ap.is_extrusion_cali_object ? 0 : exclusion_gap);
     });
@@ -1199,6 +1213,12 @@ void arrange(ArrangePolygons &      items,
              const Points &         bed,
              const ArrangeParams &  params)
 {
+    // Layer-by-layer printing on a bounded bed: use the raster nester which understands
+    // concave silhouettes and holes and searches several packing strategies per plate.
+    if (params.use_raster_nester && !params.is_seq_print && bed.size() >= 3) {
+        raster_arrange(items, excludes, Polygon(bed), params);
+        return;
+    }
     call_with_bed(bed, [&](const auto &bin) {
         arrange(items, excludes, bin, params);
     });

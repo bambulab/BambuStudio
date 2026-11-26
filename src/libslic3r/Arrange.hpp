@@ -48,6 +48,15 @@ static const constexpr int UNARRANGED = -1;
 /// Zero is the physical bed, larger than zero means a virtual bed.
 struct ArrangePolygon {
     ExPolygon poly;                 /// The 2D silhouette to be arranged
+    /// Optional real silhouette (non-convex, with holes) in the same frame as `poly`.
+    /// Used by the raster nester; `poly` (usually the convex hull) is used when empty.
+    ExPolygons footprint;
+    /// Optional area around the footprint (same frame) which the supports of this object may cover.
+    /// The raster nester keeps it free of other objects and inside the bed.
+    ExPolygons support_area;
+    /// Set for objects which may get supports: generates them with the slicer and returns their top
+    /// view (same frame as `footprint`). See update_support_areas() in ModelArrange.hpp.
+    std::function<bool(const DynamicPrintConfig &config, ExPolygons &supports)> slice_supports;
     Vec2crd   translation{0, 0};    /// The translation of the poly
     double    rotation{0.0};        /// The rotation of the poly in radians
     coord_t   inflation = 0;        /// Arrange with inflated polygon
@@ -128,6 +137,14 @@ struct ArrangeParams {
 
     bool allow_rotations = false;
 
+    /// Use the raster nester (real silhouettes, multi-strategy search) for
+    /// layer-by-layer printing instead of the libnest2d convex-hull nester.
+    bool use_raster_nester = false;
+
+    /// Raster nester only: objects may be placed inside through-holes of other
+    /// objects (rings, tubes, frames).
+    bool allow_nesting_in_holes = true;
+
     bool do_final_align = true;
 
     //BBS: add specific arrange params
@@ -171,6 +188,8 @@ struct ArrangeParams {
         ret += "\"accuracy\":" + std::to_string(accuracy) + ",";
         ret += "\"parallel\":" + std::to_string(parallel) + ",";
         ret += "\"allow_rotations\":" + std::to_string(allow_rotations) + ",";
+        ret += "\"use_raster_nester\":" + std::to_string(use_raster_nester) + ",";
+        ret += "\"allow_nesting_in_holes\":" + std::to_string(allow_nesting_in_holes) + ",";
         ret += "\"do_final_align\":" + std::to_string(do_final_align) + ",";
         ret += "\"allow_multi_materials_on_same_plate\":" + std::to_string(allow_multi_materials_on_same_plate) + ",";
         ret += "\"avoid_extrusion_cali_region\":" + std::to_string(avoid_extrusion_cali_region) + ",";
