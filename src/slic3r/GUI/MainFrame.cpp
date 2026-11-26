@@ -1708,6 +1708,10 @@ void MainFrame::init_tabpanel()
         m_tabpanel->AddPage(m_web_device, _L("Filament Manager"), std::string("tab_filament_active"), std::string("tab_filament_active"), false);
     }
 
+    // added last, so the indexes of TabPosition stay valid
+    m_multi_camera = new MultiCameraPage(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize);
+    m_tabpanel->AddPage(m_multi_camera, _L("Multi-camera"), std::string("tab_multi_camera_active"), std::string("tab_multi_camera_active"), false);
+
     if (m_plater) {
         // Skip sync on_config_change here: GUI_App suspends it across MainFrame
         // + load_current_presets and applies full_config once before Show().
@@ -2932,6 +2936,8 @@ void MainFrame::on_dpi_changed(const wxRect& suggested_rect)
     m_monitor->msw_rescale();
     if (m_multi_machine)
         m_multi_machine->msw_rescale();
+    if (m_multi_camera)
+        m_multi_camera->msw_rescale();
     m_calibration->msw_rescale();
     if (m_web_device)
         m_web_device->msw_rescale();
@@ -2995,6 +3001,7 @@ void MainFrame::on_sys_color_changed()
     m_monitor->on_sys_color_changed();
     m_calibration->on_sys_color_changed();
     if (m_web_device) m_web_device->on_sys_color_changed();
+    if (m_multi_camera) m_multi_camera->on_sys_color_changed();
     // update Tabs
     for (auto tab : wxGetApp().tabs_list)
         tab->sys_color_changed();
