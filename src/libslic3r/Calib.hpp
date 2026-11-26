@@ -44,6 +44,10 @@ struct Calib_Params
     CalibMode mode;
 };
 
+// Keep the max-volumetric-speed tower below the global layer-height limit
+// enforced by the GUI while preserving the existing nozzle-based ratio.
+double max_volumetric_speed_calibration_layer_height(double nozzle_diameter);
+
 enum FlowRatioCalibrationType {
     COMPLETE_CALIBRATION = 0,
     FINE_CALIBRATION,
