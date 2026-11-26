@@ -3367,8 +3367,12 @@ WipeTower::ToolChangeResult WipeTower::merge_tcr(ToolChangeResult &first, ToolCh
     }
     WipeTower::ToolChangeResult out = first;
     if ((first.end_pos - second.start_pos).norm() > (float)EPSILON) {
-        std::string travel_gcode = "G1 X" + Slic3r::float_to_string_decimal_point(second.start_pos.x(), 3) + " Y" +
-                                   Slic3r::float_to_string_decimal_point(second.start_pos.y(), 3) + " F" + Slic3r::float_to_string_decimal_point(m_max_speed, 0) + "\n";
+        // blocks stack in y, so join them with axis-aligned legs instead of a diagonal
+        std::string travel_gcode;
+        if (std::abs(first.end_pos.y() - second.start_pos.y()) > (float) EPSILON)
+            travel_gcode += "G1 Y" + Slic3r::float_to_string_decimal_point(second.start_pos.y(), 3) + " F" + Slic3r::float_to_string_decimal_point(m_max_speed, 0) + "\n";
+        if (std::abs(first.end_pos.x() - second.start_pos.x()) > (float) EPSILON)
+            travel_gcode += "G1 X" + Slic3r::float_to_string_decimal_point(second.start_pos.x(), 3) + " F" + Slic3r::float_to_string_decimal_point(m_max_speed, 0) + "\n";
         bool need_insert_travel = true;
         if (second.is_tool_change
             && is_approx(second.start_pos.x(), second.tool_change_start_pos.x())
@@ -4156,8 +4160,12 @@ WipeTower::ToolChangeResult WipeTower::finish_layer_new(bool extrude_perimeter, 
 
     for (size_t i = 0; i < fill_boxes.size(); ++i) {
         const box_coordinates &fill_box = fill_boxes[i];
-        if (i > 0)
-            writer.travel(m_left_to_right ? fill_box.ru : fill_box.lu);
+        if (i > 0) {
+            // boxes stack in y, so reach the next one with axis-aligned legs instead of a diagonal
+            const Vec2f next = m_left_to_right ? fill_box.ru : fill_box.lu;
+            writer.travel(writer.x(), next.y());
+            writer.travel(next.x(), writer.y());
+        }
 
         if (extrude_fill_wall && (fill_box.ru.y() - fill_box.rd.y() > WT_EPSILON))
         {
@@ -4175,9 +4183,8 @@ WipeTower::ToolChangeResult WipeTower::finish_layer_new(bool extrude_perimeter, 
         float               right = fill_box.ru.x() - 2 * wall_width;
 
         if (extrude_fill && dy > wall_width) {
-            writer.travel(fill_box.ld + Vec2f(wall_width * 2, 0.f))
-                .append(";--------------------\n"
-                        "; CP EMPTY GRID START\n")
+            writer.append(";--------------------\n"
+                          "; CP EMPTY GRID START\n")
                 .comment_with_value(" layer #", m_num_layer_changes + 1);
 
             if (solid_infill) {
@@ -4187,37 +4194,41 @@ WipeTower::ToolChangeResult WipeTower::finish_layer_new(bool extrude_perimeter, 
                     right += wall_width;
                     sparse_factor = 1.f;
                 }
-                float y       = fill_box.ld.y() + wall_width;
+                // start where the rectangle closed and fill downwards, so there is never a diagonal travel
+                const float x_near = m_left_to_right ? right : left;
+                const float x_far  = m_left_to_right ? left : right;
+                writer.travel(m_left_to_right ? fill_box.ru.x() - wall_width * 2 : fill_box.lu.x() + wall_width * 2, fill_box.lu.y());
+                float y       = fill_box.lu.y() - wall_width;
                 int   n       = dy / (wall_width * sparse_factor);
                 // A single line has no spacing to distribute; dividing by n - 1 would be a division by zero.
                 float spacing = n > 1 ? (dy - wall_width) / (n - 1) : 0.f;
                 int   i       = 0;
                 for (i = 0; i < n; ++i) {
-                    writer.extrude(writer.x(), y, feedrate).extrude(i % 2 ? left : right, y);
-                    y = y + spacing;
+                    writer.extrude(writer.x(), y, feedrate).extrude(i % 2 ? x_near : x_far, y);
+                    y = y - spacing;
                 }
-                writer.extrude(writer.x(), fill_box.lu.y());
+                writer.extrude(writer.x(), fill_box.ld.y());
             } else {
-                // Extrude an inverse U at the left of the region and the sparse infill.
                 if (grid_narrowed)
                     writer.set_extrusion_flow(extrusion_flow_for(m_layer_height, capped_width)).change_analyzer_line_width(capped_width);
-                writer.extrude(fill_box.lu + Vec2f(wall_width * 2, 0.f), feedrate);
-
                 // A box narrower than the inset leaves nothing to bridge over and no line count to divide by.
                 const int   n  = 1 + int((right - left) / m_bridging);
                 const float dx = n > 0 ? (right - left) / n : 0.f;
+                // start where the rectangle closed, so there is never a diagonal travel
+                const float x0 = m_left_to_right ? right : left;
+                writer.travel(x0, fill_box.ru.y());
                 for (int i = 1; i <= n; ++i) {
-                    float x = left + dx * i;
-                    writer.travel(x, writer.y());
-                    writer.extrude(x, i % 2 ? fill_box.rd.y() : fill_box.ru.y());
+                    writer.extrude(writer.x(), i % 2 ? fill_box.rd.y() : fill_box.ru.y(), feedrate);
+                    writer.travel(m_left_to_right ? x0 - dx * i : x0 + dx * i, writer.y());
                 }
+                writer.extrude(writer.x(), n % 2 ? fill_box.ru.y() : fill_box.rd.y(), feedrate);
                 if (grid_narrowed)
                     writer.set_extrusion_flow(wall_flow).change_analyzer_line_width(wall_width);
 
                 finish_rect_wipe_path.clear();
                 // BBS: add wipe_path for this case: only with finish rectangle
                 finish_rect_wipe_path.emplace_back(writer.pos());
-                finish_rect_wipe_path.emplace_back(Vec2f(left + dx * n, n % 2 ? fill_box.ru.y() : fill_box.rd.y()));
+                finish_rect_wipe_path.emplace_back(Vec2f(writer.x(), n % 2 ? fill_box.rd.y() : fill_box.ru.y()));
             }
 
             writer.append("; CP EMPTY GRID END\n"
@@ -4323,14 +4334,33 @@ WipeTower::ToolChangeResult WipeTower::finish_layer_new(bool extrude_perimeter, 
         // blob on the first layer, so drop those islands instead of tracing them.
         const double min_island_area = scaled<double>(step) * scaled<double>(step);
         remove_small_and_small_holes(voids, min_island_area);
-        for (int guard = 0; guard < 200 && ! voids.empty(); ++guard) {
-            for (const ExPolygon &island : voids) {
-                writer.polygon(island.contour, feedrate);
-                for (const Polygon &hole : island.holes)
-                    writer.polygon(hole, feedrate);
+        // Fill one island down to its centre before moving on, and go to the nearest island next, so the
+        // unretracted travels hop between neighbouring pockets instead of crossing the tower on every loop.
+        auto distance_to = [&writer](const ExPolygon &island) {
+            const Vec2f pos = writer.pos();
+            double      min = std::numeric_limits<double>::max();
+            for (const Point &pt : island.contour.points)
+                min = std::min(min, double((unscaled<float>(pt) - pos).squaredNorm()));
+            return min;
+        };
+        std::vector<ExPolygons> pending{std::move(voids)};
+        for (int guard = 0; guard < 2000 && ! pending.empty(); ++guard) {
+            ExPolygons &level = pending.back();
+            if (level.empty()) {
+                pending.pop_back();
+                continue;
             }
-            voids = union_ex(offset_ex(voids, -scaled(step)));
-            remove_small_and_small_holes(voids, min_island_area);
+            auto      nearest = std::min_element(level.begin(), level.end(),
+                                                 [&](const ExPolygon &a, const ExPolygon &b) { return distance_to(a) < distance_to(b); });
+            ExPolygon island  = std::move(*nearest);
+            level.erase(nearest);
+            writer.polygon(island.contour, feedrate);
+            for (const Polygon &hole : island.holes)
+                writer.polygon(hole, feedrate);
+            ExPolygons inner = union_ex(offset_ex(island, -scaled(step)));
+            remove_small_and_small_holes(inner, min_island_area);
+            if (! inner.empty())
+                pending.emplace_back(std::move(inner));
         }
     }
 
@@ -4452,9 +4482,8 @@ WipeTower::ToolChangeResult WipeTower::finish_block(const WipeTowerBlock &block,
     float              left  = fill_box.lu.x() + 2 * fill_width;
     float              right = fill_box.ru.x() - 2 * fill_width;
     if (extrude_fill && dy > fill_width) {
-        writer.travel(fill_box.ld + Vec2f(fill_width * 2, 0.f))
-            .append(";--------------------\n"
-                    "; CP EMPTY GRID START\n")
+        writer.append(";--------------------\n"
+                      "; CP EMPTY GRID START\n")
             .comment_with_value(" layer #", m_num_layer_changes + 1);
 
         // Is there a soluble filament wiped/rammed at the next layer?
@@ -4472,36 +4501,40 @@ WipeTower::ToolChangeResult WipeTower::finish_block(const WipeTowerBlock &block,
                 right += fill_width;
                 sparse_factor = 1.f;
             }
-            float y       = fill_box.ld.y() + fill_width;
+            // start where the rectangle closed and fill downwards, so there is never a diagonal travel
+            const float x_near = m_left_to_right ? right : left;
+            const float x_far  = m_left_to_right ? left : right;
+            writer.travel(m_left_to_right ? fill_box.ru.x() - fill_width * 2 : fill_box.lu.x() + fill_width * 2, fill_box.lu.y());
+            float y       = fill_box.lu.y() - fill_width;
             int   n       = dy / (fill_width * sparse_factor);
             // A single line has no spacing to distribute; dividing by n - 1 would be a division by zero.
             float spacing = n > 1 ? (dy - fill_width) / (n - 1) : 0.f;
             int   i       = 0;
             for (i = 0; i < n; ++i) {
-                writer.extrude(writer.x(), y, feedrate).extrude(i % 2 ? left : right, y);
-                y = y + spacing;
+                writer.extrude(writer.x(), y, feedrate).extrude(i % 2 ? x_near : x_far, y);
+                y = y - spacing;
             }
-            writer.extrude(writer.x(), fill_box.lu.y());
+            writer.extrude(writer.x(), fill_box.ld.y());
         } else {
-            // Extrude an inverse U at the left of the region and the sparse infill.
             if (grid_narrowed)
                 writer.set_extrusion_flow(capped_flow).change_analyzer_line_width(capped_width);
-            writer.extrude(fill_box.lu + Vec2f(fill_width * 2, 0.f), feedrate);
-
             // A box narrower than the inset leaves nothing to bridge over and no line count to divide by.
             const int   n  = 1 + int((right - left) / m_bridging);
             const float dx = n > 0 ? (right - left) / n : 0.f;
+            // start where the rectangle closed, so there is never a diagonal travel
+            const float x0 = m_left_to_right ? right : left;
+            writer.travel(x0, fill_box.ru.y());
             for (int i = 1; i <= n; ++i) {
-                float x = left + dx * i;
-                writer.travel(x, writer.y());
-                writer.extrude(x, i % 2 ? fill_box.rd.y() : fill_box.ru.y());
+                writer.extrude(writer.x(), i % 2 ? fill_box.rd.y() : fill_box.ru.y(), feedrate);
+                writer.travel(m_left_to_right ? x0 - dx * i : x0 + dx * i, writer.y());
             }
+            writer.extrude(writer.x(), n % 2 ? fill_box.ru.y() : fill_box.rd.y(), feedrate);
             if (grid_narrowed)
                 writer.set_extrusion_flow(filament_e_flow).change_analyzer_line_width(fill_width);
             finish_rect_wipe_path.clear();
             // BBS: add wipe_path for this case: only with finish rectangle
             finish_rect_wipe_path.emplace_back(writer.pos());
-            finish_rect_wipe_path.emplace_back(Vec2f(left + dx * n, n % 2 ? fill_box.ru.y() : fill_box.rd.y()));
+            finish_rect_wipe_path.emplace_back(Vec2f(writer.x(), n % 2 ? fill_box.rd.y() : fill_box.ru.y()));
         }
 
         writer.append("; CP EMPTY GRID END\n"
