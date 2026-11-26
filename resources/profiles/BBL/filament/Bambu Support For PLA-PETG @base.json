@@ -6,6 +6,12 @@
     "filament_id": "GFS05",
     "instantiation": "false",
     "description": "This is a non-water-soluble support filament, and usually it is only for the support structure and not for the model body. To get better printing quality, please refer to this wiki: Printing Tips for Support Filament and Support Function.",
+    "effect_plate_temp": [
+        "60"
+    ],
+    "effect_plate_temp_initial_layer": [
+        "60"
+    ],
     "fan_cooling_layer_time": [
         "80"
     ],
@@ -28,7 +34,7 @@
         "50",
         "50",
         "60",
-        "50"
+        "60"
     ],
     "filament_dev_ams_drying_temperature": [
         "60",
@@ -38,7 +44,7 @@
         "60",
         "60",
         "60",
-        "50"
+        "60"
     ],
     "filament_dev_chamber_drying_bed_temperature": [
         "80"
@@ -47,7 +53,7 @@
         "55",
         "55",
         "65",
-        "55"
+        "65"
     ],
     "filament_is_support": [
         "1"
@@ -79,13 +85,13 @@
     "supertack_plate_temp_initial_layer": [
         "0"
     ],
+    "temperature_vitrification": [
+        "40"
+    ],
     "textured_plate_temp": [
         "60"
     ],
     "textured_plate_temp_initial_layer": [
         "60"
-    ],
-    "temperature_vitrification": [
-        "40"
     ]
 }

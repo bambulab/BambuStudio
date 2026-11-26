@@ -2,6 +2,7 @@
 #include "Config.hpp"
 #include "GCode.hpp"
 #include "GCodeWriter.hpp"
+#include "PrintConfig.hpp"
 
 namespace Slic3r {
 
@@ -80,6 +81,21 @@ std::vector<std::pair<double, unsigned int>> custom_tool_changes_up_to(const Inf
                                       }),
                        tool_changes.end());
     return tool_changes;
+}
+
+bool tool_changes_active(const ConfigOptionResolver &config)
+{
+    return ! multi_nozzle_diameter_mode_enabled(config);
+}
+
+Info effective_custom_gcodes(const Info &custom_gcode_per_print_z, const ConfigOptionResolver &config)
+{
+    Info effective = custom_gcode_per_print_z;
+    if (! tool_changes_active(config))
+        effective.gcodes.erase(std::remove_if(effective.gcodes.begin(), effective.gcodes.end(),
+                                              [](const Item &item) { return item.type == ToolChange; }),
+                               effective.gcodes.end());
+    return effective;
 }
 
 } // namespace CustomGCode

@@ -19,11 +19,17 @@
     "cool_plate_temp_initial_layer": [
         "35"
     ],
+    "effect_plate_temp": [
+        "55"
+    ],
+    "effect_plate_temp_initial_layer": [
+        "55"
+    ],
     "eng_plate_temp": [
-        "0"
+        "55"
     ],
     "eng_plate_temp_initial_layer": [
-        "0"
+        "55"
     ],
     "fan_cooling_layer_time": [
         "100"
@@ -50,7 +56,7 @@
         "45",
         "45",
         "60",
-        "45"
+        "60"
     ],
     "filament_dev_ams_drying_temperature": [
         "45",
@@ -59,8 +65,8 @@
         "45",
         "55",
         "55",
-        "45",
-        "45"
+        "55",
+        "55"
     ],
     "filament_dev_ams_drying_time": [
         "12",
@@ -82,7 +88,7 @@
         "50",
         "50",
         "65",
-        "50"
+        "65"
     ],
     "filament_max_volumetric_speed": [
         "12"

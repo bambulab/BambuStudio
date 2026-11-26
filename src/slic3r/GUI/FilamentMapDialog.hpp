@@ -26,9 +26,11 @@ class SmartFilamentPanel;
  * @param is_slice_all  In slice all
  * @param plater_ref Plater to get/set global filament map
  * @param partplate_ref Partplate to get/set plate filament map mode
+ * @param force_pop_up  Show the dialog even when the current mode would otherwise skip it
+ * @param from_regroup  Opened from an error notification's regroup link, not the slice button
  * @return whether continue slicing
 */
-bool try_pop_up_before_slice(bool is_slice_all, Plater* plater_ref, PartPlate* partplate_ref, bool force_pop_up = false);
+bool try_pop_up_before_slice(bool is_slice_all, Plater* plater_ref, PartPlate* partplate_ref, bool force_pop_up = false, bool from_regroup = false);
 std::vector<FilamentMapMode> resolve_available_auto_modes(Print *print_obj, const std::vector<FilamentMapMode> &requested_modes, bool machine_synced);
 /**
  * @brief Mode to use when the stored one cannot be used right now.

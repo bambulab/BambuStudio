@@ -46,6 +46,8 @@ bool wgtFilaManagerSync::on_device_update(MachineObject* obj)
 {
     if (!obj || !m_store) return false;
     if (!obj->is_online()) return false;
+    // AMS data is empty until the first full push_status; diffing earlier would eject every mounted spool.
+    if (!obj->is_info_ready(false)) return false;
     calibrate_pending_badges(obj);
     check_and_register_new_rfid_spools(obj);
     return sync_all_trays(obj);
@@ -226,9 +228,13 @@ bool wgtFilaManagerSync::sync_all_trays(MachineObject* obj)
 
     const auto ams_ver_map = obj->get_ams_version();
 
-    auto handle_tray = [&](const DevAmsTray& tray, const std::string& ams_id,
-                           int ams_type_int) {
-        const std::string tray_key = dev_id + ":" + ams_id + ":" + tray.id;
+    auto handle_tray = [&](const DevAmsTray& tray, int ams_type_int) {
+        // Device-layer addressing: external spools resolve to (virtual tray id, 0).
+        const DevAmsSlotId ams_slot   = tray.get_ams_slot_id();
+        const int          ams_id_int = ams_slot.first;
+        const std::string  ams_id     = std::to_string(ams_slot.first);
+        const std::string  slot_id    = std::to_string(ams_slot.second);
+        const std::string  tray_key   = dev_id + ":" + ams_id + ":" + slot_id;
 
         if (!tray.is_exists) {
             m_prev_tray_exists[tray_key] = false;
@@ -237,28 +243,24 @@ bool wgtFilaManagerSync::sync_all_trays(MachineObject* obj)
 
         if (tray.setting_id.empty() && tray.tag_uid.empty()) return;
 
-        const FilamentSpool* matched = match_tray(tray, dev_id, ams_id);
+        const FilamentSpool* matched = match_tray(tray, dev_id, ams_id, slot_id);
         if (!matched) {
-            BOOST_LOG_TRIVIAL(info) << "[ams-sync] unmatched tray, skip " << KV(log_key::ams_id, ams_id) << KV(log_key::slot_id, tray.id)
+            BOOST_LOG_TRIVIAL(info) << "[ams-sync] unmatched tray, skip " << KV(log_key::ams_id, ams_id) << KV(log_key::slot_id, slot_id)
                                     << KV(log_key::setting_id, tray.setting_id) << "tag_uid=" << tray.tag_uid << " color=" << tray.color;
             return;
         }
 
         BOOST_LOG_TRIVIAL(info) << "[ams-sync] matched tray -> spool_id=" << matched->spool_id << " " << KV(log_key::ams_id, ams_id)
-                                << KV(log_key::slot_id, tray.id);
+                                << KV(log_key::slot_id, slot_id);
 
         if (!handled_spools.insert(matched->spool_id).second) {
             return;
         }
 
-        int ams_id_int = -1;
-        try { ams_id_int = std::stoi(ams_id); } catch (...) {
-            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
-        }
         MountUpdate mu;
         mu.ams_id   = ams_id_int;
         mu.ams_type = ams_type_int;
-        mu.slot_id  = tray.id;
+        mu.slot_id  = slot_id;
         {
             auto ver_it = ams_ver_map.find(ams_id_int);
             mu.ams_sn = (ver_it != ams_ver_map.end()) ? ver_it->second.sn : "";
@@ -280,8 +282,24 @@ bool wgtFilaManagerSync::sync_all_trays(MachineObject* obj)
         }
 
         FilamentSpool updated  = *matched;
-        const int64_t net_weight_g = tray.get_filament_remain_weight().value_or(0);
-        const bool has_valid_remain = (tray.remain >= 0 || tray.remain_g >= 0);
+
+        const bool               is_ext_spool  = (ams_type_int == static_cast<int>(DevAmsType::EXT_SPOOL));
+        const std::optional<int> tray_remain_g = tray.get_filament_remain_weight();
+
+        bool has_valid_remain = false;
+        if (is_ext_spool) {
+            has_valid_remain = tray_remain_g.has_value();
+        } else {
+            int tray_total_g = 0;
+            if (!tray.weight.empty()) {
+                try { tray_total_g = std::stoi(tray.weight); } catch (...) { tray_total_g = 0; }
+            }
+            has_valid_remain = tray.remain_g >= 0 || (tray.remain >= 0 && tray_total_g > 0);
+        }
+
+        const int64_t net_weight_g = has_valid_remain
+            ? static_cast<int64_t>(tray_remain_g.value_or(0))
+            : static_cast<int64_t>(std::llround(matched->net_weight));
         if (has_valid_remain) {
             updated.net_weight     = static_cast<double>(net_weight_g);
             updated.remain_percent = tray.remain;
@@ -291,15 +309,16 @@ bool wgtFilaManagerSync::sync_all_trays(MachineObject* obj)
             updated.net_weight     = matched->net_weight;
             updated.remain_percent = matched->remain_percent;
             updated.status         = matched->status;
-            BOOST_LOG_TRIVIAL(warning) << "[ams-sync] no valid remain data for spool " << matched->spool_id
-                                      << " remain=" << tray.remain << " remain_g=" << tray.remain_g
-                                      << " → keeping existing net_weight=" << matched->net_weight
-                                      << " remain_percent=" << matched->remain_percent;
+            BOOST_LOG_TRIVIAL(trace) << "[ams-sync] no valid remain data for spool " << matched->spool_id
+                                     << " remain=" << tray.remain << " remain_g=" << tray.remain_g
+                                     << " tray_weight=" << tray.weight
+                                     << " → keeping existing net_weight=" << matched->net_weight
+                                     << " remain_percent=" << matched->remain_percent;
         }
         updated.bound_dev_id   = dev_id;
         updated.bound_ams_id   = ams_id;
 
-        const bool nw_changed = (static_cast<double>(net_weight_g) != matched->net_weight);
+        const bool nw_changed = has_valid_remain && (static_cast<double>(net_weight_g) != matched->net_weight);
         if (m_store->update_spool_if_changed(updated)) {
             any_changed = true;
             const bool manual_rfid_bind =
@@ -322,11 +341,11 @@ bool wgtFilaManagerSync::sync_all_trays(MachineObject* obj)
         if (!ams) continue;
         int ams_type_int = static_cast<int>(ams->GetAmsType());
         for (auto& [slot_id, tray] : ams->GetTrays()) {
-            if (tray) handle_tray(*tray, ams_id, ams_type_int);
+            if (tray) handle_tray(*tray, ams_type_int);
         }
     }
     for (const auto& [vt_id, vt_tray] : fila_sys->GetVirtualTrays()) {
-        handle_tray(vt_tray, "ext", static_cast<int>(DevAmsType::EXT_SPOOL));
+        handle_tray(vt_tray, static_cast<int>(DevAmsType::EXT_SPOOL));
     }
 
     std::vector<std::string>         mount_changed_ids;
@@ -375,7 +394,8 @@ bool wgtFilaManagerSync::sync_all_trays(MachineObject* obj)
             for (const auto& sid : mount_changed_ids) {
                 const FilamentSpool* sp = m_store->get_spool(sid);
                 if (!sp) continue;
-                if (FilamentSpool::is_valid_tag_uid(sp->tag_uid))
+                const bool is_ext = sp->ams_type == static_cast<int>(DevAmsType::EXT_SPOOL);
+                if (!is_ext && FilamentSpool::is_valid_tag_uid(sp->tag_uid))
                     rfid_ids.push_back(sid);
                 else
                     manual_ids.push_back(sid);
@@ -415,24 +435,17 @@ bool wgtFilaManagerSync::sync_all_trays(MachineObject* obj)
 
 const FilamentSpool* wgtFilaManagerSync::match_tray(const DevAmsTray& tray,
                                                     const std::string& dev_id,
-                                                    const std::string& ams_id)
+                                                    const std::string& ams_id,
+                                                    const std::string& slot_id)
 {
-    if (!dev_id.empty() && !ams_id.empty() && !tray.id.empty()) {
-        if (auto* pinned = m_store->find_by_slot(dev_id, ams_id, tray.id)) {
+    if (!dev_id.empty() && !ams_id.empty() && !slot_id.empty()) {
+        if (auto* pinned = m_store->find_by_slot(dev_id, ams_id, slot_id)) {
             if (slot_pin_still_valid(*pinned, tray))
                 return pinned;
         }
     }
-    if (!tray.uuid.empty()) {
-        auto* sp = m_store->find_by_tag_uid(tray.uuid);
-        if (sp) return sp;
-        if (FilamentSpool::is_valid_tag_uid(tray.uuid)) return nullptr;
-    }
-    if (!tray.setting_id.empty()) {
-        auto* sp = m_store->find_by_setting_and_color(tray.setting_id, tray.color);
-        if (sp && !FilamentSpool::is_valid_tag_uid(sp->tag_uid))
-            return sp;
-    }
+    if (!tray.uuid.empty())
+        return m_store->find_by_tag_uid(tray.uuid);
     return nullptr;
 }
 

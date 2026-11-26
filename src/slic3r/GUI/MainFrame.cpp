@@ -16,6 +16,7 @@
 
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/property_tree/ptree.hpp>
+#include <boost/nowide/convert.hpp>
 
 #include "libslic3r/Print.hpp"
 #include "libslic3r/Polygon.hpp"
@@ -81,6 +82,8 @@
 #include <shlobj.h>
 #include <shellapi.h>
 #include <dwmapi.h>
+#include <wtsapi32.h>
+#pragma comment(lib, "wtsapi32.lib")
 #endif // _WIN32
 #include <slic3r/GUI/CreatePresetsDialog.hpp>
 #include "libslic3r/Log.hpp"
@@ -224,13 +227,15 @@ static const wxString ctrl = _L("Ctrl+");
 
 MainFrame::MainFrame() :
 DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_STYLE, "mainframe")
-    , m_printhost_queue_dlg(new PrintHostQueueDialog(this))
     // BBS
     , m_recent_projects(18)
     , m_settings_dialog(this)
-    , diff_dialog(this)
 {
-    PERF_TRACE("Creating main window");
+    PERF_TRACE("startup.creating_main_window");
+
+    // DiffPresetDialog / PrintHostQueueDialog are created on first use (see
+    // diff_dialog() / printhost_queue_dlg()) so startup skips dual PresetBundle
+    // copies and queue-dialog UI build.
 
 #ifdef __WXOSX__
     set_miniaturizable(GetHandle());
@@ -244,6 +249,14 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
     // DWM can't efficiently composite a frameless window during drag.
     MARGINS margins = {0, 0, 0, 1};
     DwmExtendFrameIntoClientArea((HWND)GetHandle(), &margins);
+
+    // Lock / unlock notices, logged in MSWWindowProc to place display changes on a timeline.
+    if (!::WTSRegisterSessionNotification((HWND)GetHandle(), NOTIFY_FOR_THIS_SESSION))
+        BOOST_LOG_TRIVIAL(warning) << KV(log_key::ret, ::GetLastError()) << "session notification register failed";
+
+    // Starting point for the DPI changes logged later.
+    BOOST_LOG_TRIVIAL(info) << "display at start window_dpi=" << GetDPI().y << " system_dpi=" << ::GetDpiForSystem()
+                            << " scale=" << scale_factor() << " em=" << em_unit() << " monitors=" << ::GetSystemMetrics(SM_CMONITORS);
 #endif
 
     if (!wxGetApp().app_config->has("user_mode")) {
@@ -269,6 +282,10 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
 #ifndef __APPLE__
     m_topbar         = new BBLTopbar(this);
 #else
+    // custom dock menu items
+    m_taskbar_icon = std::make_unique<BambuStudioTaskBarIcon>(wxTBI_DOCK);
+
+    // custom topbar
     auto panel_topbar = new wxPanel(this, wxID_ANY);
     panel_topbar->SetBackgroundColour(wxColour(38, 46, 48));
     auto sizer_tobar = new wxBoxSizer(wxVERTICAL);
@@ -308,28 +325,21 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
 	});
 #endif
 
-#ifdef __APPLE__
-    // Initialize the docker task bar icon.
-    switch (wxGetApp().get_app_mode()) {
-    default:
-    case GUI_App::EAppMode::Editor:
-        m_taskbar_icon = std::make_unique<BambuStudioTaskBarIcon>(wxTBI_DOCK);
-        m_taskbar_icon->SetIcon(wxIcon(Slic3r::var("BambuStudio-mac_256px.ico"), wxBITMAP_TYPE_ICO), "BambuStudio");
-        break;
-    case GUI_App::EAppMode::GCodeViewer:
-        break;
-    }
-#endif // __APPLE__
-
     // Load the icon either from the exe, or from the ico file.
     SetIcon(main_frame_icon(wxGetApp().get_app_mode()));
 
     // initialize tabpanel and menubar
-    init_tabpanel();
-    if (wxGetApp().is_gcode_viewer())
-        init_menubar_as_gcodeviewer();
-    else
-        init_menubar_as_editor();
+    {
+        PERF_TRACE("startup.mainframe.init_tabpanel");
+        init_tabpanel();
+    }
+    {
+        PERF_TRACE("startup.mainframe.menubar");
+        if (wxGetApp().is_gcode_viewer())
+            init_menubar_as_gcodeviewer();
+        else
+            init_menubar_as_editor();
+    }
 
     // BBS
 #if 0
@@ -476,8 +486,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
         auto pos = display.GetClientArea().GetPosition();
         HWND      hWnd = GetHandle();
         RECT      borderThickness;
-        SetRectEmpty(&borderThickness);
-        AdjustWindowRectEx(&borderThickness, GetWindowLongPtr(hWnd, GWL_STYLE), FALSE, 0);
+        get_window_frame_for_dpi(hWnd, GetWindowLongPtr(hWnd, GWL_STYLE), borderThickness);
         Move(pos + wxPoint{borderThickness.left, borderThickness.top});
         e.Skip();
     });
@@ -640,6 +649,13 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
 
         MarkdownTip::ExitTip();
 
+        // Plater::reset() tears down every ObjectList node. An open cell editor (e.g. the plate name
+        // being renamed) still refers to one of them through the renderer's own item, and shutdown()'s
+        // Show(false) kill-focuses that editor, which reads the item back. Close the editor here, while
+        // the node it points at is still alive.
+        if (ObjectList* obj_list = wxGetApp().obj_list())
+            obj_list->cancel_item_editing();
+
         m_plater->reset();
         this->shutdown();
         // propagate event
@@ -748,7 +764,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
             return;
         }
         else if (evt.CmdDown() && evt.GetKeyCode() == 'G') { if (can_export_gcode()) { wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_EXPORT_SLICED_FILE)); } evt.Skip(); return; }
-        if (evt.CmdDown() && evt.GetKeyCode() == 'J') { m_printhost_queue_dlg->Show(); return; }
+        if (evt.CmdDown() && evt.GetKeyCode() == 'J') { printhost_queue_dlg()->Show(); return; }
         if (evt.CmdDown() && evt.GetKeyCode() == 'N') { m_plater->new_project(); return;}
         if (evt.CmdDown() && evt.GetKeyCode() == 'O') { m_plater->load_project(); return;}
         if (evt.CmdDown() && evt.ShiftDown() && evt.GetKeyCode() == 'S') { if (can_save_as()) m_plater->save_project(true); return;}
@@ -878,8 +894,7 @@ static void AdjustWorkingAreaForAutoHide(const HWND hWnd, MINMAXINFO *mmi)
     if ((uState & ABS_AUTOHIDE) != ABS_AUTOHIDE) { return; }
 
     RECT borderThickness;
-    SetRectEmpty(&borderThickness);
-    AdjustWindowRectEx(&borderThickness, GetWindowLongPtr(hWnd, GWL_STYLE) & ~WS_CAPTION, FALSE, 0);
+    get_window_frame_for_dpi(hWnd, GetWindowLongPtr(hWnd, GWL_STYLE) & ~WS_CAPTION, borderThickness);
 
     // Determine taskbar position
     SHAppBarMessage(ABM_GETTASKBARPOS, &abd);
@@ -930,13 +945,57 @@ static void ClampMaxToWorkArea(const HWND hWnd, MINMAXINFO *mmi)
     // client fills the work area, and shift ptMaxPosition by the same amount to keep it aligned - the
     // off-screen overhang is clipped to the monitor by Windows, matching BBLTopbar::OnFullScreen.
     RECT frame;
-    SetRectEmpty(&frame);
-    AdjustWindowRectEx(&frame, GetWindowLongPtr(hWnd, GWL_STYLE), FALSE, 0);
+    get_window_frame_for_dpi(hWnd, GetWindowLongPtr(hWnd, GWL_STYLE), frame);
 
     mmi->ptMaxPosition.x = (work.left - monitorRc.left) + frame.left;
     mmi->ptMaxPosition.y = (work.top - monitorRc.top) + frame.top;
     mmi->ptMaxSize.x     = (work.right - work.left) + (frame.right - frame.left);
     mmi->ptMaxSize.y     = (work.bottom - work.top) + (frame.bottom - frame.top);
+}
+
+/**
+ * \brief Log the system messages that can change the window DPI or layout
+ *
+ * These come rarely (lock, sleep, monitor plug, scale change), so each one is logged.
+ * They give the timeline for layout that breaks after the screen is locked.
+ */
+void MainFrame::log_display_message(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam)
+{
+    switch (nMsg) {
+    case WM_DPICHANGED: {
+        const RECT *rc = reinterpret_cast<const RECT *>(lParam);
+        // Windows already reports the new DPI for the window here; the old one is in the "DPI changed" log.
+        BOOST_LOG_TRIVIAL(info) << "WM_DPICHANGED window_dpi=" << GetDPI().y << " new_dpi=" << HIWORD(wParam)
+                                << " suggested=" << rc->left << "," << rc->top << " " << rc->right - rc->left << "x" << rc->bottom - rc->top
+                                << " client=" << GetClientSize().x << "x" << GetClientSize().y;
+        break;
+    }
+    case WM_DISPLAYCHANGE:
+        BOOST_LOG_TRIVIAL(info) << "WM_DISPLAYCHANGE " << LOWORD(lParam) << "x" << HIWORD(lParam) << " bpp=" << wParam
+                                << " window_dpi=" << GetDPI().y << " monitors=" << ::GetSystemMetrics(SM_CMONITORS);
+        break;
+    case WM_SETTINGCHANGE:
+        BOOST_LOG_TRIVIAL(info) << "WM_SETTINGCHANGE action=" << wParam;
+        break;
+    case WM_WTSSESSION_CHANGE: {
+        const char *name = "other";
+        switch (wParam) {
+        case WTS_SESSION_LOCK: name = "lock"; break;
+        case WTS_SESSION_UNLOCK: name = "unlock"; break;
+        case WTS_CONSOLE_CONNECT: name = "console_connect"; break;
+        case WTS_CONSOLE_DISCONNECT: name = "console_disconnect"; break;
+        case WTS_REMOTE_CONNECT: name = "remote_connect"; break;
+        case WTS_REMOTE_DISCONNECT: name = "remote_disconnect"; break;
+        }
+        BOOST_LOG_TRIVIAL(info) << "WM_WTSSESSION_CHANGE " << name << " code=" << wParam << " window_dpi=" << GetDPI().y;
+        break;
+    }
+    case WM_POWERBROADCAST:
+        // PBT_POWERSETTINGCHANGE repeats often and is not useful here.
+        if (wParam != PBT_POWERSETTINGCHANGE)
+            BOOST_LOG_TRIVIAL(info) << "WM_POWERBROADCAST event=" << wParam << " (4=suspend 7=resume 18=auto resume)";
+        break;
+    }
 }
 
 WXLRESULT MainFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam)
@@ -946,6 +1005,8 @@ WXLRESULT MainFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam
      * size of non-client area of a window and set the return value to 0. Also we have to tell the
      * application to not paint this area on activate and deactivation events so we also handle
      * "WM_NCACTIVATE" message. */
+    log_display_message(nMsg, wParam, lParam);
+
     switch (nMsg) {
     case WM_NCACTIVATE: {
         /* Returning 0 from this message disable the window from receiving activate events which is not
@@ -968,8 +1029,7 @@ WXLRESULT MainFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam
             GetWindowPlacement(hWnd, &wPos);
             if (wPos.showCmd != SW_SHOWMAXIMIZED) {
                 RECT borderThickness;
-                SetRectEmpty(&borderThickness);
-                AdjustWindowRectEx(&borderThickness, GetWindowLongPtr(hWnd, GWL_STYLE) & ~WS_CAPTION, FALSE, NULL);
+                get_window_frame_for_dpi(hWnd, GetWindowLongPtr(hWnd, GWL_STYLE) & ~WS_CAPTION, borderThickness);
                 borderThickness.left *= -1;
                 borderThickness.top *= -1;
                 NCCALCSIZE_PARAMS *sz = reinterpret_cast<NCCALCSIZE_PARAMS *>(lParam);
@@ -1016,6 +1076,20 @@ void  MainFrame::show_log_window()
 {
     m_log_window = new wxLogWindow(this, _L("Logging"), true, false);
     m_log_window->Show();
+}
+
+DiffPresetDialog &MainFrame::diff_dialog()
+{
+    if (!m_diff_dialog)
+        m_diff_dialog = std::make_unique<DiffPresetDialog>(this);
+    return *m_diff_dialog;
+}
+
+PrintHostQueueDialog *MainFrame::printhost_queue_dlg()
+{
+    if (!m_printhost_queue_dlg)
+        m_printhost_queue_dlg = new PrintHostQueueDialog(this);
+    return m_printhost_queue_dlg;
 }
 
 //BBS GUI refactor: remove unused layout new/dlg
@@ -1177,6 +1251,7 @@ void MainFrame::shutdown()
 		::UnregisterDeviceNotification(HDEVNOTIFY(m_hDeviceNotify));
 		m_hDeviceNotify = nullptr;
 	}
+    ::WTSUnRegisterSessionNotification((HWND)GetHandle());
  	if (m_ulSHChangeNotifyRegister) {
         SHChangeNotifyDeregister(m_ulSHChangeNotifyRegister);
         m_ulSHChangeNotifyRegister = 0;
@@ -1184,6 +1259,12 @@ void MainFrame::shutdown()
 #endif // _WIN32
 
     if (m_plater != nullptr) {
+        // Footprint for crashes in the deferred canvas and gizmo teardown that follows.
+        if (GLCanvas3D *canvas = m_plater->get_view3D_canvas3D())
+            BOOST_LOG_TRIVIAL(info) << KV(log_key::gizmo, GLGizmosManager::convert_gizmo_type_to_string(
+                                             canvas->get_gizmos_manager().get_current_type()))
+                                    << "tear down canvases";
+
         m_plater->get_ui_job_worker().cancel_all();
         m_plater->stop_jobs();
 
@@ -1354,15 +1435,18 @@ void MainFrame::init_tabpanel()
     // wxNB_NOPAGETHEME: Disable Windows Vista theme for the Notebook background. The theme performance is terrible on Windows 10
     // with multiple high resolution displays connected.
    // BBS
-    wxBoxSizer* side_tools = create_side_tools();
-    m_tabpanel = new Notebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, side_tools, wxNB_TOP | wxTAB_TRAVERSAL | wxNB_NOPAGETHEME);
-    m_tabpanel->SetBackgroundColour(*wxWHITE);
+    {
+        PERF_TRACE("startup.mainframe.notebook");
+        wxBoxSizer* side_tools = create_side_tools();
+        m_tabpanel = new Notebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, side_tools, wxNB_TOP | wxTAB_TRAVERSAL | wxNB_NOPAGETHEME);
+        m_tabpanel->SetBackgroundColour(*wxWHITE);
 
 #ifndef __WXOSX__ // Don't call SetFont under OSX to avoid name cutting in ObjectList
-    m_tabpanel->SetFont(Slic3r::GUI::wxGetApp().normal_font());
+        m_tabpanel->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 #endif
-    m_tabpanel->Hide();
-    m_settings_dialog.set_tabpanel(m_tabpanel);
+        m_tabpanel->Hide();
+        m_settings_dialog.set_tabpanel(m_tabpanel);
+    }
 
     m_tabpanel->Bind(wxEVT_NOTEBOOK_PAGE_CHANGING, [this](wxBookCtrlEvent& e) {
         int old_sel = e.GetOldSelection();
@@ -1546,64 +1630,88 @@ void MainFrame::init_tabpanel()
     });
 
     if (wxGetApp().is_editor()) {
-        m_webview = new WebViewPanel(m_tabpanel);
-        Bind(EVT_LOAD_URL, [this](wxCommandEvent &evt) {
-            wxString url = evt.GetString();
-            select_tab(MainFrame::tpHome);
-            m_webview->load_url(url);
-        });
-        m_tabpanel->AddPage(m_webview, "", "tab_home_active", "tab_home_active", false);
-        m_tabpanel->SetPageToolTip(tpHome, _L("Home"));
-        m_param_panel = new ParamsPanel(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBK_LEFT | wxTAB_TRAVERSAL);
+        {
+            PERF_TRACE("startup.mainframe.webview_home");
+            m_webview = new WebViewPanel(m_tabpanel);
+            Bind(EVT_LOAD_URL, [this](wxCommandEvent &evt) {
+                wxString url = evt.GetString();
+                select_tab(MainFrame::tpHome);
+                m_webview->load_url(url);
+            });
+            m_tabpanel->AddPage(m_webview, "", "tab_home_active", "tab_home_active", false);
+            m_tabpanel->SetPageToolTip(tpHome, _L("Home"));
+        }
+        {
+            PERF_TRACE("startup.mainframe.params_panel");
+            m_param_panel = new ParamsPanel(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBK_LEFT | wxTAB_TRAVERSAL);
+        }
     }
 
-    m_plater = new Plater(this, this);
-    m_plater->SetBackgroundColour(*wxWHITE);
-    m_plater->Hide();
+    {
+        PERF_TRACE("startup.mainframe.plater");
+        m_plater = new Plater(this, this);
+        m_plater->SetBackgroundColour(*wxWHITE);
+        m_plater->Hide();
 
-    wxGetApp().plater_ = m_plater;
+        wxGetApp().plater_ = m_plater;
+    }
 
-    create_preset_tabs();
+    {
+        PERF_TRACE("startup.mainframe.preset_tabs");
+        create_preset_tabs();
+    }
 
         //BBS add pages
-    m_monitor = new MonitorPanel(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize);
-    m_monitor->SetBackgroundColour(*wxWHITE);
-    m_tabpanel->AddPage(m_monitor, _L("Device"), std::string("tab_monitor_active"), std::string("tab_monitor_active"), false);
+    {
+        PERF_TRACE("startup.mainframe.monitor");
+        m_monitor = new MonitorPanel(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize);
+        m_monitor->SetBackgroundColour(*wxWHITE);
+        m_tabpanel->AddPage(m_monitor, _L("Device"), std::string("tab_monitor_active"), std::string("tab_monitor_active"), false);
+    }
 
-    m_printer_view = new PrinterWebView(m_tabpanel);
-    Bind(EVT_LOAD_PRINTER_URL, [this](wxCommandEvent &evt) {
-        wxString url = evt.GetString();
-        //select_tab(MainFrame::tpMonitor);
-        m_printer_view->load_url(url);
-    });
-    m_printer_view->Hide();
+    {
+        PERF_TRACE("startup.mainframe.printer_view");
+        m_printer_view = new PrinterWebView(m_tabpanel);
+        Bind(EVT_LOAD_PRINTER_URL, [this](wxCommandEvent &evt) {
+            wxString url = evt.GetString();
+            //select_tab(MainFrame::tpMonitor);
+            m_printer_view->load_url(url);
+        });
+        m_printer_view->Hide();
+    }
 
     if (wxGetApp().is_enable_multi_machine()) {
+        PERF_TRACE("startup.mainframe.multi_machine");
         m_multi_machine = new MultiMachinePage(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize);
         m_multi_machine->SetBackgroundColour(*wxWHITE);
         // TODO: change the bitmap
         m_tabpanel->AddPage(m_multi_machine, _L("Multi-device"), std::string("tab_multi_active"), std::string("tab_multi_active"), false);
     }
 
-    m_project = new ProjectPanel(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize);
-    m_project->SetBackgroundColour(*wxWHITE);
-    m_tabpanel->AddPage(m_project, _L("Project"), std::string("tab_auxiliary_avtice"), std::string("tab_auxiliary_avtice"), false);
+    {
+        PERF_TRACE("startup.mainframe.project_panel");
+        m_project = new ProjectPanel(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize);
+        m_project->SetBackgroundColour(*wxWHITE);
+        m_tabpanel->AddPage(m_project, _L("Project"), std::string("tab_auxiliary_avtice"), std::string("tab_auxiliary_avtice"), false);
+    }
 
-    m_calibration = new CalibrationPanel(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize);
-    m_calibration->SetBackgroundColour(*wxWHITE);
-    m_tabpanel->AddPage(m_calibration, _L("Calibration"), std::string("tab_calibration_active"), std::string("tab_calibration_active"), false);
+    {
+        PERF_TRACE("startup.mainframe.calibration_panel");
+        m_calibration = new CalibrationPanel(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize);
+        m_calibration->SetBackgroundColour(*wxWHITE);
+        m_tabpanel->AddPage(m_calibration, _L("Calibration"), std::string("tab_calibration_active"), std::string("tab_calibration_active"), false);
+    }
 
     if (!wxGetApp().is_fila_manager_disabled()) {
+        PERF_TRACE("startup.mainframe.filament_manager_page");
         m_web_device = new DeviceWebPage(m_tabpanel);
         m_tabpanel->AddPage(m_web_device, _L("Filament Manager"), std::string("tab_filament_active"), std::string("tab_filament_active"), false);
     }
 
     if (m_plater) {
-        // load initial config
+        // Skip sync on_config_change here: GUI_App suspends it across MainFrame
+        // + load_current_presets and applies full_config once before Show().
         auto full_config = wxGetApp().preset_bundle->full_config();
-        m_plater->on_config_change(full_config);
-
-        // Show a correct number of filament fields.
         // nozzle_diameter is undefined when SLA printer is selected
         // BBS
         if (full_config.has("filament_colour")) {
@@ -2294,6 +2402,8 @@ wxBoxSizer* MainFrame::create_side_tools()
                 wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SEND_TO_PRINTER_ALL));
             else if (m_print_select == eSendMultiApp)
                 wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SEND_MULTI_APP));
+            else if (m_print_select == eSendMultiAppAll)
+                wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SEND_MULTI_APP_ALL));
             /* else if (m_print_select == ePrintMultiMachine)
                  wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_PRINT_MULTI_MACHINE));*/
         });
@@ -2479,6 +2589,21 @@ wxBoxSizer* MainFrame::create_side_tools()
                         this->Layout();
                         p->Dismiss();
                     });
+
+                    if (check_bbl_farm_client_support_send_all()) {
+                        SideButton *send_all_to_multi_app_btn = new SideButton(p, _L("Send all to Bambu Farm Manager Client"), "");
+                        send_all_to_multi_app_btn->SetCornerRadius(0);
+                        p->append_button(send_all_to_multi_app_btn);
+
+                        send_all_to_multi_app_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent &) {
+                            m_print_btn->SetLabel(_L("Send all to BFMC"));
+                            m_print_select = eSendMultiAppAll;
+                            m_print_enable = get_enable_print_status();
+                            m_print_btn->Enable(m_print_enable);
+                            this->Layout();
+                            p->Dismiss();
+                        });
+                    }
                 }
 
 
@@ -2665,6 +2790,11 @@ bool MainFrame::get_enable_print_status()
             enable = false;
         }
         enable = enable && !is_all_plates;
+    }
+    else if (m_print_select == eSendMultiAppAll) {
+        if (!part_plate_list.is_all_slice_results_ready_for_print()) {
+            enable = false;
+        }
     }
 
     BOOST_LOG_TRIVIAL(info) << boost::format("m_print_select %1%, enable= %2% ")%m_print_select %enable;
@@ -2874,8 +3004,9 @@ void MainFrame::on_sys_color_changed()
 
     MenuFactory::sys_color_changed(m_menubar);
 
-    // update DiffPresetDialog from here, we're friends
-    diff_dialog.on_sys_color_changed();
+    // Skip if DiffPresetDialog was never opened (lazy creation).
+    if (m_diff_dialog)
+        m_diff_dialog->on_sys_color_changed();
 
     WebView::RecreateAll();
 
@@ -3383,7 +3514,7 @@ void MainFrame::init_menubar_as_editor()
                 m_plater->select_all(); },
             "", nullptr, [this](){return can_select(); }, this);
         // BBS Deslect All
-        append_menu_item(editMenu, wxID_ANY, _L("Deselect all") + "\tEsc",
+        wxMenuItem *deselect_item = append_menu_item(editMenu, wxID_ANY, _L("Deselect all") + "\tEsc",
             _L("Deselects all objects"), [this, handle_key_event](wxCommandEvent&) {
                 wxKeyEvent e;
                 e.SetEventType(wxEVT_KEY_DOWN);
@@ -3393,6 +3524,21 @@ void MainFrame::init_menubar_as_editor()
                 }
                 m_plater->deselect_all(); },
             "", nullptr, [this](){return can_deselect(); }, this);
+#ifdef __WXOSX__
+        // "\tEsc" is a Cocoa key equivalent and runs before the GL view, so it
+        // deselects every object instead of letting Measure cancel one feature.
+        this->Bind(wxEVT_UPDATE_UI, [this, deselect_item](wxUpdateUIEvent &evt) {
+            const bool on_editor = m_tabpanel && m_tabpanel->GetSelection() == TabPosition::tp3DEditor;
+            GLCanvas3D *canvas = m_plater ? m_plater->get_view3D_canvas3D() : nullptr;
+            const GLGizmosManager::EType type = canvas ? canvas->get_gizmos_manager().get_current_type()
+                                                       : GLGizmosManager::Undefined;
+            const bool measuring = on_editor && (type == GLGizmosManager::Measure || type == GLGizmosManager::Assembly);
+            const wxString label = measuring ? _L("Deselect all") : _L("Deselect all") + "\tEsc";
+            if (deselect_item->GetItemLabel() != label)
+                deselect_item->SetItemLabel(label);
+            evt.Skip();
+        }, deselect_item->GetId());
+#endif
         //editMenu->AppendSeparator();
         //append_menu_check_item(editMenu, wxID_ANY, _L("Show Model Mesh(TODO)"),
         //    _L("Display triangles of models"), [this](wxCommandEvent& evt) {
@@ -4380,8 +4526,15 @@ void MainFrame::select_tab(size_t tab/* = size_t(-1)*/)
         //size_t new_selection = tab == (size_t)(-1) ? m_last_selected_tab : (m_layout == ESettingsLayout::Dlg && tab != 0) ? tab - 1 : tab;
         size_t new_selection = tab == (size_t)(-1) ? m_last_selected_tab : tab;
 
-        if (m_tabpanel->GetSelection() != (int)new_selection)
+        if (m_tabpanel->GetSelection() != (int)new_selection) {
             m_tabpanel->SetSelection(new_selection);
+#ifdef _WIN32
+            // Callers often start blocking work right after switching (e.g. importing a
+            // project behind a progress dialog that does not yield on Windows). Paint the
+            // new page and tab bar now, otherwise the previous page's pixels stay on screen.
+            ::RedrawWindow(GetHWND(), nullptr, nullptr, RDW_UPDATENOW | RDW_ALLCHILDREN);
+#endif
+        }
 #ifdef _MSW_DARK_MODE
         /*if (wxGetApp().tabs_as_menu()) {
             if (Tab* cur_tab = dynamic_cast<Tab*>(m_tabpanel->GetPage(new_selection)))
@@ -4411,9 +4564,14 @@ void MainFrame::request_select_tab(TabPosition pos)
 }
 
 int MainFrame::get_calibration_curr_tab() {
-    if (m_calibration)
-        return m_calibration->get_tabpanel()->GetSelection();
-    return -1;
+    if (!m_calibration)
+        return -1;
+    // May run on the PrintJob worker. get_tabpanel() does not create widgets;
+    // before the first Show there is no tabbook to query.
+    auto* tabpanel = m_calibration->get_tabpanel();
+    if (!tabpanel)
+        return -1;
+    return tabpanel->GetSelection();
 }
 
 // Set a camera direction, zoom to all objects.
@@ -4844,8 +5002,9 @@ void MainFrame::RunScriptLeft(wxString js)
 
 void MainFrame::technology_changed()
 {
-    // upadte DiffDlg
-    diff_dialog.update_presets();
+    // Skip if DiffPresetDialog was never opened (lazy creation).
+    if (m_diff_dialog)
+        m_diff_dialog->update_presets();
 
     // update menu titles
     PrinterTechnology pt = plater()->printer_technology();
@@ -4902,6 +5061,41 @@ bool MainFrame::check_bbl_farm_client_installed()
         return false;
     }
 
+#else
+    return false;
+#endif
+}
+
+bool MainFrame::check_bbl_farm_client_support_send_all()
+{
+#ifdef WIN32
+    static const Semver min_version_for_send_all(3, 1, 0);
+
+    wchar_t szVersion[64];
+    DWORD   dwType = 0;
+    DWORD   dwSize = sizeof(szVersion);
+    LONG    result = RegGetValueW(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Bambulab\\Bambu Farm Manager Client", L"Version",
+                                  RRF_RT_REG_SZ, &dwType, szVersion, &dwSize);
+    if (result != ERROR_SUCCESS) {
+        BOOST_LOG_TRIVIAL(warning) << "Failed to read Bambu Farm Manager Client version from registry";
+        return false;
+    }
+
+    boost::optional<Semver> version;
+    try {
+        version = Semver::parse(boost::nowide::narrow(szVersion));
+    } catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+        return false;
+    }
+    if (!version) {
+        BOOST_LOG_TRIVIAL(warning) << "Failed to parse Bambu Farm Manager Client version";
+        return false;
+    }
+
+    bool supported = !(*version < min_version_for_send_all);
+    BOOST_LOG_TRIVIAL(info) << "Bambu Farm Manager Client send all supported=" << (supported ? "true" : "false");
+    return supported;
 #else
     return false;
 #endif
@@ -4999,6 +5193,7 @@ SettingsDialog::SettingsDialog(MainFrame* mainframe)
 //        wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER | wxMINIMIZE_BOX | wxMAXIMIZE_BOX, "settings_dialog"),
     m_main_frame(mainframe)
 {
+    PERF_TRACE("startup.settings_dialog.ctor");
     if (wxGetApp().is_gcode_viewer())
         return;
 

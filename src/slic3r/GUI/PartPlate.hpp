@@ -82,6 +82,14 @@ class PartPlateList;
 class Bed3D;
 using GCodeResult = GCodeProcessorResult;
 
+// Inputs of the last reload's wipe tower check; not serialized. A zero est_size means no baseline yet.
+struct WipeTowerReloadBaseline
+{
+    Vec3d         est_size {Vec3d::Zero()};
+    bool          wrapping {false};
+    BoundingBoxf3 build_volume; // plate-local
+};
+
 class PartPlate : public ObjectBase
 {
 public:
@@ -119,8 +127,7 @@ private:
     // BBS: whether this plate's wipe tower has already been placed once. Survives
     // undo/redo (included in load()/save() below) but deliberately not written to 3mf.
     bool m_wipe_tower_placed {false};
-    Vec3d m_wipe_tower_last_est_size {Vec3d::Zero()}; // not serialized; size change detector
-    bool  m_wipe_tower_last_wrapping {false};         // not serialized; paired with m_wipe_tower_last_est_size
+    WipeTowerReloadBaseline m_wipe_tower_baseline;
     std::unique_ptr<HelioPlateResult> m_helio_result;
     float m_slice_percent;
 
@@ -347,7 +354,10 @@ public:
     //Vec3d calculate_wipe_tower_size(const DynamicPrintConfig &config, const double w, const double wipe_volume, int plate_extruder_size = 0, bool use_global_objects = false) const;
     // legacy_behavior: restore the old estimate/placement logic, used only by CLI call
     // sites so headless output stays unchanged while GUI gets the newer logic.
-    Vec3d estimate_wipe_tower_size(const DynamicPrintConfig & config, const double w, const double wipe_volume, int extruder_count = 1, int plate_extruder_size = 0, bool use_global_objects = false, bool enable_wrapping_detection = false, bool legacy_behavior = false) const;
+    // Non-legacy callers must pass a full config (print + printer + filament presets).
+    // hotend_as_extruder_override: <0 read handle_hotend_as_extruder from config,
+    // 0 force off, >0 force on. CLI downward_check forces it on for a multi-head target.
+    Vec3d estimate_wipe_tower_size(const DynamicPrintConfig & config, const double w, const double wipe_volume, int extruder_count = 1, int plate_extruder_size = 0, bool use_global_objects = false, bool enable_wrapping_detection = false, bool legacy_behavior = false, int hotend_as_extruder_override = -1) const;
     arrangement::ArrangePolygon estimate_wipe_tower_polygon(const DynamicPrintConfig & config, int plate_index, Vec3d& wt_pos, Vec3d& wt_size, int extruder_count = 1, int plate_extruder_size = 0, bool use_global_objects = false, bool legacy_behavior = false) const;
 
     // "Optimal" first position for this plate's wipe tower: hugs the parts' inflated hull
@@ -365,6 +375,9 @@ public:
     int  get_physical_extruder_by_filament_id(const DynamicConfig& g_config, int idx) const;
     int  get_physical_extruder_by_logical_extruder(const DynamicConfig& g_config, int logical_extruder) const;
     bool check_filament_printable(const DynamicPrintConfig & config, wxString& error_message);
+    // True when every used filament has a currently groupable nozzle compatible with its diameter,
+    // flow type and extruder restrictions.
+    bool all_used_filaments_have_groupable_nozzle() const;
     // True when a used 2.85mm/TPU285 filament is present but the printer preset has no TPU285 nozzle.
     bool check_missing_tpu285_nozzle(const DynamicPrintConfig &config) const;
     bool check_tpu_printable_status(const DynamicPrintConfig & config, const std::vector<int> &tpu_filaments);
@@ -467,10 +480,8 @@ public:
     // plate object itself is freshly constructed (new plate, delete_plate(), or 3mf reload).
     bool is_wipe_tower_placed() const { return m_wipe_tower_placed; }
     void set_wipe_tower_placed(bool state) { m_wipe_tower_placed = state; }
-    const Vec3d &get_wipe_tower_last_est_size() const { return m_wipe_tower_last_est_size; }
-    void set_wipe_tower_last_est_size(const Vec3d &size) { m_wipe_tower_last_est_size = size; }
-    bool get_wipe_tower_last_wrapping() const { return m_wipe_tower_last_wrapping; }
-    void set_wipe_tower_last_wrapping(bool on) { m_wipe_tower_last_wrapping = on; }
+    const WipeTowerReloadBaseline &get_wipe_tower_baseline() const { return m_wipe_tower_baseline; }
+    void set_wipe_tower_baseline(const WipeTowerReloadBaseline &baseline) { m_wipe_tower_baseline = baseline; }
 
     //is a printable plate or not
     bool is_printable() const { return m_printable; }
@@ -911,12 +922,9 @@ public:
     std::vector<PartPlate*> get_nonempty_plate_list();
 
     std::vector<const GCodeProcessorResult*> get_nonempty_plates_slice_results();
-    // keep_existing=true keeps the saved wipe_tower_x/y[plate_idx] and only clamps
-    // it back when it falls outside the current plate. Used after loading 3mf to
-    // preserve valid user-adjusted positions while sanitising values whose original
-    // plate size differs from the active one (e.g. STUDIO-15720: 256x256 project
-    // reopened on A1 mini 180x180).
-    void set_default_wipe_tower_pos_for_plate(int plate_idx, bool init_pos = false, bool keep_existing = false);
+    // Resets plate_idx's tower to the machine default position, pulled back into the
+    // legal range and clear of forbidden regions.
+    void set_default_wipe_tower_pos_for_plate(int plate_idx, bool init_pos = false);
 
     // The active printer's native default wipe tower position (plate-local, min corner),
     // before any clamping or forbidden-region avoidance.

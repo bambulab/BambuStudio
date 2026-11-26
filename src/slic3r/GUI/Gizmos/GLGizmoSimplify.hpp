@@ -6,6 +6,8 @@
 #include "GLGizmoBase.hpp"
 #include "slic3r/GUI/3DScene.hpp"
 #include "admesh/stl.h" // indexed_triangle_set
+#include "GLGizmoSimplifyDialog.hpp"
+#include <wx/weakref.h>
 #include <mutex>
 #include <thread>
 
@@ -30,10 +32,19 @@ public:
 
     std::string get_icon_filename(bool is_dark_mode) const override;
 
+    // Called by SimplifyDialog when the user changes a control.
+    void on_dialog_method_changed(bool use_count);
+    void on_dialog_detail_changed(int detail_level);
+    void on_dialog_ratio_changed(float decimate_ratio);
+    void on_dialog_wireframe_changed(bool show_wireframe);
+    void on_dialog_preserve_changed(bool preserve_color);
+    void on_dialog_apply();
+    void on_dialog_cancel();
+    void on_dialog_closed();
+
 protected:
     virtual std::string on_get_name() const override;
     virtual std::string on_get_name_str() override { return "Simplify"; }
-    virtual void on_render_input_window(float x, float y, float bottom_limit) override;
     virtual bool on_is_activable() const override;
     virtual bool on_is_selectable() const override { return false; }
     virtual void on_set_state() override;
@@ -50,15 +61,22 @@ private:
     void apply_simplify();
     void close();
 
+    // Follows the selection; returns true when the preview has to be (re)started.
+    bool sync_with_selection();
+    // The dialog is created hidden when the gizmo opens and shown once it has its content.
+    void open_dialog();
+    void show_dialog();
+    void close_dialog();
+    void refresh_dialog();
+    // Only the progress of the dialog, for each percent of the preview.
+    void refresh_dialog_progress();
+
     void process();
     void stop_worker_thread_request();
     void worker_finished();
 
-    void create_gui_cfg();
     void request_rerender(bool force = false);
     void init_model(const indexed_triangle_set& its);
-
-    void set_center_position();
 
     struct Configuration
     {
@@ -82,9 +100,11 @@ private:
     // the slider always matches the max_error the preview is computed with.
     int m_detail_level = 2;
 
-    bool m_move_to_center; // opening gizmo
-        
     const ModelVolume *m_volume; // keep pointer to actual working volume
+
+    // Non-modal window with the controls. Created when the gizmo opens, destroyed when it closes.
+    // Weak: the main frame may destroy the dialog (e.g. on exit) before the gizmo.
+    wxWeakRef<SimplifyDialog> m_dialog;
 
     bool m_show_wireframe;
     // Preserve painted color/MMU through the decimation. Only offered (checkbox shown) when
@@ -124,32 +144,8 @@ private:
     State m_state; // accessed by both threads
 
 
-    // This configs holds GUI layout size given by translated texts.
-    // etc. When language changes, GUI is recreated and this class constructed again,
-    // so the change takes effect. (info by GLGizmoFdmSupports.hpp)
-    struct GuiCfg
-    {
-        int top_left_width    = 100;
-        int bottom_left_width = 100;
-        int input_width       = 100;
-        int window_offset_x   = 100;
-        int window_offset_y   = 100;
-        int window_padding    = 0;
-
-        // trunc model name when longer
-        size_t max_char_in_name = 30;
-
-        // to prevent freezing when move in gui
-        // delay before process in [ms]
-        std::chrono::duration<long int, std::milli> prcess_delay = std::chrono::milliseconds(250);
-    };
-    std::optional<GuiCfg> m_gui_cfg;
-
-    // translations used for calc window size
-    const std::string tr_mesh_name;
-    const std::string tr_triangles;
-    const std::string tr_detail_level;
-    const std::string tr_decimate_ratio;
+    // Model names longer than this are shortened in the dialog.
+    static constexpr size_t max_char_in_name = 30;
 
     // cancel exception
     class SimplifyCanceledException: public std::exception

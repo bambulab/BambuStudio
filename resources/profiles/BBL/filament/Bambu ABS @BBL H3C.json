@@ -20,10 +20,6 @@
     "filament_change_length_nc": [
         "0"
     ],
-    "filament_cooling_before_tower": [
-        "0",
-        "0"
-    ],
     "filament_idle_travel_cooling_enabled": "0",
     "filament_max_volumetric_speed": [
         "20",
@@ -68,11 +64,11 @@
     ],
     "nozzle_temperature": [
         "270",
-        "270"
+        "280"
     ],
     "nozzle_temperature_initial_layer": [
         "260",
-        "260"
+        "270"
     ],
     "optional_cooling_fan_speed": [
         "0"

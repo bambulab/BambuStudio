@@ -20,6 +20,7 @@
 #include "GUI_App.hpp"
 #include "ExtruderHelpers.hpp"
 #include "ExtruderPanelGroup.hpp"
+#include "DeviceCore/DevNozzleSystem.h" // DevNozzle, for the short volume type names
 #include "libslic3r/PresetBundle.hpp" // project_config, for reading multi-diameter mode
 #include "wxExtensions.hpp"
 #include "Widgets/Label.hpp"
@@ -39,11 +40,6 @@ static const wxColour HasNozzleTextColor   = ThemeColor::TextPrimary;
 static const wxColour NoNozzleBgColor      = ThemeColor::White;
 static const wxColour NoNozzleBorderColor  = ThemeColor::Grey300;
 static const wxColour NoNozzleTextColor    = ThemeColor::Grey400;
-
-// Per-extruder AMS caps, matching the ones show_ams_add_menu enforces when adding a unit.
-constexpr size_t MAX_AMS_4_SLOT = 4;
-constexpr size_t MAX_AMS_1_SLOT = 8;
-constexpr int    AMS_DIVIDER_H  = 16; // half the height of an AMS unit
 
 DiameterButtonPanel::DiameterButtonPanel(wxWindow *parent, const std::vector<wxString> &diameter_choices, bool show_title,
                                          DisabledTooltipContext tooltip_context, bool show_multi_diameter_mode)
@@ -811,7 +807,7 @@ bool HorizontalScrollView::ScrollByWheel(const wxMouseEvent &evt)
 }
 
 // ----------------------------------------------------------------------------
-// NozzleRackPanel — every extruder's slot tiles in one row, their AMS units below
+// NozzleRackPanel — every extruder's slot tiles in one row
 // ----------------------------------------------------------------------------
 
 namespace {
@@ -872,63 +868,10 @@ NozzleRackPanel::NozzleRackPanel(wxWindow *parent) : wxPanel(parent, wxID_ANY, w
     m_tile_row = new wxBoxSizer(wxHORIZONTAL);
     main_sizer->Add(m_tile_row, 0, wxEXPAND | wxTOP, FromDIP(8));
 
-    main_sizer->Add(CreateAmsRow(), 0, wxEXPAND | wxTOP, FromDIP(4));
-
     SetSizer(main_sizer);
     Layout();
 
     wxGetApp().UpdateDarkUIWin(this);
-    CallAfter([this]() { update_ams(); });
-}
-
-// L and the left units, a divider, then R and the right units. Each extruder gets a fixed pool sized to the per-extruder
-// caps the AMS-count menu enforces, so changing the counts only opens and closes previews.
-wxSizer *NozzleRackPanel::CreateAmsRow()
-{
-    auto *row = new wxBoxSizer(wxHORIZONTAL);
-
-    for (int extruder = 0; extruder < MAX_EXTRUDERS; ++extruder) {
-        if (extruder > 0) {
-            auto *line = new wxPanel(this, wxID_ANY);
-            line->SetBackgroundColour(ThemeColor::Grey400);
-            line->SetMinSize(wxSize(FromDIP(1), FromDIP(AMS_DIVIDER_H)));
-            // The left gap is narrower: an AMS preview already draws inside its window with some
-            // blank margin, so equal gaps would look wider on the left.
-            auto *divider = new wxBoxSizer(wxHORIZONTAL);
-            divider->AddSpacer(FromDIP(8));
-            divider->Add(line, 0, wxALIGN_CENTER_VERTICAL);
-            divider->AddSpacer(FromDIP(12));
-            m_ams_divider = row->Add(divider, 0, wxEXPAND);
-        }
-
-        ExtruderAms &ams = m_ams[extruder];
-        ams.side         = new Label(this, extruder == 0 ? "L" : "R");
-        ams.side->SetFont(Label::Body_12);
-        ams.side->SetForegroundColour(ThemeColor::TextPrimary);
-        ams.side->SetBackgroundColour(GetBackgroundColour());
-        ams.side->Hide();
-        row->Add(ams.side, 0, wxALIGN_CENTER_VERTICAL);
-
-        ams.sizer = new wxBoxSizer(wxHORIZONTAL);
-        row->Add(ams.sizer, 0, wxEXPAND);
-
-        auto seed_previews = [this, &ams](size_t count, DevAmsType type) {
-            for (size_t i = 0; i < count; ++i) {
-                AMSinfo info;
-                info.ams_type = type;
-                auto *preview = new AMSPreview(this, wxID_ANY, info);
-                // The preview draws over whatever was erased beneath it, and a window never inherits
-                // its parent's colour, so without this nothing is erased and it renders on black.
-                preview->SetBackgroundColour(GetBackgroundColour());
-                preview->Close();
-                ams.previews.push_back(preview);
-            }
-        };
-        seed_previews(MAX_AMS_4_SLOT, DevAmsType::AMS);
-        seed_previews(MAX_AMS_1_SLOT, DevAmsType::N3S);
-    }
-
-    return row;
 }
 
 void NozzleRackPanel::UpdateNozzles(const std::vector<std::vector<NozzleConfig>> &extruders, const wxString &selected_diameter)
@@ -953,22 +896,12 @@ void NozzleRackPanel::rebuild_tiles()
     const int count  = std::min(static_cast<int>(m_extruders.size()), MAX_EXTRUDERS);
     m_extruder_count = std::max(count, 1);
 
-    // Multi-diameter mode exists for single-extruder printers only.
-    const bool multi_diameter = m_extruder_count == 1 && multi_nozzle_diameter_mode_enabled(wxGetApp().preset_bundle->project_config);
-    m_ams_enabled.fill(true);
-    const DynamicPrintConfig &printer_config = wxGetApp().preset_bundle->printers.get_edited_preset().config;
-    if (m_extruder_count == 1 && is_single_ext_multi_nozzle(printer_config)) {
-        const int ams_nozzle_idx = printer_config.opt_int("ams_nozzle_idx", -1);
-        const bool valid_ams_nozzle = ams_nozzle_idx >= 0 && !m_extruders.empty() &&
-                                      ams_nozzle_idx < static_cast<int>(m_extruders[0].size());
-        m_ams_enabled[0] = valid_ams_nozzle && !m_extruders[0][ams_nozzle_idx].is_empty() &&
-                           (multi_diameter || m_extruders[0][ams_nozzle_idx].diameter == m_selected_diameter);
-    }
-
+    const bool multi_diameter = multi_nozzle_diameter_mode_enabled(wxGetApp().preset_bundle->project_config);
     for (int extruder = 0; extruder < count; ++extruder)
         add_extruder_tiles(extruder, multi_diameter);
 
-    update_ams(); // the extruder count decides which AMS halves show; this also lays out the new tiles
+    Layout();
+    Refresh();
 }
 
 void NozzleRackPanel::add_extruder_tiles(int extruder, bool multi_diameter)
@@ -1004,181 +937,6 @@ void NozzleRackPanel::Rescale()
 
     Layout();
     Refresh();
-}
-
-void NozzleRackPanel::set_ams_count(int extruder, int n4, int n1)
-{
-    if (extruder < 0 || extruder >= MAX_EXTRUDERS) return;
-
-    ExtruderAms &ams = m_ams[extruder];
-    if (n4 == ams.n4 && n1 == ams.n1) return;
-
-    ams.n4 = n4;
-    ams.n1 = n1;
-    update_ams();
-}
-
-std::pair<int, int> NozzleRackPanel::ams_count(int extruder) const
-{
-    if (extruder < 0 || extruder >= MAX_EXTRUDERS) return {0, 0};
-    return {m_ams[extruder].n4, m_ams[extruder].n1};
-}
-
-void NozzleRackPanel::update_ams()
-{
-    auto       has_units = [](const ExtruderAms &ams) { return ams.n4 > 0 || ams.n1 > 0; };
-    const bool dual      = m_extruder_count > 1;
-    for (int extruder = 0; extruder < MAX_EXTRUDERS; ++extruder) {
-        ExtruderAms &ams = m_ams[extruder];
-        show_ams_units(extruder, ams, extruder < m_extruder_count, m_ams_enabled[extruder]);
-        ams.side->Show(dual && has_units(ams)); // a side label names units, so it needs some
-    }
-    // The divider separates the left units from the right ones, so it needs units on both sides.
-    m_ams_divider->Show(dual && has_units(m_ams[0]) && has_units(m_ams[1]));
-
-    Layout();
-    Refresh();
-}
-
-// A unit the machine has not reported yet still gets a slot, drawn from an empty placeholder, so the
-// row matches the count the user configured instead of appearing one short.
-void NozzleRackPanel::show_ams_units(int extruder, ExtruderAms &ams, bool visible, bool enabled)
-{
-    ams.sizer->Clear(false); // detach only: the pool outlives every refresh
-    for (auto *preview : ams.previews) preview->Close();
-    if (!visible) return;
-
-    std::vector<std::string> ids4;
-    std::vector<std::string> ids1;
-    for (const AMSinfo &info : ams.ams_4) ids4.push_back(info.ams_id);
-    for (const AMSinfo &info : ams.ams_1) ids1.push_back(info.ams_id);
-    if (!ids4.empty() || !ids1.empty())
-        wxGetApp().preset_bundle->initialize_ams_selection(extruder, ams.device_id, ids4, ids1);
-    const ExtruderAmsSelection *selection = wxGetApp().preset_bundle->get_ams_selection(extruder);
-
-    auto show_units = [this, &ams, enabled](size_t pool_offset, size_t wanted, const std::vector<std::string> *selected,
-                                            const std::vector<AMSinfo> &known, DevAmsType type) {
-        AMSinfo placeholder;
-        placeholder.ams_type = type;
-        placeholder.cans.resize(type == DevAmsType::AMS ? 4 : 1);
-        if (!enabled) {
-            for (Caninfo &can : placeholder.cans)
-                can.material_colour = AMS_CONTROL_DISABLE_COLOUR;
-        }
-
-        for (size_t i = 0; i < wanted && pool_offset + i < ams.previews.size(); ++i) {
-            auto *preview = ams.previews[pool_offset + i];
-            const AMSinfo *content = nullptr;
-            if (enabled) {
-                if (selected && i < selected->size() && !(*selected)[i].empty()) {
-                    const auto found = std::find_if(known.begin(), known.end(), [&](const AMSinfo &info) {
-                        return info.ams_id == (*selected)[i];
-                    });
-                    if (found != known.end()) content = &*found;
-                } else if (!selected && i < known.size()) {
-                    content = &known[i];
-                }
-            }
-            preview->Update(content ? *content : placeholder);
-            preview->Enable(enabled);
-            preview->Refresh();
-            preview->Open();
-            ams.sizer->Add(preview, 0, wxALL, FromDIP(2));
-        }
-    };
-    const auto *selected4 = selection && selection->initialized ? &selection->ams4 : nullptr;
-    const auto *selected1 = selection && selection->initialized ? &selection->ams1 : nullptr;
-    show_units(0, ams.n4, selected4, ams.ams_4, DevAmsType::AMS);
-    show_units(MAX_AMS_4_SLOT, ams.n1, selected1, ams.ams_1, DevAmsType::N3S);
-}
-
-void NozzleRackPanel::sync_ams(int                            extruder,
-                               MachineObject const           *obj,
-                               std::vector<DevAms *> const   &ams_internal,
-                               std::vector<DevAms *> const   &ams4,
-                               std::vector<DevAms *> const   &ams1,
-                               std::vector<DevAmsTray> const &ext)
-{
-    if (extruder < 0 || extruder >= MAX_EXTRUDERS) return;
-
-    ExtruderAms &state = m_ams[extruder];
-    const bool device_changed = obj && state.device_id != obj->get_dev_id();
-    if (obj) state.device_id = obj->get_dev_id();
-    if (!device_changed && state.ams_4.empty() && ams4.empty() && state.ams_1.empty() && ams1.empty() &&
-        state.ext.empty() && ext.empty())
-        return;
-    auto sync = [obj](std::vector<AMSinfo> &infos, std::vector<DevAms *> const &ams) -> bool {
-        std::vector<AMSinfo> infos2;
-        for (auto a : ams) {
-            AMSinfo ams_info;
-            ams_info.parse_ams_info(const_cast<MachineObject *>(obj), a, obj->GetFilaSystem()->IsDetectRemainEnabled(), obj->is_support_ams_humidity);
-            infos2.push_back(ams_info);
-        }
-        if (infos == infos2) return false;
-
-        for (size_t ams_index = 0; ams_index < infos2.size(); ++ams_index) {
-            auto ams_info = infos2[ams_index];
-            BOOST_LOG_TRIVIAL(info) << "NozzleRackPanel::sync_ams - AMS Info: "
-                                    << "ams_id = \"" << ams_info.ams_id << "\""
-                                    << ", ams_type = " << static_cast<int>(ams_info.ams_type) << ", cans_count = " << ams_info.cans.size();
-
-            for (size_t can_index = 0; can_index < ams_info.cans.size(); ++can_index) {
-                const auto &can_info = ams_info.cans[can_index];
-
-                BOOST_LOG_TRIVIAL(info) << "NozzleRackPanel::sync_ams - Can[" << can_index << "]: "
-                                        << "can_id = \"" << can_info.can_id << "\""
-                                        << ", material_name = \"" << can_info.material_name.ToStdString() << "\""
-                                        << ", material_colour = " << can_info.material_colour.GetAsString(2).ToStdString()
-                                        << ", material_state = " << static_cast<int>(can_info.material_state) << ", multi_colours_count = " << can_info.material_cols.size();
-
-                if (can_info.material_cols.size() > 1) {
-                    std::string multi_colors_str;
-                    for (size_t i = 0; i < can_info.material_cols.size(); ++i) {
-                        if (i > 0) multi_colors_str += ",";
-                        const auto &color = can_info.material_cols[i];
-                        multi_colors_str += color.GetAsString(2).ToStdString();
-                    }
-                    BOOST_LOG_TRIVIAL(info) << "NozzleRackPanel::sync_ams - Can[" << can_index << "] MultiColors: " << multi_colors_str;
-                }
-            }
-        }
-
-        infos.swap(infos2);
-        return true;
-    };
-
-    auto sync_ext = [obj](std::vector<AMSinfo> &infos, std::vector<DevAmsTray> const &trays) -> bool {
-        std::vector<AMSinfo> infos2;
-        for (auto tray : trays) {
-            AMSinfo ext_info;
-            ext_info.parse_ext_info(const_cast<MachineObject *>(obj), tray);
-            infos2.push_back(ext_info);
-        }
-        if (infos == infos2) return false;
-
-        BOOST_LOG_TRIVIAL(info) << "NozzleRackPanel::sync_ams - External material count: " << infos2.size();
-        for (size_t i = 0; i < infos2.size(); ++i) {
-            const auto &ext_info = infos2[i];
-            BOOST_LOG_TRIVIAL(info) << "NozzleRackPanel::sync_ams - Ext[" << i << "]: "
-                                    << "tray_id = \"" << ext_info.ams_id << "\"";
-            if (!ext_info.cans.empty()) {
-                const auto &can = ext_info.cans[0];
-                BOOST_LOG_TRIVIAL(info) << "  material_name = \"" << can.material_name << "\""
-                                        << ", colour = " << can.material_colour.GetAsString(2).ToStdString();
-            }
-        }
-
-        infos.swap(infos2);
-        return true;
-    };
-
-    // Every list is re-read even after one of them changed, so none is left stale until the next sync.
-    bool changed = device_changed;
-    changed |= sync(state.ams_4, ams4);
-    changed |= sync(state.ams_1, ams1);
-    changed |= sync(state.ams_internal, ams_internal);
-    changed |= sync_ext(state.ext, ext);
-    if (changed) update_ams();
 }
 
 CustomSeparator::CustomSeparator(wxWindow *parent, bool is_small) : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE)

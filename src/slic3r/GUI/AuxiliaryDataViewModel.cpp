@@ -2,6 +2,8 @@
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/Format/bbs_3mf.hpp"
+#include "GUI_App.hpp"
+#include "Plater.hpp"
 
 #include <wx/log.h>
 #include "libslic3r/Log.hpp"
@@ -225,8 +227,6 @@ bool AuxiliaryModel::IsContainer(const wxDataViewItem& item) const
     return node->IsContainer();
 }
 
-static unsigned int count = 0;
-
 unsigned int AuxiliaryModel::GetChildren(const wxDataViewItem& parent,
     wxDataViewItemArray& array) const
 {
@@ -239,7 +239,7 @@ unsigned int AuxiliaryModel::GetChildren(const wxDataViewItem& parent,
         node = m_root;
     }
 
-    count = node->GetChildren().GetCount();
+    const unsigned int count = node->GetChildren().GetCount();
     for (unsigned int pos = 0; pos < count; pos++)
     {
         AuxiliaryModelNode* child = node->GetChildren().Item(pos);
@@ -345,7 +345,7 @@ wxDataViewItemArray AuxiliaryModel::ImportFile(AuxiliaryModelNode* sel, wxArrayS
         wxDataViewItem file_item(file);
         if (parent == m_root)
             parent = nullptr;
-        Slic3r::put_other_changes();
+        Slic3r::GUI::wxGetApp().plater()->mark_project_dirty();
         wxDataViewItem parent_item(parent);
         ItemAdded(parent_item, file_item);
         added_items.push_back(file_item);
@@ -380,7 +380,7 @@ void AuxiliaryModel::Delete(const wxDataViewItem& item)
 
     node->GetParent()->GetChildren().Remove(node);
 
-    Slic3r::put_other_changes();
+    Slic3r::GUI::wxGetApp().plater()->mark_project_dirty();
     wxDataViewItem parent_item = GetParent(item);
     ItemDeleted(parent_item, item);
     delete node;
@@ -433,7 +433,7 @@ void AuxiliaryModel::MoveItem(const wxDataViewItem& dropped_item, const wxDataVi
     dragged->path = new_path;
 
     // Notify wxDataViewCtrl to update ui
-    Slic3r::put_other_changes();
+    Slic3r::GUI::wxGetApp().plater()->mark_project_dirty();
     ItemDeleted(old_parent_item, wxDataViewItem(dragged));
     ItemAdded(wxDataViewItem(target_folder == m_root ? nullptr : target_folder), wxDataViewItem(dragged));
 }
@@ -467,7 +467,7 @@ bool AuxiliaryModel::Rename(const wxDataViewItem& item, const wxString& name)
     if (err.failed())
         return false;
 
-    Slic3r::put_other_changes();
+    Slic3r::GUI::wxGetApp().plater()->mark_project_dirty();
     node->name = name;
     node->path = m_root_dir + "\\" + parent->name + "\\" + name;
     return true;

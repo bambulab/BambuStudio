@@ -27,7 +27,38 @@ static wxString hms_row_text(const std::string& dev_id, DevHMSItem& item)
         return wxString::Format("[%s] %s", code, _L("Network error"));
     if (r.status == HMSStatus::Loading)
         return wxString::Format("[%s] %s", code, _L("Loading ..."));
-    return wxString::Format("[%s] %s", code, _L("Unknown error"));
+    if (r.status == HMSStatus::Ready) // dictionary loaded but has no entry for this code
+        return wxString::Format("[%s] %s", code, _L("No details available"));
+    return wxString::Format("[%s] %s", code, _L("Failed to load more details"));
+}
+
+static bool is_hms_hidden(const std::string& dev_id, const DevHMSItem& item)
+{
+    HMSResult r = wxGetApp().get_hms_query_mgr()->query_hms(dev_id, item.get_long_error_code());
+    return r.status == HMSStatus::Ready && r.is_internal;
+}
+
+// Wrap text to width; shrink the font (not below min_point_size) when it would exceed two lines
+static void wrap_hms_text(wxStaticText* label, const wxString& text, int width, wxString& wrapped_text)
+{
+    constexpr int max_lines      = 2;
+    constexpr int min_point_size = 8;
+
+    wxFont     font        = label->GetFont();
+    const int  start_point = font.IsOk() ? font.GetPointSize() : 0;
+    const int  max_shrink  = std::max(0, start_point - min_point_size);
+    wxClientDC dc(label);
+    for (int shrink = 0; shrink <= max_shrink; ++shrink) {
+        if (shrink > 0)
+            font.SetPointSize(start_point - shrink);
+        dc.SetFont(font);
+        Label::split_lines(dc, width, text, wrapped_text);
+        if ((int)wrapped_text.Freq('\n') < max_lines)
+            break;
+    }
+
+    if (font.IsOk())
+        label->SetFont(font);
 }
 
 HMSNotifyItem::HMSNotifyItem(const std::string& dev_id, wxWindow *parent, DevHMSItem& item)
@@ -55,10 +86,9 @@ HMSNotifyItem::HMSNotifyItem(const std::string& dev_id, wxWindow *parent, DevHMS
     m_hms_content->SetSize(HMS_NOTIFY_ITEM_TEXT_SIZE);
     m_hms_content->SetMinSize(HMS_NOTIFY_ITEM_TEXT_SIZE);
     // wxStaticText::Wrap only breaks at spaces, which splits CJK text badly
-    wxClientDC dc(m_hms_content);
-    dc.SetFont(m_hms_content->GetFont());
     wxString wrapped_text;
-    Label::split_lines(dc, HMS_NOTIFY_ITEM_TEXT_SIZE.GetX(), hms_row_text(dev_id, m_hms_item), wrapped_text);
+    const int wrap_width = HMS_NOTIFY_ITEM_TEXT_SIZE.GetX() - FromDIP(10);
+    wrap_hms_text(m_hms_content, hms_row_text(dev_id, m_hms_item), wrap_width, wrapped_text);
     m_hms_content->SetLabelText(wrapped_text);
 
     m_bitmap_arrow = new wxStaticBitmap(m_panel_hms, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, 0);
@@ -203,9 +233,6 @@ HMSPanel::~HMSPanel() {
 }
 
 void HMSPanel::append_hms_panel(const std::string& dev_id, DevHMSItem& item) {
-    HMSResult r = wxGetApp().get_hms_query_mgr()->query_hms(dev_id, item.get_long_error_code());
-    if (r.status == HMSStatus::Ready && r.text.IsEmpty()) { return; }
-
     HMSNotifyItem* notify_item = new HMSNotifyItem(dev_id, m_scrolledWindow, item);
     m_top_sizer->Add(notify_item, 0, wxALIGN_CENTER_HORIZONTAL);
 }
@@ -219,13 +246,25 @@ void HMSPanel::clear_hms_tag()
     temp_hms_list.clear();
 }
 
+int HMSPanel::count_shown(MachineObject *obj)
+{
+    if (!obj || !wxGetApp().get_hms_query_mgr())
+        return 0;
+
+    int count = 0;
+    for (const auto& item : obj->GetHMS()->GetHMSItems()) {
+        if (!is_hms_hidden(obj->get_dev_id(), item))
+            ++count;
+    }
+    return count;
+}
+
 void HMSPanel::update(MachineObject *obj)
 {
     if (obj) {
         this->obj = obj;
         this->Freeze();
         delete_hms_panels();
-        wxString hms_text;
         for (auto item : obj->GetHMS()->GetHMSItems()) {
             if (wxGetApp().get_hms_query_mgr()) {
 
@@ -235,6 +274,8 @@ void HMSPanel::update(MachineObject *obj)
                     temp_hms_list[key] = item;
                 }
 
+                if (is_hms_hidden(obj->get_dev_id(), item))
+                    continue;
                 append_hms_panel(obj->get_dev_id(), item);
             }
         }
@@ -265,16 +306,20 @@ void HMSPanel::update(MachineObject *obj)
     }
 }
 
+bool HMSPanel::clears_rows(int status)
+{
+    return ((status & (int)MonitorStatus::MONITOR_DISCONNECTED) != 0)
+        || ((status & (int)MonitorStatus::MONITOR_DISCONNECTED_SERVER) != 0)
+        || ((status & (int)MonitorStatus::MONITOR_CONNECTING) != 0)
+        || ((status & (int)MonitorStatus::MONITOR_NO_PRINTER) != 0);
+}
+
 void HMSPanel::show_status(int status)
 {
     if (last_status == status) return;
     last_status = status;
 
-    if (((status & (int)MonitorStatus::MONITOR_DISCONNECTED) != 0)
-        || ((status & (int)MonitorStatus::MONITOR_DISCONNECTED_SERVER) != 0)
-        || ((status & (int)MonitorStatus::MONITOR_CONNECTING) != 0)
-        || ((status & (int)MonitorStatus::MONITOR_NO_PRINTER) != 0)
-        ) {
+    if (clears_rows(status)) {
         delete_hms_panels();
         Layout();
     }

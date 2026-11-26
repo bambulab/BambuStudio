@@ -29,6 +29,7 @@ inline const wxColour Link{"#0078D4"};
 inline const wxColour TextPrimary{"#262E30"};   // default body text on light surfaces (== DESIGN_GRAY900)
 inline const wxColour TextSecondary{"#323A3D"}; // slightly softer heading/label text (== DESIGN_GRAY800)
 inline const wxColour TextMuted{"#6B6B6B"};     // secondary / placeholder (same hex as Grey700 below)
+inline const wxColour TextMutedBright{"#6B6B6C"}; // same gray as TextMuted, own (brighter) dark mapping
 inline const wxColour TextDisabled{"#909090"};  // disabled / inactive text (== DESIGN_GRAY600)
 
 // Pure white (card / dialog / hub fill)

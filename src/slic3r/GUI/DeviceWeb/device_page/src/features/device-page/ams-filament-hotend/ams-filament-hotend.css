@@ -345,6 +345,21 @@
   white-space: nowrap;
 }
 
+/* Left-side tail fills the gap before the first column and most of the stage padding.
+   The readout leads here, so there is no zone spacer and no cap to the right. */
+.dryer-chamber-bg.info-left {
+  left: calc(var(--chamber-left) - var(--slot-pitch) - 4px);
+  width: calc(var(--chamber-right) - var(--chamber-left) + var(--slot-pitch) + 4px);
+  max-width: none;
+  justify-content: flex-start;
+  padding-right: 0;
+  padding-left: 6px;
+}
+
+.dryer-chamber-bg.info-left .dryer-info {
+  max-width: calc(var(--slot-pitch) - 6px);
+}
+
 .dryer-info {
   position: relative;
   display: flex;
@@ -450,7 +465,7 @@
 
 /* Humidity / temperature readout for non-drying zones. Shares the dryer
    chamber's vertical box so both readouts line up, but has no background and
-   sits in the half-pitch gap left of its first column. */
+   sits in the half-pitch gap beside its zone, on the side away from the dryer. */
 .ambient-info {
   position: absolute;
   top: -4px;

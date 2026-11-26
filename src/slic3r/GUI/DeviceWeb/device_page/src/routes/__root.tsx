@@ -14,6 +14,11 @@ const embeddedRoutes = new Set([
   '/device_page/auto_refill_refill_info',
   '/device_page/connected_slots',
   '/device_page/print_queue',
+  '/device_page/control_panel',
+  '/device_page/control_panel_debug',
+  '/device_page/filament_load',
+  '/device_page/hotend_rack',
+  '/device_page/hotend_rack_debug',
 ])
 
 function RootComponent() {

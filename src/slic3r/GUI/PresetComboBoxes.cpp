@@ -6,6 +6,7 @@
 #include <cstdlib>
 #include <cmath>
 #include <optional>
+#include <set>
 #include <utility>
 #include <vector>
 #include <string>
@@ -90,14 +91,14 @@ wxBitmap *tray_color_icon(const DynamicPrintConfig &tray, const std::string &nam
 static bool supports_multi_nozzle_diameter_mode(const PresetCollection& printers, const Preset& preset)
 {
     const Preset* base = printers.get_preset_base(preset);
-    return base != nullptr && base->is_system && is_single_ext_multi_nozzle(base->config);
+    return base != nullptr && base->is_system && Slic3r::supports_multi_nozzle_diameter_mode(base->config);
 }
 
 static bool is_canonical_multi_nozzle_diameter_printer_preset(const PresetCollection& printers, const Preset& preset)
 {
     const Preset* base = printers.get_preset_base(preset);
     return base != nullptr && base->is_system &&
-        is_single_ext_multi_nozzle(base->config) &&
+        Slic3r::supports_multi_nozzle_diameter_mode(base->config) &&
         base->config.opt_string("printer_variant") == canonical_multi_nozzle_printer_variant();
 }
 
@@ -201,18 +202,52 @@ static bool hidden_by_multi_nozzle_diameter_mode(const PresetBundle*     preset_
            !is_canonical_multi_nozzle_diameter_printer_preset(collection, preset);
 }
 
-// Whether `preset` is an installed system printer of a single-extruder multi-nozzle model, so the printer
+// Whether `preset` is an installed system printer of a model that offers multi-diameter mode, so the printer
 // settings combo offers it across multi-diameter modes whatever printer model is currently selected.
 // In multi-diameter mode only the edited printer's model qualifies: leaving the mode restores within the
 // same model, so a ">single" target on another model would land on the wrong printer.
 static bool installed_multi_nozzle_system_printer(const PresetCollection& printers, const Preset& preset, bool multi_nozzle_mode)
 {
-    if (!preset.is_system || !is_single_ext_multi_nozzle(preset.config))
+    if (!preset.is_system || !Slic3r::supports_multi_nozzle_diameter_mode(preset.config))
         return false;
     else if (preset.is_visible)
         return !multi_nozzle_mode ||
                preset.config.opt_string("printer_model") == printers.get_edited_preset().config.opt_string("printer_model");
     return false;
+}
+
+// Names of every system variant of the edited printer's model, whatever its visibility or installed nozzles.
+static std::set<std::string> same_model_system_printer_names(const PresetCollection& printers)
+{
+    std::set<std::string> result;
+    const Preset* printer_base = printers.get_preset_base(printers.get_edited_preset());
+    if (printer_base == nullptr || !printer_base->is_system)
+        return result;
+    const std::string printer_model = printer_base->config.opt_string("printer_model");
+    for (const Preset& p : printers.get_presets())
+        if (p.is_system && !printer_model.empty() && p.config.opt_string("printer_model") == printer_model)
+            result.insert(p.name);
+    return result;
+}
+
+// A user/project process of the other multi-diameter mode is listed greyed out and unselectable when it
+// belongs to the active printer model, whatever nozzle diameter it was saved for. A preset of another
+// diameter is matched through the compatible_printers of its system parent, which is much cheaper than
+// evaluating its compatibility against every variant of the model.
+static bool is_disabled_other_mode_process(const PresetBundle&          preset_bundle,
+                                           const Preset&                preset,
+                                           const std::set<std::string>& model_printers)
+{
+    if (!preset_bundle.is_other_multi_nozzle_mode_process_preset(preset))
+        return false;
+    if (preset.is_compatible)
+        return true;
+    const Preset* base = preset_bundle.prints.get_preset_base(preset);
+    const auto* compatible_printers = base != nullptr && base->is_system ?
+        base->config.option<ConfigOptionStrings>("compatible_printers") : nullptr;
+    return compatible_printers != nullptr &&
+           std::any_of(compatible_printers->values.begin(), compatible_printers->values.end(),
+                       [&model_printers](const std::string& name) { return model_printers.count(name) > 0; });
 }
 
 // ---------------------------------
@@ -684,10 +719,9 @@ void PresetComboBox::add_connected_printers(std::string selected, bool alias_nam
         if (!printer_preset)
             continue;
         printer_preset->is_visible = true;
-        auto printer_model = printer_preset->config.opt_string("printer_model");
-        boost::replace_all(printer_model, "Bambu Lab ", "");
-        auto text = iter->second->get_dev_name() + " (" + printer_model + ")";
-        int item_id = Append(from_u8(text), wxNullBitmap, &m_first_printer_idx + std::distance(user_machine_list.begin(), iter));
+        wxString model_name = get_printer_short_display_name(from_u8(printer_preset->config.opt_string("printer_model")));
+        wxString text       = from_u8(iter->second->get_dev_name()) + " (" + model_name + ")";
+        int item_id = Append(text, wxNullBitmap, &m_first_printer_idx + std::distance(user_machine_list.begin(), iter));
         validate_selection(m_selected_dev_id == iter->first);
     }
     m_last_printer_idx = GetCount();
@@ -699,6 +733,20 @@ int PresetComboBox::selected_connected_printer(int index) const
         return reinterpret_cast<int *>(GetClientData(index)) - &m_first_printer_idx;
     }
     return -1;
+}
+
+// The nozzle goes in the item suffix, not the label, so the dropdown draws it as a lighter
+// secondary column after the filament name. Shared between add_ams_filaments_grouped_by_nozzle
+// (single-extruder multi-nozzle rack machines) and add_ams_filaments (multi-extruder machines with
+// one nozzle per extruder): both read the same tray-reported diameter/flow fields.
+static wxString compute_tray_nozzle_suffix(const DynamicPrintConfig &tray)
+{
+    const auto *tray_nd = tray.option<ConfigOptionFloats>("tray_nozzle_diameter");
+    const auto *tray_vt = tray.option<ConfigOptionInts>("tray_nozzle_volume_type");
+    if (!tray_nd || tray_nd->values.empty() || !tray_vt || tray_vt->values.empty())
+        return wxString();
+    auto volume_type = static_cast<NozzleVolumeType>(tray_vt->values.front());
+    return "|  " + from_u8(format_diameter_to_str(tray_nd->values.front()) + " " + DevNozzle::ToNozzleVolumeShortString(volume_type));
 }
 
 bool PresetComboBox::add_ams_filaments_grouped_by_nozzle(std::string selected, bool alias_name)
@@ -776,17 +824,9 @@ bool PresetComboBox::add_ams_filaments_grouped_by_nozzle(std::string selected, b
         wxBitmap bmp(*ams_bmp);
         auto     text = get_preset_name(*iter);
 
-        // The nozzle goes in the item suffix, not the label, so the dropdown draws it as a lighter
-        // secondary column after the filament name.
         wxString nozzle_suffix;
-        if (multi_diameter_mode) {
-            const auto *tray_nd = tray.option<ConfigOptionFloats>("tray_nozzle_diameter");
-            const auto *tray_vt = tray.option<ConfigOptionInts>("tray_nozzle_volume_type");
-            if (tray_nd && !tray_nd->values.empty() && tray_vt && !tray_vt->values.empty()) {
-                auto volume_type = static_cast<NozzleVolumeType>(tray_vt->values.front());
-                nozzle_suffix = "| " + from_u8(format_diameter_to_str(tray_nd->values.front()) + " " + DevNozzle::ToNozzleVolumeShortString(volume_type));
-            }
-        }
+        if (multi_diameter_mode)
+            nozzle_suffix = compute_tray_nozzle_suffix(tray);
 
         // Match by filament_id + color (same criteria tray_is_synced_source uses for the per-row
         // dropdown badge), NOT by text/label comparison. Label matching was fragile: get_preset_name(*iter)
@@ -967,6 +1007,40 @@ bool PresetComboBox::add_ams_filaments(std::string selected, bool alias_name)
         set_label_marker(Append(dual_extruder ? _L("Left filaments") : _L("AMS filaments"), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM));
     }
 
+    // With a filament switcher (选料器) ready, it picks the extruder automatically: there is no
+    // meaningful per-slot diameter to show or to compare (filament_diameter_map is not what is
+    // actually routing this slot), so both the suffix text and the sync badge's diameter/flow check
+    // stay off together. Without one, each row's own nozzle is shown the way the single-extruder
+    // multi-nozzle rack combo (add_ams_filaments_grouped_by_nozzle) already does, and the sync badge
+    // has to agree with it.
+    const bool show_nozzle_suffix = !fila_switch_ready
+        && supports_multi_nozzle_diameter_mode(m_preset_bundle->full_config())
+        && multi_nozzle_diameter_mode_enabled(m_preset_bundle->project_config);
+
+    // Per-row synced badge, same criteria add_ams_filaments_grouped_by_nozzle uses: filament_id +
+    // color match (not label text, which is fragile -- see that function's own comment), gated on a
+    // matching connected printer so an unconnected/mismatched state never lights a row up either.
+    const bool printer_connected_and_matched = wxGetApp().plater()->is_same_printer_for_connected_and_selected(false);
+    const auto *slot_colors_opt = wxGetApp().preset_bundle->project_config.option<ConfigOptionStrings>("filament_colour");
+    const Preset *slot_preset = (size_t) m_filament_idx < m_preset_bundle->filament_presets.size()
+        ? m_collection->find_preset(m_preset_bundle->filament_presets[m_filament_idx]) : nullptr;
+    // When the row's own nozzle is shown, the tray also has to match the slot's selected diameter +
+    // flow to count as synced -- otherwise every AMS-loaded filament of the right color/material
+    // would light up regardless of which nozzle it is actually loaded on.
+    std::string      slot_selected_diameter;
+    NozzleVolumeType slot_selected_volume = NozzleVolumeType::nvtStandard;
+    if (show_nozzle_suffix && m_filament_idx >= 0) {
+        const auto *sel_diameters = m_preset_bundle->project_config.option<ConfigOptionStrings>("filament_diameter_map");
+        if (sel_diameters && (size_t) m_filament_idx < sel_diameters->values.size())
+            slot_selected_diameter = sel_diameters->values[m_filament_idx];
+        if (Plater *plater = wxGetApp().plater()) {
+            if (PartPlate *plate = plater->get_partplate_list().get_curr_plate()) {
+                const std::vector<int> vmaps = plate->get_real_filament_volume_maps(m_preset_bundle->project_config);
+                if ((size_t) m_filament_idx < vmaps.size()) slot_selected_volume = (NozzleVolumeType) vmaps[m_filament_idx];
+            }
+        }
+    }
+
     m_first_ams_filament = GetCount();
     auto &filaments      = m_collection->get_presets();
 
@@ -1018,20 +1092,37 @@ bool PresetComboBox::add_ams_filaments(std::string selected, bool alias_name)
         if (!ams_bmp) continue;
         wxBitmap bmp(*ams_bmp);
         auto text = get_preset_name(*iter);
-        int      item_id = Append(text, bmp.ConvertToImage(), &m_first_ams_filament + entry.first);
-        SetFlag(GetCount() - 1, (int) FilamentAMSType::FROM_AMS);
-        if (text == selected) {
-            DynamicPrintConfig *cfg    = &wxGetApp().preset_bundle->project_config;
-            if (cfg) {
-                auto colors = static_cast<ConfigOptionStrings *>(cfg->option("filament_colour")->clone());
-                if (m_filament_idx < colors->values.size()) {
-                    auto cur_color = colors->values[m_filament_idx];
-                    if (color == cur_color) {
-                        selected_in_ams = true;
-                    }
-                }
+
+        bool row_matches_current = slot_colors_opt && (size_t) m_filament_idx < slot_colors_opt->values.size()
+            && slot_preset && !slot_preset->filament_id.empty()
+            && slot_preset->filament_id == filament_id
+            && color == slot_colors_opt->values[m_filament_idx];
+        if (row_matches_current && show_nozzle_suffix) {
+            const auto *tray_nd = tray.option<ConfigOptionFloats>("tray_nozzle_diameter");
+            const auto *tray_vt = tray.option<ConfigOptionInts>("tray_nozzle_volume_type");
+            if (tray_nd && !tray_nd->values.empty() && tray_vt && !tray_vt->values.empty()) {
+                const std::string tray_diameter_str = format_diameter_to_str(tray_nd->values.front());
+                const NozzleVolumeType tray_volume = static_cast<NozzleVolumeType>(tray_vt->values.front());
+                if (slot_selected_diameter != tray_diameter_str || slot_selected_volume != tray_volume)
+                    row_matches_current = false;
+            } else {
+                row_matches_current = false;
             }
         }
+        const int item_style = (printer_connected_and_matched && row_matches_current) ? DD_ITEM_STYLE_SYNCED : 0;
+
+        int      item_id = Append(text, bmp.ConvertToImage(), &m_first_ams_filament + entry.first, item_style);
+        SetFlag(GetCount() - 1, (int) FilamentAMSType::FROM_AMS);
+        if (show_nozzle_suffix) {
+            wxString nozzle_suffix = compute_tray_nozzle_suffix(tray);
+            if (!nozzle_suffix.IsEmpty())
+                SetItemSuffix(item_id, nozzle_suffix);
+        }
+        // Drives the combo's own outer badge (ShowBadge()), not just this dropdown row -- reuse
+        // row_matches_current (filament_id + color, plus diameter/flow when show_nozzle_suffix) so
+        // the outer badge cannot stay lit on a slot whose selected diameter the AMS trays do not
+        // actually carry. The old text==selected + color check here never looked at diameter at all.
+        if (row_matches_current) selected_in_ams = true;
         //validate_selection(id->value == selected); // can not select
     }
     m_last_ams_filament = GetCount();
@@ -2115,6 +2206,8 @@ void TabPresetComboBox::update()
     size_t idx_selected = m_collection->get_selected_idx();
     const bool multi_nozzle_mode = m_preset_bundle != nullptr &&
         multi_nozzle_diameter_mode_enabled(m_preset_bundle->project_config);
+    const std::set<std::string> multi_nozzle_model_printers =
+        m_type == Preset::TYPE_PRINT && m_preset_bundle != nullptr ? same_model_system_printer_names(m_preset_bundle->printers) : std::set<std::string>{};
 
     // unselect printer
     if (m_type == Preset::TYPE_PRINTER && m_preset_bundle->physical_printers.has_selection()) {
@@ -2130,20 +2223,26 @@ void TabPresetComboBox::update()
             m_type == Preset::TYPE_PRINTER && installed_multi_nozzle_system_printer(*m_collection, preset, multi_nozzle_mode);
         const bool is_canonical_multi_nozzle =
             installed_multi_nozzle && is_canonical_multi_nozzle_diameter_printer_preset(*m_collection, preset);
+        const bool disabled_other_mode_process =
+            m_type == Preset::TYPE_PRINT && m_preset_bundle != nullptr &&
+            is_disabled_other_mode_process(*m_preset_bundle, preset, multi_nozzle_model_printers);
         if ((!preset.is_visible && !is_canonical_multi_nozzle) ||
-            (!show_incompatible && !preset.is_compatible && i != idx_selected))
+            (!show_incompatible && !preset.is_compatible && i != idx_selected && !disabled_other_mode_process))
             continue;
 
         // marker used for disable incompatible printer models for the selected physical printer
-        bool is_enabled = true;
+        bool is_enabled = !disabled_other_mode_process;
 
         wxBitmap* bmp = get_bmp(preset);
         assert(bmp);
 
         const wxString name = get_preset_name(preset);
-        available_presets.push_back(name);
+        available_presets.push_back(is_enabled ? name : name + " >disabled");
 
-        const wxString description = preset.is_system ? _L(preset.description) : wxString();
+        const wxString description =
+            !is_enabled ? (multi_nozzle_mode ? _L("Saved in single-diameter mode. Switch to single-diameter mode to use it.") :
+                                               _L("Saved in multi-diameter mode. Switch to multi-diameter mode to use it.")) :
+            preset.is_system ? _L(preset.description) : wxString();
 
         if (preset.is_default || preset.is_system) {
             //BBS: move system to the end
@@ -2244,13 +2343,13 @@ void TabPresetComboBox::update()
     {
         set_label_marker(Append(_L("Project-inside presets"), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM));
         for (auto it = project_embedded_presets.begin(); it != project_embedded_presets.end(); ++it) {
-            int item_id = Append(it->first, *it->second.bitmap);
+            bool is_enabled = it->second.enabled;
+            int item_id = Append(it->first, *it->second.bitmap, is_enabled ? 0 : DD_ITEM_STYLE_DISABLED);
             if (it->second.mode_target)
                 m_item_mode_targets.emplace(item_id, *it->second.mode_target);
             else
                 m_item_preset_names.emplace(item_id, it->second.preset_name);
             SetItemTooltip(item_id, it->second.description);
-            bool is_enabled = it->second.enabled;
             if (!is_enabled)
                 set_label_marker(item_id, LABEL_ITEM_DISABLED);
             validate_selection(it->first == selected);
@@ -2260,13 +2359,13 @@ void TabPresetComboBox::update()
     {
         set_label_marker(Append(_L("User presets"), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM));
         for (auto it = nonsys_presets.begin(); it != nonsys_presets.end(); ++it) {
-            int item_id = Append(it->first, *it->second.bitmap);
+            bool is_enabled = it->second.enabled;
+            int item_id = Append(it->first, *it->second.bitmap, is_enabled ? 0 : DD_ITEM_STYLE_DISABLED);
             if (it->second.mode_target)
                 m_item_mode_targets.emplace(item_id, *it->second.mode_target);
             else
                 m_item_preset_names.emplace(item_id, it->second.preset_name);
             SetItemTooltip(item_id, it->second.description);
-            bool is_enabled = it->second.enabled;
             if (!is_enabled)
                 set_label_marker(item_id, LABEL_ITEM_DISABLED);
             validate_selection(it->first == selected);
@@ -2277,13 +2376,13 @@ void TabPresetComboBox::update()
     {
         set_label_marker(Append(_L("System presets"), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM));
         for (auto it = system_presets.begin(); it != system_presets.end(); ++it) {
-            int item_id = Append(it->first, *it->second.bitmap);
+            bool is_enabled = it->second.enabled;
+            int item_id = Append(it->first, *it->second.bitmap, is_enabled ? 0 : DD_ITEM_STYLE_DISABLED);
             if (it->second.mode_target)
                 m_item_mode_targets.emplace(item_id, *it->second.mode_target);
             else
                 m_item_preset_names.emplace(item_id, it->second.preset_name);
             SetItemTooltip(item_id, it->second.description);
-            bool is_enabled = it->second.enabled;
             if (!is_enabled)
                 set_label_marker(item_id, LABEL_ITEM_DISABLED);
             validate_selection(it->first == selected);

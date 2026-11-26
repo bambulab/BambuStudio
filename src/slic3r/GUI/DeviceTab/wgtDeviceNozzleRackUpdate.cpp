@@ -51,6 +51,7 @@ wgtDeviceNozzleRackUpgradeDlg::wgtDeviceNozzleRackUpgradeDlg(wxWindow* parent, c
     SetSizer(main_sizer);
     Layout();
     Fit();
+    CentreOnParent();
 
     wxGetApp().UpdateDlgDarkUI(this);
 }

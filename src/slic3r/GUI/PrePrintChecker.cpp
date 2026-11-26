@@ -230,6 +230,7 @@ std::string PrePrintChecker::get_print_status_info(PrintDialogStatus status)
     case PrintStatusHasUnreliableNozzleWarning: return "PrintStatusRackHasUnreliableNozzleWarning";
     case PrintStatusRackNozzleNumUnmeetWarning: return "PrintStatusRackNozzleNumUnmeetWarning";
     case PrintStatusRackNozzleMappingWarning: return "PrintStatusRackNozzleMappingWarning";
+    case PrintStatusBigFlushWarning: return "PrintStatusBigFlushWarning";
     case PrintStatusWarningKvalueNotUsed: return "PrintStatusWarningKvalueNotUsed";
     case PrintStatusHasFilamentInBlackListWarning: return "PrintStatusHasFilamentInBlackListWarning";
     case PrintStatusHasFilamentInBlackListCriticalWarning: return "PrintStatusHasFilamentInBlackListCriticalWarning";
@@ -296,6 +297,7 @@ wxString PrePrintChecker::get_pre_state_msg(PrintDialogStatus status)
         return _L("Printing a project that uses multiple nozzle diameters directly from storage is not supported yet. "
                   "You can download the file and import it into Studio to print.");
     case PrintStatusHasUnreliableNozzleWarning: return _L("Please check if the required nozzle diameter and flow rate match the current display.");
+    case PrintStatusBigFlushWarning: return _L("Current printer firmware does not yet support large flushing volumes. The flushing volume set in the slicer may be limited.");
     case PrintStatusColorQuantityExceed: return _L("The current firmware supports a maximum of %s materials. You can either reduce the number of materials to %s or fewer on the Preparation Page, or try updating the firmware. If you are still restricted after the update, please wait for subsequent firmware support.");
     }
     return wxEmptyString;
@@ -307,7 +309,7 @@ void PrePrintChecker::clear()
     filamentList.clear();
 }
 
-void PrePrintChecker::add(PrintDialogStatus state, wxString msg, wxString tip, const wxString& wiki_url, prePrintInfoStyle style)
+void PrePrintChecker::add(PrintDialogStatus state, wxString msg, wxString tip, const wxString& wiki_url, prePrintInfoStyle style, const wxString& link_label)
 {
     prePrintInfo info;
 
@@ -338,6 +340,7 @@ void PrePrintChecker::add(PrintDialogStatus state, wxString msg, wxString tip, c
     }
 
     info.wiki_url = wiki_url;
+    info.link_label = link_label;
     info.m_style = style;
 
     switch (info.type) {
@@ -469,11 +472,12 @@ bool PrinterMsgPanel::UpdateInfos(const std::vector<prePrintInfo>& infos)
             }
             else
             {
+                const bool has_custom_link = !info.link_label.empty();
                 message_widget = new WikiWarningLabel(
                     this,
-                    info.msg + _L(" Please "),
-                    _L("refer to the Wiki User Guide"),
-                    _L(" before continuing."),
+                    has_custom_link ? (info.msg + " ") : (info.msg + _L(" Please ")),
+                    has_custom_link ? info.link_label : _L("refer to the Wiki User Guide"),
+                    has_custom_link ? wxString() : _L(" before continuing."),
                     info.wiki_url,
                     _GetLabelColour(info),
                     message_width);

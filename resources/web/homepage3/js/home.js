@@ -6,10 +6,29 @@ var m_ForUModelList=null;
 var m_MakerlabList=null;
 var m_PrintHistoryList=null;
 
+function NotifyHomeShellPainted()
+{
+	var tSend = {};
+	tSend['sequence_id'] = Math.round(new Date() / 1000);
+	tSend['command'] = "homepage_shell_painted";
+	SendWXMessage(JSON.stringify(tSend));
+}
+
 function OnHomeInit()
 {
 	//-----Official-----
     TranslatePage();
+
+	// Tell native side the shell chrome is ready (after first compositor frame)
+	// so post_init can start GL without covering an unpainted Home.
+	var notifyPainted = function () { NotifyHomeShellPainted(); };
+	if (typeof window.requestAnimationFrame === 'function') {
+		window.requestAnimationFrame(function () {
+			window.requestAnimationFrame(notifyPainted);
+		});
+	} else {
+		setTimeout(notifyPainted, 0);
+	}
 
 	SendMsg_GetRecentFile();
 	SendMsg_GetStaffPick();
@@ -97,10 +116,14 @@ function Set_RecentFile_MouseRightBtn_Event()
 			}
 		});
 
-	$(document).bind("contextmenu",function(e){
-		//在这里书写代码，构建个性右键化菜单
-		return false;
-	});	
+	// Namespaced + off() so rebuilding the recent list doesn't stack handlers.
+	$(document).off("contextmenu.recent").on("contextmenu.recent",function(e){
+		// Recent-file items show our own menu (ShowRecnetFileContextMenu), so keep the
+		// native one off there. Elsewhere it follows the native setting, i.e. the
+		// "Enable DevTools For Webview" preference.
+		if( $(e.target).closest(".FileItem").length > 0 )
+			return false;
+	});
 	
     $(document).mousemove( function(e){
 		MousePosX=e.pageX;

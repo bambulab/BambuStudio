@@ -19,8 +19,8 @@
 
 namespace Slic3r { namespace GUI {
 
-uiAmsPercentHumidityDryPopup::uiAmsPercentHumidityDryPopup(wxWindow *parent)
-    : wxDialog(parent, wxID_ANY, "")
+uiAmsPercentHumidityDryPopup::uiAmsPercentHumidityDryPopup(wxWindow *parent, const wxPoint &pos)
+    : wxDialog(parent, wxID_ANY, "", pos)
 {
     Create();
 }
@@ -97,6 +97,15 @@ void uiAmsPercentHumidityDryPopup::Create()
     Refresh();
 }
 
+bool uiAmsPercentHumidityDryPopup::Show(bool show)
+{
+    if (show) {
+        wxGetApp().UpdateDlgDarkUI(this);
+        msw_rescale();
+    }
+    return wxDialog::Show(show);
+}
+
 void uiAmsPercentHumidityDryPopup::Update(int humidiy_level, int humidity_percent, int left_dry_time, float current_temperature)
 {
     if (m_humidity_level != humidiy_level || m_humidity_percent != humidity_percent ||
@@ -116,16 +125,8 @@ void uiAmsPercentHumidityDryPopup::UpdateContents()
     // humitidy image
     if (0 < m_humidity_level && m_humidity_level < 6)
     {
-        ScalableBitmap humitidy_image;
-        if (wxGetApp().dark_mode())
-        {
-            humitidy_image = ScalableBitmap(this, "hum_level" + std::to_string(m_humidity_level) + "_no_num_light", 64);
-        }
-        else
-        {
-            humitidy_image = ScalableBitmap(this, "hum_level" + std::to_string(m_humidity_level) + "_no_num_light", 64);
-        }
-
+        const std::string mode_suffix = wxGetApp().dark_mode() ? "_no_num_dark" : "_no_num_light";
+        ScalableBitmap humitidy_image(this, "hum_level" + std::to_string(m_humidity_level) + mode_suffix, 64);
         m_humidity_img->SetBitmap(humitidy_image.bmp());
     }
 

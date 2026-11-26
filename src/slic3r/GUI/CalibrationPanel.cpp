@@ -9,6 +9,7 @@
 
 #include "DeviceCore/DevManager.h"
 #include "libslic3r/Log.hpp"
+#include "libslic3r/PerfTrace.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -452,18 +453,44 @@ CalibrationPanel::CalibrationPanel(wxWindow* parent, wxWindowID id, const wxPoin
     : wxPanel(parent, id, pos, size, style),
     m_mobjectlist_popup(SelectMObjectPopup(this))
 {
+    // Cheap empty shell only; wizards / tabbook are created in ensure_content()
+    // on first Show so MainFrame startup stays fast and notebook page is stable.
     SetBackgroundColour(*wxWHITE);
+}
+
+void CalibrationPanel::ensure_content()
+{
+    if (m_initialized)
+        return;
+
+    PERF_TRACE("startup.calibration_panel.ensure_content");
+
+    // Parent page is already visible. Freeze so wizard children do not flash at (0,0).
+    Freeze();
 
     init_tabpanel();
 
     wxBoxSizer* sizer_main = new wxBoxSizer(wxVERTICAL);
     sizer_main->Add(m_tabpanel, 1, wxEXPAND, 0);
 
-    SetSizerAndFit(sizer_main);
+    SetSizer(sizer_main);
     Layout();
 
     init_timer();
     Bind(wxEVT_TIMER, &CalibrationPanel::on_timer, this);
+
+    // Shell, side tools and the first page are created after MainFrame's dark-mode pass.
+    if (wxGetApp().dark_mode())
+        wxGetApp().UpdateDarkUIWin(this);
+
+    Thaw();
+}
+
+Tabbook* CalibrationPanel::get_tabpanel()
+{
+    // PrintJob::process reads this off the UI thread. Building widgets here would
+    // create windows on that worker, so creation stays in Show() -> ensure_content().
+    return m_tabpanel;
 }
 
 void CalibrationPanel::init_tabpanel() {
@@ -503,10 +530,12 @@ void CalibrationPanel::init_tabpanel() {
 
 void CalibrationPanel::init_timer()
 {
+    if (m_refresh_timer)
+        return;
+    // Allocate only. Show(false) can arrive before the deferred Show(true) runs,
+    // and a timer started here would keep firing after the page is hidden.
     m_refresh_timer = new wxTimer();
     m_refresh_timer->SetOwner(this);
-    m_refresh_timer->Start(REFRESH_INTERVAL);
-    wxPostEvent(this, wxTimerEvent());
 }
 
 void CalibrationPanel::on_timer(wxTimerEvent& event) {
@@ -514,6 +543,7 @@ void CalibrationPanel::on_timer(wxTimerEvent& event) {
 }
 
 void CalibrationPanel::update_print_error_info(int code, std::string msg, std::string extra) {
+    if (!m_initialized || !m_tabpanel) return;
     // update current wizard only
     int curr_selected = m_tabpanel->GetSelection();
     if (curr_selected >= 0 && curr_selected < CALI_MODE_COUNT) {
@@ -534,6 +564,7 @@ void CalibrationPanel::update_print_error_info(int code, std::string msg, std::s
 }
 
 void CalibrationPanel::update_all() {
+    if (!m_initialized || !m_tabpanel) return;
 
     NetworkAgent* m_agent = wxGetApp().getAgent();
     Slic3r::DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
@@ -648,27 +679,52 @@ void CalibrationPanel::show_status(int status)
     Thaw();
 }
 
+void CalibrationPanel::resume_on_show(bool shown)
+{
+    if (m_refresh_timer) {
+        m_refresh_timer->Stop();
+        if (shown) {
+            m_refresh_timer->SetOwner(this);
+            m_refresh_timer->Start(REFRESH_INTERVAL);
+            wxPostEvent(this, wxTimerEvent());
+        }
+    }
+    if (!shown)
+        return;
+
+    DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!dev)
+        return;
+    // set a default machine when obj is null
+    obj = dev->get_selected_machine();
+    if (obj == nullptr)
+        dev->load_last_machine();
+    else
+        obj->reset_update_time();
+}
+
 bool CalibrationPanel::Show(bool show) {
     if (show) {
-        m_refresh_timer->Stop();
-        m_refresh_timer->SetOwner(this);
-        m_refresh_timer->Start(REFRESH_INTERVAL);
-        wxPostEvent(this, wxTimerEvent());
-
-        DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
-        if (dev) {
-            //set a default machine when obj is null
-            obj = dev->get_selected_machine();
-            if (obj == nullptr) {
-                dev->load_last_machine();
-            }
-            else {
-                obj->reset_update_time();
-            }
+        // Show empty shell first; defer heavy wizards so the notebook selection
+        // paints immediately without flashing other tabs.
+        if (!m_initialized) {
+            CallAfter([this]() {
+                if (!this || this->IsBeingDeleted())
+                    return;
+                ensure_content();
+                if (IsBeingDeleted())
+                    return;
+                // Base Show(true) has already returned, so IsShown() is meaningful here.
+                resume_on_show(IsShown());
+            });
+            return wxPanel::Show(show);
         }
 
+        // Called before wxPanel::Show(true), so the page is not shown yet.
+        resume_on_show(true);
+
     }
-    else {
+    else if (m_refresh_timer) {
         m_refresh_timer->Stop();
     }
     return wxPanel::Show(show);
@@ -702,20 +758,25 @@ void CalibrationPanel::set_default()
 
 void CalibrationPanel::msw_rescale()
 {
+    if (!m_initialized) return;
     for (int i = 0; i < (int)CALI_MODE_COUNT; i++) {
-        m_cali_panels[i]->msw_rescale();
+        if (m_cali_panels[i])
+            m_cali_panels[i]->msw_rescale();
     }
 }
 
 void CalibrationPanel::on_sys_color_changed()
 {
+    if (!m_initialized) return;
     for (int i = 0; i < (int)CALI_MODE_COUNT; i++) {
-        m_cali_panels[i]->on_sys_color_changed();
+        if (m_cali_panels[i])
+            m_cali_panels[i]->on_sys_color_changed();
     }
 }
 
 CalibrationPanel::~CalibrationPanel() {
-    m_side_tools->get_panel()->Disconnect(wxEVT_LEFT_DOWN, wxMouseEventHandler(CalibrationPanel::on_printer_clicked), NULL, this);
+    if (m_side_tools)
+        m_side_tools->get_panel()->Disconnect(wxEVT_LEFT_DOWN, wxMouseEventHandler(CalibrationPanel::on_printer_clicked), NULL, this);
     if (m_refresh_timer)
         m_refresh_timer->Stop();
     delete m_refresh_timer;

@@ -107,6 +107,11 @@ struct TexturePaintingSettings {
     tex2color::MeshRepairCache* mesh_repair_cache = nullptr;
 };
 
+// Upper bound of simplified colors, for both auto and explicit counts. Limits the color
+// count only, not filament capacity: colors beyond the physical filament limit are
+// matched to mixed filaments or share the closest filament.
+std::size_t texture_max_color_count();
+
 // True if the cache holds a prepared mesh matching this input. Mismatched
 // identity clears prepared geometry but keeps win10_attempt.
 bool mesh_repair_cache_can_skip_input(const MeshRepairCachePtr& cache,

@@ -5,6 +5,8 @@
 #include "libslic3r/format.hpp"
 #undef PI
 
+#include <optional>
+
 #include <boost/next_prior.hpp>
 // Include igl first. It defines "L" macro which then clashes with our localization
 #include <igl/copyleft/cgal/mesh_boolean.h>
@@ -507,6 +509,18 @@ void make_boolean(const TriangleMesh &src_mesh, const TriangleMesh &cut_mesh, st
         failed_cb();
     BOOST_LOG_TRIVIAL(error) << "OpenMeshCraft mesh boolean backend is not enabled in this build.";
 }
+
+void make_boolean(const std::vector<BooleanOperand> &operands, std::vector<TriangleMesh> &dst_mesh, const std::string &boolean_opts, const BooleanCancelCB& cancel_cb, const BooleanProgressCB& progress_cb, const BooleanFailedCB& failed_cb)
+{
+    (void)operands;
+    (void)dst_mesh;
+    (void)boolean_opts;
+    (void)cancel_cb;
+    (void)progress_cb;
+    if (failed_cb)
+        failed_cb();
+    BOOST_LOG_TRIVIAL(error) << "OpenMeshCraft mesh boolean backend is not enabled in this build.";
+}
 #endif
 
 } // namespace openmeshcraft
@@ -997,6 +1011,44 @@ void make_boolean(const TriangleMesh &src_mesh, const TriangleMesh &cut_mesh, st
     openmeshcraft::make_boolean(src_mesh, cut_mesh, dst_mesh, boolean_opts, cancel_cb, progress_cb, failed_cb);
 #else
     mcut::make_boolean(src_mesh, cut_mesh, dst_mesh, boolean_opts, cancel_cb, progress_cb, failed_cb);
+#endif
+}
+
+void make_boolean(const std::vector<BooleanOperand> &operands, std::vector<TriangleMesh> &dst_mesh, const std::string &boolean_opts, const std::function<bool()> &cancel_cb, const std::function<void(float)> &progress_cb, const std::function<void()> &failed_cb)
+{
+#if SLIC3R_ENABLE_OPENMESHCRAFT_BOOLEAN
+    openmeshcraft::make_boolean(operands, dst_mesh, boolean_opts, cancel_cb, progress_cb, failed_cb);
+#else
+    // MCUT takes two meshes at a time: union each operand, then fold the operands.
+    auto fold = [&](TriangleMesh acc, const TriangleMesh &next, const std::string &op) -> std::optional<TriangleMesh> {
+        std::vector<TriangleMesh> result;
+        mcut::make_boolean(acc, next, result, op, cancel_cb, nullptr, failed_cb);
+        if (result.empty())
+            return std::nullopt;
+        return std::move(result.front());
+    };
+    std::vector<TriangleMesh> merged;
+    for (const BooleanOperand &operand : operands) {
+        if (operand.empty())
+            continue;
+        std::optional<TriangleMesh> acc = *operand.front();
+        for (size_t i = 1; acc && i < operand.size(); ++i)
+            acc = fold(std::move(*acc), *operand[i], "UNION");
+        if (!acc)
+            return;
+        merged.push_back(std::move(*acc));
+    }
+    if (merged.empty())
+        return;
+    // A - B1 - B2 ... and the union / intersection of all operands
+    std::optional<TriangleMesh> acc = std::move(merged.front());
+    for (size_t i = 1; acc && i < merged.size(); ++i) {
+        acc = fold(std::move(*acc), merged[i], boolean_opts);
+        if (progress_cb)
+            progress_cb(100.f * float(i) / float(merged.size() - 1));
+    }
+    if (acc && ! acc->empty())
+        dst_mesh.push_back(std::move(*acc));
 #endif
 }
 

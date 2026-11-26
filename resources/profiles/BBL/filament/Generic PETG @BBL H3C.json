@@ -5,6 +5,9 @@
     "from": "system",
     "setting_id": "GFSG99_24",
     "instantiation": "true",
+    "additional_cooling_fan_speed": [
+        "10"
+    ],
     "close_optional_fan_first_x_layers": [
         "1"
     ],
@@ -15,10 +18,6 @@
         "0"
     ],
     "filament_change_length_nc": [
-        "0"
-    ],
-    "filament_cooling_before_tower": [
-        "0",
         "0"
     ],
     "filament_idle_travel_cooling_enabled": "0",
@@ -69,7 +68,7 @@
         "255"
     ],
     "optional_cooling_fan_speed": [
-        "0"
+        "10"
     ],
     "optional_fan_full_speed_layer": [
         "0"

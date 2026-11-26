@@ -48,9 +48,10 @@ function buildSelectPayload(
   current_filament_id: number,
 ): Record<string, unknown> {
   const { r, g, b, a } = colorToRgba(slot.color);
+  const trayIndex = ('display_index' in slot && slot.display_index) ? slot.display_index : slot.index;
   return {
     r, g, b, a,
-    tray_index: slot.index,
+    tray_index: trayIndex,
     filament_id: current_filament_id,
     tray_id: slot.tray_id,
     ams_id: slot.ams_id,

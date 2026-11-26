@@ -190,6 +190,23 @@ static bool is_narrow_infill_area(const ExPolygon& expolygon)
 	return false;
 }
 
+static double surface_fill_thickness(const Surface &surface, const Layer &layer)
+{
+	return surface.thickness > 0. ? surface.thickness : layer.height;
+}
+
+// BBS multi-diameter: a solid infill merged over several base layers starts below layer.lower_layer. The base
+// layers inside its own thickness are stInternalVoid under it, so the layer it rests on is the base layer whose
+// Z range (print_z - height, print_z] contains the bottom of the solid infill.
+static const Layer *layer_under_fill(const Layer &layer, const Surface &surface)
+{
+	const double fill_bottom = layer.print_z - surface_fill_thickness(surface, layer);
+	const Layer *lower       = layer.lower_layer;
+	while (lower != nullptr && lower->print_z - lower->height > fill_bottom - EPSILON)
+		lower = lower->lower_layer;
+	return lower;
+}
+
 std::vector<SurfaceFill> group_fills(const Layer &layer, LockRegionParam &lock_param)
 {
 	std::vector<SurfaceFill> surface_fills;
@@ -543,19 +560,27 @@ std::vector<SurfaceFill> group_fills(const Layer &layer, LockRegionParam &lock_p
 		const coordf_t narrow_threshold = scale_(NARROW_INFILL_AREA_THRESHOLD) * 2;
 		ExPolygons lower_internal_areas;
 		BoundingBox lower_internal_bbox;
-		if (layer.lower_layer) {
-			for (auto layerm : layer.lower_layer->regions()) {
-				auto internal_surfaces = layerm->fill_surfaces.filter_by_types({ stInternal,stInternalVoid });
-				for (auto surface : internal_surfaces)
-					lower_internal_areas.push_back(surface->expolygon);
-			}
-			lower_internal_bbox = get_extents(lower_internal_areas);
-		}
+		const bool multi_nozzle_diameter = multi_nozzle_diameter_mode_enabled(layer.object()->print()->full_print_config());
+		// The layer lower_internal_areas was collected from; solid infills of different thickness rest on different layers.
+		const Layer *lower_internal_layer = nullptr;
 		size_t surface_fills_size = surface_fills.size();
 		for (size_t i = 0; i < surface_fills_size; i++) {
 			if (surface_fills[i].surface.surface_type != stInternalSolid &&
 			    surface_fills[i].surface.surface_type != stSubTop)
 				continue;
+			const Layer *lower = multi_nozzle_diameter ? layer_under_fill(layer, surface_fills[i].surface) : layer.lower_layer;
+			if (lower != lower_internal_layer) {
+				lower_internal_layer = lower;
+				lower_internal_areas.clear();
+				if (lower) {
+					for (auto layerm : lower->regions()) {
+						auto internal_surfaces = layerm->fill_surfaces.filter_by_types({ stInternal,stInternalVoid });
+						for (auto surface : internal_surfaces)
+							lower_internal_areas.push_back(surface->expolygon);
+					}
+				}
+				lower_internal_bbox = get_extents(lower_internal_areas);
+			}
 
 			size_t expolygons_size = surface_fills[i].expolygons.size();
 			std::vector<size_t> narrow_expoly_idx;
@@ -731,8 +756,10 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
 			assert(fill_contour != nullptr);
 			ExPolygons lower_unsuporrt_expolys;
 			Polygons lower_sparse_polys;
-			if (lower_layer) {
-				for (LayerRegion* layerm : lower_layer->regions()) {
+			const Layer *lower = multi_nozzle_diameter_mode_enabled(this->object()->print()->full_print_config()) ?
+				layer_under_fill(*this, surface_fill.surface) : lower_layer;
+			if (lower) {
+				for (LayerRegion* layerm : lower->regions()) {
 					auto surfaces = layerm->fill_surfaces.filter_by_types({ stInternal,stInternalVoid });
 					ExPolygons sexpolys;
 					for (auto surface : surfaces) {
@@ -744,7 +771,7 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
 				}
 				lower_unsuporrt_expolys = shrink_ex(lower_unsuporrt_expolys, SCALED_EPSILON);
         LockRegionParam temp_skin_inner_param;
-				std::vector<SurfaceFill> lower_fills = group_fills(*lower_layer, temp_skin_inner_param);
+				std::vector<SurfaceFill> lower_fills = group_fills(*lower, temp_skin_inner_param);
 				bool detect_lower_sparse_lines = true;
 				for (auto& fill : lower_fills) {
 					if (fill.params.pattern == ipAdaptiveCubic || fill.params.pattern == ipLightning || fill.params.pattern == ipSupportCubic) {
@@ -754,10 +781,10 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
 				}
 				if (detect_lower_sparse_lines) {
 					float internal_infill_width = 0;
-					for (auto layerm : lower_layer->regions())
+					for (auto layerm : lower->regions())
 						internal_infill_width += layerm->flow(frInfill).scaled_width();
-					internal_infill_width /= lower_layer->m_regions.size();
-					Polylines lower_sparse_lines = lower_layer->generate_sparse_infill_polylines_for_anchoring(nullptr, nullptr, nullptr);
+					internal_infill_width /= lower->m_regions.size();
+					Polylines lower_sparse_lines = lower->generate_sparse_infill_polylines_for_anchoring(nullptr, nullptr, nullptr);
 					lower_sparse_polys = offset(lower_sparse_lines, internal_infill_width / 2);
 					lower_sparse_polys = union_(lower_sparse_polys);
 				}
@@ -1081,7 +1108,7 @@ void Layer::make_ironing()
                 if (multi_nozzle_diameter_mode_enabled(this->object()->print()->full_print_config())) {
                     const double nozzle_diameter = nozzle_diameter_for_filament(
                         this->object()->print()->config(), (unsigned int) config.solid_infill_filament.value);
-                    ironing_params.inset = multi_nozzle_ironing_inset(nozzle_diameter, ironing_params.inset);
+                    ironing_params.inset = multi_nozzle_ironing_inset(this->object()->print()->full_print_config(), nozzle_diameter, ironing_params.inset);
                 }
 				ironing_params.height 		= default_layer_height * 0.01 * config.ironing_flow;
 				ironing_params.speed 		= config.ironing_speed;

@@ -1,6 +1,10 @@
 #include "PopupWindow.hpp"
 #include <wx/app.h>
 
+#ifdef __WXOSX__
+#include "slic3r/Utils/MacUtils.hpp"
+#endif
+
 static wxWindow *GetTopParent(wxWindow *pWindow)
 {
     wxWindow *pWin = pWindow;
@@ -34,6 +38,9 @@ bool PopupWindow::Create(wxWindow *parent, int style)
     if (style & wxPU_CONTAINS_CONTROLS)
     for (auto evt : {wxEVT_LEFT_DOWN, wxEVT_LEFT_UP, wxEVT_LEFT_DCLICK, wxEVT_MOTION, wxEVT_MOUSEWHEEL})
         Bind(evt, &PopupWindow::OnMouseEvent2, this);
+    // The base Create() has built the NSWindow and its content view by now, so this can be set
+    // once here instead of on every Popup(): collection behaviour sticks for the window's life.
+    Slic3r::GUI::mac_popup_follow_active_space((void *) GetHandle());
 #endif
     return true;
 }

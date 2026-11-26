@@ -23,7 +23,7 @@ const float GLGizmoBase::Grabber::SizeFactor = 0.05f;
 const float GLGizmoBase::Grabber::MinHalfSize = 4.0f;
 const float GLGizmoBase::Grabber::DraggingScaleFactor = 1.25f;
 const float GLGizmoBase::Grabber::FixedGrabberSize = 16.0f;
-float       GLGizmoBase::Grabber::GrabberSizeFactor   = 1.0f;
+float       GLGizmoBase::Grabber::GrabberSizeFactor   = 1.5f;
 const float GLGizmoBase::Grabber::FixedRadiusSize = 80.0f;
 
 

@@ -17,6 +17,7 @@ class wxGrid;
 class TextInput;
 
 namespace Slic3r {
+class DevDryer;
 
 namespace GUI {
 
@@ -92,6 +93,8 @@ public:
     // time; a second call while one is shown is silently ignored.
     static void RunModal(wxWindow* parent, const std::string& ams_id,
                          const std::optional<wxPoint>& popup_pos = std::nullopt);
+    // With a size, the result is kept inside the work area of the display it lands on.
+    static wxPoint DefaultPopupPos(wxWindow* parent, const wxSize& size = wxDefaultSize);
 
     void msw_rescale();
     void update(std::shared_ptr<DevFilaSystem> fila_system, MachineObject* obj);
@@ -127,6 +130,7 @@ private:
     wxBoxSizer* m_image_desc_sizer = nullptr;
     wxPanel* m_zmulti_image_overlay{nullptr};
     wxPanel* m_zmulti_m2y_pill{nullptr};
+    wxString m_zmulti_m2y_pill_text{"AMS 3H"};
     ScalableBitmap m_zmulti_humidity_icon;
     ScalableBitmap m_zmulti_temp_icon;
     int m_last_multi_zone_layout = -1; // -1=unset, 0=generic, 1=multi-zone
@@ -138,7 +142,7 @@ private:
     int m_last_desc_section_shown = -1; // -1=unset, 0=hidden, 1=shown
     int m_last_time_container_shown = -1; // -1=unset, 0=hidden, 1=shown
     int m_ambient_humidity_percent = -1;
-    int m_ambient_temperature = 0;
+    int m_ambient_temperature = -1;
 
     Label* m_humidity_data_label = nullptr;
     Label* m_temperature_data_label = nullptr;
@@ -260,6 +264,7 @@ private:
     wxBoxSizer* create_left_panel(wxPanel* parent);
     wxBoxSizer* create_humidity_status_section(wxPanel* parent);
     wxPanel* create_m2y_pill(wxPanel* parent);
+    void update_m2y_pill_text(const wxString& text);
     void on_overlay_paint(wxPaintEvent& evt);
     wxSize compute_zmulti_overlay_size() const;
     wxBoxSizer* create_description_item(wxPanel* parent, const wxString& title, Label*& dataLabel);
@@ -289,25 +294,25 @@ private:
     void update_ams_preview_selection();
     void fit_preview_strip_width();
 
-    bool check_values_changed(DevAms* dev_ams);
-    int update_image(DevAms* dev_ams);
+    bool check_values_changed(const DevDryer* dryer);
+    int update_image(const DevDryer* dryer);
     int update_generic_image(DevAmsType model, DevAms::DryStatus status, DevAms::DrySubStatus sub_status, int humidity_percent);
     int update_multi_zone_image(DevAmsType model, DevAms::DryStatus status, DevAms::DrySubStatus sub_status);
     void resize_image_overlay(const wxSize& size);
     void update_img_description(DevAms::DryStatus status, DevAms::DrySubStatus sub_status);
-    void update_normal_description(DevAms* dev_ams);
-    int update_state(DevAms* dev_ams);
-    int update_dryness_status(DevAms* dev_ams);
-    int update_ams_change(DevAms* dev_ams);
-    int update_filament_list(DevAms* dev_ams, MachineObject* obj);
-    void update_filament_guide_info(DevAms* dev_ams);
+    void update_normal_description(const DevDryer* dryer);
+    int update_state(const DevDryer* dryer);
+    int update_dryness_status(const DevDryer* dryer);
+    int update_ams_change(const DevDryer* dryer);
+    int update_filament_list(const DevDryer* dryer, MachineObject* obj);
+    void update_filament_guide_info(const DevDryer* dryer);
     wxString build_guide_points(int dryable_count, int total_count, const wxString& dryable_slot_names) const;
     void add_guide_text(Label* label, wxWindow* leading = nullptr, int gap_dip = 0);
     int  guide_text_width() const;
     void wrap_guide_texts();
-    void update_normal_state(DevAms* dev_ams);
-    void update_dry_zone(DevAms* dev_ams);
-    void update_printer_state(MachineObject* obj);
+    void update_normal_state(const DevDryer* dryer);
+    void update_dry_zone(const DevDryer* dryer);
+    void update_printer_state(const DevDryer* dryer);
 
     std::shared_ptr<DevFilaSystem> get_fila_system() const;
     void start_sending_drying_command();
@@ -315,12 +320,12 @@ private:
     void restore_unload_button_if_deadline_passed();
     void update_button_size(Button* button);
 
-    bool is_dry_status_changed(DevAms* dev_ams);
-    bool is_dry_ctr_idle(DevAms* dev_ams);
-    bool is_ams_changed(DevAms* dev_ams);
+    bool is_dry_status_changed(const DevDryer* dryer);
+    bool is_dry_ctr_idle(const DevDryer* dryer);
+    bool is_ams_changed(const DevDryer* dryer);
     bool is_dry_ctr_idle();
-    bool is_tray_changed(DevAms* dev_ams);
-    bool is_dry_ctr_err(DevAms* dev_ams);
+    bool is_tray_changed(const DevDryer* dryer);
+    bool is_dry_ctr_err(const DevDryer* dryer);
 
     // Aggregated dry state for the active drying area. For zoned AMS units
     // (ZMULTI_A, etc.) this reflects the dryable zone only; for legacy AMS it reflects
@@ -335,15 +340,15 @@ private:
         std::optional<DevAms::DrySettings>  dry_settings;
         std::optional<std::vector<DevAms::CannotDryReason>> cannot_dry_reasons;
     };
-    DryView get_dry_view(DevAms* dev_ams) const;
+    DryView get_dry_view(const DevDryer* dryer) const;
     // Non-dryable view: data shown on the "normal" badge (the area that
     // cannot be dried). For zoned AMS, this aggregates non-dryable zones; for
     // legacy AMS it falls back to the unit-wide values (same as DryView).
     struct AmbientView {
         int humidity_percent = -1;
-        int temperature      = 0;
+        int temperature      = -1; // -1: no reading
     };
-    AmbientView get_ambient_view(DevAms* dev_ams) const;
+    AmbientView get_ambient_view(const DevDryer* dryer) const;
 
 };
 

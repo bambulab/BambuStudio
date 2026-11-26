@@ -28,12 +28,14 @@ std::string color_to_hex(const wxColour &c)
 
 /**
  * \brief How the picker lays out the offered slots: both nozzles' slots on a two-nozzle printer (one shared
- *        list behind a filament selector), otherwise the single nozzle's.
+ *        list behind a filament switcher), otherwise the single nozzle's.
+ *
+ * \param switcher_ready  a ready filament switcher feeds both nozzles from one list
  */
-ShowType show_type_for(const SyncSlots &slots)
+ShowType show_type_for(bool switcher_ready)
 {
-    if (!slots.dual_nozzle) return ShowType::RIGHT;
-    return slots.selector_feeds_both ? ShowType::LEFT_AND_RIGHT_DYNAMIC : ShowType::LEFT_AND_RIGHT;
+    if (wxGetApp().preset_bundle->get_printer_extruder_count() < 2) return ShowType::RIGHT;
+    return switcher_ready ? ShowType::LEFT_AND_RIGHT_DYNAMIC : ShowType::LEFT_AND_RIGHT;
 }
 
 } // namespace
@@ -70,7 +72,7 @@ void AmsSlotPopup::popup_at(wxWindow *anchor)
     if (!obj) return;
 
     ensure_impl();
-    const ShowType show_type = show_type_for(m_state.slots);
+    const ShowType show_type = show_type_for(m_state.switcher_ready);
     m_impl->set_show_type(show_type);
     m_impl->set_current_filament_id(m_state.source_id);
     m_impl->set_tag_texture(m_state.source_type);

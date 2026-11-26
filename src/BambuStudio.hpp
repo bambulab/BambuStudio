@@ -106,6 +106,12 @@ typedef struct _printer_plate_info {
 
     // How many nozzles this machine can mount at once (sum of extruder_max_nozzle_count).
     int                 max_nozzle_count{1};
+    // Physical extruders (nozzle_diameter count). Dual-extruder machines are 2.
+    // handle_hotend_as_extruder machines stay 1; their nozzles are not extra extruders.
+    int                 extruder_count{1};
+    // Single extruder that treats each hotend as an extruder
+    // Nozzle changes on these machines add ramming volume to the prime tower.
+    bool                handle_hotend_as_extruder{false};
 }printer_plate_info_t;
 
 typedef struct _plate_obj_size_info {
@@ -129,6 +135,7 @@ private:
     std::vector<std::string>    m_input_files;
     std::vector<std::string>    m_actions;
     std::vector<std::string>    m_transforms;
+    std::vector<std::string>    m_cli_option_order;
     std::vector<Model>          m_models;
 
     bool setup(int argc, char **argv);

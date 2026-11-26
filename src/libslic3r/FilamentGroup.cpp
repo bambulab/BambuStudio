@@ -14,6 +14,9 @@ namespace Slic3r
     using namespace FilamentGroupUtils;
     static constexpr long long ENUM_THRESHOLD = 10000;
     static constexpr long long ENUM_EARLY_EXIT = 10000000;
+    // 去重键把每个喷嘴上的耗材集合存进一个 64 位掩码。每个耗材都被钉死在唯一喷嘴上时
+    // 分配数只有 1 却可以有任意多耗材，所以位宽要单独判断，拦不住的交给 kmedoids。
+    static constexpr int ENUM_MAX_FILAMENT_NUM = 64;
     constexpr uint32_t GOLDEN_RATIO_32 = 0x9e3779b9;
 
     // 计算单对“工程耗材—设备耗材”的匹配成本，供最小费用算法汇总整个匹配方案。
@@ -74,8 +77,10 @@ namespace Slic3r
         return filament_merge_map;
     }
 
-    // 喷嘴枚举去重使用的语义 hash：直径、流量类型、所属挤出机、已装料和容量都会影响可交换性。
-    static uint64_t fnv_hash_nozzle(const std::string& diameter, int volume_type, int is_right_extruder, int loaded_filament = -1, int capacity = -1)
+    // 喷嘴枚举去重使用的语义 hash：直径、流量类型、所属挤出机、已装料、容量、支撑偏好、是否主喷嘴
+    // 和按喷嘴下标查到的打印时间都会影响可交换性。
+    static uint64_t fnv_hash_nozzle(const std::string& diameter, int volume_type, int extruder_id, int loaded_filament, int capacity,
+                                    bool prefer_non_model, bool is_master, const std::vector<double>& print_time)
     {
         constexpr uint64_t FNV_OFFSET_BASIS = 14695981039346656037ULL;
         constexpr uint64_t FNV_PRIME        = 1099511628211ULL;
@@ -83,6 +88,8 @@ namespace Slic3r
         constexpr uint64_t SALT_B           = 0x5A5A5A5A5A5A5A5AULL;
         constexpr uint64_t SALT_C           = 0x3C3C3C3C3C3C3C3CULL;
         constexpr uint64_t SALT_D           = 0x9696969696969696ULL;
+        constexpr uint64_t SALT_E           = 0xC3C3C3C3C3C3C3C3ULL;
+        constexpr uint64_t SALT_F           = 0x6969696969696969ULL;
 
         uint64_t h = FNV_OFFSET_BASIS;
         for (unsigned char c : diameter) {
@@ -91,7 +98,7 @@ namespace Slic3r
         }
         h ^= static_cast<uint64_t>(volume_type) + SALT_A;
         h *= FNV_PRIME;
-        h ^= static_cast<uint64_t>(is_right_extruder) + SALT_B;
+        h ^= static_cast<uint64_t>(extruder_id) + SALT_B;
         h *= FNV_PRIME;
         if (loaded_filament >= 0) {
             h ^= static_cast<uint64_t>(loaded_filament) + SALT_C;
@@ -99,6 +106,14 @@ namespace Slic3r
         }
         if (capacity >= 0) {
             h ^= static_cast<uint64_t>(capacity) + SALT_D;
+            h *= FNV_PRIME;
+        }
+        h ^= static_cast<uint64_t>(prefer_non_model) + SALT_E;
+        h *= FNV_PRIME;
+        h ^= static_cast<uint64_t>(is_master) + SALT_F;
+        h *= FNV_PRIME;
+        for (double time : print_time) {
+            h ^= std::hash<double>{}(time);
             h *= FNV_PRIME;
         }
 
@@ -217,36 +232,129 @@ namespace Slic3r
         return evaluate_score(flush, change_time + print_time, true);
     }
 
-    static long long estimate_dedup_enum_count(int k, int n, const FilamentGroupContext& ctx)
+    // 枚举的搜索域：每个耗材可以放置的喷嘴集合。口径、流量类型、所属挤出机和几何不可打印限制
+    // 都已经由 rebuild_nozzle_unprintables 归并到 unplaceable_limits 里，这里把它翻成正向候选集合。
+    // 某个耗材在所有喷嘴上都不可放置时退回全部喷嘴，保持“硬约束无解时按软约束择优”的既有语义。
+    static std::vector<std::vector<int>> build_enum_candidates(int k,
+        const std::vector<unsigned int>& used_filaments,
+        const std::unordered_map<int, std::vector<int>>& unplaceable_limits)
     {
-        if (n <= 0 || k <= 0) return 0;
-
-        long long total = 1;
+        const int n = (int)used_filaments.size();
+        const std::vector<int> no_limit;
+        std::vector<std::vector<int>> candidates(n);
         for (int i = 0; i < n; ++i) {
-            total *= k;
-            if (total > ENUM_EARLY_EXIT) return total;
+            const auto it = unplaceable_limits.find(i);
+            const std::vector<int>& unplaceable = it != unplaceable_limits.end() ? it->second : no_limit;
+            for (int g = 0; g < k; ++g)
+                if (std::find(unplaceable.begin(), unplaceable.end(), g) == unplaceable.end())
+                    candidates[i].emplace_back(g);
+
+            if (candidates[i].empty()) {
+                BOOST_LOG_TRIVIAL(warning) << KV(log_key::filament_id, used_filaments[i]) << KV(log_key::nozzle_num, k)
+                                           << "filament fits no nozzle, fall back to all nozzles";
+                candidates[i].resize(k);
+                std::iota(candidates[i].begin(), candidates[i].end(), 0);
+            }
         }
+        return candidates;
+    }
 
-        if (k <= 1) return total;
+    // 枚举实际会走的分配数：各耗材候选集合大小的乘积。超过 ENUM_EARLY_EXIT 返回空值，
+    // 既避免把乘积算到溢出，也不会让越限的规模被当成循环上界用出去。
+    static std::optional<long long> count_enum_assignments(const std::vector<std::vector<int>>& candidates)
+    {
+        long long total = 1;
+        for (const auto& cand : candidates) {
+            total *= (long long)cand.size();
+            if (total > ENUM_EARLY_EXIT) return std::nullopt;
+        }
+        return total;
+    }
 
-        int dedup_factor = 1;
-        std::map<uint64_t, int> nozzle_type_count;
-        for (const auto& nozzle : ctx.nozzle_info.nozzle_list) {
+    // 每个喷嘴在枚举去重时使用的语义 hash，分到 hash 相同的喷嘴上的分组只会被评估一次，所以打分时
+    // 按喷嘴下标读取的字段都要放进 hash：calc_group_by_enum 读的容量、prefer_non_model_filament 和
+    // master_extruder_id，以及 TimeEvaluator::get_estimated_time 读的打印时间。
+    static std::vector<uint64_t> build_nozzle_dedup_hashes(const FilamentGroupContext& ctx)
+    {
+        const int k = (int)ctx.nozzle_info.nozzle_list.size();
+        std::vector<uint64_t> hashes(k);
+        for (int nozzle_idx = 0; nozzle_idx < k; ++nozzle_idx) {
+            const auto& nozzle = ctx.nozzle_info.nozzle_list[nozzle_idx];
             auto it = ctx.nozzle_info.nozzle_status.find(nozzle.group_id);
             int loaded_filament = (it != ctx.nozzle_info.nozzle_status.end()) ? it->second : -1;
-            int nozzle_capacity = nozzle.group_id < static_cast<int>(ctx.nozzle_info.per_nozzle_capacity.size()) ?
-                ctx.nozzle_info.per_nozzle_capacity[nozzle.group_id] : -1;
-            uint64_t hash = fnv_hash_nozzle(nozzle.diameter, nozzle.volume_type, nozzle.extruder_id > 0, loaded_filament, nozzle_capacity);
-            nozzle_type_count[hash]++;
+            int nozzle_capacity = nozzle_idx < (int)ctx.nozzle_info.per_nozzle_capacity.size() ?
+                ctx.nozzle_info.per_nozzle_capacity[nozzle_idx] : -1;
+            bool prefer_non_model = nozzle_idx < (int)ctx.machine_info.prefer_non_model_filament.size() &&
+                ctx.machine_info.prefer_non_model_filament[nozzle_idx];
+            bool is_master = nozzle_idx == ctx.machine_info.master_extruder_id;
+            // 与 get_estimated_time 的读法一致，缺项按 0 计；遍历的是同一个容器，各喷嘴的顺序相同
+            std::vector<double> print_time;
+            if (ctx.speed_info.group_with_time)
+                for (const auto& filament_time : ctx.speed_info.filament_print_time) {
+                    auto time_it = filament_time.second.find(nozzle_idx);
+                    print_time.emplace_back(time_it != filament_time.second.end() ? time_it->second : 0.0);
+                }
+            hashes[nozzle_idx] = fnv_hash_nozzle(nozzle.diameter, nozzle.volume_type, nozzle.extruder_id, loaded_filament, nozzle_capacity,
+                                                 prefer_non_model, is_master, print_time);
+        }
+        return hashes;
+    }
+
+    // 遍历候选集合的乘积，按喷嘴语义 hash 去重，收集互不等价的分配方案。去重一个方案远比
+    // full_evaluate 一个方案便宜（后者要把每层重排并模拟换料），所以先收齐再决定是否评估。
+    // 方案数超过 max_group_num 时返回空值：进位是从 0 号耗材开始的，截取前若干个方案等于
+    // 把高序号耗材钉死在它的第一个候选喷嘴上，这种偏斜的子集不如交给 kmedoids 做全局搜索。
+    static std::optional<std::vector<std::vector<int>>> collect_dedup_enum_groups(
+        const std::vector<std::vector<int>>& candidates,
+        const std::vector<uint64_t>& nozzle_hashes,
+        long long assignment_num,
+        long long max_group_num)
+    {
+        const int n = (int)candidates.size();
+        const int k = (int)nozzle_hashes.size();
+
+        auto vector_hash = [](const std::vector<uint64_t>& v) -> size_t {
+            size_t h = 0;
+            for (auto val : v) { h ^= val + GOLDEN_RATIO_32 + (h << 6) + (h >> 2); }
+            return h;
+        };
+        std::unordered_set<std::vector<uint64_t>, decltype(vector_hash)> seen(0, vector_hash);
+
+        std::vector<std::vector<int>> groups;
+        std::vector<int> choice_idx(n, 0);
+        std::vector<int> used_labels(n, 0);
+        std::vector<uint64_t> filament_mask_of_nozzle(k, 0);
+        std::vector<uint64_t> group_hashs;
+
+        for (long long assignment = 0; assignment < assignment_num; ++assignment) {
+            std::fill(filament_mask_of_nozzle.begin(), filament_mask_of_nozzle.end(), 0);
+            for (int i = 0; i < n; ++i) {
+                used_labels[i] = candidates[i][choice_idx[i]];
+                filament_mask_of_nozzle[used_labels[i]] |= (1ULL << i);
+            }
+
+            for (int i = 0; i < n; ++i) {
+                if (++choice_idx[i] < (int)candidates[i].size()) break;
+                choice_idx[i] = 0;
+            }
+
+            group_hashs.clear();
+            for (int nozzle_idx = 0; nozzle_idx < k; ++nozzle_idx) {
+                if (filament_mask_of_nozzle[nozzle_idx] == 0) continue;
+                uint64_t gh = nozzle_hashes[nozzle_idx];
+                gh ^= (std::hash<uint64_t>{}(filament_mask_of_nozzle[nozzle_idx]) + GOLDEN_RATIO_32 + (gh << 6) + (gh >> 2));
+                group_hashs.emplace_back(gh);
+            }
+            std::sort(group_hashs.begin(), group_hashs.end());
+            if (!seen.insert(group_hashs).second)
+                continue;
+
+            if ((long long)groups.size() >= max_group_num)
+                return std::nullopt;
+            groups.emplace_back(used_labels);
         }
 
-        for (auto& [hash, count] : nozzle_type_count) {
-            int factorial = 1;
-            for (int i = 2; i <= count; ++i) factorial *= i;
-            dedup_factor *= factorial;
-        }
-
-        return total / std::max(dedup_factor, 1);
+        return groups;
     }
 
     double FilamentGroup::calc_one_change_budget(const std::vector<unsigned int>& used_filaments) const
@@ -279,10 +387,9 @@ namespace Slic3r
     std::vector<int> FilamentGroup::calc_group_by_enum(
         int k,
         const std::vector<unsigned int>& used_filaments,
-        const std::unordered_map<int, std::vector<int>>& unplaceable_limits,
+        const std::vector<std::vector<int>>& enum_groups,
         int* cost)
     {
-        static constexpr int UNPLACEABLE_LIMIT_REWARD = 10000;
         static constexpr int MAX_SIZE_LIMIT_REWARD = 5000;
         static constexpr int SUPPORT_PREFER_REWARD = 100;
         static constexpr int BEST_FIT_LIMIT_REWARD = 10;
@@ -290,84 +397,22 @@ namespace Slic3r
         int n = (int)used_filaments.size();
         const double one_change_budget = calc_one_change_budget(used_filaments);
 
-        std::vector<std::vector<int>> candidates(n);
-        for (int i = 0; i < n; i++) {
-            std::unordered_set<int> group_set;
-            if (auto it = unplaceable_limits.find(i); it != unplaceable_limits.end()) {
-                for (int g = 0; g < k; g++) group_set.insert(g);
-                for (int g : it->second) group_set.erase(g);
-            } else {
-                for (int g = 0; g < k; g++) group_set.insert(g);
-            }
-            candidates[i].assign(group_set.begin(), group_set.end());
-        }
-
-        auto vector_equal = [](const std::vector<uint64_t>& a, const std::vector<uint64_t>& b) -> bool {
-            if (a.size() != b.size()) return false;
-            for (size_t i = 0; i < a.size(); i++) {
-                if (a[i] != b[i]) return false;
-            }
-            return true;
-        };
-        auto vector_hash = [](const std::vector<uint64_t>& v) -> size_t {
-            size_t h = 0;
-            for (auto val : v) { h ^= val + GOLDEN_RATIO_32 + (h << 6) + (h >> 2); }
-            return h;
-        };
-        std::unordered_set<std::vector<uint64_t>, decltype(vector_hash), decltype(vector_equal)> group_set(0, vector_hash, vector_equal);
-        std::vector<uint64_t> group_hashs;
-
-        std::vector<size_t> nozzles_hash(k);
-        for (int nozzle_idx = 0; nozzle_idx < k; ++nozzle_idx) {
-            const auto& nozzle = ctx.nozzle_info.nozzle_list[nozzle_idx];
-            auto it = ctx.nozzle_info.nozzle_status.find(nozzle.group_id);
-            int loaded_filament = (it != ctx.nozzle_info.nozzle_status.end()) ? it->second : -1;
-            int nozzle_capacity = nozzle_idx < static_cast<int>(ctx.nozzle_info.per_nozzle_capacity.size()) ?
-                ctx.nozzle_info.per_nozzle_capacity[nozzle_idx] : -1;
-            nozzles_hash[nozzle_idx] = fnv_hash_nozzle(nozzle.diameter, nozzle.volume_type, nozzle.extruder_id > 0, loaded_filament, nozzle_capacity);
-        }
-
         std::vector<int> best_full_map(ctx.group_info.total_filament_num, ctx.machine_info.master_extruder_id);
         double best_score = std::numeric_limits<double>::max();
         int best_prefer_level = 0;
         int best_flush = 0;
 
-        const long long total = (long long)std::pow(k, n);
-        for (long long mask = 0; mask < total; mask++) {
-            long long num = mask;
-            std::unordered_map<int, std::vector<int>> nozzles_filaments;
+        // enum_groups 已经按硬约束筛过并去掉了等价方案，这里只负责评分。
+        for (const std::vector<int>& used_labels : enum_groups) {
+            std::vector<std::vector<int>> nozzles_filaments(k);
             std::vector<int> groups_count(k, 0);
-            std::vector<int> used_labels(n, 0);
-
             for (int i = 0; i < n; i++) {
-                int g_id = num % k;
-                num /= k;
-                used_labels[i] = g_id;
-                nozzles_filaments[g_id].emplace_back(i);
-                groups_count[g_id]++;
+                nozzles_filaments[used_labels[i]].emplace_back(i);
+                groups_count[used_labels[i]]++;
             }
 
-            // Hash dedup
-            group_hashs.clear();
-            for (auto& nf : nozzles_filaments) {
-                uint64_t filament_mask = 0;
-                for (int filament : nf.second) filament_mask |= (1ULL << filament);
-                size_t gh = nozzles_hash[nf.first];
-                gh ^= (std::hash<uint64_t>{}(filament_mask) + GOLDEN_RATIO_32 + (gh << 6) + (gh >> 2));
-                group_hashs.emplace_back(gh);
-            }
-            std::sort(group_hashs.begin(), group_hashs.end());
-            if (group_set.find(group_hashs) != group_set.end()) continue;
-            group_set.insert(group_hashs);
-
-            // Prefer level
+            // Prefer level：可放置性已经由候选集合保证，这里只比较软约束。
             int prefer_level = 0;
-            int placeable_count = 0;
-            for (int i = 0; i < n; i++) {
-                if (std::find(candidates[i].begin(), candidates[i].end(), used_labels[i]) != candidates[i].end())
-                    placeable_count++;
-            }
-            prefer_level += placeable_count * UNPLACEABLE_LIMIT_REWARD;
 
             // Per-nozzle capacity (indexed by nozzle group_id), provided by ctx for every machine.
             const std::vector<int>& nozzle_caps = ctx.nozzle_info.per_nozzle_capacity;
@@ -1050,11 +1095,27 @@ namespace Slic3r
         m_memoryed_heap = MemoryedGroupHeap();
         std::vector<int> result;
 
-        long long estimated = estimate_dedup_enum_count(k, n, available_ctx);
-        if (estimated < ENUM_THRESHOLD)
-            result = available_group.calc_group_by_enum(k, used_filaments, unplaceable_limits, cost);
-        else
+        // 枚举的代价由两部分决定：遍历多少种分配，以及去重后有多少种方案真的要 full_evaluate。
+        // 候选集合把口径、流量类型等硬约束挡在枚举之外，两种规模都按它计算。
+        const auto candidates = build_enum_candidates(k, used_filaments, unplaceable_limits);
+        const auto assignment_num = count_enum_assignments(candidates);
+
+        std::optional<std::vector<std::vector<int>>> enum_groups;
+        if (n <= ENUM_MAX_FILAMENT_NUM && assignment_num)
+            enum_groups = collect_dedup_enum_groups(candidates, build_nozzle_dedup_hashes(available_ctx),
+                                                    *assignment_num, ENUM_THRESHOLD);
+
+        if (enum_groups)
+            result = available_group.calc_group_by_enum(k, used_filaments, *enum_groups, cost);
+        else {
+            const char* reason = n > ENUM_MAX_FILAMENT_NUM ? "too many filaments"
+                               : !assignment_num           ? "assignment space too large"
+                                                           : "too many distinct groups";
+            BOOST_LOG_TRIVIAL(warning) << KV(log_key::filament_num, n) << KV(log_key::nozzle_num, k)
+                                       << (assignment_num ? KV(log_key::assignment_num, *assignment_num) : std::string())
+                                       << "fall back to kmedoids, " << reason;
             result = available_group.calc_group_by_kmedoids(k, used_filaments, unplaceable_limits, cost, 3000);
+        }
 
         map_to_full_nozzle_ids(result, full_nozzle_ids);
 
@@ -1524,6 +1585,19 @@ namespace Slic3r
         return fg.calc_filament_group_for_flush();
     }
 
+    bool has_installed_loaded_nozzle(const FilamentGroupContext& ctx)
+    {
+        for (const auto& loaded : ctx.machine_info.nozzle_loaded_filaments) {
+            if (!loaded.valid)
+                continue;
+            for (const auto& nozzle : ctx.nozzle_info.nozzle_list) {
+                if (nozzle.installed && nozzle.group_id == loaded.nozzle_id)
+                    return true;
+            }
+        }
+        return false;
+    }
+
     std::vector<int> calc_filament_group_for_nozzle_match(FilamentGroupContext &ctx)
     {
         using namespace FlushPredict;
@@ -1552,7 +1626,7 @@ namespace Slic3r
                 loaded_nozzles.push_back({ filament, nozzle });
         }
 
-        // 没有工程耗材或没有设备已装料信息时，match 模式没有可参考目标，退回省冲刷分组。
+        // 无工程料，或无可用已装料：退回冲刷分配。后者的虚拟喷嘴已在构建上下文时补好。
         if (used_filaments.empty() || loaded_nozzles.empty()) {
             FilamentGroup fg(ctx);
             return fg.calc_filament_group_for_flush();

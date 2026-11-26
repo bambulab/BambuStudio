@@ -66,7 +66,7 @@
     "internal_solid_infill_speed": [
         "250",
         "300",
-        "300"
+        "250"
     ],
     "ironing_flow": "24%",
     "ironing_spacing": "0.19",
@@ -117,9 +117,9 @@
     "prime_tower_tail_speed_factor": "50%",
     "prime_tower_width": "60",
     "print_extruder_id": [
-        "2",
-        "2",
-        "2"
+        "1",
+        "1",
+        "1"
     ],
     "print_extruder_variant": [
         "Direct Drive Standard",
@@ -175,7 +175,7 @@
     "sparse_infill_speed": [
         "350",
         "600",
-        "600"
+        "350"
     ],
     "support_interface_speed": [
         "80",

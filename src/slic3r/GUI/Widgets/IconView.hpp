@@ -31,6 +31,15 @@ public:
      */
     IconView(wxWindow *parent, const std::string &icon, int px);
 
+    /**
+     * \brief Show another asset at the same height.
+     *
+     * The view takes the new icon's size; the owner lays it out again if the width changed.
+     *
+     * \param icon  asset name in the images folder, without extension
+     */
+    void set_icon(const std::string &icon);
+
 protected:
     wxSize DoGetBestSize() const override;
 

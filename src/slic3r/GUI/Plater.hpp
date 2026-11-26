@@ -139,6 +139,13 @@ wxDECLARE_EVENT(EVT_GCODE_VIEWER_CHANGED, SimpleEvent);
 
 const wxString DEFAULT_PROJECT_NAME = "Untitled";
 
+enum class MultiDiameterPresetMigrationResult
+{
+    NotHandled, // Continue with the normal preset-switch path.
+    Applied,    // Migration and preset switching completed successfully.
+    Aborted,    // Stop the switch because it was cancelled or failed.
+};
+
 class Sidebar : public wxPanel
 {
     ConfigOptionMode    m_mode;
@@ -194,6 +201,9 @@ public:
     void init_filament_combo(PlaterPresetComboBox **combo, const int filament_idx);
     void remove_unused_filament_combos(const size_t current_extruder_count);
     void refresh_filament_diameter_buttons(bool validate_selections = false);
+    // Coalesce startup / recreate_GUI diameter+combo refreshes into one call after
+    // plater_on_config_change_suspended is cleared.
+    void flush_pending_filament_ui_refresh();
     void sync_multi_nozzle_mode_from_project();
     /**
      * \brief Pick a printer preset that belongs to the other multi-diameter mode.
@@ -205,6 +215,12 @@ public:
      * \param to_multi      the mode the preset belongs to, i.e. the mode to switch to
      */
     void select_printer_across_multi_nozzle_mode(const std::string &printer_name, bool to_multi);
+    // Switch between two multi-diameter printer models. Empty projects land on the target's default
+    // single-diameter preset; non-empty projects prompt when the target cannot preserve every nozzle
+    // exactly or the project exceeds its physical nozzle capacity.
+    MultiDiameterPresetMigrationResult try_migrate_multi_diameter_printer_preset(std::string preset_name);
+    // Leave a user/project process of the other multi-diameter mode for the machine's default process.
+    void replace_mismatched_process_for_multi_nozzle_mode();
     void set_bed_by_curr_bed_type(AppConfig *config);
     void update_all_preset_comboboxes();
     //void update_partplate(PartPlateList& list);
@@ -234,7 +250,16 @@ public:
     void on_filaments_delete(size_t filament_id);
 
     void add_filament();
-    void delete_filament(size_t filament_id = size_t(-1), int replace_filament_id = -1);  // 0 base, -1 means default
+    /**
+     * \brief Delete a project filament and remap everything that references it.
+     *
+     * \param filament_id          0-based filament to delete; size_t(-1) deletes the last one
+     * \param replace_filament_id  0-based filament that takes over the references ("Merge with"),
+     *                             or -1 to reset them to the first remaining filament
+     * \param confirm_if_used      ask the user before deleting a filament a model or mixed filament uses.
+     *                             Pass false when the caller has already confirmed the delete, e.g. filament sync.
+     */
+    void delete_filament(size_t filament_id = size_t(-1), int replace_filament_id = -1, bool confirm_if_used = true);
     // Whether a model or mixed filament references this physical filament (0 base).
     bool is_filament_referenced(size_t filament_id) const;
     void change_filament(size_t from_id, size_t to_id);  // 0 base
@@ -244,7 +269,10 @@ public:
     // index, or size_t(-1) if nothing was added. Truncates to MAX_PHYSICAL_FILAMENT_COUNT physicals.
     // inherit_nozzle_from: when >= 0 in multi-diameter mode, copy that slot's
     // diameter/flow onto the new physicals (color-decompose of a 0.4 source).
-    size_t add_custom_filaments(const std::vector<std::pair<wxColour, std::string>>& items, int inherit_nozzle_from = -1);
+    // multi_colours: optional, aligned with items. {colour list, is_gradient} for
+    // gradient / multi-colour filaments; lists shorter than 2 keep the single colour.
+    size_t add_custom_filaments(const std::vector<std::pair<wxColour, std::string>>& items, int inherit_nozzle_from = -1,
+                                const std::vector<std::pair<std::vector<std::string>, bool>>& multi_colours = {});
     void scroll_filament_area_to_bottom();
     void scroll_mixed_filament_area_to_bottom();
     bool is_new_project_in_gcode3mf();
@@ -257,6 +285,9 @@ public:
     // Arms the next sync_extruder_list() with the nozzle migration the user confirmed in
     // SyncPresetWithPrinterDialog. Consumed once; a sync that runs without it migrates nothing.
     void arm_nozzle_migration(const PendingNozzleMigration &migration);
+    // Drops keys from the single-diameter process edits stashed while multi-diameter mode is on, so leaving the
+    // mode does not restore them over a value written since.
+    void forget_stashed_process_edits(const std::vector<std::string> &keys);
     void update_sync_status(const MachineObject* obj);
     int get_sidebar_pos_right_x();
     void on_size(SimpleEvent &e);
@@ -389,9 +420,21 @@ public:
 
     bool Show(bool show = true);
 
+    /**
+     * \brief Whether the project has unsaved changes, from any source
+     *
+     * The one answer for the title "*", the Save button and the close prompt, so they always agree.
+     * Covers the preset and project config comparison, the plater dirty mark and the undo history.
+     */
     bool is_project_dirty() const;
     bool is_presets_dirty() const;
     void set_plater_dirty(bool is_dirty);
+    /**
+     * \brief Mark a change that neither the config comparison nor the undo history can see
+     *
+     * Use it for project data such as auxiliary files. The change stays marked until the next save.
+     */
+    void mark_project_dirty();
     void update_project_dirty_from_presets();
     int  save_project_if_dirty(const wxString& reason);
     void reset_project_dirty_after_save();
@@ -499,6 +542,9 @@ public:
     bool load_svg(const wxArrayString &filenames, bool from_toolbar_or_file_menu = false);
     bool load_same_type_files(const wxArrayString &filenames);
     bool load_files(const wxArrayString& filenames);
+    // Open files handed to us by the OS (double-click / file association): a 3mf always becomes
+    // the project, unlike load_files(), which imports a non-Bambu 3mf into the current scene.
+    void open_files_from_desktop(const wxArrayString& filenames);
     void statistics_burial_data_once(std::string json_str);//Upload to the cloud immediately
     void statistics_burial_data(std::string file_path);
     void statistics_burial_data_form_mw();
@@ -933,6 +979,11 @@ public:
 
     const GLToolbar& get_collapse_toolbar() const;
     GLToolbar& get_collapse_toolbar();
+    /**
+     * \brief Icon size of the sidebar collapse toolbar, in physical pixels.
+     * \return 20 px multiplied by the DPI factor. The factor is 1.0 on macOS,
+     *         because Retina scaling goes through GLToolbar::set_scale there.
+     */
     int get_collapse_toolbar_size();
     void update_preview_bottom_toolbar();
     void update_preview_moves_slider();

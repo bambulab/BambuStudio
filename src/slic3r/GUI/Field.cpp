@@ -133,6 +133,16 @@ void Field::PostInitialize()
         this->enable();
 }
 
+wxString Field::undo_tooltip() const
+{
+    return m_undo_tooltip ? *m_undo_tooltip : wxString();
+}
+
+wxString Field::undo_to_sys_tooltip() const
+{
+    return m_undo_to_sys_tooltip ? *m_undo_to_sys_tooltip : wxString();
+}
+
 // Values of width to alignments of fields
 int Field::def_width()			{ return 8; }
 int Field::def_width_wider()	{ return 12; }
@@ -168,6 +178,19 @@ void Field::on_back_to_sys_value()
 /// Fires the enable or disable function, based on the input.
 
 void Field::toggle(bool en) { en && !m_opt.readonly ? enable() : disable(); }
+
+void Field::set_warning(const wxString &tooltip)
+{
+    if (m_warning == tooltip)
+        return;
+    const bool style_changed = m_warning.IsEmpty() != tooltip.IsEmpty();
+    m_warning = tooltip;
+    if (style_changed)
+        apply_warning_style(!m_warning.IsEmpty());
+    // The icon is painted by the control that hosts the field window
+    if (wxWindow *win = getWindow(); win && win->GetParent())
+        win->GetParent()->Refresh();
+}
 
 wxString Field::get_tooltip_text(const wxString &default_string)
 {
@@ -772,6 +795,7 @@ bool TextCtrl::value_was_changed()
     case coString:
     case coStrings:
     case coFloatOrPercent:
+    case coFloatsOrPercents:
         return boost::any_cast<std::string>(m_value) != boost::any_cast<std::string>(val);
     default:
         return true;
@@ -1088,8 +1112,9 @@ void SpinCtrl::BUILD() {
             // temp->GetText()->SetInsertionPointEnd();
 #endif
 #else
-            // update value for the control only if it was changed in respect to the Min/max values
-            if (tmp_value != (int)value) {
+            // update value for the control only if it was changed in respect to the Min/max values;
+            // an out-of-range listener needs the typed text, so it is clamped on commit instead
+            if (tmp_value != (int)value && !m_on_out_of_range) {
                 temp->SetValue(tmp_value);
                 temp->GetTextCtrl()->SetInsertionPointEnd();
             }
@@ -1098,9 +1123,24 @@ void SpinCtrl::BUILD() {
 	}), temp->GetTextCtrl()->GetId());
 
 	temp->SetToolTip(get_tooltip_text(text_value));
+    // Out-of-range values are reported from one of two places, never both:
+    //  - SpinInput::onTextEnter, for anything outside the spin box range;
+    //  - propagate_value() on macOS, for values below the minimum, because there the spin box
+    //    range starts at 0 (see min_val above) and so lets them through.
+    // Keep the two in step when changing either.
+    temp->SetOutOfRangeHandler([this](long entered) {
+        if (m_on_out_of_range)
+            m_on_out_of_range(m_opt_id, entered);
+    });
 
 	// recast as a wxWindow to fit the calling convention
 	window = dynamic_cast<wxWindow*>(temp);
+}
+
+void SpinCtrl::apply_warning_style(bool warning)
+{
+    if (auto *spin = dynamic_cast<SpinInput *>(window))
+        spin->SetWarning(warning);
 }
 
 void SpinCtrl::propagate_value()
@@ -1114,9 +1154,13 @@ void SpinCtrl::propagate_value()
             on_kill_focus();
 	} else {
 #ifdef __WXOSX__
-        // check input value for minimum
-        if (m_opt.min > 0.0 && tmp_value < m_opt.min) {
-            SpinInput* spin = static_cast<SpinInput*>(window);
+        // check input value for minimum; the spin box itself allows 0 here and tmp_value is already
+        // clamped, so the committed spin value is the one the user typed. This is the macOS half of
+        // the out-of-range reporting, see the note at SetOutOfRangeHandler in BUILD()
+        SpinInput* spin = static_cast<SpinInput*>(window);
+        if (m_opt.min > 0.0 && (tmp_value < m_opt.min || spin->GetValue() < m_opt.min)) {
+            if (m_on_out_of_range && spin->GetValue() < m_opt.min)
+                m_on_out_of_range(m_opt_id, spin->GetValue());
             spin->SetValue((int)std::clamp<double>(m_opt.min, INT_MIN, INT_MAX));
             // spin->GetText()->SetInsertionPointEnd(); // BBS
         }
@@ -2328,7 +2372,7 @@ void MultiVariantTextCtrl::refresh_text_ctrls_layout(wxWindow *parent)
         if (new_layout.size() != 1 && label_text) {
             auto text_input = dynamic_cast<::TextInput*>(text_ctrl->getWindow());
             if (text_input) {
-                text_input->SetSize(wxSize(def_width_wider() * m_em_unit + 20, wxDefaultCoord));
+                text_input->SetSize(wxSize(def_width_wider() * m_em_unit, wxDefaultCoord));
                 text_input->SetPrefix(label_text);
             }
         }

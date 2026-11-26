@@ -43,6 +43,11 @@ private:
     void show_synced(bool show); // synced badge, shown when all extruders are synced
     void layout_badge();
 
+    // Asked after a row takes a new diameter/flow, with the nozzle it held before. Returns false to put
+    // that row back. Only speaks up when the edited nozzle was the last one of its kind on either extruder
+    // and project filaments point at it, so confirming here will move them elsewhere.
+    bool confirm_nozzle_change(const NozzleConfig &from);
+
     // What the printer reported when this dialog opened. The synced badge shows only when the
     // printer is synced AND the edited configs still match it, slot-for-slot.
     MachineNozzleBaseline m_machine_baseline;

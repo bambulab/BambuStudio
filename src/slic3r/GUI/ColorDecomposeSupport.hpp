@@ -124,6 +124,11 @@ std::vector<OfficialMixingKitGroup> collect_official_mixing_kit_groups(const std
 // Returns the preferred complete group, or nullptr when no same-diameter kit is complete.
 const OfficialMixingKitGroup* find_complete_official_mixing_kit(const std::vector<OfficialMixingKitGroup>& groups);
 
+// Returns the preferred group that holds every listed kit slot (indices into pla_palette_cmykw_official_components()),
+// or nullptr when no single same-diameter group has them all. Slots outside the list do not affect the choice.
+const OfficialMixingKitGroup* find_official_mixing_kit_with_slots(const std::vector<OfficialMixingKitGroup>& groups,
+                                                                  const std::vector<size_t>& slots);
+
 // Computes the space needed for the missing kit filaments. Unused filaments are selected for
 // deletion when the project is full; protected_indices are 0-based config indices to keep.
 OfficialMixingKitAddPlan plan_official_mixing_kit_addition(size_t reserve_slots = 0,

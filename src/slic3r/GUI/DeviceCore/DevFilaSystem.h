@@ -25,6 +25,7 @@ namespace Slic3r
 {
 class MachineObject;
 class DevFilaSystem;
+class DevDryerMgr;
 struct DevNozzle;
 struct DevFilamentDryingPreset;
 
@@ -58,6 +59,7 @@ public:
     std::string              id;
     std::string              ams_id; // same as id if it's EXT_SPOOL
     DevAmsType               ams_type = DevAmsType::EXT_SPOOL;
+    DevAmsType               real_ams_type = DevAmsType::EXT_SPOOL;
     std::string              tag_uid;             // tag_uid
     std::string              setting_id;          // tray_info_idx
     std::string              filament_setting_id; // setting_id
@@ -283,14 +285,15 @@ public:
     std::optional<DevFilaSwitch::SwitchPos> GetSwitcherPos() const { return m_binded_switcher_pos; };
 
     // temperature and humidity
-    float GetCurrentTemperature() const { return m_current_temperature; }
+    // Falls back to the zones when the AMS only reports per zone (eg. ZMULTI_B)
+    float GetCurrentTemperature() const;
 
     // humidity ans drytime
     bool  SupportHumidityLevel() const { return m_ams_type == DevAmsType::AMS; }
     int   GetHumidityLevel() const { return m_humidity_level; }
 
     bool  SupportHumidityPercent() const;
-    int   GetHumidityPercent() const { return m_humidity_percent; }
+    int   GetHumidityPercent() const;
 
     bool  SupportDrying() const;
     int   GetLeftDryTime() const { return m_left_dry_time; } //miniutes
@@ -312,12 +315,15 @@ public:
     std::optional<DevAmsZone> GetZoneBySlotId(int slot_id) const;
 
     bool AmsIsDrying();
+    bool IsSlotDrying(int slot_id) const; // includes a bound drying module
 
     RemainEstimateVersion GetRemainEstimateVersion() const { return m_remain_estimate_version; }
     bool SupportsFilamentTabAutoReadRfid() const { return m_enable_filament_tab_auto_read_rfid; }
     bool SupportsReadExtRfid() const { return m_support_read_ext_rfid; }
 
 private:
+    const DevAmsZone* FindEnvZone() const;
+
     std::weak_ptr<DevFilaSystem> m_fila_system;
 
     DevAmsType    m_ams_type = DevAmsType::AMS;
@@ -362,7 +368,7 @@ class DevFilaSystem
 {
     friend class DevFilaSystemParser;
 public:
-    DevFilaSystem(MachineObject* owner) { m_owner = owner;};
+    DevFilaSystem(MachineObject* owner);
     ~DevFilaSystem();
 
 public:
@@ -416,9 +422,6 @@ public:
     // filament backup
     bool CanShowFilamentBackup() const;
 
-    // tray print_status granularity; old firmware without it falls back to is_in_printing()
-    bool IsDryAreaInPrintUse(const std::string& ams_id, std::optional<int> zone_id) const;
-
     // filament change steps
     std::optional<DevFilamentStep> GetCurrentFilamentChangeStep() const;
     std::vector<DevFilamentStep> GetCurrentFilamentChangeSteps() const;// some firmwares support this, IsDirectConnectedRack
@@ -448,9 +451,8 @@ public:
     int  CtrlSetFilamentWeight(int ams_id, int slot_id, int total, int remain);
     void CtrlSetFilamentWeightAfter(const std::shared_ptr<DevCtrlToken>& token, int ams_id, int slot_id, int total, int remain);
 
-    // crtl
-    int  CtrlAmsStartDryingHour(int ams_id, int zone_id, std::string filament_type, int tag_temp, int tag_duration_hour, bool rotate_tray, int cooling_temp, bool close_power_conflict = false) const;
-    int  CtrlAmsStopDrying(int ams_id) const;
+    DevDryerMgr&       GetDryerMgr() { return *m_dryer_mgr; }
+    const DevDryerMgr& GetDryerMgr() const { return *m_dryer_mgr; }
 
     // Parse
     void ParseVirtualTrayInfos(const nlohmann::json& j_print);
@@ -476,6 +478,7 @@ private:
 
     std::map<std::string, DevAms*, NumericStrCompare> amsList;// key: ams[id], start with 0
     std::map<std::string, DevAmsTray> m_vt_trays; // virutal tray info
+    std::unique_ptr<DevDryerMgr> m_dryer_mgr;
 
     DevAmsSystemSetting m_ams_system_setting{ this };
     DevFilaAutoRefillMgr m_auto_refill_mgr{ this };

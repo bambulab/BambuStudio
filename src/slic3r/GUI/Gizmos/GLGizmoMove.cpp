@@ -39,7 +39,7 @@ GLGizmoMove3D::GLGizmoMove3D(GLCanvas3D& parent, unsigned int sprite_id, GizmoOb
         GLGizmoBase::Grabber::GrabberSizeFactor = value;
     } catch (const std::invalid_argument &e) {
         BOOST_LOG_TRIVIAL(trace) << e.what();
-        GLGizmoBase::Grabber::GrabberSizeFactor = 1.0f;
+        GLGizmoBase::Grabber::GrabberSizeFactor = 1.5f;
     }
 }
 

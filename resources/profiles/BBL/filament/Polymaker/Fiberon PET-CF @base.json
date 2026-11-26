@@ -23,11 +23,47 @@
     "fan_min_speed": [
         "0"
     ],
+    "filament_adhesiveness_category": [
+        "800"
+    ],
     "filament_cost": [
         "89.99"
     ],
     "filament_density": [
         "1.34"
+    ],
+    "filament_dev_ams_drying_ams_limitations": [
+        "1",
+        "2",
+        "3"
+    ],
+    "filament_dev_ams_drying_heat_distortion_temperature": [
+        "165",
+        "165",
+        "165",
+        "165"
+    ],
+    "filament_dev_ams_drying_temperature": [
+        "65",
+        "80",
+        "65",
+        "80",
+        "80",
+        "80",
+        "75",
+        "75"
+    ],
+    "filament_dev_chamber_drying_bed_temperature": [
+        "90"
+    ],
+    "filament_dev_drying_cooling_temperature": [
+        "150"
+    ],
+    "filament_dev_drying_softening_temperature": [
+        "150",
+        "150",
+        "150",
+        "150"
     ],
     "filament_flow_ratio": [
         "0.95"
@@ -41,53 +77,11 @@
     "filament_vendor": [
         "Polymaker"
     ],
-    "filament_adhesiveness_category": [
-        "800"
-    ],
-    "filament_dev_chamber_drying_bed_temperature": [
-        "90"
-    ],
-    "filament_dev_ams_drying_ams_limitations": [
-        "1",
-        "2",
-        "3"
-    ],
-    "filament_dev_ams_drying_heat_distortion_temperature": [
-        "165",
-        "165",
-        "165",
-        "165"
-    ],
-    "filament_dev_drying_cooling_temperature": [
-        "150"
-    ],
-    "filament_dev_ams_drying_temperature": [
-        "65",
-        "80",
-        "65",
-        "80",
-        "80",
-        "80",
-        "65",
-        "65"
-    ],
-    "filament_dev_drying_softening_temperature": [
-        "150",
-        "150",
-        "150",
-        "150"
-    ],
     "hot_plate_temp": [
         "70"
     ],
     "hot_plate_temp_initial_layer": [
         "70"
-    ],
-    "nozzle_temperature_range_low": [
-        "270"
-    ],
-    "nozzle_temperature_range_high": [
-        "300"
     ],
     "nozzle_temperature": [
         "300"
@@ -95,20 +89,26 @@
     "nozzle_temperature_initial_layer": [
         "300"
     ],
+    "nozzle_temperature_range_high": [
+        "300"
+    ],
+    "nozzle_temperature_range_low": [
+        "270"
+    ],
     "required_nozzle_HRC": [
         "40"
-    ],
-    "supertack_plate_temp": [
-        "80"
-    ],
-    "supertack_plate_temp_initial_layer": [
-        "80"
     ],
     "slow_down_layer_time": [
         "5"
     ],
     "slow_down_min_speed": [
         "20"
+    ],
+    "supertack_plate_temp": [
+        "80"
+    ],
+    "supertack_plate_temp_initial_layer": [
+        "80"
     ],
     "temperature_vitrification": [
         "147"

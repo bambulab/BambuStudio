@@ -2536,6 +2536,22 @@ void GLGizmoMeasure::show_tooltip_information(float caption_max, float x, float 
 
     caption_max += m_imgui->calc_text_size(": ").x + 35.f;
 
+    float text_max = 0.f;
+    for (const auto &t : std::array<std::string, 3>{"point_selection", "reset", "unselect"})
+        text_max = std::max(text_max, m_imgui->calc_text_size(m_desc.at(t)).x);
+
+    // BeginTooltip2 pins the top-left and does not clamp. Shift left/up so the
+    // Esc row, which is the widest, stays inside the framebuffer.
+    const ImGuiStyle &style = ImGui::GetStyle();
+    const float tooltip_w = caption_max + text_max + style.WindowPadding.x * 2.f;
+    const float tooltip_h = ImGui::GetTextLineHeightWithSpacing() * 3.f + style.WindowPadding.y * 2.f;
+    const ImVec2 display = ImGui::GetIO().DisplaySize;
+    const float margin = std::max(style.DisplaySafeAreaPadding.x, 4.f);
+    if (x + tooltip_w > display.x - margin)
+        x = std::max(margin, display.x - margin - tooltip_w);
+    if (y + tooltip_h > display.y - margin)
+        y = std::max(margin, display.y - margin - tooltip_h);
+
     float font_size = ImGui::GetFontSize();
     ImVec2 button_size = ImVec2(font_size * 1.8, font_size * 1.3);
     ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);

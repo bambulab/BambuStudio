@@ -820,6 +820,7 @@ body.refill-slot-dragging * {
 
 .add-refill-slot__nozzle {
   min-width: 0;
+  max-width: 100%;
   height: 19px;
   display: flex;
   align-items: center;
@@ -829,6 +830,13 @@ body.refill-slot-dragging * {
   font-size: 12px;
   line-height: 19px;
   white-space: nowrap;
+}
+
+/* Ellipsize long labels such as "0.6 TPU 285" instead of clipping the row. */
+.add-refill-slot__nozzle-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .add-refill-slot__nozzle-icon {

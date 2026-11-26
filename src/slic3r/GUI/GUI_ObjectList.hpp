@@ -347,8 +347,15 @@ public:
     // Distinct whole-object indices in the current selection (volume / instance sub-items ignored).
     std::vector<int>    selected_object_idxs() const;
     void                merge(bool to_multipart_object);
-    // Merge the given whole objects (indices into the plater model) into one multipart object.
-    void                merge_objects(const std::vector<size_t>& obj_idxs);
+    /**
+     * \brief Merge whole objects into one multipart object
+     *
+     * The source objects are removed, so every index in obj_idxs is invalid after a merge.
+     *
+     * \param obj_idxs  indices into the plater model of the objects to merge
+     * \return indices of the objects that now represent obj_idxs; equals obj_idxs if no merge occurs
+     */
+    std::vector<size_t> merge_objects(const std::vector<size_t>& obj_idxs);
     void                merge_volumes(); // BBS: merge parts to single part
     void                layers_editing();
 
@@ -385,6 +392,8 @@ public:
     // Add object's volumes to the list
     // Return selected items, if add_to_selection is defined
     wxDataViewItemArray add_volumes_to_object_in_list(size_t obj_idx, std::function<bool(const ModelVolume *)> add_to_selection = nullptr);
+    // End an in-progress cell edit. Must be called before any path that destroys the nodes behind it.
+    void cancel_item_editing();
     // Delete object from the list
     void delete_object_from_list();
     void delete_object_from_list(const size_t obj_idx);

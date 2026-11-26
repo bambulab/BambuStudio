@@ -4,6 +4,7 @@
 #include <wx/dialog.h>
 #include <wx/webview.h>
 #include "libslic3r/PrintConfig.hpp"
+#include "libslic3r/FlushVolCalc.hpp"
 
 
 bool is_flush_config_modified();
@@ -14,7 +15,7 @@ class WipingDialog : public wxDialog
 public:
 	using VolumeMatrix = std::vector<std::vector<double>>;
 
-	WipingDialog(wxWindow* parent, const int max_flush_volume = Slic3r::g_max_flush_volume);
+	WipingDialog(wxWindow* parent, const int max_flush_volume = Slic3r::g_max_flush_volume_manual);
 	~WipingDialog() override;
 	static VolumeMatrix CalcFlushingVolumes(int extruder_id);
 	std::vector<double> GetFlattenMatrix()const;

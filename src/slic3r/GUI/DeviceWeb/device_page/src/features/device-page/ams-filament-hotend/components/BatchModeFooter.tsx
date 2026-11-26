@@ -1,15 +1,19 @@
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
-import type { AmsFilamentHotendSlotViewModel, FilamentPageMode } from '../types';
+import type { AmsFilamentHotendSlotViewModel, FilamentPageMode, LoadExternalVariant } from '../types';
 
 // Mode-specific commit-action labels. The Web side does not know the
 // underlying machine command — it just labels the button per mode and
 // relays the click + selected-slot list to C++ which dispatches the
 // matching MQTT command. Literal t() so i18next-parser can extract keys.
-function batchCommitLabel(mode: FilamentPageMode, t: TFunction): string {
+function batchCommitLabel(
+  mode: FilamentPageMode,
+  t: TFunction,
+  loadExternalVariant?: LoadExternalVariant,
+): string {
   switch (mode) {
     case 'batch_ams_load': return t('Load', { context: 'AmsHotendWebRackA' });
-    case 'batch_ext_load': return t('Manual Loading');
+    case 'batch_ext_load': return loadExternalVariant === 'ext' ? t('EXT Load') : t('Manual Loading');
     case 'batch_unload': return t('Unload');
     default: return t('Confirm');
   }
@@ -25,6 +29,7 @@ export function BatchModeFooter({
   onCommit,
   onEdit,
   onExit,
+  loadExternalVariant,
 }: {
   mode: FilamentPageMode;
   selectableSlots: AmsFilamentHotendSlotViewModel[];
@@ -38,6 +43,8 @@ export function BatchModeFooter({
   onEdit?: () => void;
   // Leave batch selection and return to the normal page.
   onExit: () => void;
+  // Wording of the batch_ext_load commit button (actions.load_external_variant).
+  loadExternalVariant?: LoadExternalVariant;
 }) {
   const { t } = useTranslation();
   if (mode === 'normal') return null;
@@ -52,7 +59,7 @@ export function BatchModeFooter({
   const hasSelectedUnknown = selectedSlots.some((slot) => slot.filament_card.state === 'Unknown');
   const showEdit = mode === 'batch_ext_load' || (mode === 'batch_ams_load' && hasSelectedUnknown);
 
-  const commitLabel = batchCommitLabel(mode, t);
+  const commitLabel = batchCommitLabel(mode, t, loadExternalVariant);
 
   return (
     <footer

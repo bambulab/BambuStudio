@@ -522,8 +522,16 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildSlot(MachineObject* machine_o
         {SK::menu_actions::can_ams_operation, can_ams_operation }
     };
 
+    bool is_ams_lite = false;
+    if (machine_obj) {
+        if (auto fila_sys = machine_obj->GetFilaSystem()) {
+            if (auto* ams = fila_sys->GetAmsById(ams_id))
+                is_ams_lite = ams->GetAmsType() == DevAmsType::AMS_LITE;
+        }
+    }
+
     bool new_filament_hint = false;
-    if (machine_obj && !machine_obj->is_lan_mode_printer() && slot_id.has_value()) {
+    if (machine_obj && !machine_obj->is_lan_mode_printer() && !is_ams_lite && slot_id.has_value()) {
         if (auto* sync = wxGetApp().fila_manager_sync())
             new_filament_hint = sync->has_pending_badge(machine_obj->get_dev_id(), ams_id, tray_id);
     }

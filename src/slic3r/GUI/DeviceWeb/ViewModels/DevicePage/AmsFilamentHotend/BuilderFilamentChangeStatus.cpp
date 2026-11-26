@@ -81,7 +81,7 @@ std::string filament_step_label(DevFilamentStep step)
     case DevFilamentStep::STEP_PURGE_OLD_FILAMENT: return _u8L("Purge old filament");
     case DevFilamentStep::STEP_CHECK_POSITION:     return _u8L("Check filament location");
     case DevFilamentStep::STEP_SWITCH_EXTRUDER:    return _u8L("Switch extruder");
-    case DevFilamentStep::STEP_SWITCH_HOTEND:      return _u8L("Switch hotend");
+    case DevFilamentStep::STEP_SWITCH_HOTEND:      return _u8L("Switch PrintTool");
     case DevFilamentStep::STEP_AMS_FILA_COOLING:   return _u8L("Wait for AMS cooling");
     case DevFilamentStep::STEP_PUSH_SWITCHER_FILA: return _u8L("Switch current filament at Filament Track Switch");
     case DevFilamentStep::STEP_PULL_SWITCHER_FILA: return _u8L("Pull back current filament at Filament Track Switch");
@@ -89,6 +89,7 @@ std::string filament_step_label(DevFilamentStep step)
     case DevFilamentStep::STEP_BATCH_PULL_FILA:    return _u8L("Batch pull back the filaments");
     case DevFilamentStep::STEP_NESTING_PRINT_TOOL: return _u8L("Nesting PrintTool");
     case DevFilamentStep::STEP_PURGE_FILAMENT:     return _u8L("Purge filament");
+    case DevFilamentStep::STEP_PURGE_REMAIN_FILAMENT: return _u8L("Purge Residual Filament");
     }
     return {};
 }

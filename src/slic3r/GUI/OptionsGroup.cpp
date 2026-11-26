@@ -109,6 +109,7 @@ const t_field& OptionsGroup::build_field(const t_config_option_key& id, const Co
 				this->on_kill_focus(opt_id);
 	};
     field->m_parent = parent();
+    field->m_reserve_warning_icon = reserve_warning_icons;
 
 	field->m_back_to_initial_value = [this](std::string opt_id) {
 		if (!m_disabled)
@@ -118,6 +119,11 @@ const t_field& OptionsGroup::build_field(const t_config_option_key& id, const Co
 		if (!this->m_disabled)
 			this->back_to_sys_value(opt_id);
 	};
+    if (m_on_out_of_range)
+        field->m_on_out_of_range = [this](const t_config_option_key &opt_id, long entered) {
+            if (!m_disabled)
+                m_on_out_of_range(opt_id, entered);
+        };
 
 	// assign function objects for callbacks, etc.
     return field;
@@ -1011,7 +1017,8 @@ boost::any ConfigOptionsGroup::config_value(const std::string& opt_key, int opt_
 	}
 	else {
 //		return opt_index == -1 ? m_config->get(opt_key) : m_config->get_at(opt_key, opt_index);
-		return get_config_value(*m_config, opt_key, opt_index);
+		const DynamicPrintConfig *redirect = m_redirect_config ? m_redirect_config(opt_key) : nullptr;
+		return get_config_value(redirect ? *redirect : *m_config, opt_key, opt_index);
 	}
 }
 
@@ -1105,7 +1112,7 @@ boost::any ConfigOptionsGroup::get_config_value(const DynamicPrintConfig& config
     }
     case coPercent: {
         double val = config.option<ConfigOptionPercent>(opt_key2)->value;
-        text_value = wxString::Format(_T("%i"), int(val));
+        text_value = wxString::Format(_T("%.1f"), val);
         ret = text_value;// += "%";
     }
                   break;
@@ -1372,6 +1379,10 @@ std::pair<OG_CustomCtrl*, bool*> ConfigOptionsGroup::get_custom_ctrl_with_blinki
 void ConfigOptionsGroup::change_opt_value(const t_config_option_key& opt_key, const boost::any& value, int opt_index /*= 0*/)
 
 {
+	if (DynamicPrintConfig *redirect = m_redirect_config ? m_redirect_config(opt_key) : nullptr) {
+		Slic3r::GUI::change_opt_value(*redirect, opt_key, value, opt_index);
+		return;
+	}
 	Slic3r::GUI::change_opt_value(const_cast<DynamicPrintConfig&>(*m_config), opt_key, value, opt_index);
 	if (m_modelconfig)
 		m_modelconfig->touch();

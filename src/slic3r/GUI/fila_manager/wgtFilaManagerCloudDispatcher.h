@@ -35,6 +35,16 @@ public:
     using PushDoneFn     = std::function<void(const std::string& spool_id,
                                               const std::string& op)>;
 
+    // Slot a freshly created spool should be mounted on once it is located in the cloud list.
+    struct SlotBindTarget {
+        std::string dev_id;
+        std::string dev_name;
+        int         ams_id   = -1;
+        int         ams_type = -1;
+        std::string slot_id;
+        std::string ams_sn;
+    };
+
     wgtFilaManagerCloudDispatcher(wgtFilaManagerCloudSync*   sync,
                                   wgtFilaManagerCloudClient* client);
     ~wgtFilaManagerCloudDispatcher() = default;
@@ -53,6 +63,8 @@ public:
     // Push a single spool create body. Local store is updated only after the
     // cloud accepts the operation and the follow-up pull reconciles the list.
     void enqueue_push_create(const FilamentSpool& spool);
+
+    void enqueue_create_and_bind(const FilamentSpool& spool, const SlotBindTarget& target);
     // Push a single spool id (update, with 404 fallback to create).
     // `local_patch` carries the fields the user actually edited this time
     // (local schema names); Cloud only receives whitelisted/changed fields.
@@ -84,6 +96,13 @@ private:
 
     void run_pull_op();
     void run_push_create_op(const FilamentSpool& spool);
+    void run_create_and_bind_op(const FilamentSpool& spool, const SlotBindTarget& target);
+
+    void do_pull(std::function<void(bool ok)> done);
+    void do_create(const FilamentSpool& spool, std::function<void(bool ok)> done);
+    void bind_created_spool(const FilamentSpool& spool,
+                            const SlotBindTarget& target,
+                            const std::vector<std::string>& before_ids);
     void run_push_update_op(const std::string& spool_id,
                             const nlohmann::json& local_patch,
                             std::function<void()> on_cloud_ok);

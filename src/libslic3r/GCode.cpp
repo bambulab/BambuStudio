@@ -795,7 +795,8 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
                 wipe_tower_point_to_object_point(gcodegen, start_pos + plate_origin_2d),
                 erMixed,
                 "Travel to a Wipe Tower");
-            gcode += gcodegen.unretract();
+            // Only restore the layer Z here; the deretract waits until the nozzle reaches the tower Z below.
+            gcode += gcodegen.writer().unlift();
         }
 
 
@@ -816,8 +817,13 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         if (! is_approx(z, current_z) && ! defer_compacted_descend) {
             gcode += gcodegen.writer().retract();
             gcode += gcodegen.writer().travel_to_z(z, "Travel down to the last wipe tower layer.");
-            gcode += gcodegen.writer().unretract();
         }
+        // Deretract once the nozzle is down at the tower Z. Doing it right after the travel and retracting
+        // again for the descent pushed filament out and pulled it straight back above the tower.
+        if (! tcr.priming && tcr.is_finish_first)
+            gcode += gcodegen.unretract();
+        else if (! is_approx(z, current_z) && ! defer_compacted_descend)
+            gcode += gcodegen.writer().unretract();
 
 
         // Process the end filament gcode.
@@ -1245,10 +1251,16 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         // When the diagonal side scrape is active, the E deretract must happen *after* the scrape,
         // while the Z unlift must still happen *before* it. Split the two so the scrape starts at the
         // current layer Z but the nozzle only deretracts once it is over the tower side wall.
-        std::string toolchange_unretract_str, side_scrape_unlift_str, side_scrape_deretract_str;
+        std::string toolchange_unretract_str, side_scrape_unlift_str, side_scrape_deretract_str, compacted_deretract_str;
+        // A compacted tower sits far below the layer the toolchange returns to. The deretract then has to wait
+        // until the nozzle is down on the tower; pushing filament out at the object height and descending
+        // afterwards drags the blob all the way down.
+        const bool compacted_descend_after_change = m_sparse_layers_skipped && z >= 0. && (tcr.print_z - z) > EPSILON;
         if (tcr.side_scrape) {
             side_scrape_unlift_str    = gcodegen.writer().unlift();
             side_scrape_deretract_str = gcodegen.unretract(extra_unretract, /*include_unlift=*/false);
+        } else if (compacted_descend_after_change) {
+            toolchange_unretract_str = gcodegen.writer().unlift();
         } else {
             toolchange_unretract_str = (extra_unretract > 0.f) ? gcodegen.unretract(extra_unretract) : gcodegen.unretract();
         }
@@ -1302,11 +1314,15 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         // (the wipe/purge moves, and the wall when it is printed after the toolchange)
         // carry no explicit Z, so they would float at object height regardless of is_finish_first.
         // Re-descend to the compacted wipe tower z before those extrusions run.
-        if (m_sparse_layers_skipped
-            && z >= 0. && (tcr.print_z - z) > EPSILON) {
+        if (compacted_descend_after_change) {
             std::string z_descend = gcodegen.writer().travel_to_z(z, "Descend to compacted wipe tower z (no sparse layers)");
             check_add_eol(z_descend);
             start_filament_gcode_str += z_descend;
+            if (!tcr.side_scrape) {
+                compacted_deretract_str = gcodegen.unretract(extra_unretract, /*include_unlift=*/false);
+                check_add_eol(compacted_deretract_str);
+                start_filament_gcode_str += compacted_deretract_str;
+            }
         }
 
         // Insert the end filament, toolchange, and start filament gcode into the generated gcode.
@@ -1355,17 +1371,18 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         // A phony move to the end position at the wipe tower.
         gcodegen.writer().travel_to_xy((end_pos + plate_origin_2d).cast<double>());
         gcodegen.set_last_pos(wipe_tower_point_to_object_point(gcodegen, end_pos + plate_origin_2d));
+        // Prepare a future wipe. Leaving a compacted tower has to wipe the same way as leaving a full one.
+        gcodegen.m_wipe.reset_path();
+        for (const Vec2f& wipe_pt : tcr.wipe_path)
+            gcodegen.m_wipe.path.points.emplace_back(wipe_tower_point_to_object_point(gcodegen, transform_wt_pt(wipe_pt) + plate_origin_2d));
         if (!is_approx(z, current_z)) {
-            gcode += gcodegen.writer().retract();
+            // Retract while wiping along the tower, then climb back. The nozzle stays retracted on the way to
+            // the model; the travel there unretracts right before the next extrusion.
+            gcode += gcodegen.retract(false, false, auto_lift_type, false, true);
             gcode += gcodegen.writer().travel_to_z(current_z, "Travel back up to the topmost object layer.");
-            gcode += gcodegen.writer().unretract();
         }
 
         else {
-            // Prepare a future wipe.
-            gcodegen.m_wipe.reset_path();
-            for (const Vec2f& wipe_pt : tcr.wipe_path)
-                gcodegen.m_wipe.path.points.emplace_back(wipe_tower_point_to_object_point(gcodegen, transform_wt_pt(wipe_pt) + plate_origin_2d));
             // Retract & spiral lift when leaving the wipe tower, heading back to the model.
             // Use normal retract distance (short), but always slow spiral lift (prime_tower_lift_speed)
             // to avoid stringing from the tower surface.
@@ -2179,6 +2196,11 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
     }
 
     BOOST_LOG_TRIVIAL(info) << "Exporting G-code finished" << log_memory_info();
+    // Printers that handle hotends as extruders vibrate and get noisy on these sparse infill patterns at high acceleration.
+    if (m_has_high_accel_noise_infill && print->config().handle_hotend_as_extruder.value)
+        print->active_step_add_warning(PrintStateBase::WarningLevel::NON_CRITICAL,
+            _(L("When the infill pattern is 3D Honeycomb, Honeycomb, or Gyroid, the printer produces significant vibration and noise when printing at high acceleration. It is recommended to reduce the infill acceleration.")),
+            PrintStateBase::SlicingInfillHighAccelNoise);
     print->set_done(psGCodeExport);
     //BBS: set enable_label_object
     result->label_object_enabled = m_enable_label_object;
@@ -2456,6 +2478,7 @@ enum BambuBedType {
     bbtHighTemperaturePlate = 3,
     bbtTexturedPEIPlate         = 4,
     bbtSuperTackPlate = 5,
+    bbt3DEffectPlate = 6,
 };
 
 static BambuBedType to_bambu_bed_type(BedType type)
@@ -2471,6 +2494,8 @@ static BambuBedType to_bambu_bed_type(BedType type)
         bambu_bed_type = bbtTexturedPEIPlate;
     else if (type == btSuperTack)
         bambu_bed_type = bbtSuperTackPlate;
+    else if (type == bt3DEffect)
+        bambu_bed_type = bbt3DEffectPlate;
 
     return bambu_bed_type;
 }
@@ -2480,6 +2505,10 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     PROFILE_FUNC();
 
     m_print = &print;
+    m_multi_diameter_nozzles.clear();
+    if (print.uses_multiple_nozzle_diameters())
+        for (size_t filament = 0; filament < print.config().filament_diameter.size(); ++ filament)
+            m_multi_diameter_nozzles.emplace_back(nozzle_diameter_for_filament(print.config(), unsigned(filament + 1)));
     m_timelapse_pos_picker.init(&print,m_writer.get_xy_offset().cast<coord_t>());
     // init as filament map
     update_layer_related_config(0);
@@ -3468,10 +3497,10 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                 if (m_pressure_equalizer) file.write(m_pressure_equalizer->process("", true));
 #endif /* HAS_PRESSURE_EQUALIZER */
                 ++finished_objects;
-                // Flag indicating whether the nozzle temperature changes from 1st to 2nd layer were performed.
-                // Reset it when starting another object from 1st layer.
+                // Reset second layer setup and temperature transitions for the next object instance.
                 m_second_layer_things_done = false;
                 m_bed_temp_transition_done = false;
+                m_nozzle_temp_transition_done.clear();
                 prev_object                = object;
             }
         } else {
@@ -5162,7 +5191,7 @@ GCode::LayerResult GCode::process_layer(
         if (m_config.default_jerk.value > 0 && m_config.initial_layer_jerk.value > 0 && !this->is_BBL_Printer())
             gcode += m_writer.set_jerk_xy(m_config.default_jerk.value);
 
-        // Mark the temperature transition from 1st to 2nd layer to be finished.
+        // Mark the second layer setup as finished.
         m_second_layer_things_done = true;
     }
 
@@ -5185,14 +5214,16 @@ GCode::LayerResult GCode::process_layer(
     }
 
     // A merged bed-contact band may end above the second physical layer. Transition each filament
-    // independently after its own contact paths are complete; the writer suppresses unchanged commands.
+    // once, independently after its own contact paths are complete.
     if (! first_layer && m_second_layer_things_done) {
         for (const Extruder &extruder : m_writer.extruders()) {
             if (print.config().single_extruder_multi_material.value &&
                 extruder.id() != m_writer.filament()->id())
                 continue;
-            if (this->filament_in_first_layer_phase(extruder.id()))
+            if (m_nozzle_temp_transition_done.count(extruder.id()) != 0 ||
+                this->filament_in_first_layer_phase(extruder.id()))
                 continue;
+            m_nozzle_temp_transition_done.insert(extruder.id());
             const size_t config_idx  = get_filament_config_index(extruder.id());
             const int    temperature = print.config().nozzle_temperature.get_at(config_idx);
             if (temperature > 0 &&
@@ -5266,140 +5297,10 @@ GCode::LayerResult GCode::process_layer(
                 ExtrusionRole   role               = support_layer.support_fills.role();
                 bool            has_support        = role == erMixed || role == erSupportMaterial || role == erSupportTransition;
                 bool            has_interface      = role == erMixed || role == erSupportMaterialInterface;
-                // Extruder ID of the support base. -1 if "don't care".
-                unsigned int    support_extruder   = object.config().support_filament.value - 1;
-                // Shall the support be printed with the active extruder, preferably with non-soluble, to avoid tool changes?
-                bool            support_dontcare   = object.config().support_filament.value == 0;
-                // Extruder ID of the support interface. -1 if "don't care".
-                unsigned int    interface_extruder = object.config().support_interface_filament.value - 1;
-                // Shall the support interface be printed with the active extruder, preferably with non-soluble, to avoid tool changes?
-                bool            interface_dontcare = object.config().support_interface_filament.value == 0;
-
-                // BBS multi-diameter: this support layer was merged into a slab thicker than the object layers,
-                // which is below the minimum layer height of every other filament of this Z range. Honour the
-                // filament the support merge plan reserved for it instead of picking the active one.
-                if (support_dontcare && support_layer.planned_filament_id > 0) {
-                    support_extruder = (unsigned int) (support_layer.planned_filament_id - 1);
-                    support_dontcare = false;
-                }
-                if (interface_dontcare && support_layer.planned_interface_filament_id > 0) {
-                    interface_extruder =
-                        (unsigned int) (support_layer.planned_interface_filament_id - 1);
-                    interface_dontcare = false;
-                }
-
-                // BBS: apply wiping overridden extruders
-                WipingExtrusions& wiping_extrusions = const_cast<LayerTools&>(layer_tools).wiping_extrusions();
-                if (support_dontcare) {
-                    int extruder_override = wiping_extrusions.get_support_extruder_overrides(&object);
-                    if (extruder_override >= 0) {
-                        support_extruder = extruder_override;
-                        support_dontcare = false;
-                    }
-                }
-
-                if (interface_dontcare) {
-                    int extruder_override = wiping_extrusions.get_support_interface_extruder_overrides(&object);
-                    if (extruder_override >= 0) {
-                        interface_extruder = extruder_override;
-                        interface_dontcare = false;
-                    }
-                }
-
-                // BBS multi-diameter: the printable layer height window of a filament's nozzle. Only used to
-                // correct a "don't care" choice that cannot extrude this support layer height at all, and only
-                // when a filament of this layer can, so the pick never gets worse than it was.
-                // The classic support generator folds a merged slab back into the layer height, but the tree
-                // generators keep base and roof on one SupportLayer and record the merged thickness in
-                // base_slab_height / interface_slab_height. Checking the layer height alone would let a slab
-                // that was never pinned to a filament end up on a nozzle that cannot extrude it.
-                const coordf_t support_slab_height = support_layer.base_slab_height > EPSILON ?
-                    support_layer.base_slab_height : support_layer.height;
-                const coordf_t interface_slab_height = support_layer.interface_slab_height > EPSILON ?
-                    support_layer.interface_slab_height : support_layer.height;
-                auto nozzle_can_print_height = [&print](unsigned int extruder_id, coordf_t height) {
-                    const double nozzle = nozzle_diameter_for_filament(print.config(), extruder_id + 1);
-                    return nozzle <= EPSILON || adaptive_layer_height_range(nozzle).contains(height);
-                };
-                // Only the roles still resolved here constrain the choice: a filament already pinned by the
-                // merge plan or by a wiping override is not picked by the code below.
-                auto nozzle_can_print_layer = [&nozzle_can_print_height, support_dontcare, interface_dontcare,
-                                               support_slab_height, interface_slab_height](unsigned int extruder_id) {
-                    return (! support_dontcare   || nozzle_can_print_height(extruder_id, support_slab_height)) &&
-                           (! interface_dontcare || nozzle_can_print_height(extruder_id, interface_slab_height));
-                };
-
-                // BBS: try to print support base with a filament other than interface filament
-                if (support_dontcare && !interface_dontcare) {
-                    unsigned int dontcare_extruder = first_extruder_id;
-                    for (unsigned int extruder_id : layer_tools.extruders) {
-                        if (print.config().filament_soluble.get_at(extruder_id))
-                            continue;
-
-                        //BBS: now we don't consider interface filament used in other object
-                        if (extruder_id == interface_extruder)
-                            continue;
-
-                        dontcare_extruder = extruder_id;
-                        break;
-                    }
-                    if (! nozzle_can_print_layer(dontcare_extruder)) {
-                        for (unsigned int extruder_id : layer_tools.extruders) {
-                            if (print.config().filament_soluble.get_at(extruder_id) || extruder_id == interface_extruder)
-                                continue;
-                            if (nozzle_can_print_layer(extruder_id)) {
-                                dontcare_extruder = extruder_id;
-                                break;
-                            }
-                        }
-                    }
-                #if 0
-                    //BBS: not found a suitable extruder in current layer ,dontcare_extruider==first_extruder_id==interface_extruder
-                    if (dontcare_extruder == interface_extruder && (object.config().support_interface_not_for_body && object.config().support_interface_filament.value!=0)) {
-                        // BBS : get a suitable extruder from other layer
-                        auto all_extruders = print.extruders();
-                        dontcare_extruder = get_next_extruder(dontcare_extruder, all_extruders);
-                    }
-                #endif
-
-                    if (support_dontcare)
-                        support_extruder = dontcare_extruder;
-                }
-                else if (support_dontcare || interface_dontcare) {
-                    // Some support will be printed with "don't care" material, preferably non-soluble.
-                    // Is the current extruder assigned a soluble filament?
-                    unsigned int dontcare_extruder = first_extruder_id;
-                    if (print.config().filament_soluble.get_at(dontcare_extruder)) {
-                        // The last extruder printed on the previous layer extrudes soluble filament.
-                        // Try to find a non-soluble extruder on the same layer.
-                        for (unsigned int extruder_id : layer_tools.extruders)
-                            if (! print.config().filament_soluble.get_at(extruder_id)) {
-                                dontcare_extruder = extruder_id;
-                                break;
-                            }
-                    }
-                    if (print.config().filament_is_support.get_at(dontcare_extruder)) {
-                        // The last extruder printed on the previous layer extrudes support filament.
-                        // Try to find a non-support extruder on the same layer.
-                        for (unsigned int extruder_id : layer_tools.extruders)
-                            if (!print.config().filament_is_support.get_at(extruder_id)) {
-                                dontcare_extruder = extruder_id;
-                                break;
-                            }
-                    }
-                    if (! nozzle_can_print_layer(dontcare_extruder)) {
-                        // The active filament's nozzle cannot extrude this support layer height.
-                        for (unsigned int extruder_id : layer_tools.extruders)
-                            if (nozzle_can_print_layer(extruder_id) && ! print.config().filament_soluble.get_at(extruder_id)) {
-                                dontcare_extruder = extruder_id;
-                                break;
-                            }
-                    }
-                    if (support_dontcare)
-                        support_extruder = dontcare_extruder;
-                    if (interface_dontcare)
-                        interface_extruder = dontcare_extruder;
-                }
+                const SupportLayerFilaments filaments = support_layer_filaments(
+                    print, object, const_cast<LayerTools&>(layer_tools), &support_layer, support_layer.height);
+                unsigned int support_extruder   = filaments.support;
+                unsigned int interface_extruder = filaments.support_interface;
                 // Both the support and the support interface are printed with the same extruder, therefore
                 // the interface may be interleaved with the support base.
                 bool single_extruder = ! has_support || support_extruder == interface_extruder;
@@ -7663,6 +7564,12 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         if (do_slowdown_by_height)
             acceleration = std::min(acceleration, desiredMaxAcc);
         m_writer.set_acceleration((unsigned int)floor(acceleration + 0.5));
+
+        // Below 10000 mm/s^2 these sparse infill patterns stay quiet enough.
+        const InfillPattern pattern = m_config.sparse_infill_pattern.value;
+        if (path.role() == erInternalInfill && (pattern == ip3DHoneycomb || pattern == ipHoneycomb || pattern == ipGyroid) &&
+            acceleration >= 10000.0 - EPSILON)
+            m_has_high_accel_noise_infill = true;
     }
 
     if (m_config.default_jerk.value > 0 && !this->is_BBL_Printer()) {
@@ -7844,6 +7751,19 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         speed = std::min(speed, extrude_speed);
     }
 
+    // 多口径：支撑层高低于当前口径最小层高时，按 层高/口径默认层高 降速，最低 10mm/s。
+    if (is_support(path.role()) && path.role() != erSupportIroning &&
+        m_writer.filament()->id() < m_multi_diameter_nozzles.size()) {
+        const double nozzle = m_multi_diameter_nozzles[m_writer.filament()->id()];
+        if (path.height < adaptive_layer_height_range(nozzle).min_height - EPSILON) {
+            const double base_speed = path.role() == erSupportMaterial          ? NOZZLE_CONFIG(support_speed) :
+                                      path.role() == erSupportMaterialInterface ? NOZZLE_CONFIG(support_interface_speed) :
+                                      FILAMENT_CONFIG(override_process_overhang_speed) ? FILAMENT_CONFIG(filament_bridge_speed) :
+                                                                                         NOZZLE_CONFIG(bridge_speed);
+            speed = std::min(speed, std::max(10., base_speed * path.height / (0.5 * nozzle)));
+        }
+    }
+
     if (do_slowdown_by_height)
         speed = std::min(speed, desiredMaxSpeed);
     double F = speed * 60;  // convert mm/sec to mm/min
@@ -7977,7 +7897,8 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         std::string comment = GCodeWriter::full_gcode_comment ? description : "";
         //BBS: use G1 if not enable arc fitting or has no arc fitting result or in spiral_mode mode
         //Attention: G2 and G3 is not supported in spiral_mode mode
-        if (!m_config.enable_arc_fitting ||
+        // 支撑路径始终输出圆弧，不受 enable_arc_fitting 控制
+        if ((!m_config.enable_arc_fitting && !is_support(path.role())) ||
             path.polyline.fitting_result.empty() ||
             m_config.spiral_mode ||
             sloped != nullptr) {

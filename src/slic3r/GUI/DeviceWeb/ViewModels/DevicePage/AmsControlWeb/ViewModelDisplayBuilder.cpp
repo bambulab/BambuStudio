@@ -11,6 +11,7 @@
 #include "slic3r/GUI/DeviceCore/DevExtruderSystem.h"
 #include "slic3r/GUI/DeviceCore/DevFilaSystem.h"
 #include "slic3r/GUI/DeviceCore/DevInfo.h"
+#include "slic3r/GUI/DeviceCore/DevNozzleSystem.h"
 #include "slic3r/Utils/CalibUtils.hpp"
 
 #include <wx/string.h>
@@ -23,6 +24,7 @@
 #include <utility>
 #include <vector>
 #include "libslic3r/Log.hpp"
+#include "libslic3r/Utils.hpp"
 
 namespace Slic3r { namespace GUI { namespace AmsControlWebDisplay {
 
@@ -53,9 +55,16 @@ SchemaFormat::MenuActions build_menu_actions(const SchemaFormat::Tray& tray,
 
     actions.show_read = view_only || slot_state == SchemaValues::slot_state::brand;
     actions.show_edit = !actions.show_read;
-    // LAN mode does not support cloud auto-record, so the badge never shows there.
+
+    bool is_ams_lite = false;
+    if (machine_obj) {
+        if (auto fila_sys = machine_obj->GetFilaSystem()) {
+            if (auto* ams = fila_sys->GetAmsById(tray.ams_id))
+                is_ams_lite = ams->GetAmsType() == DevAmsType::AMS_LITE;
+        }
+    }
     actions.show_filament_mgr_hint =
-        machine_obj && !machine_obj->is_lan_mode_printer() &&
+        machine_obj && !machine_obj->is_lan_mode_printer() && !is_ams_lite &&
         filament_mgr_hint_slots().count({tray.ams_id, tray.slot_id}) > 0;
     return actions;
 }
@@ -317,12 +326,14 @@ SchemaFormat::SlotLink build_slot_link(const SchemaFormat::Tray& tray,
     if (is_ext && state.data.fila_switch.installed)
         link.extruder_ids.clear();
 
-    if (is_load_target(machine_obj, tray)) {
-        // Loading is a run in progress, so it does not wait for an arrival.
-        link.state = SchemaValues::link_state::loading;
-    } else if (AmsControlWebData::IsSlotRoutedToHub(machine_obj, tray.ams_id, tray.slot_id) &&
-               filament_left_ams(tray, state.data.fila_switch, link.switcher_port, machine_obj)) {
-        link.state = SchemaValues::link_state::loaded;
+    if (!is_ext) {
+        if (AmsControlWebData::IsSlotRoutedToHub(machine_obj, tray.ams_id, tray.slot_id) && filament_left_ams(tray, state.data.fila_switch, link.switcher_port, machine_obj)) {
+            link.state = SchemaValues::link_state::loaded;
+        }
+    } else {
+        if (AmsControlWebData::IsSlotLoaded(machine_obj, tray.ams_id, tray.slot_id)) {
+            link.state = SchemaValues::link_state::loaded;
+        }
     }
 
     if (link.state != SchemaValues::link_state::idle)
@@ -356,6 +367,30 @@ std::string extruder_icon_name(int extruder_count, int extruder_id, const std::s
     if (MachineObject::is_series_n(series_name))
         return SchemaValues::extruder_icon::single_nozzle_n;
     return SchemaValues::extruder_icon::single_nozzle_xp;
+}
+
+std::string build_nozzle_label(MachineObject* obj, const DevExtder* ext)
+{
+    if (!obj || !obj->GetNozzleSystem()) return {};
+    if (ext && !ext->HasNozzleInstalled()) return {};
+
+    const int nozzle_id = ext ? ext->GetNozzleId() : MAIN_EXTRUDER_ID;
+    const DevNozzle nozzle = obj->GetNozzleSystem()->GetExtNozzle(nozzle_id);
+    if (nozzle.IsEmpty() || nozzle.IsAbnormal() || nozzle.IsUnknown()) return {};
+
+    const auto tool_type = nozzle.GetToolDefs().tool_type;
+    if (tool_type != DevNozzleToolType::Nozzle && tool_type != DevNozzleToolType::None) return {};
+
+    const float diameter = nozzle.GetNozzleDiameter();
+    if (!(diameter > 0.f)) return {};
+
+    std::string label = format_diameter_to_str(diameter);
+    const NozzleFlowType flow = nozzle.GetNozzleFlowType();
+    if (obj->is_nozzle_flow_type_supported() && flow != NozzleFlowType::NONE_FLOWTYPE) {
+        const std::string flow_short = DevNozzle::ToNozzleVolumeShortString(DevNozzle::ToNozzleVolumeType(flow));
+        if (!flow_short.empty()) label += " " + flow_short;
+    }
+    return label;
 }
 
 } // namespace
@@ -467,11 +502,12 @@ void Build(MachineObject* machine_obj, SchemaFormat::State& state)
 
     const std::string series_name = machine_obj ? machine_obj->get_printer_series_str() : std::string();
 
-    auto build_extruder_view = [&](int id, bool has_filament, const std::string& color) {
+    auto build_extruder_view = [&](int id, bool has_filament, const std::string& color, const DevExtder* ext) {
         SchemaFormat::ExtruderView view;
         view.id           = id;
         view.has_filament = has_filament;
         view.icon         = extruder_icon_name(extruder_count, id, series_name);
+        view.nozzle_label = extruder_count >= 2 ? build_nozzle_label(machine_obj, ext) : std::string();
         if (has_filament)
             view.filament_color = color;
         if (has_filament && loading_extruder_id.has_value() && *loading_extruder_id == id)
@@ -486,14 +522,14 @@ void Build(MachineObject* machine_obj, SchemaFormat::State& state)
             const auto& slot = ext.GetSlotNow();
             const auto* tray = AmsControlWebData::FindTray(data, slot.ams_id, slot.slot_id);
             extruder.extruders.push_back(build_extruder_view(
-                ext.GetExtId(), ext.HasFilamentInExt(), tray ? tray->color : std::string()));
+                ext.GetExtId(), ext.HasFilamentInExt(), tray ? tray->color : std::string(), &ext));
         }
     } else {
         const SchemaFormat::Tray* loaded = state.loaded_ams_id.empty()
             ? nullptr
             : AmsControlWebData::FindTray(data, state.loaded_ams_id, state.loaded_slot_id);
         extruder.extruders.push_back(build_extruder_view(
-            MAIN_EXTRUDER_ID, loaded != nullptr, loaded ? loaded->color : std::string()));
+            MAIN_EXTRUDER_ID, loaded != nullptr, loaded ? loaded->color : std::string(), nullptr));
     }
 }
 

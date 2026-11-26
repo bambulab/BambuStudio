@@ -440,7 +440,7 @@ export function SpoolTable({
                                 )}
                                 {s.in_printer === true && (() => {
                                   const multiExt = s.dev_id ? multiExtDevIds.has(s.dev_id) : false;
-                                  const loc = formatSlotLocation(s.device_name, s.ams_type, s.slot_id, t, s.tray_label, multiExt);
+                                  const loc = formatSlotLocation(s.device_name, s.ams_type, s.slot_id, t, s.tray_label, multiExt, s.ams_id);
                                   if (!loc) return null;
                                   return (
                                     <>

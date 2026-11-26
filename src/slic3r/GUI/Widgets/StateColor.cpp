@@ -18,6 +18,7 @@ static std::map<wxColour, wxColour> gDarkColors{
     {"#2C2C2E", "#B3B3B4"},/*black*/
     {"#E5E7EB", "#374151"},/*gray200 -> gray800*/
     {ThemeColor::TextMuted,   "#818183"},/*gray -> */    // same hex as Grey700
+    {ThemeColor::TextMutedBright, "#B7B7BB"}, // #fff @ 60% opacity over Grey300's dark mapping
     {"#ACACAC", "#54545A"},/*gray -> */
     {ThemeColor::Grey300,     "#4C4C55"},/*gray -> */
     {ThemeColor::Grey350,     "#3E3E45"},

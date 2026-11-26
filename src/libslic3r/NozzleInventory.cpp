@@ -9,7 +9,9 @@
 
 #include <algorithm>
 #include <array>
+#include <cassert>
 #include <cstdint>
+#include <set>
 #include <sstream>
 
 #include <boost/algorithm/string.hpp>
@@ -24,19 +26,6 @@ namespace {
 enum class NozzleSource { Preset, History, Project, Machine, User };
 
 /**
- * \brief One write of Project, Machine or User
- *
- * Stamp 0 means the layer is empty.
- */
-struct NozzleLayer
-{
-    NozzleSource               source = NozzleSource::Project;
-    std::string                model;
-    std::vector<ExtruderSlots> extruders;
-    uint64_t                   stamp = 0;
-};
-
-/**
  * \brief What resolve needs from the selected printer, copied when it is selected
  */
 struct SelectedPrinter
@@ -46,10 +35,44 @@ struct SelectedPrinter
     std::string                                diameter;
     bool                                       supports_multi_diameter = false; ///< the multi-diameter mode applies
     bool                                       has_rack                = false; ///< an extruder has more than one slot
+    /// Two extruders with one nozzle each, on a printer with the multi-diameter mode. The GUI
+    /// shows both nozzles there (uses_dual_nozzle_view()), so they may differ even with the mode off.
+    bool                                       dual_nozzle_view        = false;
     std::vector<int>                           slot_counts;   ///< per extruder, at least 1
     std::vector<std::vector<NozzleVolumeType>> default_types; ///< per extruder, per slot
 
     int extruder_count() const { return int(slot_counts.size()); }
+};
+
+/**
+ * \brief One write of Project, Machine or User
+ *
+ * Stamp 0 means the layer is empty.
+ */
+struct NozzleLayer
+{
+    NozzleSource               source = NozzleSource::Project;
+    std::string                model;
+    /// Variants such as "0.4" the layer is for; empty for every variant of the model. More than one
+    /// only when the extruders hold different diameters: no variant matches that, so the layer is for
+    /// each variant it holds and shows the real nozzles under all of them.
+    std::set<std::string>      variants;
+    std::vector<ExtruderSlots> extruders;
+    uint64_t                   stamp = 0;
+
+    /**
+     * \brief Check if this layer holds the nozzles of \p printer
+     *
+     * \param multi_diameter  the multi-diameter mode is on; every extruder slices at the diameter it carries,
+     *                        so the layer is for every variant
+     *
+     * \note Any one of the variants matches, not all of them: the selected printer has one diameter.
+     */
+    bool is_for(const SelectedPrinter &printer, bool multi_diameter) const
+    {
+        return stamp != 0 && model == printer.model && int(extruders.size()) == printer.extruder_count() &&
+               (multi_diameter || variants.empty() || variants.count(printer.diameter) > 0);
+    }
 };
 
 const char *source_name(NozzleSource source)
@@ -65,14 +88,38 @@ int installed_count(const ExtruderSlots &slots)
 
 /**
  * \brief Check if the extruder holds a nozzle the selected variant can print with
+ *
+ * \param multi_diameter  the multi-diameter mode is on
  */
-bool holds_selected_diameter(const ExtruderSlots &slots, const SelectedPrinter &printer)
+bool holds_selected_diameter(const ExtruderSlots &slots, const SelectedPrinter &printer, bool multi_diameter)
 {
     // On a rack the selected diameter only filters the slots; there any installed nozzle keeps the layer.
-    // The multi-diameter mode applies only to a rack, so it never changes the result here.
-    if (printer.has_rack)
+    // In the multi-diameter mode every extruder slices at the diameter it carries, so any installed nozzle
+    // keeps the layer as well.
+    if (printer.has_rack || multi_diameter)
         return installed_count(slots) > 0;
     return std::any_of(slots.begin(), slots.end(), [&printer](const NozzleSlot &slot) { return slot.diameter == printer.diameter; });
+}
+
+/**
+ * \brief The variants nozzles are for
+ *
+ * Without a rack each variant keeps its own nozzles, so they are for the diameters they have; this
+ * holds even when a sync comes before the switch to its variant.
+ *
+ * \return empty for every variant: a rack serves them all, and no nozzle is the same under each
+ */
+std::set<std::string> variants_of(const std::vector<ExtruderSlots> &extruders)
+{
+    std::set<std::string> variants;
+    for (const ExtruderSlots &nozzles : extruders) {
+        if (nozzles.size() > 1)
+            return {};
+        // Without a rack an extruder has at most one nozzle, so front() is all of it.
+        if (!nozzles.empty() && !nozzles.front().empty())
+            variants.insert(nozzles.front().diameter);
+    }
+    return variants;
 }
 
 /**
@@ -134,7 +181,7 @@ SelectedPrinter read_selected_printer(const PresetCollection &printers)
     printer.model                   = config.opt_string("printer_model");
     printer.history_key             = base ? base->name : selected.name;
     printer.diameter                = format_diameter_to_str(string_to_double_decimal_point(config.opt_string("printer_variant")));
-    printer.supports_multi_diameter = is_single_ext_multi_nozzle(config);
+    printer.supports_multi_diameter = supports_multi_nozzle_diameter_mode(config);
 
     const auto  *nozzle_diameters = config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
     const auto  *max_counts       = config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
@@ -150,6 +197,7 @@ SelectedPrinter read_selected_printer(const PresetCollection &printers)
         printer.has_rack = printer.has_rack || slot_count > 1;
         printer.default_types.push_back(std::move(types));
     }
+    printer.dual_nozzle_view = printer.supports_multi_diameter && !printer.has_rack && printer.extruder_count() == 2;
     return printer;
 }
 
@@ -409,24 +457,38 @@ std::vector<ExtruderSlots> decode_slot_history(const std::string &value)
 }
 
 /**
- * \brief Number of slots per volume type
+ * \brief The slots of one extruder that a slice uses
  *
- * Counts the slots of the selected diameter, or all installed slots if none has it.
+ * The slots of the selected diameter, or all installed slots if none has it. This is the one owner of
+ * that rule: grouping (count_slots) and the reported diameters both read it.
+ *
+ * \param multi_diameter  the multi-diameter mode is on; then all installed slots are used
+ */
+ExtruderSlots printing_slots(const ExtruderSlots &slots, const SelectedPrinter &printer, bool multi_diameter)
+{
+    ExtruderSlots used;
+    if (!multi_diameter)
+        for (const NozzleSlot &slot : slots)
+            if (slot.diameter == printer.diameter) // an empty slot has no diameter, so it never matches
+                used.push_back(slot);
+    // An extruder that holds only other diameters is still installed; it must stay in grouping.
+    if (used.empty())
+        for (const NozzleSlot &slot : slots)
+            if (!slot.empty())
+                used.push_back(slot);
+    return used;
+}
+
+/**
+ * \brief Number of slots per volume type, over printing_slots()
  *
  * \param multi_diameter  the multi-diameter mode is on; then all installed slots count
  */
 std::map<NozzleVolumeType, int> count_slots(const ExtruderSlots &slots, const SelectedPrinter &printer, bool multi_diameter)
 {
     std::map<NozzleVolumeType, int> counts;
-    if (!multi_diameter)
-        for (const NozzleSlot &slot : slots)
-            if (slot.diameter == printer.diameter)
-                ++counts[slot.volume_type];
-    // An extruder that holds only other diameters is still installed; it must stay in grouping.
-    if (counts.empty())
-        for (const NozzleSlot &slot : slots)
-            if (!slot.empty())
-                ++counts[slot.volume_type];
+    for (const NozzleSlot &slot : printing_slots(slots, printer, multi_diameter))
+        ++counts[slot.volume_type];
     return counts;
 }
 
@@ -450,23 +512,39 @@ struct NozzleInventory::Impl
     NozzleLayer         project, machine, user;
     uint64_t            last_stamp = 0;
 
+    // resolved results for each extruder
     std::vector<ExtruderSlots> result;
+    /// The layer each entry of result came from; parallel to result.
     std::vector<NozzleSource>  sources;
 
     explicit Impl(DynamicPrintConfig &mirror) : mirror(mirror) {}
 
     /**
-     * \brief The newest layer of the selected model with its extruder count, or null if none
+     * \brief The newest layer for the selected printer, or null if none
      */
     const NozzleLayer *top_layer() const
     {
-        const NozzleLayer *top = nullptr;
-        for (const NozzleLayer *layer : {&project, &machine, &user}) {
-            if (layer->stamp == 0 || layer->model != printer.model || int(layer->extruders.size()) != printer.extruder_count())
-                continue;
-            if (!top || layer->stamp > top->stamp)
+        const NozzleLayer *top   = nullptr;
+        const bool         multi = multi_diameter();
+        for (const NozzleLayer *layer : {&project, &machine, &user})
+            if (layer->is_for(printer, multi) && (!top || layer->stamp > top->stamp))
                 top = layer;
-        }
+        return top;
+    }
+
+    /**
+     * \brief The newest layer for the selected model, whatever its diameters
+     *
+     * top_layer() skips a layer without the selected diameter. This one does not, so it tells which
+     * variant would bring the newest nozzles back.
+     */
+    const NozzleLayer *newest_model_layer() const
+    {
+        const NozzleLayer *top = nullptr;
+        for (const NozzleLayer *layer : {&project, &machine, &user})
+            if (layer->stamp != 0 && layer->model == printer.model && int(layer->extruders.size()) == printer.extruder_count() &&
+                (!top || layer->stamp > top->stamp))
+                top = layer;
         return top;
     }
 
@@ -523,13 +601,24 @@ struct NozzleInventory::Impl
         const NozzleLayer *top    = top_layer();
         const auto         saved  = model_history();
         const auto         grid   = history_types();
+        const bool         multi  = multi_diameter();
         result.assign(size_t(printer.extruder_count()), {});
         sources.assign(size_t(printer.extruder_count()), NozzleSource::Preset);
         for (int eid = 0; eid < printer.extruder_count(); ++eid) {
-            if (top && holds_selected_diameter(top->extruders[eid], printer)) {
+            // Where mixed diameters are not allowed, a layer can still hold another diameter, e.g. a sync
+            // of 0.2 left and 0.4 right while the preset is 0.4. That nozzle cannot print, so the extruder
+            // ignores the layer. An extruder with no nozzle is not wrong; it stays empty.
+            const bool wrong_diameter = top && !mixed_diameters_allowed() &&
+                                        installed_count(top->extruders[eid]) > 0 &&
+                                        !holds_selected_diameter(top->extruders[eid], printer, multi);
+            if (wrong_diameter)
+                BOOST_LOG_TRIVIAL(warning) << KV(log_key::extruder_id, eid) << "nozzle inventory: " << source_name(top->source)
+                                           << " nozzle is not " << printer.diameter << ", extruder falls back";
+            // The layer for the selected printer is the truth for every extruder, an empty one included.
+            if (top && !wrong_diameter) {
                 result[eid]  = fit_slot_count(top->extruders[eid], printer.slot_counts[eid]);
                 sources[eid] = top->source;
-            } else if (!saved.empty() && holds_selected_diameter(saved[eid], printer)) {
+            } else if (!saved.empty() && holds_selected_diameter(saved[eid], printer, multi)) {
                 result[eid]  = fit_slot_count(saved[eid], printer.slot_counts[eid]);
                 sources[eid] = NozzleSource::History;
             } else if (auto slots = history_slots(grid, eid)) {
@@ -574,6 +663,7 @@ struct NozzleInventory::Impl
             for (NozzleSlot &slot : slots)
                 if (!slot.diameter.empty())
                     slot.diameter = format_diameter_to_str(string_to_double_decimal_point(slot.diameter));
+        layer.variants  = variants_of(extruders);
         layer.source    = source;
         layer.model     = model;
         layer.extruders = std::move(extruders);
@@ -617,6 +707,33 @@ struct NozzleInventory::Impl
     bool multi_diameter() const { return printer.supports_multi_diameter && multi_nozzle_diameter_mode_enabled(mirror); }
 
     bool valid_extruder(int extruder_id) const { return extruder_id >= 0 && extruder_id < int(result.size()); }
+
+    /// \brief Diameter of the first slot of each extruder; empty for no nozzle.
+    static std::vector<std::string> single_diameters(const std::vector<ExtruderSlots> &extruders)
+    {
+        std::vector<std::string> diameters;
+        for (const ExtruderSlots &slots : extruders)
+            diameters.push_back(slots.empty() || slots.front().empty() ? std::string() : slots.front().diameter);
+        return diameters;
+    }
+
+    /**
+     * \brief Check if the printer may hold nozzles of different diameters, e.g. 0.2 left and 0.4 right
+     *
+     * | Printer                                         | Allowed |
+     * |-------------------------------------------------|---------|
+     * | multi-diameter mode on, any printer             | yes     |
+     * | one extruder, with or without a rack            | yes     |
+     * | two extruders with a rack                       | yes     |
+     * | two extruders with the dual-nozzle view         | yes     |
+     * | other two extruders without a rack              | no      |
+     *
+     * Where it is not allowed, every nozzle must have the preset diameter.
+     */
+    bool mixed_diameters_allowed() const
+    {
+        return multi_diameter() || printer.extruder_count() == 1 || printer.has_rack || printer.dual_nozzle_view;
+    }
 };
 
 NozzleInventory::NozzleInventory(DynamicPrintConfig &mirror) : m_impl(std::make_unique<Impl>(mirror)) {}
@@ -721,7 +838,34 @@ void NozzleInventory::user_set_volume_type(int extruder_id, NozzleVolumeType typ
         BOOST_LOG_TRIVIAL(warning) << KV(log_key::extruder_id, extruder_id) << "user set volume type ignored, extruder has no single nozzle";
         return;
     }
-    user_set_slots(extruder_id, {{m_impl->printer.diameter, type, NozzleSlotStatus::Normal}});
+    // An installed nozzle keeps its diameter; an empty extruder gets a nozzle of the preset diameter.
+    const NozzleSlot &current  = m_impl->result[extruder_id].front();
+    const std::string diameter = current.empty() ? m_impl->printer.diameter : current.diameter;
+    user_set_slots(extruder_id, {{diameter, type, NozzleSlotStatus::Normal}});
+}
+
+void NozzleInventory::user_set_diameter(int extruder_id, const std::string &diameter)
+{
+    // Only the multi-diameter mode and the dual-nozzle view let the user pick a diameter per nozzle.
+    if (!m_impl->valid_extruder(extruder_id) || m_impl->printer.slot_counts[extruder_id] != 1 ||
+        !(m_impl->multi_diameter() || m_impl->printer.dual_nozzle_view)) {
+        BOOST_LOG_TRIVIAL(warning) << KV(log_key::extruder_id, extruder_id) << "user set diameter ignored, needs a single nozzle with its own diameter";
+        return;
+    }
+    const NozzleSlot &current = m_impl->result[extruder_id].front();
+    const NozzleVolumeType type = current.empty() ? m_impl->printer.default_types[extruder_id].front() : current.volume_type;
+    user_set_slots(extruder_id, {{diameter, type, NozzleSlotStatus::Normal}});
+}
+
+void NozzleInventory::user_set_nozzle(int extruder_id, const std::string &diameter, NozzleVolumeType type)
+{
+    // Only the multi-diameter mode and the dual-nozzle view let the user pick a diameter per nozzle.
+    if (!m_impl->valid_extruder(extruder_id) || type == nvtHybrid || m_impl->printer.slot_counts[extruder_id] != 1 ||
+        !(m_impl->multi_diameter() || m_impl->printer.dual_nozzle_view)) {
+        BOOST_LOG_TRIVIAL(warning) << KV(log_key::extruder_id, extruder_id) << "user set nozzle ignored, needs a single nozzle with its own diameter";
+        return;
+    }
+    user_set_slots(extruder_id, {{diameter, type, NozzleSlotStatus::Normal}});
 }
 
 void NozzleInventory::user_unify_diameter(const std::string &diameter)
@@ -741,12 +885,56 @@ void NozzleInventory::user_unify_diameter(const std::string &diameter)
     m_impl->commit("user unify diameter", *this);
 }
 
+bool NozzleInventory::in_use(int extruder_id) const
+{
+    const Impl &impl = *m_impl;
+    if (!impl.valid_extruder(extruder_id))
+        return false;
+    const ExtruderSlots &slots = impl.result[extruder_id];
+    if (installed_count(slots) == 0)
+        return false;
+    if (impl.multi_diameter() || impl.printer.has_rack || impl.result.size() < 2)
+        return true;
+    return slots.front().diameter == impl.printer.diameter;
+}
+
+std::string NozzleInventory::diameter_to_print(const std::string &preferred) const
+{
+    const Impl &impl = *m_impl;
+    assert(!impl.printer.has_rack && impl.result.size() >= 2);
+    // Read the newest layer first. The result skips it when no nozzle has the selected diameter, as after a sync.
+    const NozzleLayer             *newest    = impl.newest_model_layer();
+    const std::vector<std::string> diameters = Impl::single_diameters(newest ? newest->extruders : impl.result);
+    std::optional<std::string> left_most;
+    for (const std::string &diameter : diameters) {
+        if (diameter.empty())
+            continue;
+        if (diameter == preferred)
+            return preferred;
+        if (!left_most)
+            left_most = diameter;
+    }
+    return left_most.value_or(preferred);
+}
+
 int NozzleInventory::extruder_count() const { return int(m_impl->result.size()); }
 
 const ExtruderSlots &NozzleInventory::slots(int extruder_id) const
 {
     static const ExtruderSlots none;
     return m_impl->valid_extruder(extruder_id) ? m_impl->result[extruder_id] : none;
+}
+
+std::set<std::string> NozzleInventory::printing_diameters() const
+{
+    std::set<std::string> diameters;
+    for (int extruder = 0; extruder < extruder_count(); ++extruder) {
+        if (!in_use(extruder))
+            continue;
+        for (const NozzleSlot &slot : printing_slots(slots(extruder), m_impl->printer, m_impl->multi_diameter()))
+            diameters.insert(slot.diameter);
+    }
+    return diameters;
 }
 
 std::map<NozzleVolumeType, int> NozzleInventory::counts(int extruder_id, const std::optional<std::string> &diameter) const

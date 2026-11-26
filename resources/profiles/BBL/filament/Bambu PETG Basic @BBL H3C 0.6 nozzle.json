@@ -5,6 +5,9 @@
     "from": "system",
     "setting_id": "GFSG00_35",
     "instantiation": "true",
+    "additional_cooling_fan_speed": [
+        "10"
+    ],
     "close_optional_fan_first_x_layers": [
         "1"
     ],
@@ -24,10 +27,6 @@
     "filament_max_volumetric_speed": [
         "21",
         "28"
-    ],
-    "filament_pre_cooling_temperature": [
-        "230",
-        "230"
     ],
     "filament_prime_tower_speed_factor_curve": [
         "0.5,1"
@@ -79,7 +78,7 @@
         "245"
     ],
     "optional_cooling_fan_speed": [
-        "0"
+        "10"
     ],
     "optional_fan_full_speed_layer": [
         "0"

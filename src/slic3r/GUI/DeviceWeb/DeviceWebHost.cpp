@@ -54,6 +54,10 @@ static const char *ViewNameForMode(DeviceWebHostMode mode)
     case DeviceWebHostMode::DevicePageAmsMappingHotend: return "AmsMappingHotend";
     case DeviceWebHostMode::DevicePageAutoRefillRefillInfo: return "AutoRefillRefillInfo";
     case DeviceWebHostMode::DevicePageConnectedSlots: return "ConnectedSlots";
+    case DeviceWebHostMode::DevicePageControlPanel: return "ControlPanel";
+    case DeviceWebHostMode::DevicePageFilamentLoad: return "FilamentLoad";
+    case DeviceWebHostMode::DevicePageHotendRack: return "HotendRack";
+    case DeviceWebHostMode::PrintQueue: return "PrintQueue";
     case DeviceWebHostMode::AllForDebug: return "DeviceWebDebug";
     default: return "DeviceWeb";
     }
@@ -172,26 +176,35 @@ void DeviceWebHost::EnsureBuilt()
             (m_mode == DeviceWebHostMode::FilamentManager || m_mode == DeviceWebHostMode::AllForDebug)) {
             m_device_web_mgr->Register(std::make_unique<FilamentManagerVM>());
         }
-    }
-    if (m_mode == DeviceWebHostMode::DevicePageAmsControlWeb || m_mode == DeviceWebHostMode::AllForDebug) {
-        m_device_web_mgr->Register(std::make_unique<DevicePageAmsControlWebVM>());
-    }
-    if (m_mode == DeviceWebHostMode::DevicePageAmsFilamentHotend || m_mode == DeviceWebHostMode::AllForDebug) {
-        m_device_web_mgr->Register(std::make_unique<DevicePageAmsFilamentHotendVM>());
-    }
-    if (m_mode == DeviceWebHostMode::DevicePageAmsMappingHotend || m_mode == DeviceWebHostMode::AllForDebug) {
-        m_device_web_mgr->Register(std::make_unique<DevicePageAmsMappingHotendVM>());
-    }
-    if (m_mode == DeviceWebHostMode::DevicePageAutoRefillRefillInfo || m_mode == DeviceWebHostMode::AllForDebug) {
-        m_device_web_mgr->Register(std::make_unique<AutoRefillRefillInfoVM>());
-    }
-    if (m_mode == DeviceWebHostMode::DevicePageConnectedSlots || m_mode == DeviceWebHostMode::AllForDebug) {
-        m_device_web_mgr->Register(std::make_unique<ConnectedSlotsVM>());
-    }
-    if (m_mode == DeviceWebHostMode::PrintQueue || m_mode == DeviceWebHostMode::AllForDebug) {
-        auto print_queue_vm = std::make_unique<PrintQueueVM>();
-        m_print_queue_vm = print_queue_vm.get();
-        m_device_web_mgr->Register(std::move(print_queue_vm));
+        if (m_mode == DeviceWebHostMode::DevicePageAmsControlWeb || m_mode == DeviceWebHostMode::AllForDebug) {
+            m_device_web_mgr->Register(std::make_unique<DevicePageAmsControlWebVM>());
+        }
+        if (m_mode == DeviceWebHostMode::DevicePageAmsFilamentHotend || m_mode == DeviceWebHostMode::AllForDebug) {
+            m_device_web_mgr->Register(std::make_unique<DevicePageAmsFilamentHotendVM>());
+        }
+        if (m_mode == DeviceWebHostMode::DevicePageAmsMappingHotend || m_mode == DeviceWebHostMode::AllForDebug) {
+            m_device_web_mgr->Register(std::make_unique<DevicePageAmsMappingHotendVM>());
+        }
+        if (m_mode == DeviceWebHostMode::DevicePageAutoRefillRefillInfo || m_mode == DeviceWebHostMode::AllForDebug) {
+            m_device_web_mgr->Register(std::make_unique<AutoRefillRefillInfoVM>());
+        }
+        if (m_mode == DeviceWebHostMode::DevicePageConnectedSlots || m_mode == DeviceWebHostMode::AllForDebug) {
+            m_device_web_mgr->Register(std::make_unique<ConnectedSlotsVM>());
+        }
+        if (m_mode == DeviceWebHostMode::DevicePageControlPanel || m_mode == DeviceWebHostMode::AllForDebug) {
+            m_device_web_mgr->Register(std::make_unique<DevicePageControlPanelVM>());
+        }
+        if (m_mode == DeviceWebHostMode::DevicePageFilamentLoad || m_mode == DeviceWebHostMode::AllForDebug) {
+            m_device_web_mgr->Register(std::make_unique<DevicePageFilamentLoadVM>());
+        }
+        if (m_mode == DeviceWebHostMode::DevicePageHotendRack || m_mode == DeviceWebHostMode::AllForDebug) {
+            m_device_web_mgr->Register(std::make_unique<DevicePageHotendRackVM>());
+        }
+        if (m_mode == DeviceWebHostMode::PrintQueue || m_mode == DeviceWebHostMode::AllForDebug) {
+            auto print_queue_vm = std::make_unique<PrintQueueVM>();
+            m_print_queue_vm = print_queue_vm.get();
+            m_device_web_mgr->Register(std::move(print_queue_vm));
+        }
     }
     m_device_web_mgr->SetBridge(m_device_web_bridge.get());
     m_device_web_bridge->SetManager(m_device_web_mgr.get());
@@ -640,8 +653,30 @@ void DeviceWebHost::NotifyAmsControlWebChanged()
     m_device_web_mgr->NotifyState("device_page_ams_control_web", "state", "changed");
 }
 
-// Locked host width (DIP) of the StatusPanel-embedded AmsControlWeb panel. The
-// page is laid out width:100%, so its reported width only echoes the container.
+void DeviceWebHost::NotifyControlPanelChanged()
+{
+    if (!m_device_web_mgr || !CanBuildDeviceState())
+        return;
+
+    m_device_web_mgr->NotifyState("device_page_control_panel", "state", "changed");
+}
+
+void DeviceWebHost::NotifyFilamentLoadChanged()
+{
+    if (!m_device_web_mgr || !CanBuildDeviceState())
+        return;
+
+    m_device_web_mgr->NotifyState("device_page_filament_load", "state", "changed");
+}
+
+void DeviceWebHost::NotifyHotendRackChanged()
+{
+    if (!m_device_web_mgr || !CanBuildDeviceState())
+        return;
+
+    m_device_web_mgr->NotifyState("device_page_hotend_rack", "state", "changed");
+}
+
 static constexpr int kAmsControlWebWidthDip = 586;
 
 void DeviceWebHost::ApplyAmsControlWebHostSize(int height_dip)
@@ -785,8 +820,16 @@ void DeviceWebHost::OnWebContentSizeChanged(int width, int height)
     m_last_reported_content_size = content_size;
 
     SetMinSize(content_size);
+    if (m_lock_content_size) {
+        SetMaxSize(content_size);
+        SetSize(content_size);
+    }
     if (m_device_webview) {
         m_device_webview->SetMinSize(content_size);
+        if (m_lock_content_size) {
+            m_device_webview->SetMaxSize(content_size);
+            m_device_webview->SetSize(content_size);
+        }
     }
     if (m_content_size_changed_handler) {
         m_content_size_changed_handler(content_size);

@@ -47,6 +47,12 @@
     "hot_plate_temp_initial_layer": [
         "70"
     ],
+    "effect_plate_temp": [
+        "70"
+    ],
+    "effect_plate_temp_initial_layer": [
+        "70"
+    ],
     "nozzle_temperature": [
         "270"
     ],

@@ -16,6 +16,11 @@
         "10",
         "10"
     ],
+    "filament_deretraction_speed": [
+        "nil",
+        "nil",
+        "50"
+    ],
     "filament_dev_ams_drying_temperature": [
         "45",
         "45",
@@ -52,6 +57,11 @@
         "0.4",
         "0.4",
         "0.4"
+    ],
+    "filament_retraction_speed": [
+        "nil",
+        "nil",
+        "50"
     ],
     "filament_wipe": [
         "1",

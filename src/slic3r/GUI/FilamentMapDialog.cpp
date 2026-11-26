@@ -208,7 +208,7 @@ struct TpuRegroupConfirmation
 };
 static TpuRegroupConfirmation s_tpu_regroup_confirmation;
 
-bool try_pop_up_before_slice(bool is_slice_all, Plater* plater_ref, PartPlate* partplate_ref, bool force_pop_up)
+bool try_pop_up_before_slice(bool is_slice_all, Plater* plater_ref, PartPlate* partplate_ref, bool force_pop_up, bool from_regroup)
 {
     auto full_config = wxGetApp().preset_bundle->full_config();
 
@@ -230,13 +230,27 @@ bool try_pop_up_before_slice(bool is_slice_all, Plater* plater_ref, PartPlate* p
     bool sync_plate = true;
 
     if (should_skip_filament_grouping(full_config)) {
-        // In single-diameter mode identical nozzles reduce to a single-nozzle printer. Clear any
-        // previously stored grouping choice before slicing; multi-diameter mode keeps its per-filament
-        // nozzle selections even though the grouping UI is hidden.
-        if (!multi_nozzle_diameter_mode_enabled(full_config)) {
+        // 只有手动分组会按旧映射切片、可能与耗材口径冲突，切片前复位为自动；
+        // 自动模式求解器会按口径重排，只需把当前不可用的自动模式兜底到可用模式。
+        // 单挤出多喷嘴的多口径除外：它靠当前模式保存逐耗材喷嘴选择。
+        const bool preserve_single_ext_multi_diameter = multi_nozzle_diameter_mode_enabled(full_config) &&
+                                                        is_single_ext_multi_nozzle(full_config);
+        if (!preserve_single_ext_multi_diameter) {
             auto reset_mode = [&](PartPlate* plate) {
-                if (plate && plate->get_real_filament_map_mode(wxGetApp().preset_bundle->project_config) != fmmAutoForFlush)
+                if (plate == nullptr)
+                    return;
+                const FilamentMapMode plate_mode = plate->get_real_filament_map_mode(wxGetApp().preset_bundle->project_config);
+                if (plate_mode == fmmManual || plate_mode == fmmNozzleManual) {
                     plate->set_filament_map_mode(fmmAutoForFlush);
+                } else if (is_auto_filament_map_mode(plate_mode)) {
+                    // Available modes are computed per plate: each plate has its own Print object.
+                    const std::vector<FilamentMapMode> available_modes = is_single_ext_multi_nozzle(full_config) ?
+                        get_single_ext_multi_nozzle_auto_modes(full_config) :
+                        resolve_available_auto_modes(plate->fff_print(), get_default_auto_modes(), plater_ref->get_machine_sync_status());
+                    const FilamentMapMode fallback_mode = resolve_fallback_filament_map_mode(plate_mode, available_modes, plater_ref->get_machine_sync_status());
+                    if (fallback_mode != plate_mode)
+                        plate->set_filament_map_mode(fallback_mode);
+                }
             };
             if (is_slice_all) {
                 for (PartPlate* plate : plater_ref->get_partplate_list().get_plate_list())
@@ -387,15 +401,14 @@ bool try_pop_up_before_slice(bool is_slice_all, Plater* plater_ref, PartPlate* p
             }
         }
 
-        // 只收敛 TPU：单盘、自定义模式、单挤出机多喷嘴机型，且走的是强制弹窗入口
-        //（错误通知里的"重新分组"；注意 Linux 下切片按钮也走这个入口）
-        bool tpu_regroup_flow = force_pop_up && !is_slice_all && new_mode == fmmManual && is_single_ext_multi_nozzle(full_config);
-        if (tpu_regroup_flow)
-            tpu_regroup_flow = !wxGetApp().preset_bundle->get_used_tpu_filaments(partplate_ref->get_extruders(true)).empty();
+        // 重新分组入口：单盘、自定义、单挤出机多喷嘴。不要求盘上正在使用 TPU，
+        // 非 TPU 耗材从 TPU285 喷嘴改回合法摆放后，同样放行紧接着的那一次切片。
+        // Linux 切片按钮也是 force_pop_up，但不能记确认，所以单独看 from_regroup。
+        bool regroup_flow = from_regroup && !is_slice_all && new_mode == fmmManual && is_single_ext_multi_nozzle(full_config);
 
         // update() 会先按 can_slice() 决定是否清掉 process_completed_with_error，而此刻
         // m_ready_for_slice 还是旧摆放留下的 false，不先刷新就会留下错误态、吞掉随后那次切片。
-        if (tpu_regroup_flow) {
+        if (regroup_flow) {
             bool model_fits = false, validate_error = false;
             plater_ref->validate_current_plate(model_fits, validate_error);
         }
@@ -406,7 +419,7 @@ bool try_pop_up_before_slice(bool is_slice_all, Plater* plater_ref, PartPlate* p
 
         // 没放对就不记确认，下次照常弹窗；这两项和 validate_current_plate 判 model_fits 时一致，
         // 保证"放行"和"错误通知消失"同一口径。失效计数必须在 update() 之后取，否则会漏掉本次改动引起的那次失效。
-        if (tpu_regroup_flow) {
+        if (regroup_flow) {
             wxString printable_error;
             if (partplate_ref->check_filament_printable(full_config, printable_error) && !partplate_ref->check_missing_tpu285_nozzle(full_config))
                 s_tpu_regroup_confirmation = {partplate_ref->id(), partplate_ref->get_slice_invalid_epoch()};
@@ -587,7 +600,8 @@ void FilamentMapDialog::make_body(
 
 void FilamentMapDialog::make_footer(wxBoxSizer *main_sizer, const FilamentMapMode mode)
 {
-    if (m_fila_switch_ready) {
+    // 多口径下动态映射已关闭（见 Print::is_dynamic_group_reorder），不再显示智能耗材分配开关。
+    if (m_fila_switch_ready && !multi_nozzle_diameter_mode_enabled(wxGetApp().preset_bundle->project_config)) {
         smart_filament = new SmartFilamentPanel(this);
         smart_filament->Show(mode == fmmAutoForFlush);
         main_sizer->Add(smart_filament, wxSizerFlags().Expand());

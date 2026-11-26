@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SpoolGraphic } from '../../ams-filament-hotend/components/SpoolGraphic';
 import nozzleIconUrl from './nozzle-icon.svg';
@@ -48,6 +48,30 @@ interface AddRefillFilamentsPageProps {
 
 function slotKey(slot: AutoRefillAddRefillFilamentsSlotRef): string {
   return `${slot.ams_id}:${slot.slot_id}`;
+}
+
+// Shows the full text as a tooltip only while the label is ellipsised.
+function NozzleText({ text }: { text: string }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const [clipped, setClipped] = useState(false);
+
+  useEffect(() => {
+    const node = ref.current;
+    if (!node) return;
+    // +1 tolerates sub-pixel rounding.
+    const measure = () => setClipped(node.scrollWidth > node.clientWidth + 1);
+    measure();
+    if (typeof ResizeObserver !== 'function') return;
+    const observer = new ResizeObserver(measure);
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [text]);
+
+  return (
+    <span ref={ref} className="add-refill-slot__nozzle-text" title={clipped ? text : undefined}>
+      {text}
+    </span>
+  );
 }
 
 function nozzlePresentation(nozzle: AutoRefillSlotNozzle) {
@@ -126,7 +150,7 @@ function SlotCard({
           <img src={nozzle.base} alt="" />
           {nozzle.badge && <img className="add-refill-slot__nozzle-badge" src={nozzle.badge} alt="" />}
         </span>
-        <span>{t(nozzle.text)}</span>
+        <NozzleText text={t(nozzle.text)} />
       </span>
     </button>
   );

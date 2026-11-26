@@ -3546,17 +3546,21 @@ void Selection::paste_objects_from_clipboard()
         Vec3d displacement;
         bool  in_current  = plate->intersects(bbox);
         auto  start_point = in_current ? bbox.center() : plate->get_build_volume().center();
-        auto  start_offset = in_current ? src_object->instances.front()->get_offset() : plate->get_build_volume().center();
+        // Keep the source instance Z. Cross-plate paste used to write the current
+        // plate build-volume center Z and drop the origin-to-bbox-center delta,
+        // while the instance scale was copied unchanged. A mesh whose origin is
+        // not on the bed then sinks below the plate.
+        const Vec3d src_offset = src_object->instances.front()->get_offset();
         if (shift_all(0) != 0 || shift_all(1) != 0) {
             // BBS: if multiple objects are selected, move them as a whole after copy
             if (i == 0) empty_cell_all = wxGetApp().plater()->canvas3D()->get_nearest_empty_cell({start_point(0), start_point(1)}, {bbox.size()(0)+1,bbox.size()(1)+1});
-            auto instance_shift = src_object->instances.front()->get_offset() - src_objects[0]->instances.front()->get_offset();
-            displacement        = {shift_all.x() + empty_cell_all.x() + instance_shift.x(), shift_all.y() + empty_cell_all.y() + instance_shift.y(), start_offset(2)};
+            auto instance_shift = src_offset - src_objects[0]->instances.front()->get_offset();
+            displacement        = {shift_all.x() + empty_cell_all.x() + instance_shift.x(), shift_all.y() + empty_cell_all.y() + instance_shift.y(), src_offset.z()};
         } else {
             // BBS: if only one object is copied, find an empty cell to put it
-            auto point_offset = start_offset - start_point;
+            const Vec3d origin_delta = src_offset - bbox.center();
             auto empty_cell   = wxGetApp().plater()->canvas3D()->get_nearest_empty_cell({start_point(0), start_point(1)}, {bbox.size()(0)+1, bbox.size()(1)+1});
-            displacement      = {empty_cell.x() + point_offset.x(), empty_cell.y() + point_offset.y(), start_offset(2)};
+            displacement      = {empty_cell.x() + origin_delta.x(), empty_cell.y() + origin_delta.y(), src_offset.z()};
         }
 
         for (ModelInstance* inst : dst_object->instances) {

@@ -36,13 +36,14 @@ static const std::string temp_gcode_path = temp_dir + "/temp.gcode";
 static const std::string path            = temp_dir + "/test.3mf";
 static const std::string config_3mf_path = temp_dir + "/test_config.3mf";
 
-static std::string MachineBedTypeString[6] = {
+static std::string MachineBedTypeString[7] = {
     "auto",
     "pc",
     "ep",
     "pei",
     "pte",
-    "suprtack"
+    "suprtack",
+    "3deffect"
 };
 
 static wxString nozzle_not_set_text = _L("The printer nozzle information has not been set.\nPlease configure it before proceeding with the calibration.");
@@ -564,8 +565,18 @@ static void init_multi_extruder_params_for_cali(DynamicPrintConfig& config, cons
 }
 
 
-CalibMode CalibUtils::get_calib_mode_by_name(const std::string name, int& cali_stage)
+CalibMode CalibUtils::get_calib_mode_by_name(const std::string name_in, int& cali_stage)
 {
+    static const std::string file_suffixes[] = {".gcode.3mf", ".3mf"};
+    std::string name = name_in;
+    for (const std::string &suffix : file_suffixes) {
+        const size_t suffix_len = suffix.size();
+        if (name.size() > suffix_len && name.compare(name.size() - suffix_len, suffix_len, suffix) == 0) {
+            name.erase(name.size() - suffix_len);
+            break;
+        }
+    }
+
     if (name == "pa_line_calib_mode") {
         cali_stage = 0;
         return CalibMode::Calib_PA_Line;
@@ -1327,6 +1338,26 @@ bool CalibUtils::calib_generic_auto_pa_cali(const std::vector<CalibInfo> &calib_
     if (multi_diameter) {
         for (size_t i = 0; i < sorted_calib_infos.size(); ++i)
             diameter_map[i] = format_diameter_to_str(sorted_calib_infos[i].nozzle_diameter);
+    }
+    // The printer preset carries one diameter for every extruder, so on a machine whose extruders hold
+    // nozzles of different diameters it describes neither of them. Give each extruder the diameter of the
+    // nozzle it calibrates with, the way PresetBundle::full_config() does for the project: the nozzle list
+    // the grouping backend builds, and with it the nozzles reported in the 3mf, come from this option, and
+    // the printer refuses a file whose nozzles disagree with the ones it carries. An extruder mixing
+    // diameters keeps the smallest, which is the conservative baseline for line width and layer height.
+    if (auto *extruder_diameters = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")) {
+        std::set<int> calibrated_extruders;
+        for (size_t i = 0; i < sorted_calib_infos.size() && i < filament_map.size(); ++i) {
+            const int extruder_idx = filament_map[i] - 1;
+            if (extruder_idx < 0 || size_t(extruder_idx) >= extruder_diameters->values.size())
+                continue;
+            double &diameter = extruder_diameters->values[extruder_idx];
+            if (!calibrated_extruders.insert(extruder_idx).second)
+                diameter = std::min(diameter, double(sorted_calib_infos[i].nozzle_diameter));
+            else
+                diameter = sorted_calib_infos[i].nozzle_diameter;
+        }
+        BOOST_LOG_TRIVIAL(info) << "auto PA calibration nozzle_diameter=" << extruder_diameters->serialize();
     }
     BOOST_LOG_TRIVIAL(info) << "auto PA calibration multi_nozzle_diameter_mode=" << multi_diameter;
 

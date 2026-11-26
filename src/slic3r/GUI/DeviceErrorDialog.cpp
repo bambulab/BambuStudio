@@ -267,6 +267,7 @@ void DeviceErrorDialog::init_button_list()
     init_button(ABORT, _L("Abort"));
     init_button(DISABLE_PURIFICATION, _L("Disable Purification for This Print"));
     init_button(DONT_REMIND_NEXT_TIME, _L("Don't Remind Me"));
+    init_button(AMS_RESUME_REMIND, _L("Ignore. Don't Remind Next Time"));
 
     init_button(DBL_CHECK_CANCEL, _L("Cancel"));
     init_button(DBL_CHECK_DONE, _L("Done"));
@@ -823,6 +824,16 @@ void DeviceErrorDialog::on_button_click(ActionButton btn_id)
     {
         if (obj && !m_action_json.is_null()){
             obj->command_dont_remind_next_time(m_action_json);
+        }
+        break;
+    }
+
+    case DeviceErrorDialog::AMS_RESUME_REMIND:
+    {
+        if (obj) {
+            AmsControlOptions options;
+            options.mc_remind_disable = true;
+            obj->command_ams_control("resume", options);
         }
         break;
     }

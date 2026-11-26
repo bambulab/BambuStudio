@@ -5,6 +5,9 @@
     "from": "system",
     "setting_id": "GFSG02_41",
     "instantiation": "true",
+    "additional_cooling_fan_speed": [
+        "10"
+    ],
     "close_optional_fan_first_x_layers": [
         "1"
     ],
@@ -64,14 +67,14 @@
     ],
     "nozzle_temperature": [
         "245",
-        "245"
+        "255"
     ],
     "nozzle_temperature_initial_layer": [
         "245",
-        "245"
+        "255"
     ],
     "optional_cooling_fan_speed": [
-        "0"
+        "10"
     ],
     "optional_fan_full_speed_layer": [
         "0"

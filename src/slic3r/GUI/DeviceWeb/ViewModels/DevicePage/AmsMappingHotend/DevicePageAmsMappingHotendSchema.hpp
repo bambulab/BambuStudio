@@ -45,6 +45,7 @@ namespace slot {
     inline constexpr const char* slot_id       = "slot_id";
     inline constexpr const char* tray_id       = "tray_id";
     inline constexpr const char* index         = "index";
+    inline constexpr const char* display_index = "display_index";
     inline constexpr const char* is_top_tier   = "is_top_tier";
     inline constexpr const char* ext           = "ext";
     inline constexpr const char* state         = "state";          // values::slot_state::*

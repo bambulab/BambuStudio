@@ -14,6 +14,7 @@
 #include "slic3r/GUI/DeviceManager.hpp"
 #include "slic3r/GUI/DeviceCore/DevDefs.h"
 #include "slic3r/GUI/DeviceCore/DevFilaSystem.h"
+#include "slic3r/GUI/DeviceCore/DevDryer.h"
 #include "slic3r/GUI/DeviceCore/DevManager.h"
 #include "slic3r/GUI/DeviceCore/DevNozzleRack.h"
 #include "slic3r/GUI/DeviceCore/DevNozzleSystem.h"
@@ -133,6 +134,14 @@ std::vector<AmsHotendSchema::format::BindAms> bind_ams_from_json(const nlohmann:
         });
     }
     return result;
+}
+
+void apply_filament_action_texts(nlohmann::json& actions, MachineObject* machine_obj)
+{
+    namespace SK = AmsHotendSchema::keys;
+    const bool use_batch_text = machine_obj && machine_obj->GetNozzleRack() && (machine_obj->GetNozzleRack()->GetRackType() >= DevNozzleRack::RackType_B);
+    actions[SK::filament_actions::load_auto_action_txt] = use_batch_text ? "Batch Load" : "Load_AmsHotendWebRackA";
+    actions[SK::filament_actions::unload_action_txt] = use_batch_text ? "Batch Unload" : "Unload";
 }
 
 // Reports and responses must hash identically for the de-dup to match. Device
@@ -338,8 +347,9 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildState() const
     }
 
     const bool is_rack_b = machine_obj->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_B;
+    apply_filament_action_texts(fp[SK::filament_page::actions], machine_obj);
     fp[SK::filament_page::actions][SK::filament_actions::show_read_all] = is_rack_b && !filament_changing;
-    fp[SK::filament_page::actions][SK::filament_actions::can_read_all_slots] = is_rack_b && !filament_changing && !machine_obj->is_in_printing() && !machine_obj->is_in_upgrading();
+    fp[SK::filament_page::actions][SK::filament_actions::can_read_all_slots] = is_rack_b && !filament_changing && !machine_obj->is_in_upgrading();
 
     if (auto fila_system = machine_obj->GetFilaSystem()) {
         const bool has_connected_ams = !fila_system->GetAmsList().empty() && machine_obj->ams_exist_bits != 0;
@@ -373,45 +383,62 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildState() const
             }
         }
 
-        bool can_dry = false;
-        for (const auto& [_, ams_unit] : fila_system->GetAmsList()) {
-            if (!ams_unit || !ams_unit->SupportDrying()) {
-                continue;
-            };
-            can_dry = true;
-
-            const auto& zones = ams_unit->GetZones();
-            if (zones.empty()) {
-                continue;
-            }
-
-            for (const auto& [zone_id, zone] : zones) {
-                nlohmann::json zone_addrs = nlohmann::json::array();
-                for (int zone_slot : zone.zone_slots) {
-                    const auto it = ams_slot_to_addr.find({ams_unit->GetAmdIdInt(), zone_slot});
-                    if (it != ams_slot_to_addr.end()) {
-                        zone_addrs.push_back(it->second);
-                    }
-                }
-                if (!zone.SupportDrying()) {
-                    if (zone.current_temperature > 0 && zone.humidity_percent > 0) {
-                        const float unit_temp = zone.current_temperature;
-                        fp[SK::filament_page::ams_env_units].push_back({
-                            {SK::env_unit::ams_id,       ams_unit->GetAmsId()},
-                            {SK::env_unit::zone_addrs,   zone_addrs},
-                            {SK::env_unit::temp,         unit_temp != INVALID_AMS_TEMPERATURE ? nlohmann::json(unit_temp) : nlohmann::json(nullptr)},
-                            {SK::env_unit::humidity_raw, zone.humidity_percent}});
-                    }
-
+        const bool direct_rack = machine_obj->GetNozzleRack() && machine_obj->GetNozzleRack()->IsDirectConnectedRack();
+        // Without its host AMS a module sits on a direct rack, where slot == position
+        auto slot_addrs = [&](const Slic3r::DevAms* ams, const std::set<int>& slots) {
+            nlohmann::json addrs = nlohmann::json::array();
+            for (int slot_id : slots) {
+                if (!ams) {
+                    if (direct_rack) addrs.push_back(slot_id);
                     continue;
                 }
-                can_dry = true;
+                const auto it = ams_slot_to_addr.find({ams->GetAmdIdInt(), slot_id});
+                if (it != ams_slot_to_addr.end()) addrs.push_back(it->second);
+            }
+            return addrs;
+        };
+
+        // AMS non-drying zones, minus the slots a module dries
+        std::map<std::string, std::set<int>> dryer_slots_by_ams;
+        for (const auto& [module_id, dryer_module] : fila_system->GetDryerMgr().GetModules()) {
+            if (dryer_module && dryer_module->GetSlotBinding()) {
+                const auto& binding = *dryer_module->GetSlotBinding();
+                dryer_slots_by_ams[binding.ams_id].insert(binding.slots.begin(), binding.slots.end());
+            }
+        }
+        for (const auto& [ams_id, ams_unit] : fila_system->GetAmsList()) {
+            if (!ams_unit) continue;
+            const auto& dried_slots = dryer_slots_by_ams[ams_id];
+            for (const auto& [zone_id, zone] : ams_unit->GetZones()) {
+                if (zone.SupportDrying() || !(zone.current_temperature > 0 && zone.humidity_percent > 0)) continue;
+                std::set<int> slots;
+                for (int slot_id : zone.zone_slots) {
+                    if (dried_slots.count(slot_id) == 0) slots.insert(slot_id);
+                }
+                const float unit_temp = zone.current_temperature;
+                nlohmann::json env_unit = {
+                    {SK::env_unit::ams_id,       ams_unit->GetAmsId()},
+                    {SK::env_unit::zone_addrs,   slot_addrs(ams_unit, slots)},
+                    {SK::env_unit::temp,         unit_temp != INVALID_AMS_TEMPERATURE ? nlohmann::json(unit_temp) : nlohmann::json(nullptr)},
+                    {SK::env_unit::humidity_raw, zone.humidity_percent}};
+                // left end is reserved for the drying module, fitted or not
+                if (ams_unit->GetAmsType() == DevAmsType::ZMULTI_B) env_unit[SK::env_unit::info_side] = "right";
+                fp[SK::filament_page::ams_env_units].push_back(std::move(env_unit));
+            }
+        }
+
+        // Drying support only gates the dry entry; readings show regardless
+        bool can_dry = false;
+        for (const auto& dryer : fila_system->GetDryerMgr().All()) {
+            can_dry = true;
+            for (const auto& [zone_id, zone] : dryer.GetZones()) {
+                if (!dryer.IsDryableZone(zone_id)) continue;
                 const std::string dry_status_enum = zone.dry_status.has_value() ? dry_status_short_name(*zone.dry_status) : std::string();
                 const std::string dry_status_label = zone.dry_status.has_value() ? dry_status_display_label(*zone.dry_status) : _u8L("Idle");
                 fp[SK::filament_page::ams_dry_zones].push_back({
-                    {SK::dryer_zone::ams_id,          ams_unit->GetAmsId()},
+                    {SK::dryer_zone::ams_id,          dryer.GetId()},
                     {SK::dryer_zone::zone_slots,      zone.zone_slots},
-                    {SK::dryer_zone::zone_addrs,      zone_addrs},
+                    {SK::dryer_zone::zone_addrs,      slot_addrs(dryer.GetAms(), zone.zone_slots)},
                     {SK::dryer_zone::temp,            zone.current_temperature},
                     {SK::dryer_zone::humidity_raw,    zone.humidity_percent},
                     {SK::dryer_zone::dry_time,        zone.left_dry_time},
@@ -458,7 +485,7 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildState() const
     // Fallback for empty dryer slots without AMS binding.
     const Slic3r::DevAms* fallback_dryer_unit = nullptr;
     if (auto fila_system = machine_obj->GetFilaSystem()) {
-        for (const auto& [_, ams_unit] : fila_system->GetAmsList()) {
+        for (const auto& [ams_id, ams_unit] : fila_system->GetAmsList()) {
             if (ams_unit && ams_unit->SupportDrying()) {
                 fallback_dryer_unit = ams_unit;
                 break;
@@ -558,6 +585,12 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildState() const
         }
         data[SK::root::filament_page] = builder->BuildFilamentPage(*this, machine_obj, fp);
     }
+
+    // Stamped after the mode dispatch because the batch builders assemble a
+    // fresh filament_page object and would otherwise drop the field; the batch
+    // footer labels its commit button with the same wording. Rack-B only.
+    data[SK::root::filament_page][SK::filament_page::actions][SK::filament_actions::load_external_variant] =
+        is_rack_b ? SV::load_external_variant::ext : SV::load_external_variant::manual;
 
     return data;
 }

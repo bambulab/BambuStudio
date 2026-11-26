@@ -184,6 +184,9 @@ public:
     ExPolygons 				 lslices;
     ExPolygons 				 lslices_extrudable;  // BBS: the extrudable part of lslices used for tree support
     std::vector<BoundingBox> lslices_bboxes;
+    // Area of upper_layer covered only by part-limited volumes (excluding their own
+    // vertical continuation), which casts no shadow onto this layer.
+    ExPolygons               part_limited_transparent;
 
     // BBS
     ExPolygons              loverhangs;

@@ -1101,8 +1101,10 @@ void PrinterFileSystem::UpdateFocusThumbnail2(std::shared_ptr<std::vector<File>>
                 }
                 wxMemoryInputStream mis(data, size);
                 mimetype.Replace("jpg", "jpeg");
-                file.thumbnail = wxImage(mis, mimetype);
-                if (!file.thumbnail.IsOk()) {
+                auto image = std::make_shared<wxImage>(mis, mimetype);
+                if (image->IsOk()) {
+                    file.thumbnail_image = image;
+                } else {
                     BOOST_LOG_TRIVIAL(info) << "PrinterFileSystem: parse thumbnail failed" << size << mimetype;
                 }
             }
@@ -1131,8 +1133,8 @@ void PrinterFileSystem::UpdateFocusThumbnail2(std::shared_ptr<std::vector<File>>
                         iter2->metadata = file.metadata;
                 } else {
                     iter->flags |= FF_THUMNAIL; // DOTO: retry on fail
-                    if (file.thumbnail.IsOk()) {
-                        iter->thumbnail = file.thumbnail;
+                    if (file.thumbnail_image) {
+                        iter->thumbnail = wxBitmap(*file.thumbnail_image);
                         int index       = iter - m_file_list.begin();
                         SendChangedEvent(EVT_THUMBNAIL, index, file.name);
                     }

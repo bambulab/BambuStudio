@@ -125,7 +125,7 @@ private:
     /**
      * \brief Match filaments against the selected machine and store the results in \ref m_mappings.
      *
-     * Multi-nozzle printers rank slots by the strategy combo; every other printer uses the classic ranking.
+     * Slots rank by the strategy combo; with no combo (a ready filament switcher) the nozzle is ignored.
      *
      * \param source  the filaments to (re)match; existing entries for them are replaced
      */
@@ -177,7 +177,7 @@ private:
     ::Label        *m_desc{nullptr};
     ::Label        *m_after_title{nullptr};
     ::ComboBox     *m_plate_combo{nullptr};
-    ::ComboBox     *m_policy{nullptr}; ///< matching strategy; only multi-nozzle printers have one
+    ::ComboBox     *m_policy{nullptr}; ///< matching strategy; absent when a ready filament switcher lets the user pick each row's nozzle
     ModelPreview   *m_preview_orig{nullptr};
     ModelPreview   *m_preview_mapped{nullptr};
     wxWindow       *m_mapping_panel{nullptr};
@@ -191,6 +191,10 @@ private:
 
     int m_fitted_h{0};      ///< the client height relayout() last set; 0 until the first fit
     int m_height_offset{0}; ///< the height the user dragged in or out, kept on top of the fitted content height
+
+    /// The sidebar's switcher check, taken once at open: device pushes may change it while the dialog is
+    /// open, and the strategy combo, the picker's slot lists and the per-row nozzle choices must agree.
+    bool m_switcher_ready{false};
 
     SyncResult m_result; ///< produced by deal_ok(), read by the Plater after an OK close
 

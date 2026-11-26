@@ -112,7 +112,6 @@
 #ifdef __APPLE__
 #include "MacIME.hpp"
 #endif
-static constexpr const float TRACKBALLSIZE = 0.8f;
 
 static const float SLIDER_DEFAULT_RIGHT_MARGIN  = 10.0f;
 static const float SLIDER_DEFAULT_BOTTOM_MARGIN = 10.0f;
@@ -236,6 +235,28 @@ static std::string format_number(float value)
     std::ostringstream oss;
     oss << std::fixed << std::setprecision((static_cast<int>(value * 10) % 10 == 0) ? 0 : 1) << value;
     return oss.str();
+}
+
+static float get_window_pixel_scale(float content_scale)
+{
+    float scale = content_scale;
+#ifdef _WIN32
+    // wxMouseEvent coordinates on Windows are already physical pixels; divide out DPI scale so rotation matches logical pixels.
+    const int dpi = get_dpi_for_window(wxGetApp().GetTopWindow());
+    scale *= float(dpi) / float(DPI_DEFAULT);
+#endif
+    return scale < 1.f ? 1.f : scale;
+}
+
+static float get_rotate_rad_per_px(float pixel_scale)
+{
+    const std::string level = wxGetApp().app_config->get("rotate_sensitivity");
+    float degrees = 0.4f;
+    if (level == "low")
+        degrees = 0.2f;
+    else if (level == "high")
+        degrees = 0.8f;
+    return degrees * float(PI) / 180.f / std::max(1.f, pixel_scale);
 }
 
 wxString filament_printable_error_msg;
@@ -1861,6 +1882,20 @@ const float GLCanvas3D::get_scale() const
 {
 #if ENABLE_RETINA_GL
     return m_retina_helper->get_scale_factor();
+#else
+    return 1.0f;
+#endif
+}
+
+const float GLCanvas3D::get_imgui_layout_scale() const
+{
+#if ENABLE_RETINA_GL
+    // Windows draws these design pixels in window pixels (get_scale()==1) and does
+    // not multiply by the desktop scale. At 150% the 365px text panel and 36px
+    // move-tool icons are therefore 1/1.5 of a 96dpi point. Mac ImGui space is
+    // framebuffer pixels, so the backing scale alone restores the full point size
+    // and both widgets come out larger than that Windows view. 96/144 matches it.
+    return get_scale() * (96.f / 144.f);
 #else
     return 1.0f;
 #endif
@@ -4216,73 +4251,43 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                 Vec3d wipe_tower_size = ppl.get_plate(plate_id)->estimate_wipe_tower_size(full_cfg, w, wipe_vol, nozzle_nums, 0, false, dynamic_cast<const ConfigOptionBool*>(dconfig.option("enable_wrapping_detection"))->value);
 
                 {
-                    const float                 margin     = WIPE_TOWER_MARGIN;
-                    BoundingBoxf3               plate_bbox = part_plate->get_bounding_box();
-                    BoundingBoxf                plate_bbox_2d(Vec2d(plate_bbox.min(0), plate_bbox.min(1)), Vec2d(plate_bbox.max(0), plate_bbox.max(1)));
-                    const std::vector<Pointfs> &extruder_areas = part_plate->get_extruder_areas();
-                    for (Pointfs points : extruder_areas) {
-                        BoundingBoxf bboxf(points);
-                        plate_bbox_2d.min = plate_bbox_2d.min(0) >= bboxf.min(0) ? plate_bbox_2d.min : bboxf.min;
-                        plate_bbox_2d.max = plate_bbox_2d.max(0) <= bboxf.max(0) ? plate_bbox_2d.max : bboxf.max;
-                    }
-
-                    coordf_t plate_bbox_x_min_local_coord = plate_bbox_2d.min(0) - plate_origin(0);
-                    coordf_t plate_bbox_x_max_local_coord = plate_bbox_2d.max(0) - plate_origin(0);
-                    coordf_t plate_bbox_y_max_local_coord = plate_bbox_2d.max(1) - plate_origin(1);
-
-                    // Clamp wipe tower position to plate boundaries
-                    {
-                        bool pos_adjusted = false;
-                        if (x + margin + wipe_tower_size(0) > plate_bbox_x_max_local_coord) {
-                            x = plate_bbox_x_max_local_coord - wipe_tower_size(0) - margin;
-                            pos_adjusted = true;
-                        } else if (x < margin + plate_bbox_x_min_local_coord) {
-                            x = margin + plate_bbox_x_min_local_coord;
-                            pos_adjusted = true;
-                        }
-                        if (y + margin + wipe_tower_size(1) > plate_bbox_y_max_local_coord) {
-                            y = plate_bbox_y_max_local_coord - wipe_tower_size(1) - margin;
-                            pos_adjusted = true;
-                        } else if (y < margin) {
-                            y = margin;
-                            pos_adjusted = true;
-                        }
-                        if (pos_adjusted) {
-                            ConfigOptionFloat wt_x_opt(x);
-                            ConfigOptionFloat wt_y_opt(y);
-                            dynamic_cast<ConfigOptionFloats *>(proj_cfg.option("wipe_tower_x"))->set_at(&wt_x_opt, plate_id, 0);
-                            dynamic_cast<ConfigOptionFloats *>(proj_cfg.option("wipe_tower_y"))->set_at(&wt_y_opt, plate_id, 0);
-                        }
-                    }
-
-                    // Re-run the forbidden-region safety net when its inputs (estimated tower
-                    // size, wrapping detection) change since the last reload, so a user-dragged
-                    // tower keeps its position. Wrapping is compared too because a preset switch
-                    // may reload once before the user's cached process edits are re-applied.
-                    // Skipped while loading a project: the 3mf restore keeps the saved position.
-                    const Vec3d last_size     = part_plate->get_wipe_tower_last_est_size();
-                    const bool  wrapping_now  = full_cfg.opt_bool("enable_wrapping_detection");
-                    const bool  inputs_changed = !last_size.isZero()
-                        && ((wipe_tower_size - last_size).norm() > 1e-3
-                            || wrapping_now != part_plate->get_wipe_tower_last_wrapping());
-                    // Zero size must not clear the baselines; it would delay the next change
+                    // Re-run the forbidden-region safety net when its inputs (estimated tower size,
+                    // wrapping detection, usable bed area) change since the last reload, so a
+                    // user-dragged tower keeps its position. Wrapping is compared too because a
+                    // preset switch may reload once before the user's cached process edits are
+                    // re-applied. Skipped while loading a project; the baseline stays unset so the
+                    // first post-load reload only records it and the 3mf position is kept.
+                    const bool  tower_sliced = current_print->is_step_done(psWipeTower)
+                                            && current_print->wipe_tower_data().wipe_tower_mesh_data.has_value();
+                    const WipeTowerReloadBaseline &last = part_plate->get_wipe_tower_baseline();
+                    const bool  wrapping_now = full_cfg.opt_bool("enable_wrapping_detection");
+                    // Height matters only through the footprint; a height-only change must not pull the tower back.
+                    const double size_change = (wipe_tower_size - last.est_size).head<2>().norm();
+                    // Plate-local, so re-laying out plates (e.g. adding one) does not count as a bed change.
+                    BoundingBoxf3 build_volume = part_plate->get_build_volume(true);
+                    build_volume.translate(-plate_origin);
+                    const double bv_change = (build_volume.min - last.build_volume.min).head<2>().norm()
+                                           + (build_volume.max - last.build_volume.max).head<2>().norm();
+                    const bool  inputs_changed = !last.est_size.isZero()
+                        && (size_change > 1e-3
+                            || bv_change > 1e-3
+                            || wrapping_now != last.wrapping);
+                    // Zero size must not clear the baseline; it would delay the next change
                     // detection by one reload cycle.
-                    if (!wipe_tower_size.isZero(EPSILON)) {
-                        part_plate->set_wipe_tower_last_est_size(wipe_tower_size);
-                        part_plate->set_wipe_tower_last_wrapping(wrapping_now);
-                    }
+                    if (!is_loading_project && !wipe_tower_size.isZero(EPSILON))
+                        part_plate->set_wipe_tower_baseline({wipe_tower_size, wrapping_now, build_volume});
                     if (inputs_changed && !is_loading_project) {
                         ConfigOptionFloats *wtx = proj_cfg.opt<ConfigOptionFloats>("wipe_tower_x");
                         ConfigOptionFloats *wty = proj_cfg.opt<ConfigOptionFloats>("wipe_tower_y");
                         if (wtx && wty) {
-                            ensure_wipe_tower_clears_forbidden_regions(*part_plate, plate_id, wxGetApp().plater()->model(), ppl, *wtx, *wty, full_cfg);
+                            ensure_wipe_tower_clears_forbidden_regions(*part_plate, plate_id, wxGetApp().plater()->model(), ppl, *wtx, *wty, full_cfg, &wipe_tower_size);
                             // ensure may have rewritten the config; refresh the locals used for rendering below.
                             x = wtx->get_at(plate_id);
                             y = wty->get_at(plate_id);
                         }
                     }
 
-                    if (!current_print->is_step_done(psWipeTower) || !current_print->wipe_tower_data().wipe_tower_mesh_data) {
+                    if (!tower_sliced) {
                         // update for wipe tower position
                         {
                             int volume_idx_wipe_tower_new = m_volumes.load_wipe_tower_preview(1000 + plate_id, x + plate_origin(0), y + plate_origin(1),
@@ -4293,13 +4298,6 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                             if (volume_idx_wipe_tower_old != -1) map_glvolume_old_to_new[volume_idx_wipe_tower_old] = volume_idx_wipe_tower_new;
                         }
                     } else {
-                        auto        tower_bottom = current_print->wipe_tower_data().wipe_tower_mesh_data->bottom;
-                        tower_bottom.translate(scaled(Vec2d{x, y}));
-                        tower_bottom.translate(scaled(Vec2d{plate_origin[0], plate_origin[1]}));
-                        auto tower_bottom_bbox = get_extents(tower_bottom);
-                        BoundingBoxf3 plate_bbox        = wxGetApp().plater()->get_partplate_list().get_plate(plate_id)->get_build_volume(true);
-                        BoundingBox   plate_bbox2d      = BoundingBox(scaled(Vec2f(plate_bbox.min[0], plate_bbox.min[1])), scaled(Vec2f(plate_bbox.max[0], plate_bbox.max[1])));
-                        Vec2f         offset            = WipeTower::move_box_inside_box(tower_bottom_bbox, plate_bbox2d, scaled(margin));
                         int volume_idx_wipe_tower_new = m_volumes.load_real_wipe_tower_preview(1000 + plate_id, x + plate_origin(0), y + plate_origin(1),
                                                                                                current_print->wipe_tower_data().wipe_tower_mesh_data->real_wipe_tower_mesh,
                                                                                                current_print->wipe_tower_data().wipe_tower_mesh_data->real_brim_mesh,
@@ -6213,7 +6211,8 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         else if (evt.LeftIsDown()) {
             // if dragging over blank area with left button, rotate
             if ((any_gizmo_active || m_hover_volume_idxs.empty()) && m_mouse.is_start_position_3D_defined()) {
-                const Vec3d rot = (Vec3d(pos.x(), pos.y(), 0.) - m_mouse.drag.start_position_3D) * (PI * TRACKBALLSIZE / 180.);
+                const double rad_per_px = get_rotate_rad_per_px(get_window_pixel_scale(get_scale()));
+                const Vec3d rot = (Vec3d(pos.x(), pos.y(), 0.) - m_mouse.drag.start_position_3D) * rad_per_px;
                 if (this->m_canvas_type == ECanvasType::CanvasAssembleView || m_gizmos.is_paint_gizmo()) {
                     //BBS rotate around target
                     Camera& camera = get_active_camera();
@@ -7917,6 +7916,7 @@ void GLCanvas3D::_render_3d_navigator()
     const int dpi = get_dpi_for_window(wxGetApp().GetTopWindow());
     sc *= (float) dpi / (float) DPI_DEFAULT;
 #endif // WIN32
+    style.ViewCubeRotateRadPerPx = get_rotate_rad_per_px(sc);
 
     const ImGuiIO &io                 = ImGui::GetIO();
     const float    viewManipulateLeft = 0;
@@ -8018,7 +8018,7 @@ void GLCanvas3D::render_thumbnail_framebuffer(const std::shared_ptr<OpenGLManage
     const auto fb_type = Slic3r::GUI::OpenGLManager::get_framebuffers_type();
     BOOST_LOG_TRIVIAL(info) << boost::format("framebuffer_type: %1%") % Slic3r::GUI::OpenGLManager::framebuffer_type_to_string(fb_type).c_str();
     EMSAAType msaa_type = EMSAAType::Disabled;
-    const bool b_need_msaa = !for_picking;
+    const bool b_need_msaa = !for_picking && !thumbnail_params.disable_msaa;
     uint32_t samples = 0;
     if (fb_type != OpenGLManager::EFramebufferType::Unknown) {
         thumbnail_fb_name = "thumbnail_fb";
@@ -14435,16 +14435,17 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
             if (state){
                 const auto full_config = wxGetApp().preset_bundle->full_config();
                 // The regroup link opens nothing when grouping is skipped, so only offer it when grouping is available.
-                // On single-extruder multi-nozzle machines it is offered only when a groupable TPU285 nozzle exists.
-                const bool show_regroup_link = !should_skip_filament_grouping(full_config) &&
-                    (!is_single_ext_multi_nozzle(full_config) || has_groupable_tpu285_nozzle(full_config));
+                PartPlate *curr_plate = wxGetApp().plater() ? wxGetApp().plater()->get_partplate_list().get_curr_plate() : nullptr;
+                const bool show_regroup_link = curr_plate &&
+                    curr_plate->all_used_filaments_have_groupable_nozzle() &&
+                    !should_skip_filament_grouping(full_config);
                 if (!show_regroup_link) {
                     notification_manager.push_slicing_customize_error_notification(NotificationType::BBLFilamentPrintableError, NotificationLevel::ErrorNotificationLevel, text);
                 } else {
                     auto callback = [](wxEvtHandler*) {
                         auto plater = wxGetApp().plater();
                         auto partplate = plater->get_partplate_list().get_curr_plate();
-                        try_pop_up_before_slice(false, plater, partplate, true); // ignore the return value
+                        try_pop_up_before_slice(false, plater, partplate, true, true); // ignore the return value
                         return false;
                     };
                     notification_manager.push_slicing_customize_error_notification(NotificationType::BBLFilamentPrintableError, NotificationLevel::ErrorNotificationLevel, text,  _u8L("Click here to regroup"), callback);

@@ -63,6 +63,7 @@ class TriangleSelector;
 //BBS: add Preset
 class Preset;
 class BBLProject;
+struct ExternalMixedFilamentInfo;
 
 class KeyStore;
 
@@ -795,6 +796,9 @@ public:
                                                        EnforcerBlockerType max_type,
                                                        EnforcerBlockerType to_delete_filament = EnforcerBlockerType::NONE,
                                                        EnforcerBlockerType replace_filament = EnforcerBlockerType::NONE);
+    // Remap painted filament facet states with an arbitrary old→new 1-based map.
+    void                 remap_filament_ids(const ModelVolume &mv, EnforcerBlockerType max_type,
+                                            const std::vector<int> &old_to_new_1based);
     indexed_triangle_set get_facets_strict(const ModelVolume& mv, EnforcerBlockerType type) const;
     bool has_facets(const ModelVolume& mv, EnforcerBlockerType type) const;
     bool empty() const { return m_data.first.empty(); }
@@ -1470,6 +1474,10 @@ public:
     bool use_loaded_id_for_label {false};
     int arrange_order = 0; // BBS
     size_t loaded_id = 0; // BBS
+    // BBS: build-item p:UUID as read from the 3MF on load (e.g.
+    // "0000000e-b1ec-4553-aec9-835e5b724bb4"). Identifies the source object for
+    // arrange-config matching. Empty for instances not loaded from a Bambu 3MF.
+    std::string uuid;
 
     size_t get_labeled_id() const
     {
@@ -1582,6 +1590,7 @@ private:
         , m_offset_to_assembly(other.m_offset_to_assembly)
         , print_volume_state(ModelInstancePVS_Inside)
         , printable(other.printable)
+        , uuid(other.uuid)
         , object(object)
         , m_assemble_initialized(false) { assert(this->id().valid() && this->id() != other.id()); }
 
@@ -1595,7 +1604,7 @@ private:
 	ModelInstance() : ObjectBase(-1), object(nullptr) { assert(this->id().invalid()); }
     // BBS. Add added members to archive.
     template<class Archive> void serialize(Archive& ar) {
-        ar(m_transformation, print_volume_state, printable, m_assemble_transformation, m_offset_to_assembly, m_assemble_initialized);
+        ar(m_transformation, print_volume_state, printable, m_assemble_transformation, m_offset_to_assembly, m_assemble_initialized, uuid);
     }
 };
 
@@ -1818,7 +1827,8 @@ public:
                                 double                                                  linear_defletion,
                                 double                                                  angle_defletion,
                                 bool                                                    is_split_compound,
-                                std::function<void(const std::vector<std::string>&)>    open_shell_warn_fn = nullptr);
+                                std::function<void(const std::vector<std::string>&)>    open_shell_warn_fn = nullptr,
+                                bool*                                                   has_unit           = nullptr);
 
     //BBS: add part plate related logic
     // BBS: backup
@@ -1830,7 +1840,8 @@ public:
         std::vector<Preset*>* project_presets = nullptr, bool* is_xxx = nullptr, Semver* file_version = nullptr, Import3mfProgressFn proFn = nullptr,
                                 ImportstlProgressFn        stlFn                = nullptr,
                                 BBLProject *               project              = nullptr,
-                                int                        plate_id             = 0);
+                                int                        plate_id             = 0,
+                                bool*                      has_unit             = nullptr);
     // BBS
     static bool obj_import_color_deal(const std::vector<unsigned char>& filament_ids, std::optional<unsigned char> first_extruder_id, Model* model, std::function<bool(int)> deal_vertex_callback, std::function<int(int, int, int)> get_filament_id_callback = nullptr);
     static bool obj_import_vertex_color_deal(const std::vector<unsigned char>& vertex_filament_ids, std::optional<unsigned char> first_extruder_id, ModelVolume* volumePtr, std::function<int(int, int, int)> get_filament_id_callback = nullptr);
@@ -1847,7 +1858,8 @@ public:
     static Model read_from_archive(
         const std::string& input_file,
         DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions, En3mfType& out_file_type,
-        LoadStrategy options = LoadStrategy::AddDefaultInstances, PlateDataPtrs* plate_data = nullptr, std::vector<Preset*>* project_presets = nullptr, Semver* file_version = nullptr, Import3mfProgressFn proFn = nullptr, BBLProject* project = nullptr, std::map<int, std::vector<std::string>>* color_group_map = nullptr, VolumeColorInfoMap* volume_color_data = nullptr, bool* has_textures = nullptr, bool* has_unit = nullptr);
+        LoadStrategy options = LoadStrategy::AddDefaultInstances, PlateDataPtrs* plate_data = nullptr, std::vector<Preset*>* project_presets = nullptr, Semver* file_version = nullptr, Import3mfProgressFn proFn = nullptr, BBLProject* project = nullptr, std::map<int, std::vector<std::string>>* color_group_map = nullptr, VolumeColorInfoMap* volume_color_data = nullptr, bool* has_textures = nullptr, bool* has_unit = nullptr,
+        ExternalMixedFilamentInfo* external_mixed = nullptr);
 
     // Add a new ModelObject to this Model, generate a new ID for this ModelObject.
     ModelObject* add_object();

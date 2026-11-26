@@ -1,7 +1,19 @@
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { CONTENT_WIDTH, EXTRUDER, FOOTER_BUTTON, FOOTER_GAP, FOOTER_LEFT_INSET, FOOTER_SIDE_WIDTH, SETTINGS_ICON, px } from '../dip';
+import {
+  COLORS,
+  CONTENT_WIDTH,
+  EXTRUDER,
+  FOOTER_BUTTON,
+  FOOTER_GAP,
+  FOOTER_LEFT_INSET,
+  FOOTER_SIDE_WIDTH,
+  NOZZLE_LABEL,
+  SETTINGS_ICON,
+  px,
+} from '../dip';
 import { extruderIconName, extrudersLeftToRight } from '../displayAdapters';
-import { nozzleIconLefts } from '../geometry';
+import { extruderIconSize, nozzleIconLefts } from '../geometry';
 import type { AmsControlActions, ExtruderArea } from '../types';
 import { amsSettingHoverUrl, amsSettingNormalUrl, amsSettingPressUrl } from '../assets';
 import { ExtruderIcon } from './ExtruderIcon';
@@ -49,11 +61,11 @@ export function AmsFooter({
           <button
             type="button"
             data-testid="ams-auto-refill"
-            className="ams-btn-white rounded-[4px] border text-[13px]"
+            className="ams-btn-white rounded-[4px] border px-1 text-[13px]"
             style={buttonStyle}
             onClick={onAutoRefill}
           >
-            {t('Auto-refill')}
+            <ClippedLabel text={t('Auto-refill')} />
           </button>
         ) : null}
         <button
@@ -92,6 +104,32 @@ export function AmsFooter({
           ))
         : null}
 
+      {extruderArea.visible
+        ? extruders.map((extruder, index) => {
+            if (!extruder.nozzle_label) return null;
+            const cell = extruderIconSize(iconNames[index]);
+            const onLeft = extruders.length >= 2 && index === 0;
+            const sideStyle = onLeft
+              ? { right: px(CONTENT_WIDTH - iconLefts[index] + NOZZLE_LABEL.gap) }
+              : { left: px(iconLefts[index] + cell.width + NOZZLE_LABEL.gap) };
+            return (
+              <span
+                key={`nozzle-label-${extruder.id}`}
+                data-testid={`ams-nozzle-label-${extruder.id}`}
+                className="absolute top-0 flex items-center whitespace-nowrap"
+                style={{
+                  ...sideStyle,
+                  height: px(cell.height),
+                  fontSize: px(NOZZLE_LABEL.fontSize),
+                  color: COLORS.text,
+                }}
+              >
+                {extruder.nozzle_label}
+              </span>
+            );
+          })
+        : null}
+
       <div
         className="absolute right-0 top-0 flex items-center justify-end"
         style={{ width: px(FOOTER_SIDE_WIDTH), gap: px(FOOTER_GAP) }}
@@ -116,9 +154,32 @@ export function AmsFooter({
           style={buttonStyle}
           onClick={onLoad}
         >
-          {t('Load')}
+          {t('Load', { context: 'AmsControlWeb' })}
         </button>
       </div>
     </div>
+  );
+}
+
+function ClippedLabel({ text }: { text: string }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const [clipped, setClipped] = useState(false);
+
+  useEffect(() => {
+    const node = ref.current;
+    if (!node) return;
+    // +1 tolerates sub-pixel rounding on text that actually fits.
+    const measure = () => setClipped(node.scrollWidth > node.clientWidth + 1);
+    measure();
+    if (typeof ResizeObserver !== 'function') return;
+    const observer = new ResizeObserver(measure);
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [text]);
+
+  return (
+    <span ref={ref} className="block truncate" title={clipped ? text : undefined}>
+      {text}
+    </span>
   );
 }

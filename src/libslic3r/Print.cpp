@@ -154,6 +154,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "eng_plate_temp_initial_layer",
         "hot_plate_temp_initial_layer",
         "textured_plate_temp_initial_layer",
+        "effect_plate_temp_initial_layer",
         "gcode_add_line_number",
         "layer_change_gcode",
         "time_lapse_gcode",
@@ -316,6 +317,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "textured_plate_temp"
             || opt_key == "enable_prime_tower"
             || opt_key == "enable_wrapping_detection"
+            || opt_key == "effect_plate_temp"
             || opt_key == "prime_tower_enable_framework"
             || opt_key == "prime_tower_width"
             || opt_key == "prime_tower_max_speed"
@@ -1305,6 +1307,10 @@ int Print::get_compatible_filament_type(const std::set<int>& filament_types)
 
 bool Print::is_dynamic_group_reorder() const
 {
+    // 多口径下关闭动态映射：耗材固定在按口径分组的挤出机上，不逐层跨口径。
+    if (multi_nozzle_diameter_mode_enabled(m_full_print_config))
+        return false;
+
     if (!config().enable_filament_dynamic_map || config().filament_map_mode != FilamentMapMode::fmmAutoForFlush || config().nozzle_diameter.size() <= 1)
         return false;
 
@@ -1533,26 +1539,6 @@ StringObjectException Print::validate(std::vector<StringObjectException> *warnin
     }
 
     if (this->has_wipe_tower() && ! m_objects.empty()) {
-        // Different nozzle diameters are supported by the prime tower's per-filament extrusion planning.
-        auto set_nozzle_diameter_warning = [warnings](const std::string &text) {
-            StringObjectException warningtemp;
-            warningtemp.string     = text;
-            warningtemp.is_warning = true;
-            warnings->push_back(std::move(warningtemp));
-        };
-
-        double first_nozzle_diam = m_config.nozzle_diameter.get_at(extruders.front());
-        for (const auto& extruder_idx : extruders) {
-            double nozzle_diam = m_config.nozzle_diameter.get_at(extruder_idx);
-            if (nozzle_diam - EPSILON > first_nozzle_diam || nozzle_diam + EPSILON < first_nozzle_diam) {
-                if (warnings) {
-                    set_nozzle_diameter_warning(L("Printing with different nozzle diameters and prime tower is experimental. "
-                                                  "The prime tower may not work correctly with mismatched nozzle sizes."));
-                }
-                break;
-            }
-        }
-
         if (! m_config.use_relative_e_distances)
             return { L("The Wipe Tower is currently only supported with the relative extruder addressing (use_relative_e_distances=1).") };
         if (m_config.ooze_prevention)
@@ -1808,7 +1794,9 @@ StringObjectException Print::validate(std::vector<StringObjectException> *warnin
         const ConfigOptionInts* bed_temp_opt = m_config.option<ConfigOptionInts>(get_bed_temp_key(m_config.curr_bed_type));
         for (unsigned int extruder_id : extruders) {
             int curr_bed_temp = bed_temp_opt->get_at(extruder_id);
-            if (curr_bed_temp == 0 && bed_type_keys_map != nullptr) {
+            bool unsupported_effect_plate = m_config.curr_bed_type == bt3DEffect
+                && get_filament_temp_type(m_config.filament_type.get_at(extruder_id)) != FilamentTempType::LowTemp;
+            if ((curr_bed_temp == 0 || unsupported_effect_plate) && bed_type_keys_map != nullptr) {
                 std::string bed_type_name;
                 for (auto item : *bed_type_keys_map) {
                     if (item.second == m_config.curr_bed_type) {
@@ -3151,9 +3139,9 @@ FilamentTempType Print::get_filament_temp_type(const std::string& filament_type)
         catch (const json::parse_error& err){
             in.close();
             BOOST_LOG_TRIVIAL(error) << "parse " << file_path.string() << " got a nlohmann::detail::parse_error, reason = " << err.what();
-            filament_temp_type_map[HighTempFilamentStr] = {"ABS","ASA","PC","PA","PA-CF","PA-GF","PA6-CF","PET-CF","PPS","PPS-CF","PPA-GF","PPA-CF","ABS-Aero","ABS-GF"};
-            filament_temp_type_map[LowTempFilamentStr] = {"PLA","TPU","PLA-CF","PLA-AERO","PVA","BVOH"};
-            filament_temp_type_map[HighLowCompatibleFilamentStr] = { "HIPS","PETG","PCTG","PE","PP","EVA","PE-CF","PP-CF","PP-GF","PHA"};
+            filament_temp_type_map[HighTempFilamentStr] = {"ABS","ASA","ASA-CF","PC","PA","PA-CF","PA-GF","PA6-CF","PET-CF","PPS","PPS-CF","PPA-CF","PPA-GF","ABS-GF","ASA-AERO"};
+            filament_temp_type_map[LowTempFilamentStr] = {"PLA","TPU","TPU-AMS","PLA-CF","PLA-AERO","PVA","BVOH","PCTG","PETG","PETG-CF"};
+            filament_temp_type_map[HighLowCompatibleFilamentStr] = {"HIPS","PE","PP","EVA","PE-CF","PP-CF","PP-GF","PHA"};
         }
     }
 
@@ -3692,8 +3680,14 @@ const WipeTowerData& Print::wipe_tower_data(size_t filaments_cnt) const
     }
     if (max_height < EPSILON) return m_wipe_tower_data;
 
-    double layer_height                  = 0.08f; // hard code layer height
-    layer_height        = m_objects.front()->config().layer_height.value;
+    // Same sizing height as PartPlate::estimate_wipe_tower_size() so the pre-slice clearance
+    // checks agree with the preview box. extruders() is 0-based; the helper expects 1-based ids.
+    const std::vector<unsigned int> used_extruders = this->extruders();
+    std::vector<int>                filaments_1based;
+    filaments_1based.reserve(used_extruders.size());
+    for (unsigned int filament_id : used_extruders)
+        filaments_1based.push_back(int(filament_id) + 1);
+    const double layer_height = wipe_tower_estimate_layer_height(m_objects.front()->config(), filaments_1based);
 
     auto   timelapse_type  = config().option<ConfigOptionEnum<TimelapseType>>("timelapse_type");
     bool   need_wipe_tower = (timelapse_type ? (timelapse_type->value == TimelapseType::tlSmooth) : false) | m_config.prime_tower_rib_wall.value;

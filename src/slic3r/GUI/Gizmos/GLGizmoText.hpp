@@ -55,9 +55,9 @@ private:
     float m_custom_skew   = 0.f;
     float m_thickness = 2.f;
     const float  m_thickness_min     = 0.1f;
-    const float  m_thickness_max     = 1000.f;
+    // Print-volume ceiling shared by font size, thickness and embedded depth. Filled once per input window.
+    float        m_print_volume_max        = 0.f;
     float m_embeded_depth = 0.f;
-    const float  m_embeded_depth_max = 1000.f;
     float m_rotate_angle = 0;
     float m_text_gap = 0.f;
     float m_line_gap = 0.f; // [mm] extra space between text lines

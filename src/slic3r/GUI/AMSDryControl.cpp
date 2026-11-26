@@ -1,5 +1,6 @@
 #include "AMSDryControl.hpp"
 #include "DeviceCore/DevFilaSystem.h"
+#include "DeviceCore/DevDryer.h"
 #include "GUI_App.hpp"
 #include "I18N.hpp"
 
@@ -15,10 +16,10 @@
 #include "slic3r/GUI/Widgets/ComboBox.hpp"
 #include "slic3r/GUI/Widgets/ProgressBar.hpp"
 #include "slic3r/GUI/Widgets/TextInput.hpp"
-#include "DeviceCore/DevUtilBackend.h"
 
 #include <wx/dcbuffer.h>
 #include <wx/dcgraph.h>
+#include <wx/display.h>
 #include <wx/weakref.h>
 #include <wx/wupdlock.h>
 #include "libslic3r/Log.hpp"
@@ -32,9 +33,9 @@ const int AMS_DRY_STATUS_IMAGE_SIZE_MULTI_ZONE = 200;
 
 // The dryable zone this dialog controls; only one per AMS for now.
 // nullopt: AMS without zone info, the whole AMS is dried.
-static std::optional<int> resolve_dry_zone_id(const DevAms* dev_ams)
+static std::optional<int> resolve_dry_zone_id(const DevDryer* dryer)
 {
-    const auto zone_ids = dev_ams ? dev_ams->GetDryableZoneIds() : std::vector<int>();
+    const auto zone_ids = dryer ? dryer->GetDryableZoneIds() : std::vector<int>();
     return zone_ids.empty() ? std::nullopt : std::optional<int>(zone_ids.front());
 }
 
@@ -60,20 +61,16 @@ static std::string get_humidity_level_img_path(int humidity_percent)
         hum_level = 1;
     }
 
-    if (wxGetApp().dark_mode()) {
-        return "hum_level" + std::to_string(hum_level) + "_no_num_light";
-    } else {
-        return "hum_level" + std::to_string(hum_level) + "_no_num_light";
-    }
-
+    const std::string mode_suffix = wxGetApp().dark_mode() ? "_no_num_dark" : "_no_num_light";
+    return "hum_level" + std::to_string(hum_level) + mode_suffix;
 }
 
 // AMS with both dryable and non-dryable zones (e.g. AMS 3H): the whole device is shown with a badge per zone
-static bool is_multi_zone_ams(const DevAms* dev_ams)
+static bool is_multi_zone_ams(const DevDryer* dryer)
 {
-    if (!dev_ams) return false;
-    const auto zones = dev_ams->GetZones();
-    return !zones.empty() && dev_ams->GetDryableZoneIds().size() < zones.size();
+    if (!dryer) return false;
+    const auto zones = dryer->GetZones();
+    return !zones.empty() && dryer->GetDryableZoneIds().size() < zones.size();
 }
 
 // Image names follow dev_ams_dry_ctr_<model>_<state>
@@ -83,7 +80,19 @@ static std::string get_dry_img_prefix(DevAmsType type)
         case DevAmsType::N3S:      return "dev_ams_dry_ctr_n3s_";
         case DevAmsType::N3F:      return "dev_ams_dry_ctr_n3f_";
         case DevAmsType::ZMULTI_A: return "dev_ams_dry_ctr_zmulti_a_";
+        case DevAmsType::ZMULTI_B: return "dev_ams_dry_ctr_zmulti_b_";
         default:                   return "";
+    }
+}
+
+static wxString get_dryer_name(DevDryerType model)
+{
+    switch (model) {
+        case DevDryerType::N3F:       return "AMS2";
+        case DevDryerType::N3S:       return "AMS-S";
+        case DevDryerType::ZMULTI_A:  return "AMS 3H";
+        case DevDryerType::HT_MODULE: return _L("Drying Module");
+        default:                       return "";
     }
 }
 
@@ -301,6 +310,7 @@ void AMSFilamentPanel::AddFilamentItem(const wxString& text, const std::string& 
 void AMSFilamentPanel::SetAmsName(const wxString& ams_name)
 {
     m_ams_name_label->SetLabel(ams_name);
+    m_ams_name_label->Show(!ams_name.empty());
     Layout();
 }
 
@@ -357,13 +367,27 @@ void AMSDryCtrWin::RunModal(wxWindow* parent, const std::string& ams_id,
     s_active_dry_ctr_win = &dlg;
 
     dlg.set_ams_id(ams_id);
-    if (popup_pos.has_value()) {
-        dlg.Move(popup_pos.value());
-    }
+    dlg.Move(popup_pos.value_or(DefaultPopupPos(parent, dlg.GetSize())));
     dlg.ShowModal();
     s_active_dry_ctr_win = nullptr;
 }
 
+wxPoint AMSDryCtrWin::DefaultPopupPos(wxWindow* parent, const wxSize& size)
+{
+    const wxRect rect     = parent ? parent->GetScreenRect() : wxGetClientDisplayRect();
+    const wxSize def_size = wxTopLevelWindow::GetDefaultSize();
+    wxPoint      pos(rect.x + (rect.width - def_size.x) / 2, rect.y + (rect.height - def_size.y) / 2);
+    if (size == wxDefaultSize) {
+        return pos;
+    }
+
+    // The offset is fixed in pixels while the window scales with DPI, so it can overflow on high DPI.
+    const int    display_idx = wxDisplay::GetFromPoint(pos);
+    const wxRect area        = wxDisplay(display_idx == wxNOT_FOUND ? 0u : unsigned(display_idx)).GetClientArea();
+    pos.x = std::max(area.x, std::min(pos.x, area.GetRight() + 1 - size.x));
+    pos.y = std::max(area.y, std::min(pos.y, area.GetBottom() + 1 - size.y));
+    return pos;
+}
 
 wxScrolledWindow* AMSDryCtrWin::create_preview_scrolled_window(wxWindow* parent)
 {
@@ -443,9 +467,21 @@ struct ZMultiBadgeStyle {
 
 constexpr double kFigmaImageH = 180.0;
 // Figma badge anchor Y positions, in figma image-local coords.
-// Both badges are horizontally centred on the image instead of using an X anchor.
 constexpr int kFigmaDryableY = 0;
 constexpr int kFigmaNormalY  = 130;
+
+struct DryableBadgeAnchor
+{
+    double x_ratio; // connector x, as a fraction of the image width
+    int    line_dip;
+};
+
+DryableBadgeAnchor get_dryable_badge_anchor(DevAmsType type)
+{
+    // ZMULTI_B's dryer is in the left half of its image, where the top edge is lower
+    if (type == DevAmsType::ZMULTI_B) return {0.25, 36};
+    return {0.5, 18};
+}
 
 } // namespace
 
@@ -598,18 +634,25 @@ void AMSDryCtrWin::on_overlay_paint(wxPaintEvent&)
     // Place the dryable badge so its centre line sits at figma y=0 (i.e. on
     // the upper edge of the device image). Half of it spills into the reserved
     // top strip we added in compute_zmulti_overlay_size().
-    double dryable_x = bmp_x + (bmp_sz.GetWidth() - sz_dryable.GetWidth()) / 2.0;
+    const DryableBadgeAnchor anchor = get_dryable_badge_anchor(m_ams_info.m_model);
+    double anchor_x  = bmp_x + bmp_sz.GetWidth() * anchor.x_ratio;
+    double dryable_x = std::max<double>(bmp_x, anchor_x - sz_dryable.GetWidth() / 2.0);
     double dryable_y = bmp_y + kFigmaDryableY * sy - sz_dryable.GetHeight() / 2.0;
     double normal_x  = bmp_x + (bmp_sz.GetWidth() - sz_normal.GetWidth()) / 2.0;
     double normal_y  = bmp_y + kFigmaNormalY * sy;
 
-    draw_badge(normal_x, normal_y, style_normal, sz_normal, normal_hum_text, normal_temp_text);
+    // invalid temperature arrives as 0 or -1
+    auto has_reading = [](int humidity, int temperature) { return humidity >= 0 || temperature > 0; };
+    if (has_reading(m_ambient_humidity_percent, m_ambient_temperature)) {
+        draw_badge(normal_x, normal_y, style_normal, sz_normal, normal_hum_text, normal_temp_text);
+    }
+    if (!has_reading(m_ams_info.m_humidity_percent, m_ams_info.m_temperature)) return;
     draw_badge(dryable_x, dryable_y, style_dryable, sz_dryable, dryable_hum_text, dryable_temp_text);
 
     // Green dashed connector descending from the dryable badge.
-    double cx = dryable_x + sz_dryable.GetWidth() / 2.0;
+    double cx = anchor_x;
     double y_top = dryable_y + sz_dryable.GetHeight();
-    double y_bot = y_top + FromDIP(18);
+    double y_bot = y_top + FromDIP(anchor.line_dip);
     wxPen pen(wxColour(0, 174, 66), FromDIP(1));
     wxDash dashes[2] = { 2, 2 };
     pen.SetStyle(wxPENSTYLE_USER_DASH);
@@ -626,7 +669,7 @@ wxPanel* AMSDryCtrWin::create_m2y_pill(wxPanel* parent)
     pill->SetDoubleBuffered(true);
     pill->Bind(wxEVT_ERASE_BACKGROUND, [](wxEraseEvent&){});
 
-    auto on_paint = [pill](wxPaintEvent&) {
+    auto on_paint = [this, pill](wxPaintEvent&) {
         wxAutoBufferedPaintDC bdc(pill);
         bdc.SetBackground(wxBrush(pill->GetBackgroundColour()));
         bdc.Clear();
@@ -643,7 +686,7 @@ wxPanel* AMSDryCtrWin::create_m2y_pill(wxPanel* parent)
         gc->DrawRoundedRectangle(0, 0, sz.GetWidth(), sz.GetHeight(), pill->FromDIP(12));
 
         wxBitmap icon = ScalableBitmap(pill, "dev_ams_dry_ctr_plugedin", 20).bmp();
-        wxString text("AMS 3H");
+        const wxString& text = m_zmulti_m2y_pill_text;
         wxFont font = Label::Body_14;
         gc->SetFont(font, fg);
         wxDouble tw, th, td, te;
@@ -661,16 +704,26 @@ wxPanel* AMSDryCtrWin::create_m2y_pill(wxPanel* parent)
         gc->DrawBitmap(icon, cur_x, cy - icon_h / 2.0, icon_w, icon_h);
     };
     pill->Bind(wxEVT_PAINT, on_paint);
+    m_zmulti_m2y_pill = pill;
+    update_m2y_pill_text(m_zmulti_m2y_pill_text);
+    return pill;
+}
 
+void AMSDryCtrWin::update_m2y_pill_text(const wxString& text)
+{
+    if (!m_zmulti_m2y_pill || text.empty()) return;
+    m_zmulti_m2y_pill_text = text;
+
+    wxPanel* pill = m_zmulti_m2y_pill;
     int icon_w = ScalableBitmap(pill, "dev_ams_dry_ctr_plugedin", 20).bmp().GetWidth();
     wxClientDC dc(pill);
     dc.SetFont(Label::Body_14);
-    wxSize text_size = dc.GetTextExtent("AMS 3H");
+    wxSize text_size = dc.GetTextExtent(text);
     int width = text_size.GetWidth() + icon_w + pill->FromDIP(6) + 2 * pill->FromDIP(14);
     int height = pill->FromDIP(28);
     pill->SetMinSize(wxSize(width, height));
     pill->SetSize(wxSize(width, height));
-    return pill;
+    pill->Refresh();
 }
 
 wxBoxSizer* AMSDryCtrWin::create_description_item(wxPanel* parent, const wxString& title, Label*& dataLabel)
@@ -695,25 +748,28 @@ wxBoxSizer* AMSDryCtrWin::create_description_item(wxPanel* parent, const wxStrin
 
 wxBoxSizer* AMSDryCtrWin::create_status_descriptions_section(wxPanel* parent)
 {
+    // Natural widths: equal proportions would make the row 3x its widest title and squeeze the right panel
     wxBoxSizer* desc_sizer = new wxBoxSizer(wxHORIZONTAL);
+    desc_sizer->AddStretchSpacer(1);
 
     wxBoxSizer* hum_desc_sizer = create_description_item(parent, _L("Humidity"), m_humidity_data_label);
-    desc_sizer->Add(hum_desc_sizer, 1, wxEXPAND, FromDIP(1));
+    desc_sizer->Add(hum_desc_sizer, 0, wxEXPAND, 0);
 
     wxStaticLine* vert_separator = new wxStaticLine(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_VERTICAL);
-    desc_sizer->Add(vert_separator, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(5));
+    desc_sizer->Add(vert_separator, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(12));
 
     wxBoxSizer* temp_desc_sizer = create_description_item(parent, _L("Temperature"), m_temperature_data_label);
-    desc_sizer->Add(temp_desc_sizer, 1, wxEXPAND, FromDIP(1));
+    desc_sizer->Add(temp_desc_sizer, 0, wxEXPAND, FromDIP(1));
 
     m_time_descrition_container = new wxBoxSizer(wxHORIZONTAL);
     wxStaticLine* vert_separator2 = new wxStaticLine(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_VERTICAL);
-    m_time_descrition_container->Add(vert_separator2, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(5));
+    m_time_descrition_container->Add(vert_separator2, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(12));
 
     wxBoxSizer* time_desc_sizer = create_description_item(parent, _L("Left Time"), m_time_data_label);
-    m_time_descrition_container->Add(time_desc_sizer, 1, wxEXPAND, FromDIP(1));
+    m_time_descrition_container->Add(time_desc_sizer, 0, wxEXPAND, FromDIP(1));
 
-    desc_sizer->Add(m_time_descrition_container, 1, wxEXPAND, 0);
+    desc_sizer->Add(m_time_descrition_container, 0, wxEXPAND, 0);
+    desc_sizer->AddStretchSpacer(1);
     // m_time_descrition_container->Show(false);
 
     return desc_sizer;
@@ -727,7 +783,7 @@ wxBoxSizer* AMSDryCtrWin::create_left_panel(wxPanel* parent)
     left_sizer->Add(image_section, 1, wxEXPAND | wxALL, FromDIP(5));
 
     m_descriptions_section_sizer = create_status_descriptions_section(parent);
-    left_sizer->Add(m_descriptions_section_sizer, 0, wxEXPAND | wxALL, FromDIP(20));
+    left_sizer->Add(m_descriptions_section_sizer, 0, wxEXPAND | wxTOP | wxBOTTOM, FromDIP(20));
 
     return left_sizer;
 }
@@ -790,8 +846,10 @@ wxBoxSizer* AMSDryCtrWin::create_normal_state_panel(wxPanel* parent)
     // native NSTextField background is turned off globally and its bezel is nearly invisible on
     // a white page, so a bare wxTextCtrl cannot be told apart from the background in light mode.
     // Temperature part
+    const wxSize input_size(FromDIP(80), FromDIP(26));
+    const wxSize unit_size(FromDIP(16), -1);
     wxBoxSizer* temp_sizer = new wxBoxSizer(wxHORIZONTAL);
-    m_temperature_box = new TextInput(parent, "", "", "", wxDefaultPosition, wxSize(FromDIP(80), FromDIP(26)));
+    m_temperature_box = new TextInput(parent, "", "", "", wxDefaultPosition, input_size);
     m_temperature_input = m_temperature_box->GetTextCtrl();
     m_temperature_input->SetMaxLength(3); // Limit to 3 digits
 
@@ -811,12 +869,13 @@ wxBoxSizer* AMSDryCtrWin::create_normal_state_panel(wxPanel* parent)
 
     Label* temp_unit_label = new Label(parent, wxString::FromUTF8("℃"));
     temp_unit_label->SetForegroundColour(*wxBLACK);
-    temp_sizer->Add(m_temperature_box, 1, wxRIGHT, FromDIP(1));
+    temp_unit_label->SetMinSize(unit_size);
+    temp_sizer->Add(m_temperature_box, 1, wxRIGHT, FromDIP(4));
     temp_sizer->Add(temp_unit_label, 0, wxALIGN_CENTER_VERTICAL);
 
     // Time part
     wxBoxSizer* time_sizer = new wxBoxSizer(wxHORIZONTAL);
-    m_time_box = new TextInput(parent, "", "", "", wxDefaultPosition, wxSize(FromDIP(100), FromDIP(26)));
+    m_time_box = new TextInput(parent, "", "", "", wxDefaultPosition, input_size);
     m_time_input = m_time_box->GetTextCtrl();
     m_time_input->SetMaxLength(3); // Limit to 3 digits
 
@@ -836,7 +895,8 @@ wxBoxSizer* AMSDryCtrWin::create_normal_state_panel(wxPanel* parent)
 
     Label* time_unit_label = new Label(parent, "H");
     time_unit_label->SetForegroundColour(*wxBLACK);
-    time_sizer->Add(m_time_box, 1, wxRIGHT, FromDIP(1));
+    time_unit_label->SetMinSize(unit_size);
+    time_sizer->Add(m_time_box, 1, wxRIGHT, FromDIP(4));
     time_sizer->Add(time_unit_label, 0, wxALIGN_CENTER_VERTICAL);
 
     wxBoxSizer* input_sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -881,7 +941,9 @@ wxBoxSizer* AMSDryCtrWin::create_normal_state_panel(wxPanel* parent)
             return;
         }
 
-        fila_system->CtrlAmsStopDrying(std::stoi(m_ams_info.m_ams_id));
+        if (auto dryer = fila_system->GetDryerMgr().Find(m_ams_info.m_ams_id)) {
+            dryer->CtrlStopDrying();
+        }
         // Temporarily show stopping state, then restore after 2 seconds
         if (m_stop_button) {
             m_stop_button->SetLabel(_L("Stopping"));
@@ -993,13 +1055,14 @@ wxBoxSizer* AMSDryCtrWin::create_main_content_section(wxPanel* parent)
 {
     wxBoxSizer* content_sizer = new wxBoxSizer(wxHORIZONTAL);
 
+    // The right minimum keeps room for the inputs when the left side grows while drying
     wxBoxSizer* left_panel = create_left_panel(parent);
-    content_sizer->Add(left_panel, 2, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
+    content_sizer->Add(left_panel, 1, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
     left_panel->SetMinSize(wxSize(FromDIP(250), -1));
 
     wxBoxSizer* right_panel = create_right_panel(parent);
     content_sizer->Add(right_panel, 1, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
-    right_panel->SetMinSize(wxSize(FromDIP(250), -1));
+    right_panel->SetMinSize(wxSize(FromDIP(300), -1));
 
     return content_sizer;
 }
@@ -1233,10 +1296,15 @@ void AMSDryCtrWin::start_sending_drying_command()
         return;
     }
 
+    auto dryer = fila_system->GetDryerMgr().Find(m_ams_info.m_ams_id);
+    if (!dryer) {
+        BOOST_LOG_TRIVIAL(warning) << "dryer gone: " << m_ams_info.m_ams_id;
+        return;
+    }
+
     int cooling_temp = 50;
-    std::optional<DevFilamentDryingPreset> preset = DevUtilBackend::GetFilamentDryingPreset(m_tray_ids[tray_index].filament_id);
-    if (preset.has_value()) {
-        cooling_temp = static_cast<int>(preset.value().filament_dev_drying_softening_temperature[m_ams_info.m_model]);
+    if (const auto info = dryer->GetFilamentDryingInfo(m_tray_ids[tray_index].filament_id)) {
+        cooling_temp = static_cast<int>(info->softening_temp);
     }
 
     bool rotate_spool = false;
@@ -1244,8 +1312,13 @@ void AMSDryCtrWin::start_sending_drying_command()
     // firmware to, even if the (hidden) toggle somehow retained a value.
     rotate_spool = m_can_auto_retract && m_rotate_spool_toggle->GetValue();
 
-    fila_system->CtrlAmsStartDryingHour(std::stoi(m_ams_info.m_ams_id), m_ams_info.m_dry_zone_id.value_or(0), get_drying_filament_type_for_command(m_tray_ids[tray_index]),
-        temperature, time, rotate_spool, cooling_temp, false);
+    DevDryingSettings settings;
+    settings.filament      = get_drying_filament_type_for_command(m_tray_ids[tray_index]);
+    settings.temp          = static_cast<int>(temperature);
+    settings.duration_hour = static_cast<int>(time);
+    settings.rotate_tray   = rotate_spool;
+    settings.cooling_temp  = cooling_temp;
+    dryer->CtrlStartDrying(m_ams_info.m_dry_zone_id, settings);
 
     m_dry_setting.m_filament_names[m_ams_info.m_ams_id] = m_tray_ids[tray_index].filament_name;
     m_dry_setting.m_filament_type[m_ams_info.m_ams_id] = m_tray_ids[tray_index].filament_type;
@@ -1601,16 +1674,26 @@ void AMSDryCtrWin::reconcile_ams_previews(DevFilaSystem* fila_system, MachineObj
     }
 
     std::vector<AMSinfo> dryable_infos;
-    for (const auto& [ams_id, dev_ams] : fila_system->GetAmsList()) {
-        if (!dev_ams || !dev_ams->IsSupportRemoteDry(obj)) continue;
+    for (const DevDryer& dryer : fila_system->GetDryerMgr().All()) {
+        if (!dryer.IsSupportRemoteDry(obj)) continue;
         AMSinfo info;
-        if (!info.parse_ams_info(obj, dev_ams)) continue;
+        if (DevAms* ams = dryer.GetAms()) {
+            if (!info.parse_ams_info(obj, ams)) continue;
+        }
+        if (dryer.IsModule()) {
+            info.ams_id   = dryer.GetId();
+            info.ams_type = dryer.GetFormType();
+            info.dryable_slots.clear();
+            for (const auto& [zone_id, zone] : dryer.GetZones()) {
+                if (dryer.IsDryableZone(zone_id)) info.dryable_slots.insert(zone.zone_slots.begin(), zone.zone_slots.end());
+            }
+        }
         dryable_infos.emplace_back(std::move(info));
     }
 
-    // ZMULTI_A goes leftmost
+    // Rack AMS goes leftmost
     std::stable_partition(dryable_infos.begin(), dryable_infos.end(),
-                          [](const AMSinfo& info) { return info.ams_type == DevAmsType::ZMULTI_A; });
+                          [](const AMSinfo& info) { return devAmsTypeUtil::IsRackAms(info.ams_type); });
 
     for (auto it = m_ams_preview_list.begin(); it != m_ams_preview_list.end();) {
         const std::string& id = it->first;
@@ -1708,13 +1791,13 @@ void AMSDryCtrWin::update_img_description(DevAms::DryStatus status, DevAms::DryS
     }
 }
 
-int AMSDryCtrWin::update_image(DevAms* dev_ams)
+int AMSDryCtrWin::update_image(const DevDryer* dryer)
 {
-    const DryView dry = get_dry_view(dev_ams);
-    const DevAmsType model = dev_ams->GetAmsType();
+    const DryView dry = get_dry_view(dryer);
+    const DevAmsType model = dryer->GetFormType();
     const DevAms::DryStatus status = dry.dry_status.value_or(DevAms::DryStatus::Off);
     const DevAms::DrySubStatus sub_status = dry.dry_sub_status.value_or(DevAms::DrySubStatus::Off);
-    const DryImageLayout layout = is_multi_zone_ams(dev_ams) ? DryImageLayout::MultiZone : DryImageLayout::Generic;
+    const DryImageLayout layout = is_multi_zone_ams(dryer) ? DryImageLayout::MultiZone : DryImageLayout::Generic;
 
     if (layout == m_image_layout && model == m_ams_info.m_model && status == m_ams_info.m_dry_status
         && sub_status == m_ams_info.m_dry_sub_status && dry.humidity_percent == m_ams_info.m_humidity_percent) {
@@ -1773,16 +1856,16 @@ void AMSDryCtrWin::resize_image_overlay(const wxSize& size)
     if (m_original_page) m_original_page->Layout();
 }
 
-bool AMSDryCtrWin::check_values_changed(DevAms* dev_ams)
+bool AMSDryCtrWin::check_values_changed(const DevDryer* dryer)
 {
     bool changed = false;
 
-    if (m_ams_info.m_model != dev_ams->GetAmsType()) {
-        m_ams_info.m_model = dev_ams->GetAmsType();
+    if (m_ams_info.m_model != dryer->GetFormType()) {
+        m_ams_info.m_model = dryer->GetFormType();
         changed = true;
     }
 
-    DryView v = get_dry_view(dev_ams);
+    DryView v = get_dry_view(dryer);
 
     if (v.dry_status.has_value() && m_ams_info.m_dry_status != v.dry_status.value()) {
         m_ams_info.m_dry_status = v.dry_status.value();
@@ -1802,7 +1885,7 @@ bool AMSDryCtrWin::check_values_changed(DevAms* dev_ams)
     return changed;
 }
 
-void AMSDryCtrWin::update_normal_description(DevAms* dev_ams)
+void AMSDryCtrWin::update_normal_description(const DevDryer* dryer)
 {
     if (m_tray_ids.empty() || m_trays_combo->GetSelection() >= m_tray_ids.size()) { return; }
 
@@ -1812,31 +1895,20 @@ void AMSDryCtrWin::update_normal_description(DevAms* dev_ams)
     long temp_val = 0, time_val = 0;
     m_temperature_input->GetValue().ToLong(&temp_val);
     m_time_input->GetValue().ToLong(&time_val);
-    std::optional<Slic3r::DevFilamentDryingPreset> preset = DevUtilBackend::GetFilamentDryingPreset(info.filament_id);
-    auto total_dry = preset.has_value() ? preset.value().ams_limitations : std::unordered_set<DevAmsType>();
+    const auto filament_info = dryer->GetFilamentDryingInfo(info.filament_id);
 
-    struct AmsTempLimit { DevAmsType type; int min_temp; int max_temp; const char* name; };
-    static const AmsTempLimit ams_limits[] = {
-        { DevAmsType::N3F, 45, 65, "AMS2" },
-        { DevAmsType::N3S, 45, 85, "AMS-S" },
-        { DevAmsType::ZMULTI_A, 45, 85, "AMS 3H" }
-    };
-
-    for (const auto& lim : ams_limits) {
-        if (dev_ams->GetAmsType() == lim.type) {
-            if (temp_val > lim.max_temp) {
-                wxString msg = wxString(lim.name) + _L(" maximum drying temperature is ") + wxString::Format(wxT("%d"), lim.max_temp) + wxString::FromUTF8("°C.");
-                warning_text += msg + "\n";
-                can_enable_button = false;
-            } else if (temp_val < lim.min_temp) {
-                wxString msg = wxString(lim.name) + _L(" minimum drying temperature is ") + wxString::Format(wxT("%d"), lim.min_temp) + wxString::FromUTF8("°C.");
-                warning_text += msg + "\n";
-                can_enable_button = false;
-            }
-            if (total_dry.find(lim.type) == total_dry.end()) {
-                warning_text += _L("This filament may not be completely dried.") + "\n\n";
-            }
-            break;
+    if (const auto range = dryer->GetTempRange()) {
+        if (temp_val > range->second) {
+            wxString msg = get_dryer_name(dryer->GetDryerType()) + _L(" maximum drying temperature is ") + wxString::Format(wxT("%d"), range->second) + wxString::FromUTF8("°C.");
+            warning_text += msg + "\n";
+            can_enable_button = false;
+        } else if (temp_val < range->first) {
+            wxString msg = get_dryer_name(dryer->GetDryerType()) + _L(" minimum drying temperature is ") + wxString::Format(wxT("%d"), range->first) + wxString::FromUTF8("°C.");
+            warning_text += msg + "\n";
+            can_enable_button = false;
+        }
+        if (!filament_info || !filament_info->fully_dryable) {
+            warning_text += _L("This filament may not be completely dried.") + "\n\n";
         }
     }
 
@@ -1860,18 +1932,21 @@ void AMSDryCtrWin::update_normal_description(DevAms* dev_ams)
     m_normal_description->GetParent()->Layout();
 }
 
-void AMSDryCtrWin::update_normal_state(DevAms* dev_ams)
+void AMSDryCtrWin::update_normal_state(const DevDryer* dryer)
 {
-    if (is_dry_ctr_idle(dev_ams)) {
+    if (is_dry_ctr_idle(dryer)) {
         m_next_button->Show(true);
         m_normal_description->Show(true);
+        m_trays_combo->Show(true);
         m_trays_combo->Enable();
+        m_temperature_box->Show(true);
+        m_time_box->Show(true);
         m_temperature_input->SetEditable(true);
         m_time_input->SetEditable(true);
 
         m_stop_button->Hide();
         m_dry_error_sizer->Show(false);
-    } else if (is_dry_ctr_err(dev_ams)) {
+    } else if (is_dry_ctr_err(dryer)) {
         m_dry_error_sizer->Show(true);
         m_next_button->Hide();
         m_normal_description->Hide();
@@ -1884,7 +1959,10 @@ void AMSDryCtrWin::update_normal_state(DevAms* dev_ams)
         m_next_button->Hide();
         m_normal_description->Hide();
 
+        m_trays_combo->Show(true);
         m_trays_combo->Disable();
+        m_temperature_box->Show(true);
+        m_time_box->Show(true);
         m_temperature_input->SetEditable(false);
         m_time_input->SetEditable(false);
         m_stop_button->Show(true);
@@ -1898,7 +1976,7 @@ void AMSDryCtrWin::update_normal_state(DevAms* dev_ams)
         m_next_button->Enable();
     }
 
-    update_normal_description(dev_ams);
+    update_normal_description(dryer);
 }
 
 void AMSDryCtrWin::OnFilamentSelectionChanged(wxCommandEvent& event)
@@ -1912,25 +1990,20 @@ void AMSDryCtrWin::OnFilamentSelectionChanged(wxCommandEvent& event)
         return;
     }
 
-    DevAms* dev_ams = fila_system->GetAmsById(m_ams_info.m_ams_id);
-    if (!dev_ams) {
+    auto found = fila_system->GetDryerMgr().Find(m_ams_info.m_ams_id);
+    if (!found) {
         BOOST_LOG_TRIVIAL(info) << "Invalid AMS id";
         return;
     }
+    const DevDryer* dryer = &*found;
 
-    std::optional<Slic3r::DevFilamentDryingPreset> preset = DevUtilBackend::GetFilamentDryingPreset(m_tray_ids[selectionIndex].filament_id);
-    if (preset.has_value()) {
-        DevFilamentDryingPreset info = preset.value();
-        if (m_printer_status.m_is_printing) {
-            m_temperature_input->SetValue(std::to_string(static_cast<int>(info.filament_dev_ams_drying_temperature_on_print[dev_ams->GetAmsType()])));
-            m_time_input->SetValue(std::to_string(static_cast<int>(info.filament_dev_ams_drying_time_on_print[dev_ams->GetAmsType()])));
-        } else {
-            m_temperature_input->SetValue(std::to_string(static_cast<int>(info.filament_dev_ams_drying_temperature_on_idle[dev_ams->GetAmsType()])));
-            m_time_input->SetValue(std::to_string(static_cast<int>(info.filament_dev_ams_drying_time_on_idle[dev_ams->GetAmsType()])));
-        }
+    if (const auto info = dryer->GetFilamentDryingInfo(m_tray_ids[selectionIndex].filament_id)) {
+        const bool printing = m_printer_status.m_is_printing;
+        m_temperature_input->SetValue(std::to_string(static_cast<int>(printing ? info->print_temp : info->idle_temp)));
+        m_time_input->SetValue(std::to_string(static_cast<int>(info->GetRecommendedHours(printing))));
     }
 
-    update_filament_guide_info(dev_ams);
+    update_filament_guide_info(dryer);
 }
 
 wxString get_cannot_reason_text(DevAms::CannotDryReason reason)
@@ -2018,9 +2091,9 @@ wxString organize_cannot_reasons_text(std::vector<DevAms::CannotDryReason>& reas
     return cannot_reasons_text;
 }
 
-int AMSDryCtrWin::update_state(DevAms* dev_ams)
+int AMSDryCtrWin::update_state(const DevDryer* dryer)
 {
-    DryView v = get_dry_view(dev_ams);
+    DryView v = get_dry_view(dryer);
     std::vector<DevAms::CannotDryReason> cannot_reasons = v.cannot_dry_reasons.has_value()?
         v.cannot_dry_reasons.value(): std::vector<DevAms::CannotDryReason>();
 
@@ -2029,7 +2102,7 @@ int AMSDryCtrWin::update_state(DevAms* dev_ams)
         m_normal_state_sizer->Show(true);
         m_cannot_dry_sizer->Show(false);
         m_unload_button->Show(false);
-        update_normal_state(dev_ams);
+        update_normal_state(dryer);
     } else if (cannot_reasons.size() > 0) {
         m_normal_state_sizer->Show(false);
         m_cannot_dry_sizer->Show(true);
@@ -2040,7 +2113,7 @@ int AMSDryCtrWin::update_state(DevAms* dev_ams)
         // Show unload button when ConsumableAtAmsOutlet reason is present
         bool has_consumable_at_outlet = std::find(cannot_reasons.begin(), cannot_reasons.end(),
             DevAms::CannotDryReason::ConsumableAtAmsOutlet) != cannot_reasons.end();
-        m_unload_button->Show(has_consumable_at_outlet);
+        m_unload_button->Show(has_consumable_at_outlet && dryer && !dryer->IsModule());
     }
 
     restore_stop_button_if_deadline_passed();
@@ -2049,32 +2122,29 @@ int AMSDryCtrWin::update_state(DevAms* dev_ams)
     return 1;
 }
 
-int AMSDryCtrWin::update_ams_change(DevAms* dev_ams)
+int AMSDryCtrWin::update_ams_change(const DevDryer* dryer)
 {
-    if (!is_ams_changed(dev_ams)) {
+    if (!is_ams_changed(dryer)) {
         return 0;
     }
 
-    m_ams_info.m_ams_id = dev_ams->GetAmsId();
-    if (dev_ams->GetAmsType() == DevAmsType::N3F) {
-        m_temperature_input->SetHint("45-65" + wxString::FromUTF8("°C"));
-    } else if (dev_ams->GetAmsType() == DevAmsType::N3S) {
-        m_temperature_input->SetHint("45-85" + wxString::FromUTF8("°C"));
-    } else if (dev_ams->GetAmsType() == DevAmsType::ZMULTI_A) {
-        m_temperature_input->SetHint("45-85" + wxString::FromUTF8("°C"));
+    m_ams_info.m_ams_id = dryer->GetId();
+    if (const auto range = dryer->GetTempRange()) {
+        m_temperature_input->SetHint(wxString::Format("%d-%d", range->first, range->second) + wxString::FromUTF8("°C"));
     }
+    update_m2y_pill_text(get_dryer_name(dryer->GetDryerType()));
 
     m_time_input->SetHint(wxString::Format("%d-%d h", AMS_DRY_MIN_HOUR, AMS_DRY_MAX_HOUR));
 
     return 0;
 }
 
-int AMSDryCtrWin::update_dryness_status(DevAms* dev_ams)
+int AMSDryCtrWin::update_dryness_status(const DevDryer* dryer)
 {
     int updated = 0;
 
-    DryView dry = get_dry_view(dev_ams);
-    AmbientView ambient = get_ambient_view(dev_ams);
+    DryView dry = get_dry_view(dryer);
+    AmbientView ambient = get_ambient_view(dryer);
 
     if (m_ams_info.m_humidity_percent != dry.humidity_percent) {
         updated += 1;
@@ -2098,7 +2168,7 @@ int AMSDryCtrWin::update_dryness_status(DevAms* dev_ams)
     }
 
     const bool is_multi_zone = (m_image_layout == DryImageLayout::MultiZone);
-    const bool idle = is_dry_ctr_idle(dev_ams);
+    const bool idle = is_dry_ctr_idle(dryer);
     bool need_layout = false;
 
     const bool show_desc_section = !is_multi_zone || !idle;
@@ -2146,12 +2216,12 @@ int AMSDryCtrWin::update_dryness_status(DevAms* dev_ams)
     return updated;
 }
 
-bool AMSDryCtrWin::is_tray_changed(DevAms* dev_ams)
+bool AMSDryCtrWin::is_tray_changed(const DevDryer* dryer)
 {
     return false;
 }
 
-void AMSDryCtrWin::update_filament_guide_info(DevAms* dev_ams)
+void AMSDryCtrWin::update_filament_guide_info(const DevDryer* dryer)
 {
     if (!IsShown()) {
         return;
@@ -2159,7 +2229,12 @@ void AMSDryCtrWin::update_filament_guide_info(DevAms* dev_ams)
 
     m_guide_page->Freeze();
     m_ams_filament_panel->Clear();
-    m_ams_filament_panel->SetAmsName(dev_ams->GetDisplayName());
+    if (dryer->IsModule()) {
+        m_ams_filament_panel->SetAmsName(get_dryer_name(dryer->GetDryerType()));
+    } else {
+        m_ams_filament_panel->SetAmsName(dryer->GetAms() ? dryer->GetAms()->GetDisplayName() : wxString());
+    }
+    const bool no_slot_info = !dryer->HasSlotInfo();
 
     if (m_rotate_spool_toggle && m_rotate_spool_toggle_description) {
         m_rotate_spool_toggle->Show(m_can_auto_retract);
@@ -2175,7 +2250,21 @@ void AMSDryCtrWin::update_filament_guide_info(DevAms* dev_ams)
     int slot_count = 0, empty_count = 0, total_count = 0;
     bool has_unknown = false;
     wxString dryable_slot_names;
-    for (auto& tray_pair : dev_ams->GetTrays()) {
+
+    // Host AMS offline: no filaments to check, so nothing blocks
+    if (no_slot_info) {
+        for (const auto& [zone_id, zone] : dryer->GetZones()) {
+            for (int slot_id : zone.zone_slots) {
+                ++total_count;
+                if (!dryer->IsDryableZone(zone_id)) continue;
+                ++slot_count;
+                if (!dryable_slot_names.IsEmpty()) dryable_slot_names += ", ";
+                dryable_slot_names += wxString::Format("%d", slot_id + 1);
+            }
+        }
+    }
+
+    for (auto& tray_pair : dryer->GetTrays()) {
         if (!tray_pair.second) {
             continue;
         }
@@ -2183,7 +2272,7 @@ void AMSDryCtrWin::update_filament_guide_info(DevAms* dev_ams)
         int slot_id = 0;
         try { slot_id = std::stoi(tray_pair.first); } catch (...) { continue; }
         ++total_count;
-        if (!dev_ams->IsDryableSlot(slot_id)) continue;
+        if (!dryer->IsDryableSlot(slot_id)) continue;
 
         ++slot_count;
         if (!dryable_slot_names.IsEmpty()) dryable_slot_names += ", ";
@@ -2193,29 +2282,20 @@ void AMSDryCtrWin::update_filament_guide_info(DevAms* dev_ams)
             ++empty_count;
             continue;
         }
-        auto preset_opt = tray_pair.second->get_ams_drying_preset();
         wxString filament_type = tray_pair.second->get_display_filament_type();
-        DevFilamentDryingPreset preset;
         if (filament_type.IsEmpty()) {
-            auto fallback_preset = DevUtilBackend::GetFilamentDryingPreset("GFA00");
-            preset = fallback_preset.value();
             filament_type = "?";
             has_unknown = true;
-        } else if (preset_opt.has_value()) {
-            preset = preset_opt.value();
-        } else {
-            auto fallback_preset = DevUtilBackend::GetFilamentDryingPreset("GFA00");
-            preset = fallback_preset.value();
         }
+        const auto filament_info = dryer->GetTrayFilamentDryingInfo(*tray_pair.second);
         std::string icon_path = "dev_ams_dry_ctr_enable";
-        int distortion_temp = static_cast<int>(preset.filament_dev_ams_drying_heat_distortion_temperature[dev_ams->GetAmsType()]);
-        if (valid_temp && distortion_temp < input_temp) {
+        if (filament_info && valid_temp && static_cast<int>(filament_info->heat_distortion_temp) < input_temp) {
             icon_path = "dev_ams_dry_ctr_disable";
             can_start = false;
         }
         m_ams_filament_panel->AddFilamentItem(filament_type, icon_path);
     }
-    if (slot_count == 0) {
+    if (slot_count == 0 && !no_slot_info) {
         can_start = false;
     }
 
@@ -2258,9 +2338,9 @@ wxString AMSDryCtrWin::build_guide_points(int dryable_count, int total_count, co
     return text;
 }
 
-int AMSDryCtrWin::update_filament_list(DevAms* dev_ams, MachineObject* obj)
+int AMSDryCtrWin::update_filament_list(const DevDryer* dryer, MachineObject* obj)
 {
-    const bool ams_changed = is_ams_changed(dev_ams);
+    const bool ams_changed = is_ams_changed(dryer);
     bool rebuilt_filament_list = false;
 
     // Build `m_tray_ids` and the combobox items from the preset bundle.
@@ -2280,7 +2360,9 @@ int AMSDryCtrWin::update_filament_list(DevAms* dev_ams, MachineObject* obj)
 
         // Get nozzle diameter using the same method as AMSMaterialsSetting::Popup
         std::ostringstream stream;
-        int extruder_id = obj->GetFilaSystem()->GetExtruderIdByAmsId(m_ams_info.m_ams_id);
+        // A dryer module follows its host AMS; without one, the main extruder
+        const DevAms* host_ams = dryer ? dryer->GetAms() : nullptr;
+        int extruder_id = host_ams ? obj->GetFilaSystem()->GetExtruderIdByAmsId(host_ams->GetAmsId()) : MAIN_EXTRUDER_ID;
         if (!obj->GetExtderSystem()->GetExtderById(extruder_id)) {
             BOOST_LOG_TRIVIAL(info) << "get extruder id failed";
             extruder_id = 0;
@@ -2339,9 +2421,9 @@ int AMSDryCtrWin::update_filament_list(DevAms* dev_ams, MachineObject* obj)
         rebuilt_filament_list = rebuild_filament_list();
     }
 
-    if (!is_dry_ctr_idle(dev_ams)) {
-        const std::string& ams_id = dev_ams->GetAmsId();
-        const auto settings_opt = get_dry_view(dev_ams).dry_settings;
+    if (!is_dry_ctr_idle(dryer)) {
+        const std::string& ams_id = dryer->GetId();
+        const auto settings_opt = get_dry_view(dryer).dry_settings;
 
         // Set the combobox display label by the filament "type" string.
         // Priority: last saved selection for this AMS (if the type matches) -> fallback to current `m_tray_ids`.
@@ -2399,52 +2481,30 @@ int AMSDryCtrWin::update_filament_list(DevAms* dev_ams, MachineObject* obj)
 
     // Select recommended drying temperature and default filament
     float min_dry_temp = std::numeric_limits<float>::max();
-    std::string default_filament_id = "GFA00";
+    std::string default_filament_id = DevDryer::FALLBACK_FILAMENT_ID;
     bool has_ready = false;
-    const auto fallback_preset = DevUtilBackend::GetFilamentDryingPreset("GFA00");
-    for (const auto& tray_pair : dev_ams->GetTrays()) {
+    const bool printing = m_printer_status.m_is_printing;
+    for (const auto& tray_pair : dryer->GetTrays()) {
         if (!tray_pair.second || !tray_pair.second->is_exists) continue;
 
         int slot_id = 0;
         try { slot_id = std::stoi(tray_pair.first); } catch (...) { continue; }
-        if (!dev_ams->IsDryableSlot(slot_id)) continue;
+        if (!dryer->IsDryableSlot(slot_id)) continue;
 
         has_ready = true;
-        wxString filament_type = tray_pair.second->get_display_filament_type();
-        Slic3r::DevFilamentDryingPreset preset;
-        if (filament_type.IsEmpty()) {
-            // no filament type, is PLA
-            if (!fallback_preset) continue;
-            preset = fallback_preset.value();
-        } else {
-            auto preset_opt = tray_pair.second->get_ams_drying_preset();
-            if (preset_opt.has_value()) {
-                preset = preset_opt.value();
-            } else {
-                // no preset，is PLA
-                if (!fallback_preset) continue;
-                preset = fallback_preset.value();
-            }
-        }
-        float cur_temp = m_printer_status.m_is_printing
-            ? std::min({preset.filament_dev_ams_drying_temperature_on_print[dev_ams->GetAmsType()],
-                preset.filament_dev_drying_softening_temperature[dev_ams->GetAmsType()], preset.filament_dev_ams_drying_heat_distortion_temperature[dev_ams->GetAmsType()]})
-            : preset.filament_dev_ams_drying_temperature_on_idle[dev_ams->GetAmsType()];
+        const auto filament_info = dryer->GetTrayFilamentDryingInfo(*tray_pair.second);
+        if (!filament_info) continue;
+        const float cur_temp = filament_info->GetRecommendedTemp(printing);
         if (cur_temp < min_dry_temp) {
             min_dry_temp = cur_temp;
-            default_filament_id = preset.filament_id;
+            default_filament_id = filament_info->filament_id;
         }
     }
     // if no tray is ready, use PLA as default
     if (!has_ready) {
-        if (fallback_preset.has_value()) {
-            Slic3r::DevFilamentDryingPreset preset = fallback_preset.value();
-            float cur_temp = m_printer_status.m_is_printing
-                ? std::min({preset.filament_dev_ams_drying_temperature_on_print[dev_ams->GetAmsType()],
-                    preset.filament_dev_drying_softening_temperature[dev_ams->GetAmsType()], preset.filament_dev_ams_drying_heat_distortion_temperature[dev_ams->GetAmsType()]})
-                : preset.filament_dev_ams_drying_temperature_on_idle[dev_ams->GetAmsType()];
-            min_dry_temp = cur_temp;
-            default_filament_id = preset.filament_id;
+        if (const auto filament_info = dryer->GetFilamentDryingInfo(DevDryer::FALLBACK_FILAMENT_ID)) {
+            min_dry_temp = filament_info->GetRecommendedTemp(printing);
+            default_filament_id = filament_info->filament_id;
         }
     }
     m_ams_info.m_recommand_dry_temp = min_dry_temp;
@@ -2474,20 +2534,20 @@ std::shared_ptr<DevFilaSystem> AMSDryCtrWin::get_fila_system() const
     return fila_system;
 }
 
-void AMSDryCtrWin::update_dry_zone(DevAms* dev_ams)
+void AMSDryCtrWin::update_dry_zone(const DevDryer* dryer)
 {
-    const std::optional<int> zone_id = resolve_dry_zone_id(dev_ams);
+    const std::optional<int> zone_id = resolve_dry_zone_id(dryer);
     if (m_ams_info.m_dry_zone_id != zone_id) {
-        BOOST_LOG_TRIVIAL(info) << "dry zone changed " << KV(log_key::ams_id, dev_ams->GetAmsId())
+        BOOST_LOG_TRIVIAL(info) << "dry zone changed " << KV(log_key::ams_id, dryer->GetId())
                                 << " zone=" << (zone_id ? std::to_string(*zone_id) : "none")
-                                << " dryable_zones=" << dev_ams->GetDryableZoneIds().size();
+                                << " dryable_zones=" << dryer->GetDryableZoneIds().size();
         m_ams_info.m_dry_zone_id = zone_id;
     }
 }
 
-void AMSDryCtrWin::update_printer_state(MachineObject* obj)
+void AMSDryCtrWin::update_printer_state(const DevDryer* dryer)
 {
-    const bool is_printing = obj->GetFilaSystem() && obj->GetFilaSystem()->IsDryAreaInPrintUse(m_ams_info.m_ams_id, m_ams_info.m_dry_zone_id);
+    const bool is_printing = dryer->IsInPrintUse(m_ams_info.m_dry_zone_id);
     if (m_printer_status.m_is_printing != is_printing) {
         BOOST_LOG_TRIVIAL(info) << "dry area print use changed " << KV(log_key::ams_id, m_ams_info.m_ams_id) << " in_use=" << is_printing;
         m_printer_status.m_is_printing = is_printing;
@@ -2506,40 +2566,41 @@ void AMSDryCtrWin::update(std::shared_ptr<DevFilaSystem> fila_system, MachineObj
 
     m_fila_system = fila_system;
 
-    DevAms* dev_ams = fila_system->GetAmsById(m_ams_info.m_ams_id);
-    if (!dev_ams) {
+    auto found = fila_system->GetDryerMgr().Find(m_ams_info.m_ams_id);
+    if (!found) {
         BOOST_LOG_TRIVIAL(info) << "Invalid AMS id";
         m_ams_info.m_ams_id = "";
         close_once();
         return;
     }
+    const DevDryer* dryer = &*found;
 
-    update_dry_zone(dev_ams);
-    update_printer_state(obj);
+    update_dry_zone(dryer);
+    update_printer_state(dryer);
 
-    if (!dev_ams->IsSupportRemoteDry(fila_system->GetOwner())) {
+    if (!dryer->IsSupportRemoteDry(fila_system->GetOwner())) {
         BOOST_LOG_TRIVIAL(info) << "Selected AMS does not support remote drying";
         close_once();
         return;
     }
 
-    m_can_auto_retract = devAmsTypeUtil::CanAutoRetract(dev_ams->GetAmsType());
+    m_can_auto_retract = devAmsTypeUtil::CanAutoRetract(dryer->GetFormType());
 
     reconcile_ams_previews(fila_system.get(), obj);
 
-    update_ams_change(dev_ams);
+    update_ams_change(dryer);
 
-    update_image(dev_ams);
+    update_image(dryer);
 
-    update_state(dev_ams);
-    update_dryness_status(dev_ams);
+    update_state(dryer);
+    update_dryness_status(dryer);
 
-    update_filament_list(dev_ams, obj);
-    update_filament_guide_info(dev_ams);
+    update_filament_list(dryer, obj);
+    update_filament_guide_info(dryer);
 
     m_is_ams_changed = false;
 
-    check_values_changed(dev_ams);
+    check_values_changed(dryer);
 
     // Dialog Layout() won't relayout the page when its size is unchanged
     if (m_original_page) m_original_page->Layout();
@@ -2547,18 +2608,18 @@ void AMSDryCtrWin::update(std::shared_ptr<DevFilaSystem> fila_system, MachineObj
     Refresh();
 }
 
-bool AMSDryCtrWin::is_ams_changed(DevAms* dev_ams)
+bool AMSDryCtrWin::is_ams_changed(const DevDryer* dryer)
 {
-    return m_ams_info.m_ams_id != dev_ams->GetAmsId() || m_is_ams_changed;
+    return m_ams_info.m_ams_id != dryer->GetId() || m_is_ams_changed;
 }
 
-AMSDryCtrWin::DryView AMSDryCtrWin::get_dry_view(DevAms* dev_ams) const
+AMSDryCtrWin::DryView AMSDryCtrWin::get_dry_view(const DevDryer* dryer) const
 {
     DryView v;
-    if (!dev_ams) return v;
+    if (!dryer) return v;
 
-    if (const auto zone_id = resolve_dry_zone_id(dev_ams)) {
-        auto z = dev_ams->GetZone(*zone_id);
+    if (const auto zone_id = resolve_dry_zone_id(dryer)) {
+        auto z = dryer->GetZone(*zone_id);
         if (z.has_value()) {
             v.dry_status        = z->dry_status;
             v.dry_sub_status    = z->dry_sub_status;
@@ -2571,48 +2632,57 @@ AMSDryCtrWin::DryView AMSDryCtrWin::get_dry_view(DevAms* dev_ams) const
         }
     }
 
-    v.dry_status        = dev_ams->GetDryStatus();
-    v.dry_sub_status    = dev_ams->GetDrySubStatus();
-    v.humidity_percent  = dev_ams->GetHumidityPercent();
-    v.temperature       = static_cast<int>(dev_ams->GetCurrentTemperature());
-    v.left_dry_time     = dev_ams->GetLeftDryTime();
-    v.dry_settings      = dev_ams->GetDrySettings();
-    v.cannot_dry_reasons = dev_ams->GetCannotDryReason();
+    v.dry_status        = dryer->GetDryStatus();
+    v.dry_sub_status    = dryer->GetDrySubStatus();
+    v.humidity_percent  = dryer->GetHumidityPercent();
+    v.temperature       = static_cast<int>(dryer->GetCurrentTemperature());
+    v.left_dry_time     = dryer->GetLeftDryTime();
+    v.dry_settings      = dryer->GetDrySettings();
+    v.cannot_dry_reasons = dryer->GetCannotDryReason();
     return v;
 }
 
-AMSDryCtrWin::AmbientView AMSDryCtrWin::get_ambient_view(DevAms* dev_ams) const
+AMSDryCtrWin::AmbientView AMSDryCtrWin::get_ambient_view(const DevDryer* dryer) const
 {
     AmbientView v;
-    if (!dev_ams) return v;
+    if (!dryer) return v;
 
-    if (!dev_ams->GetZones().empty()) {
+    if (!dryer->GetZones().empty()) {
         // Average humidity/temperature across all non-dryable zones. If the
         // unit only has dryable zones, fall through to legacy unit-wide values.
         long long temp_sum = 0;
         long long hum_sum = 0;
         int        count = 0;
-        for (const auto& [zone_id, zone] : dev_ams->GetZones()) {
-            if (zone.SupportDrying()) continue;
-            temp_sum += static_cast<long long>(zone.current_temperature);
-            hum_sum  += zone.humidity_percent;
+        int        temp_count = 0;
+        int        hum_count = 0;
+        for (const auto& [zone_id, zone] : dryer->GetZones()) {
+            if (dryer->IsDryableZone(zone_id)) continue;
             ++count;
+            if (zone.current_temperature != INVALID_AMS_TEMPERATURE) {
+                temp_sum += static_cast<long long>(zone.current_temperature);
+                ++temp_count;
+            }
+            if (zone.humidity_percent >= 0) {
+                hum_sum += zone.humidity_percent;
+                ++hum_count;
+            }
         }
         if (count > 0) {
-            v.temperature      = static_cast<int>(temp_sum / count);
-            v.humidity_percent = static_cast<int>(hum_sum / count);
+            v.temperature      = temp_count > 0 ? static_cast<int>(temp_sum / temp_count) : -1;
+            v.humidity_percent = hum_count > 0 ? static_cast<int>(hum_sum / hum_count) : -1;
             return v;
         }
     }
 
-    v.humidity_percent = dev_ams->GetHumidityPercent();
-    v.temperature      = static_cast<int>(dev_ams->GetCurrentTemperature());
+    v.humidity_percent = dryer->GetHumidityPercent();
+    const float temperature = dryer->GetCurrentTemperature();
+    v.temperature      = temperature != INVALID_AMS_TEMPERATURE ? static_cast<int>(temperature) : -1;
     return v;
 }
 
-bool AMSDryCtrWin::is_dry_status_changed(DevAms* dev_ams)
+bool AMSDryCtrWin::is_dry_status_changed(const DevDryer* dryer)
 {
-    DryView v = get_dry_view(dev_ams);
+    DryView v = get_dry_view(dryer);
     if (!v.dry_status.has_value() || !v.dry_sub_status.has_value()) {
         return true;
     }
@@ -2620,9 +2690,9 @@ bool AMSDryCtrWin::is_dry_status_changed(DevAms* dev_ams)
         || v.dry_sub_status.value() != m_ams_info.m_dry_sub_status;
 }
 
-bool AMSDryCtrWin::is_dry_ctr_idle(DevAms* dev_ams)
+bool AMSDryCtrWin::is_dry_ctr_idle(const DevDryer* dryer)
 {
-    DryView v = get_dry_view(dev_ams);
+    DryView v = get_dry_view(dryer);
     if (!v.dry_status.has_value() || !v.dry_sub_status.has_value()) {
         return true;
     }
@@ -2635,9 +2705,9 @@ bool AMSDryCtrWin::is_dry_ctr_idle()
     return m_ams_info.m_dry_status == DevAms::DryStatus::Off || m_ams_info.m_dry_status == DevAms::DryStatus::Cooling;
 }
 
-bool AMSDryCtrWin::is_dry_ctr_err(DevAms* dev_ams)
+bool AMSDryCtrWin::is_dry_ctr_err(const DevDryer* dryer)
 {
-    DryView v = get_dry_view(dev_ams);
+    DryView v = get_dry_view(dryer);
     if (!v.dry_status.has_value() || !v.dry_sub_status.has_value()) {
         return false;
     }

@@ -145,7 +145,7 @@ public:
 
     void CrtlRackReadNozzle(int rack_nozzle_id) const;
     void CtrlRackReadAll(bool gui_check = false) const;
-    void CtrlNozzleExchange(int from, int to) const;
+    void CtrlNozzleExchange(int from, int to, bool temper_check = true) const;
     bool CtrlCanReadAll() const;
 
     void CtrlStopHotendRackJob() const;

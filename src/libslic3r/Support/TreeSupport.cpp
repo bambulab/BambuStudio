@@ -1,7 +1,13 @@
+#include <atomic>
 #include <chrono>
+#include <functional>
 #include <math.h>
+#include <memory>
+#include <mutex>
+#include <optional>
 
 #include "format.hpp"
+#include "AABBTreeLines.hpp"
 #include "BuildVolume.hpp"
 #include "ClipperUtils.hpp"
 #include "Clipper2Utils.hpp"
@@ -85,24 +91,15 @@ enum TreeSupportStage {
     NUM_STAGES
 };
 
+// 各主要阶段的耗时，只在 generate() 中按阶段计时；并行代码不再写入，避免共享计时变量的数据竞争。
 class TreeSupportProfiler
 {
 public:
     uint32_t stage_durations[NUM_STAGES] = { 0 };
-    uint32_t stage_index = 0;
-    boost::posix_time::ptime tic_time;
-    boost::posix_time::ptime toc_time;
-
-    TreeSupportProfiler()
-    {
-        for (uint32_t& item : stage_durations) {
-            item = 0;
-        }
-    }
 
     void stage_start(TreeSupportStage stage)
     {
-        if (stage > NUM_STAGES)
+        if (stage >= NUM_STAGES)
             return;
 
         m_stage_start_times[stage] = boost::posix_time::microsec_clock::local_time();
@@ -110,23 +107,11 @@ public:
 
     void stage_finish(TreeSupportStage stage)
     {
-        if (stage > NUM_STAGES)
+        if (stage >= NUM_STAGES)
             return;
 
         boost::posix_time::ptime time = boost::posix_time::microsec_clock::local_time();
         stage_durations[stage] = (time - m_stage_start_times[stage]).total_milliseconds();
-    }
-
-    void tic() { tic_time = boost::posix_time::microsec_clock::local_time(); }
-    uint32_t toc() {
-        toc_time = boost::posix_time::microsec_clock::local_time();
-        return (toc_time - tic_time).total_milliseconds();
-    }
-    void stage_add(TreeSupportStage stage)
-    {
-        if (stage > NUM_STAGES)
-            return;
-        stage_durations[stage] += toc();
     }
 
     std::string report()
@@ -137,12 +122,7 @@ public:
             << "; STAGE_GENERATE_CONTACT_NODES: " << stage_durations[STAGE_GENERATE_CONTACT_NODES]
             << "; STAGE_DROP_DOWN_NODES: " << stage_durations[STAGE_DROP_DOWN_NODES]
             << "; STAGE_DRAW_CIRCLES: " << stage_durations[STAGE_DRAW_CIRCLES]
-            << "; STAGE_GENERATE_TOOLPATHS: " << stage_durations[STAGE_GENERATE_TOOLPATHS]
-            << "; STAGE_MinimumSpanningTree: " << stage_durations[STAGE_MinimumSpanningTree]
-            << "; STAGE_GET_AVOIDANCE: " << stage_durations[STAGE_GET_AVOIDANCE]
-            << "; STAGE_projection_onto_ex: " << stage_durations[STAGE_projection_onto_ex]
-            << "; STAGE_get_collision: " << stage_durations[STAGE_get_collision]
-            << "; STAGE_intersection_ln: " << stage_durations[STAGE_intersection_ln];
+            << "; STAGE_GENERATE_TOOLPATHS: " << stage_durations[STAGE_GENERATE_TOOLPATHS];
 
         return ss.str();
     }
@@ -150,6 +130,64 @@ private:
     boost::posix_time::ptime m_stage_start_times[NUM_STAGES];
 };
 TreeSupportProfiler profiler;
+
+// 判断线段是否与轮廓区域相交，等价于 !intersection_ln(line, contours).empty()。
+// 附近没有轮廓边时只需判断端点在内外；否则仍调用 Clipper，结果与原实现一致。
+class ContourCutTester
+{
+public:
+    explicit ContourCutTester(const Polygons &contours) : m_contours(contours)
+    {
+        size_t num_edges = 0;
+        for (const Polygon &poly : contours)
+            num_edges += poly.points.size();
+        m_edges.reserve(num_edges);
+        m_contour_bboxes.reserve(contours.size());
+        m_contour_sign.reserve(contours.size());
+        for (const Polygon &poly : contours) {
+            m_contour_bboxes.emplace_back(get_extents(poly));
+            m_contour_sign.emplace_back(poly.is_counter_clockwise() ? 1 : -1);
+            for (size_t i = 0; i < poly.points.size(); ++i)
+                m_edges.emplace_back(poly.points[i], poly.points[(i + 1) % poly.points.size()]);
+        }
+        m_tree = AABBTreeLines::build_aabb_tree_over_indexed_lines(m_edges);
+    }
+
+    bool cut(const Line &line) const
+    {
+        if (line.a == line.b || near_any_edge(line))
+            return !intersection_ln(line, m_contours).empty();
+        int winding = 0;
+        for (size_t i = 0; i < m_contours.size(); ++i)
+            if (m_contour_bboxes[i].contains(line.a) && ClipperLib::PointInPolygon(line.a, m_contours[i].points) != 0)
+                winding += m_contour_sign[i];
+        return winding != 0;
+    }
+
+private:
+    bool near_any_edge(const Line &line) const
+    {
+        if (m_tree.empty())
+            return false;
+        // 留少量余量，让刚好贴着包围盒的边也走精确计算。
+        constexpr coord_t margin = 2;
+        Eigen::AlignedBox<coord_t, 2> box;
+        box.min() = Eigen::Matrix<coord_t, 2, 1>(std::min(line.a.x(), line.b.x()) - margin, std::min(line.a.y(), line.b.y()) - margin);
+        box.max() = Eigen::Matrix<coord_t, 2, 1>(std::max(line.a.x(), line.b.x()) + margin, std::max(line.a.y(), line.b.y()) + margin);
+        bool hit = false;
+        AABBTreeIndirect::traverse(m_tree, AABBTreeIndirect::intersecting(box), [&hit](const auto &) {
+            hit = true;
+            return false;
+        });
+        return hit;
+    }
+
+    const Polygons                    &m_contours;
+    std::vector<Line>                  m_edges;
+    AABBTreeIndirect::Tree<2, coord_t> m_tree;
+    std::vector<BoundingBox>           m_contour_bboxes;
+    std::vector<int>                   m_contour_sign;
+};
 
 Lines spanning_tree_to_lines(const std::vector<MinimumSpanningTree>& spanning_trees)
 {
@@ -566,10 +604,16 @@ static bool is_inside_ex(const ExPolygons &polygons, const Point &pt)
 }
 
 // use project_onto which is more accurate but more expensive
+static bool move_out_expolys_dilated(const ExPolygons& polygons, const ExPolygons& polys_dilated, Point& from, double max_move_distance);
 static bool move_out_expolys(const ExPolygons& polygons, Point& from, double distance, double max_move_distance)
 {
-    Point from0 = from;
     ExPolygons polys_dilated = union_ex(offset_ex(polygons, scale_(distance)));
+    return move_out_expolys_dilated(polygons, polys_dilated, from, max_move_distance);
+}
+
+// 同 move_out_expolys()，但外扩结果 polys_dilated 由调用方传入，便于多次调用复用。
+static bool move_out_expolys_dilated(const ExPolygons& polygons, const ExPolygons& polys_dilated, Point& from, double max_move_distance)
+{
     Point pt = projection_onto(polys_dilated, from);// find_closest_ex(from, polys_dilated);
     Point outward_dir = pt - from;
     Point pt_max = from + normal(outward_dir, scale_(max_move_distance));
@@ -641,6 +685,11 @@ TreeSupport::TreeSupport(PrintObject& object, const SlicingParameters &slicing_p
     m_support_params.independent_layer_height = false; // do not use independent layer height for 3D tree support
 #endif
     init_top_z_by_nozzle();
+    // Multi-diameter is left out: its per nozzle top-z and folded slabs need a span aware contact collision.
+    m_xy_ramp = m_print_config->top_z_overrides_xy_distance.value &&
+                m_support_params.support_style != smsTreeOrganic &&
+                ! m_object->print()->uses_multiple_nozzle_diameters() &&
+                m_support_params.gap_xy < m_ts_data->m_xy_distance - EPSILON;
 #ifdef SUPPORT_TREE_DEBUG_TO_SVG
     SVG svg(debug_out_path("machine_boarder.svg"), m_object->bounding_box());
     if (svg.is_opened()) svg.draw(m_machine_border, "yellow");
@@ -653,9 +702,10 @@ void TreeSupport::init_top_z_by_nozzle()
     m_top_z_outlines.clear();
     m_top_z_max = top_z_distance;
     // The contact nodes are pre-split on the object layer grid, see generate_contact_points(), so independent
-    // support layers keep the global gap. A zero gap is the soluble interface contract and is never replaced.
+    // support layers keep the global gap. A zero gap is the soluble interface contract and is never replaced,
+    // and neither is a gap the user set.
     if (top_z_distance < EPSILON || m_support_params.independent_layer_height ||
-        ! m_object->print()->uses_multiple_nozzle_diameters())
+        ! m_object->print()->uses_multiple_nozzle_diameters() || m_object->support_top_z_fixed())
         return;
 
     const PrintConfig &print_config = m_object->print()->config();
@@ -710,6 +760,50 @@ void TreeSupport::init_top_z_by_nozzle()
         m_top_z_outlines.clear();
     else
         m_top_z_max = max_gap;
+}
+
+// 档位取 0.05 mm，向下取整：裁剪只会比理论值略松，不会额外削掉支撑。
+static constexpr double xy_ramp_gap_quantum = 0.05;
+
+coordf_t TreeSupport::node_xy_gap(coordf_t gap) const
+{
+    if (! m_xy_ramp || gap < 0. || gap >= m_ts_data->m_xy_distance - EPSILON)
+        return m_ts_data->m_xy_distance;
+    return std::max(m_support_params.gap_xy, std::floor(gap / xy_ramp_gap_quantum + EPSILON) * xy_ramp_gap_quantum);
+}
+
+static int64_t gap_layer_key(size_t obj_layer_nr, coordf_t gap)
+{
+    // 间距按微米入键：接触间距不一定落在档位上，不能与相邻档位共用缓存。
+    return int64_t(obj_layer_nr) * 1000000 + int64_t(std::llround(gap * 1000.));
+}
+
+// 与 TreeSupportData 的碰撞缓存相同：并发未命中时可能重复计算，但结果一致，先插入者生效。
+const ExPolygons &TreeSupport::ramp_collision(size_t obj_layer_nr, coordf_t gap) const
+{
+    const int64_t key = gap_layer_key(obj_layer_nr, gap);
+    if (auto it = m_ramp_collision_cache.find(key); it != m_ramp_collision_cache.end())
+        return it->second;
+    ExPolygons collision = expolygons_simplify(offset_ex(m_ts_data->m_layer_outlines[obj_layer_nr], scale_(gap)),
+                                               scale_(m_ts_data->m_radius_sample_resolution));
+    return m_ramp_collision_cache.insert({ key, std::move(collision) }).first->second;
+}
+
+const ExPolygons &TreeSupport::ramp_draw_collision(size_t obj_layer_nr, coordf_t gap) const
+{
+    const int64_t key = gap_layer_key(obj_layer_nr, gap);
+    if (auto it = m_ramp_draw_collision_cache.find(key); it != m_ramp_draw_collision_cache.end())
+        return it->second;
+    ExPolygons collision = offset_ex(m_ts_data->m_layer_outlines[obj_layer_nr],
+                                     scale_(obj_layer_nr == 0 ? m_object_config->support_object_first_layer_gap.value : gap));
+    union_outlines_within_top_z(collision, obj_layer_nr, obj_layer_nr == 0);
+    return m_ramp_draw_collision_cache.insert({ key, std::move(collision) }).first->second;
+}
+
+const ExPolygons &TreeSupport::node_collision(size_t obj_layer_nr, coordf_t gap)
+{
+    const coordf_t g = node_xy_gap(gap);
+    return g < m_ts_data->m_xy_distance - EPSILON ? ramp_collision(obj_layer_nr, g) : m_ts_data->get_collision(0, obj_layer_nr);
 }
 
 float TreeSupport::top_z_at(size_t obj_layer_nr) const
@@ -841,6 +935,8 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
     struct OverhangCluster {
         std::map<int, ExPolygons> layer_overhangs;
         ExPolygons merged_poly;
+        // 分组时只收集外扩后的成员，最后由 finalize_merged_poly() 一次性求并得到 merged_poly。
+        ExPolygons dilated_parts;
         BoundingBox merged_bbox;
         int min_layer = 1e7;
         int max_layer = 0;
@@ -868,12 +964,12 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
             else
                 layer_overhangs[layer_nr].emplace_back(*expoly);
             auto dilate1 = offset_ex(*expoly, offset);
-            if (!dilate1.empty())
-                merged_poly = union_ex(merged_poly, dilate1);
+            append(dilated_parts, dilate1);
             min_layer = std::min(min_layer, layer_nr);
             max_layer = std::max(max_layer, layer_nr);
             merged_bbox.merge(get_extents(dilate1));
         }
+        void finalize_merged_poly() { merged_poly = union_ex(dilated_parts); dilated_parts.clear(); dilated_parts.shrink_to_fit(); }
         int height() {
             return max_layer - min_layer + 1;
         }
@@ -890,26 +986,22 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
                 return false;
             return overlaps(overhangs, dilate1);
         }
-        // it's basically the combination of push_back and intersects, but saves an offset_ex
-        bool push_back_if_intersects(const ExPolygon& region, int layer_nr, coordf_t offset, size_t max_layer_gap) {
+        // 相当于 intersects + push_back；外扩结果 dilate1 / bbox 由调用方算一次后复用。
+        bool push_back_if_intersects(const ExPolygon& region, const ExPolygons &dilate1, const BoundingBox &bbox, int layer_nr, coordf_t offset, size_t max_layer_gap) {
             bool is_intersect = false;
             this->offset      = offset;
-            ExPolygons dilate1;
-            BoundingBox bbox;
             do {
                 if (layer_nr < 1) break;
+                // 层按顺序遍历，聚类只会向上增长，可直接用 max_layer 提前排除。
+                if (layer_nr > max_layer && size_t(layer_nr - max_layer) > max_layer_gap) break;
                 auto it = layer_overhangs.lower_bound(layer_nr);
                 if (it == layer_overhangs.begin()) break;
                 -- it;
                 if (size_t(layer_nr - it->first) > max_layer_gap) break;
-                const ExPolygons overhangs = it->second;
-
-                dilate1 = offset_ex(region, offset);
                 if (dilate1.empty()) break;
-                bbox = get_extents(dilate1);
                 if (!merged_bbox.overlap(bbox))
                     break;
-                is_intersect = overlaps(overhangs, dilate1);
+                is_intersect = overlaps(it->second, dilate1);
             } while (0);
             if (is_intersect) {
                 auto it = layer_overhangs.find(layer_nr);
@@ -917,7 +1009,7 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
                     layer_overhangs.emplace(layer_nr, ExPolygons{region});
                 else
                     layer_overhangs[layer_nr].emplace_back(region);
-                merged_poly = union_ex(merged_poly, dilate1);
+                append(dilated_parts, dilate1);
                 min_layer = std::min(min_layer, layer_nr);
                 max_layer = std::max(max_layer, layer_nr);
                 merged_bbox.merge(bbox);
@@ -972,11 +1064,11 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
 
         void check_polygon_node(float thresh_big_overhang, const ExPolygons &m_layer_outlines_below)
         {
-            ExPolygons outlines_below_eroded = offset_ex(m_layer_outlines_below, -this->offset);
             if (area(merged_poly) > SQ(thresh_big_overhang))
                 set_type(BigFlat, true);
             else if (merged_bbox.size().any_comp(thresh_big_overhang, ">") && min_layer < 20)
-                if (!overlaps(merged_poly, outlines_below_eroded)) set_type(ThinPlate, true);
+                // 下方轮廓的腐蚀开销大，只在该分支中需要。
+                if (!overlaps(merged_poly, offset_ex(m_layer_outlines_below, -this->offset))) set_type(ThinPlate, true);
         }
     };
     std::vector<OverhangCluster> overhangClusters;
@@ -995,10 +1087,12 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
                                        auto &regionClusters, const ExPolygon &region,
                                        int layer_nr, coordf_t offset) {
         OverhangCluster *cluster = nullptr;
+        const ExPolygons  dilate1 = offset_ex(region, offset);
+        const BoundingBox bbox    = get_extents(dilate1);
         for (int i = 0; i < regionClusters.size(); i++) {
             auto cluster_i = &regionClusters[i];
             if (cluster_i->push_back_if_intersects(
-                    region, layer_nr, offset, max_cluster_layer_gap)) {
+                    region, dilate1, bbox, layer_nr, offset, max_cluster_layer_gap)) {
                 cluster = cluster_i;
                 break;
             }
@@ -1379,8 +1473,12 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
         }
     }
 
-
-    for (auto &cluster : overhangClusters) {
+    // 各聚类独立分类，只读共享数据；之后再按原聚类顺序写回各层，保证悬垂顺序不变。
+    std::vector<char> cluster_enforce_add(overhangClusters.size(), 0);
+    tbb::parallel_for(tbb::blocked_range<size_t>(0, overhangClusters.size()), [&](const tbb::blocked_range<size_t> &range) {
+      for (size_t cluster_idx = range.begin(); cluster_idx < range.end(); ++cluster_idx) {
+        OverhangCluster &cluster = overhangClusters[cluster_idx];
+        cluster.finalize_merged_poly();
         bool enforce_add = false;
         // remove small overhangs
         if (is_auto(stype) && config_remove_small_overhangs) {
@@ -1419,8 +1517,14 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
 #endif
         }
 
-        if (!cluster.is_type(Small) || enforce_add) {
+        if (!cluster.is_type(Small) || enforce_add)
             cluster.check_polygon_node(m_support_params.thresh_big_overhang, m_ts_data->m_layer_outlines_below[cluster.min_layer - 1]);
+        cluster_enforce_add[cluster_idx] = enforce_add;
+      }
+    });
+    for (size_t cluster_idx = 0; cluster_idx < overhangClusters.size(); ++cluster_idx) {
+        OverhangCluster &cluster = overhangClusters[cluster_idx];
+        if (!cluster.is_type(Small) || cluster_enforce_add[cluster_idx]) {
             for (auto it = cluster.layer_overhangs.begin(); it != cluster.layer_overhangs.end(); it++) {
                 int       layer_nr = it->first;
                 ExPolygons overhangs = it->second;
@@ -1559,8 +1663,8 @@ void TreeSupport::create_tree_support_layers()
         coordf_t raft_slice_z = 0.f;
         if (m_slicing_params.base_raft_layers > 0)
         {
-            // Do not add the raft contact layer, 1st layer should use first_print_layer_height
-            coordf_t height = m_slicing_params.first_print_layer_height;
+            // Do not add the raft contact layer, 1st layer should use raft_first_layer_height
+            coordf_t height = m_slicing_params.raft_first_layer_height;
             raft_print_z += height;
             raft_slice_z = raft_print_z - height / 2;
             m_object->add_tree_support_layer(layer_id++, height, raft_print_z, raft_slice_z);
@@ -1755,16 +1859,75 @@ coordf_t TreeSupport::support_flare_step_width(coordf_t print_z, coordf_t layer_
     return slab_flow.width() * layer_height / band_height;
 }
 
-static ExPolygon tree_support_node_disk(const SupportNode &node, const Polygon &unit_circle,
+// 树枝圆按弓高定点数，大圆也能被圆弧拟合识别；方形支撑仍是 4 个点。
+class TreeSupportUnitCircles
+{
+public:
+    // 弓高取拟合容差的一半：弦中点也要落在容差内，坐标取整和裁剪后才不会卡在拟合边界上。
+    static constexpr double SAGITTA        = SUPPORT_RESOLUTION * 0.5;
+    static constexpr size_t MIN_RESOLUTION = SUPPORT_TREE_CIRCLE_RESOLUTION;
+
+    // 预生成到 max_radius 的所有档位，构造后只读，可在并行区共享。
+    TreeSupportUnitCircles(coordf_t branch_radius, double square_angle, bool square_support, coordf_t max_radius) :
+        m_branch_radius_scaled(scale_(branch_radius)), m_square(square_support)
+    {
+        if (m_square) {
+            m_circles.emplace_back(make_unit(4, square_angle));
+            return;
+        }
+        const size_t max_n = resolution_for(max_radius);
+        m_circles.reserve(max_n - MIN_RESOLUTION + 1);
+        for (size_t n = MIN_RESOLUTION; n <= max_n; ++ n)
+            m_circles.emplace_back(make_unit(n, 0.));
+    }
+
+    static size_t resolution_for(coordf_t radius)
+    {
+        if (! (radius > SAGITTA))
+            return MIN_RESOLUTION;
+        const double angle_step = 2. * std::acos(std::clamp(1. - SAGITTA / radius, -1., 1.));
+        return std::max(MIN_RESOLUTION, size_t(std::ceil(2. * M_PI / angle_step)));
+    }
+
+    // 返回半径为 branch_radius 的单位圆，点数按 radius（节点实际最大半径，mm）选取。
+    const Polygon &get(coordf_t radius) const
+    {
+        if (m_square)
+            return m_circles.front();
+        const size_t idx = std::min(resolution_for(radius) - MIN_RESOLUTION, m_circles.size() - 1);
+        return m_circles[idx];
+    }
+
+private:
+    Polygon make_unit(size_t n, double phase) const
+    {
+        Polygon circle;
+        circle.points.reserve(n);
+        for (size_t i = 0; i < n; ++ i) {
+            const double angle = double(i) / double(n) * TAU + phase;
+            circle.append(Point(cos(angle) * m_branch_radius_scaled, sin(angle) * m_branch_radius_scaled));
+        }
+        return circle;
+    }
+
+    coordf_t             m_branch_radius_scaled;
+    bool                 m_square;
+    std::vector<Polygon> m_circles;
+};
+
+static ExPolygon tree_support_node_disk(const SupportNode &node, const TreeSupportUnitCircles &unit_circles,
                                         coordf_t branch_radius, coordf_t branch_radius_scaled,
                                         bool square_support, coordf_t radius = 0.)
 {
-    Polygon circle(unit_circle);
     const double scale  = (radius > 0. ? radius : node.radius) / branch_radius;
     const double move_x = node.movement.x() / (scale * branch_radius_scaled);
     const double move_y = node.movement.y() / (scale * branch_radius_scaled);
-    if (! square_support && std::abs(move_x) > 0.001 && std::abs(move_y) > 0.001) {
-        const double vsize_inv = 0.5 / (0.01 + std::sqrt(move_x * move_x + move_y * move_y));
+    const bool   stretch   = ! square_support && (std::abs(move_x) > 0.001 || std::abs(move_y) > 0.001);
+    const double vsize_inv = stretch ? 0.5 / (0.01 + std::sqrt(move_x * move_x + move_y * move_y)) : 0.;
+    // 按拉伸后的长轴选点数，保证最弯处的弓高也达标。
+    const double max_scale = scale * (1. + (move_x * move_x + move_y * move_y) * vsize_inv);
+    Polygon circle(unit_circles.get(max_scale * branch_radius));
+    if (stretch) {
         const double matrix[4] {
             scale * (1. + move_x * move_x * vsize_inv),
             scale * move_x * move_y * vsize_inv,
@@ -1904,23 +2067,18 @@ void TreeSupport::fold_nodes_multi_diameter()
         std::vector<size_t> partial_heads;
         Carrier *lower_carrier { nullptr };
         bool     folds { false };
+        // 固定首段的载体：强制把 [0, H] 合成一层，不参与后续的拒绝检查。
+        bool     forced { false };
     };
     // Per slab: the column top of every foldable node, and the candidate carriers keyed by support layer.
     std::vector<std::unordered_map<const SupportNode *, size_t>> column_top(plan.slabs.size());
     std::vector<std::map<size_t, Carrier>>                       carriers(plan.slabs.size());
 
     const bool square_support = avg_node_per_layer > 200;
-    const int circle_resolution = square_support ? 4 : 25;
     const coordf_t branch_radius = m_object->config().tree_support_branch_diameter.value / 2.;
     const coordf_t branch_radius_scaled = scale_(branch_radius);
-    Polygon branch_circle;
-    branch_circle.points.reserve(circle_resolution);
-    for (int i = 0; i < circle_resolution; ++ i) {
-        const double angle = double(i) / circle_resolution * TAU +
-            (square_support ? PI / 4. + nodes_angle : 0.);
-        branch_circle.append(Point(cos(angle) * branch_radius_scaled,
-                                   sin(angle) * branch_radius_scaled));
-    }
+    const TreeSupportUnitCircles branch_circle(branch_radius, PI / 4. + nodes_angle, square_support,
+                                               2. * MAX_BRANCH_RADIUS);
     const bool on_buildplate_only = m_object_config->support_on_build_plate_only.value;
     // Match the raw geometry draw_circles() will render. Collision clipping is deliberately left out: it
     // may only shrink this probe, so refusing an ambiguous fold remains the safe outcome.
@@ -1967,7 +2125,31 @@ void TreeSupport::fold_nodes_multi_diameter()
         // When differently aligned columns merge, start a new carrier at the merge layer. This leaves their
         // partial heads on the fine grid without carrying that refusal into the common trunk below.
         std::unordered_map<const SupportNode *, size_t> &tops = column_top[slab_idx];
-        for (auto it = layers.rbegin(); it != layers.rend(); ++ it)
+        const bool forced_slab = slab_idx == 0 && m_first_support_layer_z > EPSILON && m_raft_layers == 0;
+        if (forced_slab) {
+            // 固定首段：经主体连到床面的支撑柱整体并到段顶。不随段折叠的接触面连同其下方支撑柱留在细层，
+            // 间隙节点不参与判断。
+            std::unordered_set<const SupportNode *> under_fine, reaches;
+            for (auto it = layers.rbegin(); it != layers.rend(); ++ it)
+                for (const SupportNode *node : contact_nodes[*it]) {
+                    if (node == nullptr || node->distance_to_top < 0)
+                        continue;
+                    bool fine = ! foldable(node);
+                    for_each_parent(node, [&](const SupportNode *parent) { fine = fine || under_fine.count(parent) > 0; });
+                    if (fine)
+                        under_fine.insert(node);
+                }
+            for (size_t layer_nr : layers)
+                for (const SupportNode *node : contact_nodes[layer_nr])
+                    if (foldable(node) && under_fine.count(node) == 0 &&
+                        (layer_nr == layers.front() || (node->child != nullptr && reaches.count(node->child) > 0))) {
+                        reaches.insert(node);
+                        tops[node] = layers.back();
+                    }
+            if (! tops.empty())
+                carriers[slab_idx][layers.back()];
+        }
+        for (auto it = layers.rbegin(); ! forced_slab && it != layers.rend(); ++ it)
             for (const SupportNode *node : contact_nodes[*it]) {
                 if (! foldable(node))
                     continue;
@@ -2014,6 +2196,7 @@ void TreeSupport::fold_nodes_multi_diameter()
         size_t     span_top_obj_layer = slab_bottom_obj_layer;
         for (auto &[carrier_layer, carrier] : carriers[slab_idx]) {
             carrier.slab_idx          = slab_idx;
+            carrier.forced            = forced_slab;
             carrier.top_layer         = carrier_layer;
             carrier.obj_layer         = layer_heights[carrier_layer].obj_layer_nr;
             carrier.bottom_obj_layer = slab_bottom_obj_layer;
@@ -2132,7 +2315,7 @@ void TreeSupport::fold_nodes_multi_diameter()
             for (size_t slab_idx = 0; slab_idx < plan.slabs.size(); ++ slab_idx) {
                 const std::unordered_map<const SupportNode *, size_t> &tops = column_top[slab_idx];
                 for (auto &[carrier_layer, carrier] : carriers[slab_idx]) {
-                    if (! carrier.folds)
+                    if (! carrier.folds || carrier.forced)
                         continue;
                     // Structured bindings cannot be captured before C++20 (clang rejects it), hence the init-capture.
                     const bool shared = std::any_of(contact_nodes[carrier_layer].begin(), contact_nodes[carrier_layer].end(),
@@ -2602,6 +2785,9 @@ void TreeSupport::fold_nodes_multi_diameter()
                 }
             }
         }
+        // 固定首段一定合并，重叠交给最终面积的裁切处理。
+        for (auto it = newly_misaligned.begin(); it != newly_misaligned.end();)
+            it = (*it)->forced ? newly_misaligned.erase(it) : std::next(it);
         if (newly_misaligned.empty()) {
             moves_to      = std::move(tentative_moves);
             final_counters = std::move(future_counters);
@@ -3114,17 +3300,44 @@ void TreeSupport::generate_toolpaths()
     }
     }
 
-    if (m_object->support_layer_count() > m_raft_layers) {
-        const SupportLayer *ts_layer = m_object->get_support_layer(m_raft_layers);
-        for (const ExPolygon expoly : ts_layer->floor_areas)
-            raft_areas.push_back(expoly);
-        for (const ExPolygon expoly : ts_layer->roof_areas)
-            raft_areas.push_back(expoly);
-        for (const ExPolygon expoly : ts_layer->base_areas)
-            raft_areas.push_back(expoly);
+    // Overhangs no branch could grow under rest on the raft, see generate_contact_points().
+    append(raft_areas, m_raft_only_overhangs);
+    ExPolygons first_non_raft_base;
+    if (m_raft_layers > 0 && m_object->support_layer_count() > size_t(m_raft_layers)) {
+        // 多口径折叠后，落在 raft 上的厚层可能不是 raft 上第一层，需按段底高度收集；
+        // 层底比 raft 顶高出最大段高后不可能再落在 raft 上，提前退出。单口径只取第一层。
+        coordf_t max_slab_height = 0.;
+        if (m_support_merge_plan.enabled && !m_fold_slab_of_layer.empty())
+            for (const SupportMergePlan::Slab &slab : m_support_merge_plan.slabs)
+                max_slab_height = std::max(max_slab_height, coordf_t(slab.height));
+        const coordf_t raft_top_z = m_object->get_support_layer(m_raft_layers - 1)->print_z;
+        for (size_t layer_id = m_raft_layers; layer_id < m_object->support_layer_count(); ++layer_id) {
+            const SupportLayer *ts_layer    = m_object->get_support_layer(layer_id);
+            const bool          first_layer = layer_id == size_t(m_raft_layers);
+            if (!first_layer && ts_layer->print_z - max_slab_height > raft_top_z + EPSILON)
+                break;
+            const coordf_t base_height      = ts_layer->base_slab_height > EPSILON ? ts_layer->base_slab_height : ts_layer->height;
+            const coordf_t interface_height = ts_layer->interface_slab_height > EPSILON ? ts_layer->interface_slab_height : ts_layer->height;
+            if (first_layer || ts_layer->print_z - interface_height <= raft_top_z + EPSILON) {
+                append(raft_areas, ts_layer->floor_areas);
+                append(raft_areas, ts_layer->roof_areas);
+            }
+            if (first_layer || ts_layer->print_z - base_height <= raft_top_z + EPSILON) {
+                append(raft_areas, ts_layer->base_areas);
+                for (const auto &area_group : ts_layer->area_groups)
+                    if (area_group.type == SupportLayer::BaseType)
+                        first_non_raft_base.emplace_back(*area_group.area);
+            }
+        }
     }
 
     raft_areas = std::move(offset_ex(raft_areas, scale_(3.)));
+
+    // BBS multi-diameter: an automatic raft is sized for its own nozzles, see SupportParameters.
+    const bool auto_raft = m_slicing_params.raft_filament_id > 0;
+    auto raft_flow = [&](const Flow &auto_raft_flow, coordf_t height) {
+        return auto_raft ? auto_raft_flow.with_height(float(height)) : Flow(support_extrusion_width, height, nozzle_diameter);
+    };
 
     size_t layer_nr = 0;
     for (; layer_nr < m_slicing_params.base_raft_layers; layer_nr++) {
@@ -3132,7 +3345,7 @@ void TreeSupport::generate_toolpaths()
         coordf_t expand_offset = (layer_nr == 0 ? m_object_config->raft_first_layer_expansion.value : 0.);
         auto raft_areas1 = offset_ex(raft_areas, scale_(expand_offset));
 
-        Flow support_flow = Flow(support_extrusion_width, ts_layer->height, nozzle_diameter);
+        Flow support_flow = raft_flow(m_support_params.raft_base_flow, ts_layer->height);
         Fill* filler_raft = Fill::new_from_type(ipRectilinear);
         filler_raft->angle = layer_nr == 0 ? PI/2 : 0;
         filler_raft->spacing = support_flow.spacing();
@@ -3144,24 +3357,15 @@ void TreeSupport::generate_toolpaths()
 
         // wall of first layer raft
         if (layer_nr == 0) {
-            Flow flow = Flow(support_extrusion_width, ts_layer->height, nozzle_diameter);
             extrusion_entities_append_loops(ts_layer->support_fills.entities, to_polygons(raft_areas1), erSupportMaterial,
-                        float(flow.mm3_per_mm()), float(flow.width()), float(flow.height()));
-            raft_areas1 = offset_ex(raft_areas1, -flow.scaled_spacing() / 2.);
+                        float(support_flow.mm3_per_mm()), float(support_flow.width()), float(support_flow.height()));
+            raft_areas1 = offset_ex(raft_areas1, -support_flow.scaled_spacing() / 2.);
         }
         fill_expolygons_generate_paths(ts_layer->support_fills.entities, raft_areas1,
             filler_raft, fill_params, erSupportMaterial, support_flow);
     }
 
     // subtract the non-raft support bases, otherwise we'll get support base on top of raft interfaces which is not stable
-    ExPolygons first_non_raft_base;
-    SupportLayer* first_non_raft_layer = m_object->get_support_layer(m_raft_layers);
-    if (first_non_raft_layer) {
-        for (auto& area_group : first_non_raft_layer->area_groups) {
-            if (area_group.type == SupportLayer::BaseType)
-                first_non_raft_base.emplace_back(*area_group.area);
-        }
-    }
     first_non_raft_base = offset_ex(first_non_raft_base, support_extrusion_width);
     ExPolygons raft_base_areas = intersection_ex(raft_areas, first_non_raft_base);
     ExPolygons raft_interface_areas = diff_ex(raft_areas, raft_base_areas);
@@ -3174,39 +3378,43 @@ void TreeSupport::generate_toolpaths()
     {
         SupportLayer *ts_layer = m_object->get_support_layer(layer_nr);
 
-        Flow support_flow(support_extrusion_width, ts_layer->height, nozzle_diameter);
+        // 接触面耗材手动指定时，接触面区域按它的口径打印。
+        Flow support_flow   = raft_flow(m_support_params.raft_base_flow, ts_layer->height);
+        Flow interface_flow = raft_flow(m_support_params.raft_interface_flow, ts_layer->height);
         Fill* filler_interface = Fill::new_from_type(ipRectilinear);
         filler_interface->angle = PI / 2;  // interface should be perpendicular to base
-        filler_interface->spacing = support_flow.spacing();
+        filler_interface->spacing = interface_flow.spacing();
 
         FillParams fill_params;
         fill_params.density = interface_density;
         fill_params.dont_adjust = true;
 
         fill_expolygons_generate_paths(ts_layer->support_fills.entities, raft_interface_areas,
-            filler_interface, fill_params, erSupportMaterialInterface, support_flow);
+            filler_interface, fill_params, erSupportMaterialInterface, interface_flow);
 
         if (m_support_params.enable_support_ironing && !raft_interface_areas.empty()
             && layer_nr == m_slicing_params.base_raft_layers + m_slicing_params.interface_raft_layers-1) {
             BoundingBox                bbox_object(Point(-scale_(1.), -scale_(1.0)), Point(scale_(1.), scale_(1.)));
             generate_support_ironing_entity(
-                raft_interface_areas, bbox_object, ts_layer, &(ts_layer->support_fills), support_flow);
+                raft_interface_areas, bbox_object, ts_layer, &(ts_layer->support_fills), interface_flow);
         }
 
         fill_params.density = object_config.raft_first_layer_density * 0.01;
+        filler_interface->spacing = support_flow.spacing();
         fill_expolygons_generate_paths(ts_layer->support_fills.entities, raft_base_areas,
             filler_interface, fill_params, erSupportMaterial, support_flow);
     }
 
     // layers between raft and object
+    const size_t raft_gap_wall_count = wall_count == 0 ? 0 : 1;
     for (; layer_nr < m_raft_layers; layer_nr++) {
         SupportLayer *ts_layer = m_object->get_support_layer(layer_nr);
-        Flow support_flow(support_extrusion_width, ts_layer->height, nozzle_diameter);
+        Flow support_flow = raft_flow(m_support_params.raft_base_flow, ts_layer->height);
         Fill* filler_raft = Fill::new_from_type(ipRectilinear);
         filler_raft->angle = PI / 2;
         filler_raft->spacing = support_flow.spacing();
         for (auto& poly : first_non_raft_base)
-            make_perimeter_and_infill(ts_layer->support_fills.entities, poly, std::min(1, wall_count), support_flow, erSupportMaterial, filler_raft, interface_density, false);
+            make_perimeter_and_infill(ts_layer->support_fills.entities, poly, raft_gap_wall_count, support_flow, erSupportMaterial, filler_raft, interface_density, false);
     }
 
     if (m_object->support_layer_count() <= m_raft_layers)
@@ -3238,6 +3446,8 @@ void TreeSupport::generate_toolpaths()
                                                                          ts_layer->planned_nozzle_diameter;
                 const bool base_starts_on_bed =
                     m_raft_layers == 0 && ts_layer->print_z - bed_height <= EPSILON;
+                const bool fixed_first_support_layer =
+                    m_first_support_layer_z > EPSILON && std::abs(ts_layer->print_z - m_first_support_layer_z) <= EPSILON;
                 const Flow support_flow = ts_layer->planned_nozzle_diameter > EPSILON ?
                     m_support_params.support_material_flow_for_nozzle(ts_layer->planned_nozzle_diameter, float(base_height)) :
                     Flow(support_extrusion_width, base_height, nozzle_diameter);
@@ -3284,7 +3494,8 @@ void TreeSupport::generate_toolpaths()
                         // interface
                         // BBS multi-diameter: the bed band is emitted on its top layer once folded, so the
                         // brim belongs to whichever layer's material actually reaches the bed.
-                        if (base_starts_on_bed) {
+                        // 固定首层的接触面按自身图案打印，再加 brim 会重复挤出。
+                        if (base_starts_on_bed && ! fixed_first_support_layer) {
                             // This brim belongs to the tree support, so its flow must follow support_filament.
                             // Print::brim_flow() is derived from a model wall filament and may use a different
                             // nozzle diameter in multi-diameter mode.
@@ -3590,6 +3801,11 @@ void TreeSupport::generate()
     create_tree_support_layers();
     //m_ts_data = m_object->alloc_tree_support_preview_cache();
     m_ts_data->is_slim = is_slim;
+    // The tree geometry is generated on the fine support-node grid, while a coarse support nozzle prints
+    // several of those nodes as one fixed-grid slab. Cache the plan before the support layers are planned, so
+    // the pinned bed slab and the per-node growth can both be normalized to what will eventually be emitted.
+    m_support_merge_plan = make_support_merge_plan(*m_object);
+    pin_first_support_slab();
     // // get the ring of outside plate
     // auto tmp= diff_ex(offset_ex(m_machine_border, scale_(100)), m_machine_border);
     // if (!tmp.empty()) m_ts_data->m_machine_border = tmp[0];
@@ -3645,16 +3861,12 @@ void TreeSupport::generate()
     TreeSupport3D::generate_initial_areas(*m_object, *m_model_volumes.get(), tree_support_3d_config, overhangs, move_bounds, interface_placer, throw_on_cancel);
     move_bounds_to_contact_nodes(move_bounds, *m_object, tree_support_3d_config);
 #else
+    profiler.stage_start(STAGE_GENERATE_CONTACT_NODES);
     generate_contact_points();
     profiler.stage_finish(STAGE_GENERATE_CONTACT_NODES);
 
     m_ts_data->layer_heights = plan_layer_heights();
 #endif
-
-    // The tree geometry is generated on the fine support-node grid, while a coarse support nozzle prints
-    // several of those nodes as one fixed-grid slab. Cache the plan before dropping nodes so per-node growth
-    // can be normalized to the slab that will eventually be emitted.
-    m_support_merge_plan = make_support_merge_plan(*m_object);
 
     //Drop nodes to lower layers.
     profiler.stage_start(STAGE_DROP_DOWN_NODES);
@@ -3947,25 +4159,12 @@ void TreeSupport::draw_circles()
     const coordf_t branch_radius = config.tree_support_branch_diameter.value / 2;
     const coordf_t branch_radius_scaled = scale_(branch_radius);
     bool on_buildplate_only = m_object_config->support_on_build_plate_only.value;
-    Polygon branch_circle; //Pre-generate a circle with correct diameter so that we don't have to recompute those (co)sines every time.
 
     const bool z_overrides  = print->config().top_z_overrides_xy_distance;
 
     // Use square support if there are too many nodes per layer because circle support needs much longer time to compute
     // Hower circle support can be printed faster, so we prefer circle for fewer nodes case.
     const bool SQUARE_SUPPORT = avg_node_per_layer > 200;
-    const int  CIRCLE_RESOLUTION = SQUARE_SUPPORT ? 4 : 25; // The number of vertices in each circle.
-
-
-    for (int i = 0; i < CIRCLE_RESOLUTION; i++)
-    {
-        double angle;
-        if (SQUARE_SUPPORT)
-            angle = (double) i / CIRCLE_RESOLUTION * TAU + PI / 4.0 + nodes_angle;
-        else
-            angle = (double) i / CIRCLE_RESOLUTION * TAU;
-        branch_circle.append(Point(cos(angle) * branch_radius_scaled, sin(angle) * branch_radius_scaled));
-    }
 
     // Performance optimization. Only generate lslices for brim and skirt.
     size_t brim_skirt_layers = has_brim ? 1 : 0;
@@ -3988,6 +4187,8 @@ void TreeSupport::draw_circles()
     if (m_object->support_layer_count() <= m_raft_layers)
         return;
     BOOST_LOG_TRIVIAL(info) << "for object: " << m_object->model_object()->name;
+    const TreeSupportUnitCircles branch_circle(branch_radius, PI / 4.0 + nodes_angle, SQUARE_SUPPORT,
+                                               2. * MAX_BRANCH_RADIUS);
 
     // BBS multi-diameter: disk of a node whose wall is widened at a nozzle change.
     struct WidenedArea {
@@ -4005,6 +4206,8 @@ void TreeSupport::draw_circles()
         coordf_t   max_layers_above_roof1 { 0 };
         int        interface_id { 0 };
         ExPolygons collision_base;
+        // collision_base 已让开渐变区，即使为空也不能回退到完整间距碰撞区。
+        bool       has_relaxed_base { false };
         ExPolygons area_poly;
         ExPolygons extra_wall_area;
         ExPolygons cooldown_area;
@@ -4087,6 +4290,12 @@ void TreeSupport::draw_circles()
                     }
                     return collision;
                 };
+                // Z overrides X/Y 渐变节点按自身间距裁剪。
+                auto get_draw_collision = [&](const SupportNode &node, bool sharp_tail) -> const ExPolygons & {
+                    return ! sharp_tail && is_ramp_node(node, obj_layer_nr) ? ramp_node_collision(node, obj_layer_nr) : get_node_collision(node, sharp_tail);
+                };
+                // 渐变节点已按自身间距裁剪过，收尾时不能再按完整 XY 间距削掉。
+                ExPolygons relaxed_base_areas;
                 // A folded interface is one extrusion over the slab span as well. Its areas come from the overhang
                 // and skip the node collision, so the span has to be cleared when the roof segments are joined.
                 const SupportNode *roof_span_node = nullptr;
@@ -4116,7 +4325,7 @@ void TreeSupport::draw_circles()
                     //        area = offset_ex({ node.overhang }, scale_(m_ts_data->m_xy_distance));
                     //}
                         area = offset_ex({node.overhang}, scale_(m_ts_data->m_xy_distance));
-                        area = diff_clipped(area, get_node_collision(node, node.is_sharp_tail && node.distance_to_top <= 0));
+                        area = diff_clipped(area, get_draw_collision(node, node.is_sharp_tail && node.distance_to_top <= 0));
                         if (node.type == ePolygon) {
                             append(area_poly, area);
                             if (node.need_extra_wall) append(extra_wall_area, area);
@@ -4132,11 +4341,14 @@ void TreeSupport::draw_circles()
                             else {
                                 area = offset_ex({node.overhang}, scale_(m_ts_data->m_xy_distance));
                             }
+                            // 收尾裁剪会让开渐变区，这里必须先按节点自身间距裁掉侵入模型的部分。
+                            if (is_ramp_node(node, obj_layer_nr))
+                                area = diff_clipped(area, ramp_node_collision(node, obj_layer_nr));
                         } else {
                             area = avoid_object_remove_extra_small_parts(
                                 tree_support_node_disk(node, branch_circle, branch_radius,
                                                        branch_radius_scaled, SQUARE_SUPPORT),
-                                get_node_collision(node, node.is_sharp_tail && node.distance_to_top <= 0));
+                                get_draw_collision(node, node.is_sharp_tail && node.distance_to_top <= 0));
                         }
 
                         if (!area.empty()) has_circle_node = true;
@@ -4178,6 +4390,9 @@ void TreeSupport::draw_circles()
                         if (node.line_width > EPSILON)
                             for (const ExPolygon &expoly : area)
                                 widened_areas.push_back({ expoly, get_extents(expoly), node.line_width });
+                        // 渐变节点的各分支都已按其自身间距裁剪，收尾时据此让开。
+                        if (is_ramp_node(node, obj_layer_nr))
+                            append(relaxed_base_areas, area);
                         append(base_areas, area);
                         max_layers_above_base = std::max(max_layers_above_base, node.dist_mm_to_top);
                     }
@@ -4189,11 +4404,20 @@ void TreeSupport::draw_circles()
                 auto get_roof_collision = [&](bool sharp_tail) -> ExPolygons & {
                     return roof_span_node != nullptr ? get_node_collision(*roof_span_node, sharp_tail) : get_collision(sharp_tail);
                 };
-                roof_areas     = diff_clipped(offset2_ex(roof_areas, line_width_scaled, -line_width_scaled), get_roof_collision(z_overrides));
+                if (m_xy_ramp) {
+                    // 接触层统一用接触间距，roof_1st_layer 不再额外外扩半线宽（下方主体由接触间距起渐变，避免内凹）。
+                    if (! roof_areas.empty() || ! roof_1st_layer.empty()) {
+                        const ExPolygons &contact_collision = ramp_draw_collision(obj_layer_nr, m_support_params.gap_xy);
+                        roof_areas     = diff_clipped(offset2_ex(roof_areas, line_width_scaled, -line_width_scaled), contact_collision);
+                        roof_1st_layer = diff_clipped(offset2_ex(roof_1st_layer, line_width_scaled, -line_width_scaled), contact_collision);
+                    }
+                } else {
+                    roof_areas     = diff_clipped(offset2_ex(roof_areas, line_width_scaled, -line_width_scaled), get_roof_collision(z_overrides));
+                    roof_1st_layer = diff_clipped(offset2_ex(roof_1st_layer, line_width_scaled, -line_width_scaled),
+                                                  z_overrides ? offset_ex(get_roof_collision(z_overrides), line_width_scaled / 2) : get_roof_collision(false));
+                }
                 roof_areas     = intersection_ex(roof_areas, m_machine_border);
                 roof_areas     = union_ex(roof_areas);
-                roof_1st_layer = diff_clipped(offset2_ex(roof_1st_layer, line_width_scaled, -line_width_scaled),
-                                              z_overrides ? offset_ex(get_roof_collision(z_overrides), line_width_scaled / 2) : get_roof_collision(false));
 
                 // roof_1st_layer and roof_areas may intersect, so need to subtract roof_areas from roof_1st_layer
                 roof_1st_layer = diff_ex(roof_1st_layer, ClipperUtils::clip_clipper_polygons_with_subject_bbox(roof_areas,get_extents(roof_1st_layer)));
@@ -4205,6 +4429,9 @@ void TreeSupport::draw_circles()
                 data.max_layers_above_roof  = max_layers_above_roof;
                 data.max_layers_above_roof1 = max_layers_above_roof1;
                 data.interface_id           = interface_id;
+                if (! relaxed_base_areas.empty())
+                    collision_base = diff_ex(get_collision(false), union_ex(relaxed_base_areas));
+                data.has_relaxed_base       = ! relaxed_base_areas.empty();
                 data.collision_base         = std::move(collision_base);
                 data.area_poly              = std::move(area_poly);
                 data.extra_wall_area        = std::move(extra_wall_area);
@@ -4273,7 +4500,8 @@ void TreeSupport::draw_circles()
                 ExPolygons roofs; append(roofs, roof_1st_layer); append(roofs, roof_areas);append(roofs, std::move(gap_keep_out));
 
                 // slightly slow down the slicing speed
-                base_areas = diff_ex(base_areas, collision_base.empty() ? m_ts_data->get_collision(0, obj_layer_nr) : collision_base);
+                base_areas = diff_ex(base_areas, collision_base.empty() && ! data.has_relaxed_base ?
+                                                     m_ts_data->get_collision(0, obj_layer_nr) : collision_base);
 
                 base_areas = diff_ex(base_areas, ClipperUtils::clip_clipper_polygons_with_subject_bbox(roofs, get_extents(base_areas)));
                 base_areas = intersection_ex(base_areas, m_machine_border);
@@ -4603,7 +4831,10 @@ void TreeSupport::draw_circles()
                                 // make sure 1) roof1 and object 2) roof1 and roof, won't intersect
                                 // Note: We can't replace roof1 directly, as we have recorded its address.
                                 //       So instead we need to replace its members one by one.
-                                auto tmp1 = diff_ex(roof1, get_collision(0, m_ts_data->layer_heights[layer_nr].obj_layer_nr));
+                                const size_t roof1_obj_layer = m_ts_data->layer_heights[layer_nr].obj_layer_nr;
+                                auto tmp1 = m_xy_ramp && roof1_obj_layer > 0 ?
+                                                diff_ex(roof1, ramp_draw_collision(roof1_obj_layer, m_support_params.gap_xy)) :
+                                                diff_ex(roof1, get_collision(0, roof1_obj_layer));
                                 tmp1 = diff_ex(tmp1, ts_layer->roof_areas);
                                 if (!tmp1.empty()) {
                                     roof1.contour = std::move(tmp1[0].contour);
@@ -5259,6 +5490,9 @@ void TreeSupport::drop_nodes()
     m_spanning_trees.resize(contact_nodes.size());
     //m_mst_line_x_layer_contour_caches.resize(contact_nodes.size());
 
+    // Z overrides X/Y: gap each node hands to its children on the next layer, filled per layer before any merge
+    // and only read afterwards. Absent means the full gap. Stays empty when the ramp is off.
+    tbb::concurrent_unordered_map<const SupportNode *, coordf_t> child_xy_gaps;
     for (size_t layer_nr = contact_nodes.size() - 1; layer_nr > 0; layer_nr--) // Skip layer 0, since we can't drop down the vertices there.
     {
         if (m_object->print()->canceled())
@@ -5280,9 +5514,27 @@ void TreeSupport::drop_nodes()
         m_object->print()->set_status(60 + int(10 * (1 - float(layer_nr) / contact_nodes.size())), _u8L("Generating support"));// (boost::format(_u8L("Support: propagate branches at layer %d")) % layer_nr).str());
 
         Polygons layer_contours = std::move(m_ts_data->get_contours_with_holes(obj_layer_nr));
+        const ContourCutTester layer_contour_cut(layer_contours);
         //std::unordered_map<Line, bool, LineHash>& mst_line_x_layer_contour_cache = m_mst_line_x_layer_contour_caches[layer_nr];
         tbb::concurrent_unordered_map<Line, bool, LineHash> mst_line_x_layer_contour_cache;
-        auto is_line_cut_by_contour = [&mst_line_x_layer_contour_cache,&layer_contours](Point a, Point b)
+        // 逃逸时需要对下一层碰撞区做外扩合并；同层同（取整后）半径的结果相同，按半径缓存只算一次。
+        struct DilatedEscape { std::once_flag once; ExPolygons dilated; };
+        tbb::concurrent_unordered_map<coordf_t, std::unique_ptr<DilatedEscape>> dilated_escape_cache;
+        std::mutex dilated_escape_mutex;
+        auto dilated_escape_collision = [&](coordf_t radius, const ExPolygons &collision, double distance) -> const ExPolygons & {
+            const coordf_t key = m_ts_data->ceil_radius(radius);
+            DilatedEscape *entry;
+            {
+                std::lock_guard<std::mutex> lock(dilated_escape_mutex);
+                auto &slot = dilated_escape_cache[key];
+                if (!slot)
+                    slot = std::make_unique<DilatedEscape>();
+                entry = slot.get();
+            }
+            std::call_once(entry->once, [&]() { entry->dilated = union_ex(offset_ex(collision, scale_(distance))); });
+            return entry->dilated;
+        };
+        auto is_line_cut_by_contour = [&mst_line_x_layer_contour_cache,&layer_contour_cut](Point a, Point b)
         {
             auto iter = mst_line_x_layer_contour_cache.find({ a, b });
             if (iter != mst_line_x_layer_contour_cache.end()) {
@@ -5290,39 +5542,108 @@ void TreeSupport::drop_nodes()
                     return true;
             }
             else {
-                profiler.tic();
                 Line ln(b, a);
-                Lines pls_intersect = intersection_ln(ln, layer_contours);
-                mst_line_x_layer_contour_cache.insert({ {a, b}, !pls_intersect.empty() });
-                mst_line_x_layer_contour_cache.insert({ ln, !pls_intersect.empty() });
-                profiler.stage_add(STAGE_intersection_ln);
-                if (!pls_intersect.empty())
+                const bool is_cut = layer_contour_cut.cut(ln);
+                mst_line_x_layer_contour_cache.insert({ {a, b}, is_cut });
+                mst_line_x_layer_contour_cache.insert({ ln, is_cut });
+                if (is_cut)
                     return true;
             }
             return false;
         };
 
+        // Smallest ramp gap of a node and everything merged into it, the gap its child continues with.
+        auto merged_child_gap = [&child_xy_gaps](const SupportNode &node) {
+            coordf_t gap = -1.;
+            if (child_xy_gaps.empty())
+                return gap;
+            for (const SupportNode *n : node.merged_neighbours)
+                if (auto it = child_xy_gaps.find(n); it != child_xy_gaps.end())
+                    gap = min_ramp_xy_gap(gap, it->second);
+            if (auto it = child_xy_gaps.find(&node); it != child_xy_gaps.end())
+                gap = min_ramp_xy_gap(gap, it->second);
+            return gap;
+        };
+        if (m_xy_ramp) {
+            child_xy_gaps.clear();
+            // 子节点间距在合并前一次算好，合并与下移阶段创建子节点后显式写入其 xy_gap。
+            // 接触区内保持接触间距；之后每层最多放宽一个树枝角度步长且不超过实际离墙距离，圆盘离开完整间距碰撞区时直接结束。
+            // 结果写入并发 map，不写节点；ePolygon 接触节点在本层列表里重复出现时只是插入同一个值。
+            auto clear_of_body_gap = [&](const SupportNode &node, size_t obj_layer) {
+                return ! is_inside_ex(m_ts_data->get_collision(get_radius(&node), obj_layer), node.position);
+            };
+            // 圆盘节点的间距只能涨到下一层实际留出的离墙距离，被困在窄缝里时圆盘不会被削空。
+            auto reachable_gap = [&](const SupportNode &node, coordf_t gap) -> coordf_t {
+                const coordf_t radius = calc_radius(node.dist_mm_to_top + height_next);
+                const coord_t  reach  = scale_(radius + gap);
+                const Polygons walls  = ClipperUtils::clip_clipper_polygons_with_subject_bbox(
+                    m_ts_data->m_layer_outlines[obj_layer_nr_next], BoundingBox(node.position, node.position).inflated(reach));
+                if (walls.empty())
+                    return gap;
+                double dist2 = std::numeric_limits<double>::max();
+                for (const Polygon &wall : walls)
+                    dist2 = std::min(dist2, (node.position.projection_onto(wall) - node.position).cast<double>().squaredNorm());
+                return std::clamp<coordf_t>(unscale_(std::sqrt(dist2)) - radius, node.xy_gap, gap);
+            };
+            const coordf_t contact_gap = m_support_params.gap_xy;
+            const coordf_t body_gap    = m_ts_data->m_xy_distance;
+            const coordf_t ramp_tan    = std::max(m_ts_data->branch_scale_factor, 0.1);
+            tbb::parallel_for(tbb::blocked_range<size_t>(0, layer_contact_nodes.size()), [&](const tbb::blocked_range<size_t> &range) {
+                for (size_t node_idx = range.begin(); node_idx < range.end(); ++node_idx) {
+                    const SupportNode &node      = *layer_contact_nodes[node_idx];
+                    coordf_t           child_gap = -1.;
+                    if (node.xy_gap >= 0. && ! node.is_sharp_tail) {
+                        if (node.distance_to_top + 1 < 0 || node.support_roof_layers_below - 1 >= 0)
+                            child_gap = contact_gap;
+                        // ePolygon 由上层多边形减碰撞区逐层生成，不随避让外移：只按步长渐变，
+                        // 不提前结束也不按离墙距离封顶，否则贴墙多边形会整块停住或跳变。
+                        else if (node.type == ePolygon) {
+                            const coordf_t gap = node.xy_gap + ramp_tan * height_next;
+                            child_gap          = gap < body_gap - EPSILON ? gap : -1.;
+                        }
+                        // 本层与下一层都已离开完整间距碰撞区才提前结束，避免下方外扩的墙面处硬切。
+                        else if (! clear_of_body_gap(node, obj_layer_nr) || ! clear_of_body_gap(node, obj_layer_nr_next)) {
+                            const coordf_t gap = reachable_gap(node, std::min(node.xy_gap + ramp_tan * height_next, body_gap));
+                            child_gap          = gap < body_gap - EPSILON ? gap : -1.;
+                        }
+                    }
+                    if (child_gap >= 0.)
+                        child_xy_gaps.insert({ &node, child_gap });
+                }
+            });
+        }
+
         //Group together all nodes for each part.
         const ExPolygons& parts = m_ts_data->m_layer_outlines_below[obj_layer_nr];
         std::vector<std::unordered_map<Point, SupportNode*, PointHash>> nodes_per_part(1 + parts.size()); //All nodes that aren't inside a part get grouped together in the 0th part.
-        for (SupportNode* p_node : layer_contact_nodes)
-        {
+        // 每个节点的判定并行计算，只写节点自身；写入分组保持原顺序串行，因为位置冲突时的偏移依赖先后顺序。
+        constexpr int8_t naSkip = 0, naUnsupported = 1, naGroup = 2;
+        struct NodeGrouping { int8_t action = 0; size_t part = 0; };
+        std::vector<NodeGrouping> node_grouping(layer_contact_nodes.size());
+        tbb::parallel_for(tbb::blocked_range<size_t>(0, layer_contact_nodes.size()), [&](const tbb::blocked_range<size_t> &range) {
+          for (size_t node_idx = range.begin(); node_idx < range.end(); ++node_idx)
+          {
+            SupportNode *p_node = layer_contact_nodes[node_idx];
             const SupportNode& node = *p_node;
+            NodeGrouping &out = node_grouping[node_idx];
 
             if (!node.to_buildplate) {
                 // Can't rest on model and unable to reach the build plate. Then we must drop the node and leave parts unsupported.
                 if (support_on_buildplate_only) {
-                    unsupported_branch_leaves.push_front({layer_nr, p_node});
+                    out.action = naUnsupported;
                     continue;
                 }
+                const ExPolygons &collision = node_collision(obj_layer_nr, node.xy_gap);
                 //If permitted to fall on the model, downward growth ceases.
-                auto overlap_with_circle = shrink_ex(get_collision(0, obj_layer_nr), scale_(node.radius));
-                if (!overlap_with_circle.empty() && is_inside_ex(overlap_with_circle, node.position)) {
-                    continue;
+                // 收缩后的区域包含节点，前提是原区域包含节点；先做廉价判断，跳过大部分收缩计算。
+                if (is_inside_ex(collision, node.position)) {
+                    auto overlap_with_circle = shrink_ex(collision, scale_(node.radius));
+                    if (!overlap_with_circle.empty() && is_inside_ex(overlap_with_circle, node.position))
+                        continue;
                 }
                 Polygon circle = make_circle(scale_(node.radius), 0.00789 * scale_(node.radius));
                 circle.translate(node.position);
-                ExPolygons area = avoid_object_remove_extra_small_parts(ExPolygon(circle), get_collision(0, obj_layer_nr));
+                ExPolygons area = avoid_object_remove_extra_small_parts(ExPolygon(circle), collision);
                 if (!area.empty()) {
                     p_node->overhang = area[0];
                     if (area[0].area() < SQ(scale_(1.)) || (!node.parent->to_buildplate && !overlaps({node.overhang}, {node.parent->overhang}))) {
@@ -5333,13 +5654,9 @@ void TreeSupport::drop_nodes()
                 } else
                     continue;
             }
+            out.action = naGroup;
             if (node.to_buildplate || parts.empty()) //It's outside, so make it go towards the build plate.
-            {
-                if (node.type ==eCircle && nodes_per_part[0][node.position])
-                    p_node->position += Point(1, 1);
-                nodes_per_part[0][node.position] = p_node;
                 continue;
-            }
 
             /* Find which part this node is located in and group the nodes in
              * the same part together. Since nodes have a radius and the
@@ -5354,7 +5671,6 @@ void TreeSupport::drop_nodes()
             size_t closest_part = -1;
             for (size_t part_index = 0; part_index < parts.size(); part_index++)
             {
-                //constexpr bool border_result = true;
                 if (is_inside_ex(parts[part_index], node.position)) //If it's inside, the distance is 0 and this part is considered the best.
                 {
                     closest_part = part_index;
@@ -5370,30 +5686,45 @@ void TreeSupport::drop_nodes()
                     closest_part = part_index;
                 }
             }
-            //Put it in the best one.
-            if (node.type == eCircle && nodes_per_part[closest_part + 1][node.position])
+            out.part = closest_part + 1; //Index + 1 because the 0th index is the outside part.
+          }
+        });
+        for (size_t node_idx = 0; node_idx < layer_contact_nodes.size(); ++node_idx)
+        {
+            SupportNode *p_node = layer_contact_nodes[node_idx];
+            const NodeGrouping &grouping = node_grouping[node_idx];
+            if (grouping.action == naUnsupported)
+                unsupported_branch_leaves.push_front({layer_nr, p_node});
+            if (grouping.action != naGroup)
+                continue;
+            auto &group = nodes_per_part[grouping.part];
+            if (p_node->type == eCircle && group[p_node->position])
                 p_node->position += Point(1, 1);
-            nodes_per_part[closest_part + 1][node.position] = p_node; //Index + 1 because the 0th index is the outside part.
+            group[p_node->position] = p_node;
         }
 
         //Create a MST for every part.
-        profiler.tic();
         //std::vector<MinimumSpanningTree>& spanning_trees = m_spanning_trees[layer_nr];
-        std::vector<MinimumSpanningTree> spanning_trees;
-        for (const std::unordered_map<Point, SupportNode*, PointHash>& group : nodes_per_part)
-        {
-            std::vector<Point> points_to_buildplate;
-            for (const std::pair<const Point, SupportNode*>& entry : group)
-            {
-                points_to_buildplate.emplace_back(entry.first);
+        // 各组相互独立，每棵树只取决于本组排序后的点。
+        std::vector<MinimumSpanningTree> spanning_trees(nodes_per_part.size());
+        tbb::parallel_for(tbb::blocked_range<size_t>(0, nodes_per_part.size()), [&](const tbb::blocked_range<size_t> &range) {
+            for (size_t group_idx = range.begin(); group_idx < range.end(); ++group_idx) {
+                const std::unordered_map<Point, SupportNode*, PointHash>& group = nodes_per_part[group_idx];
+                if (group.empty())
+                    continue;
+                std::vector<Point> points_to_buildplate;
+                points_to_buildplate.reserve(group.size());
+                for (const std::pair<const Point, SupportNode*>& entry : group)
+                {
+                    points_to_buildplate.emplace_back(entry.first);
+                }
+                std::sort(points_to_buildplate.begin(), points_to_buildplate.end(),
+                          [](const Point& a, const Point& b) {
+                              return a.x() != b.x() ? a.x() < b.x() : a.y() < b.y();
+                          });
+                spanning_trees[group_idx] = MinimumSpanningTree(std::move(points_to_buildplate));
             }
-            std::sort(points_to_buildplate.begin(), points_to_buildplate.end(),
-                      [](const Point& a, const Point& b) {
-                          return a.x() != b.x() ? a.x() < b.x() : a.y() < b.y();
-                      });
-            spanning_trees.emplace_back(points_to_buildplate);
-        }
-        profiler.stage_add(STAGE_MinimumSpanningTree);
+        });
 
         //for (size_t i = 0; i < layer_contact_nodes.size(); i++) {
         //    SupportNode *p_node = layer_contact_nodes[i];
@@ -5466,6 +5797,7 @@ void TreeSupport::drop_nodes()
                                         next_node->target_radius = std::max(p_node->target_radius, neighbour_node->target_radius);
                                         next_node->origin_area   = next_node->overhang.area();
                                         next_node->carried_mass += neighbour_node->total_carried_mass();
+                                        next_node->xy_gap        = min_ramp_xy_gap(merged_child_gap(node), merged_child_gap(*neighbour_node));
                                         contact_nodes[layer_nr_next].emplace_back(next_node);
                                         p_node->valid = false;
                                         neighbour_node->valid = false;
@@ -5542,9 +5874,11 @@ void TreeSupport::drop_nodes()
                         node_parent = p_node->parent ? p_node : neighbour;
                     // Make sure the next pass doesn't drop down either of these (since that already happened).
                     node_parent->merged_neighbours.push_front(node_parent == p_node ? neighbour : p_node);
-                    const bool to_buildplate = !is_inside_ex(get_collision(0, obj_layer_nr_next), next_position);
+                    const coordf_t merged_gap = min_ramp_xy_gap(merged_child_gap(node), merged_child_gap(*neighbour));
+                    const bool to_buildplate = !is_inside_ex(node_collision(obj_layer_nr_next, merged_gap), next_position);
                     SupportNode* next_node = m_ts_data->create_node(next_position, node_parent->distance_to_top + 1, obj_layer_nr_next, node_parent->support_roof_layers_below - 1, to_buildplate, node_parent,
                         print_z_next, height_next);
+                    next_node->xy_gap = merged_gap;
                     auto dist_xy_to_node     = (next_position - node.position).cast<double>().norm();
                     auto dist_xy_to_neighbor = (next_position - neighbour->position).cast<double>().norm();
                     next_node->orig_pos      = dist_xy_to_neighbor < dist_xy_to_node ? node.orig_pos : neighbour->orig_pos;
@@ -5564,6 +5898,8 @@ void TreeSupport::drop_nodes()
                             if (!neighbour_node->valid) continue;
                             if (neighbour_node->type == ePolygon) continue;
                             if (node.radius < neighbour_node->radius) continue; // bug fix: STUDIO-6326, do not merge if current node has smaller radius than neighbor.
+                            // 半径相同时由离顶更远的旧分支吸收新节点；反过来旧分支会被逐层重置，贴着陡坡长不下去。
+                            if (node.radius <= neighbour_node->radius + EPSILON && node.dist_mm_to_top < neighbour_node->dist_mm_to_top - EPSILON) continue;
 
                             if (p_node->valid)
                             {
@@ -5578,9 +5914,13 @@ first_pass_next:;
             }
 
             //In the second pass, move all middle nodes.
-            tbb::parallel_for_each(nodes_vec.begin(), nodes_vec.end(), [&](const std::pair<Point, SupportNode*>& entry) {
+            // 并行时邻居的 valid 和轮廓只读；本节点的失效、补点和未支撑叶子先记下，循环后按固定顺序写回。
+            enum class SecondPassResult : uint8_t { Keep, Invalidate, UnsupportedLeaf };
+            std::vector<SecondPassResult> second_pass_results(nodes_vec.size(), SecondPassResult::Keep);
+            std::vector<char>             densify_overhang(nodes_vec.size(), 0);
+            tbb::parallel_for(size_t(0), nodes_vec.size(), [&](size_t node_idx) {
 
-                SupportNode* p_node = entry.second;
+                SupportNode* p_node = nodes_vec[node_idx].second;
                 const SupportNode& node = *p_node;
                 if (!p_node->valid)
                 {
@@ -5592,6 +5932,7 @@ first_pass_next:;
                     SupportNode *next_node = m_ts_data->create_node(node.position, p_node->distance_to_top + 1, obj_layer_nr_next, p_node->support_roof_layers_below - 1, node.to_buildplate,
                                                                     p_node, print_z_next, height_next);
                     next_node->max_move_dist = 0;
+                    next_node->xy_gap        = merged_child_gap(node);
                     next_node->radius        = next_radius;
                     next_node->fading        = true;
                     m_ts_data->m_mutex.lock();
@@ -5602,7 +5943,7 @@ first_pass_next:;
                 if (node.type == ePolygon) {
                     // polygon node do not merge or move
                     if (node.overhang.empty()) {
-                        p_node->valid = false;
+                        second_pass_results[node_idx] = SecondPassResult::Invalidate;
                         return;
                     }
                     const bool to_buildplate = true;
@@ -5618,15 +5959,18 @@ first_pass_next:;
                         offseted       = true;
                     }
                     // keep only the part that won't be removed by the next layer
-                    overhangs_next = diff_clipped(overhangs_next, get_collision(0, obj_layer_nr_next));
+                    // 子节点继承本节点及被吸收邻居中的最小间距，裁剪按同一间距进行。
+                    const coordf_t    child_gap      = merged_child_gap(node);
+                    const ExPolygons &collision_next = node_collision(obj_layer_nr_next, child_gap);
+                    overhangs_next = diff_clipped(overhangs_next, collision_next);
                     if (node.distance_to_top == 0) {
                         overhangs_next      = offset2_ex(overhangs_next, scale_(max_move_distance), -scale_(max_move_distance));
                         p_node->origin_area = node.overhang.area();
-                        densify_polygon(p_node->overhang.contour, 2.);
+                        densify_overhang[node_idx] = 1;
                     }
                     if (m_support_params.num_top_interface_layers > 0 && obj_layer_nr_next > 0 && node.support_roof_layers_below == 1 &&
                         node.distance_to_top >= m_support_params.num_top_interface_layers)
-                        overhangs_next = safe_offset_inc(overhangs_next, scale_(max_move_distance), get_collision(0, obj_layer_nr_next), scale_(MIN_BRANCH_RADIUS * 1.75), 0, 1);
+                        overhangs_next = safe_offset_inc(overhangs_next, scale_(max_move_distance), collision_next, scale_(MIN_BRANCH_RADIUS * 1.75), 0, 1);
                     for(auto& overhang:overhangs_next) {
                         if (overhang.empty()) continue;
                         if (overhang.area() > node.origin_area / 2. && overhang.area() > SQ(scale_(10.))) {
@@ -5652,6 +5996,7 @@ first_pass_next:;
                             SupportNode *next_node   = m_ts_data->create_node(next_pt, p_node->distance_to_top + 1, obj_layer_nr_next, p_node->support_roof_layers_below - 1,
                                                                               to_buildplate, p_node, print_z_next, height_next);
                             next_node->max_move_dist = 0;
+                            next_node->xy_gap        = child_gap;
                             next_node->overhang      = std::move(overhang);
                             next_node->target_radius = p_node->target_radius;
                             next_node->origin_area   = node.origin_area;
@@ -5664,6 +6009,7 @@ first_pass_next:;
                             SupportNode *next_node   = m_ts_data->create_node(next_pt, p_node->distance_to_top + 1, obj_layer_nr_next, p_node->support_roof_layers_below - 1,
                                                                               to_buildplate, p_node, print_z_next, height_next);
                             next_node->max_move_dist = 0;
+                            next_node->xy_gap        = child_gap;
                             next_node->target_radius = p_node->target_radius;
                             next_node->overhang      = std::move(overhang);
                             next_node->origin_area   = node.origin_area;
@@ -5676,27 +6022,28 @@ first_pass_next:;
                 }
 
                 //If the branch falls completely inside a collision area (the entire branch would be removed by the X/Y offset), delete it.
-                if (group_index > 0 && is_inside_ex(get_collision(0, obj_layer_nr), node.position))
+                // 渐变节点在外部分组里也要检查：圆盘被自身间距完全吃掉还继续下落，下方会冒出悬空树枝。
+                const ExPolygons &node_layer_collision = node_collision(obj_layer_nr, node.xy_gap);
+                if ((group_index > 0 || node.xy_gap >= 0.) && is_inside_ex(node_layer_collision, node.position))
                 {
-                    std::scoped_lock lock(m_ts_data->m_mutex);
                     const coordf_t branch_radius_node = get_radius(p_node);
-                    Point to_outside = projection_onto(get_collision(0, obj_layer_nr), node.position);
+                    Point to_outside = projection_onto(node_layer_collision, node.position);
                     double dist2_to_outside = vsize2_with_unscale(node.position - to_outside);
                     if (dist2_to_outside >= branch_radius_node * branch_radius_node) //Too far inside.
                     {
                         if (support_on_buildplate_only)
                         {
-                            unsupported_branch_leaves.push_front({ layer_nr, p_node });
+                            second_pass_results[node_idx] = SecondPassResult::UnsupportedLeaf;
                         }
                         else {
-                            p_node->valid = false;
+                            second_pass_results[node_idx] = SecondPassResult::Invalidate;
                         }
                         return;
                     }
                     // if the link between parent and current is cut by contours, mark current as bottom contact node
-                    if (p_node->parent && intersection_ln({p_node->position, p_node->parent->position}, layer_contours).empty()==false)
+                    if (group_index > 0 && p_node->parent && layer_contour_cut.cut(Line(p_node->position, p_node->parent->position)))
                     {
-                        p_node->valid = false;
+                        second_pass_results[node_idx] = SecondPassResult::Invalidate;
                         return;
                     }
                 }
@@ -5758,6 +6105,11 @@ first_pass_next:;
                         if (dist2_to_neighbor > max_converge_distance * max_converge_distance) continue;
 
                         if (is_line_cut_by_contour(node.position, neighbour)) continue;
+
+                        // 仍在接触层（含 Z 间隙）的圆节点最终按悬垂区域绘制，不产生吸引；节点进入支撑主体后才开始拉别人。
+                        // 否则陡坡上逐层新生的接触点会把已长成的树干拖着贴坡走。
+                        if (neighbour_node->type == eCircle && neighbour_node->support_roof_layers_below >= 0)
+                            continue;
 
                         double mass_weight = 1.0;
 #if USE_TREE_SUPPORT_CARRIED_MASS
@@ -5870,7 +6222,9 @@ first_pass_next:;
                     Point candidate_vertex = node.position;
                     const coordf_t max_move_between_samples = max_move_distance + radius_sample_resolution + EPSILON; // 100 micron extra for rounding errors.
                     // use get_collision instead of get_avoidance here (See STUDIO-4252)
-                    bool           is_outside               = move_out_expolys(get_collision(next_radius,obj_layer_nr_next), candidate_vertex, max_move_between_samples, max_move_between_samples);
+                    const ExPolygons &escape_collision = m_ts_data->get_collision(next_radius, obj_layer_nr_next);
+                    bool           is_outside               = move_out_expolys_dilated(escape_collision,
+                        dilated_escape_collision(next_radius, escape_collision, max_move_between_samples), candidate_vertex, max_move_between_samples);
                     if (is_outside) {
                         direction_to_outer = candidate_vertex - node.position;
                         dist2_to_outer    = vsize2_with_unscale(direction_to_outer);
@@ -5920,10 +6274,19 @@ first_pass_next:;
                         if (is_outside) { next_layer_vertex = candidate_vertex; }
                     }
                 }
-                auto              next_collision = get_collision(0, obj_layer_nr_next);
                 const bool   to_buildplate  = !is_inside_ex(m_ts_data->m_layer_outlines[obj_layer_nr_next], next_layer_vertex);
                 SupportNode *     next_node     = m_ts_data->create_node(next_layer_vertex, node.distance_to_top + 1, obj_layer_nr_next, node.support_roof_layers_below - 1, to_buildplate, p_node,
                     print_z_next, height_next);
+                next_node->xy_gap               = merged_child_gap(node);
+                // 自身还在接触层时并入被吸收节点的悬垂，接触面不丢。不延长接触层数：
+                // 陡坡上每层都有新接触点被吸收，延长会让整根分支一直按接触面绘制而被间距裁空。
+                if (next_node->support_roof_layers_below >= 0)
+                    for (const SupportNode *neighbour : node.merged_neighbours) {
+                        if (neighbour->support_roof_layers_below <= 0 || neighbour->overhang.empty()) continue;
+                        if (ExPolygons merged = union_ex(ExPolygons{ next_node->overhang, neighbour->overhang }); merged.size() == 1)
+                            next_node->overhang = std::move(merged.front());
+                    }
+                const ExPolygons &next_collision = node_collision(obj_layer_nr_next, next_node->xy_gap);
                 // don't increase radius if next node will collide partially with the object (STUDIO-7883)
                 to_outside             = projection_onto(next_collision, next_node->position);
                 direction_to_outer     = to_outside - node.position;
@@ -5937,6 +6300,16 @@ first_pass_next:;
                 m_ts_data->m_mutex.unlock();
             }
             );
+            for (size_t node_idx = 0; node_idx < nodes_vec.size(); ++node_idx) {
+                SupportNode *p_node = nodes_vec[node_idx].second;
+                if (densify_overhang[node_idx])
+                    densify_polygon(p_node->overhang.contour, 2.);
+                switch (second_pass_results[node_idx]) {
+                case SecondPassResult::Keep: break;
+                case SecondPassResult::Invalidate: p_node->valid = false; break;
+                case SecondPassResult::UnsupportedLeaf: unsupported_branch_leaves.push_front({ layer_nr, p_node }); break;
+                }
+            }
 
             // Sort contact_nodes for deterministic processing in the next layer
             std::sort(contact_nodes[layer_nr_next].begin(), contact_nodes[layer_nr_next].end(),
@@ -6290,6 +6663,67 @@ void TreeSupport::smooth_nodes(const TreeSupport3D::TreeSupportSettings& config)
 }
 #endif
 
+// 多口径：未指定支撑耗材且模型有贴床合并段时沿用该段；否则按首层口径换算设定首层层高
+// （0.4 预设首层 0.2，口径 0.6 为 0.3），改写为从第 0 层起的贴床合并段，[0, H] 由现有贴床折叠合成一层。
+void TreeSupport::pin_first_support_slab()
+{
+    m_first_support_layer_z = 0.;
+    SupportMergePlan &plan = m_support_merge_plan;
+    if (! plan.enabled || m_raft_layers > 0 || plan.layer_print_z.size() < 2)
+        return;
+    const bool model_bed_slab = ! plan.slabs.empty() && plan.slabs.front().bottom_idx == 0;
+    if (m_object_config->support_filament.value <= 0 && model_bed_slab) {
+        m_first_support_layer_z = plan.slabs.front().top_z;
+        return;
+    }
+
+    // 指定支撑耗材时取该耗材，否则取模型首层最粗的口径。
+    SupportMergePlan::Candidate bed;
+    for (const SupportMergePlan::Candidate &candidate : plan.candidates_per_layer.front())
+        if (! bed.valid() || candidate.nozzle_diameter > bed.nozzle_diameter)
+            bed = candidate;
+    const double preset_nozzle = primary_nozzle_diameter(m_object->print()->full_print_config());
+    if (! bed.valid() || preset_nozzle <= EPSILON)
+        return;
+    const coordf_t initial = m_print_config->initial_layer_print_height.value > 0. ?
+        m_print_config->initial_layer_print_height.value : m_object_config->layer_height.value;
+
+    // 向上对齐对象层，避免低于设定首层；超出口径最大层高时再向下回退。只占一个对象层时无需固定。
+    const AdaptiveLayerHeightRange range = adaptive_layer_height_range(bed.nozzle_diameter);
+    const std::vector<double> &zs = plan.layer_print_z;
+    size_t top = std::min(size_t(std::lower_bound(zs.begin(), zs.end(), initial * bed.nozzle_diameter / preset_nozzle - EPSILON) - zs.begin()),
+                          zs.size() - 1);
+    while (top > 0 && zs[top] > range.max_height + EPSILON)
+        -- top;
+    if (top == 0 || ! range.contains(zs[top]))
+        return;
+
+    SupportMergePlan::Slab slab;
+    slab.top_idx         = top;
+    slab.top_z           = zs[top];
+    slab.height          = zs[top];
+    slab.filament_id     = bed.filament_id;
+    slab.nozzle_diameter = bed.nozzle_diameter;
+    slab.bottom_anchor   = true;
+    // 与首段重叠的原合并段让出，被截断的剩余层留在细层。
+    plan.slabs.erase(plan.slabs.begin(), std::find_if(plan.slabs.begin(), plan.slabs.end(),
+        [top](const SupportMergePlan::Slab &other) { return other.bottom_idx > top; }));
+    plan.slabs.insert(plan.slabs.begin(), slab);
+    std::fill(plan.slab_index_per_layer.begin(), plan.slab_index_per_layer.end(), -1);
+    for (size_t slab_idx = 0; slab_idx < plan.slabs.size(); ++ slab_idx)
+        for (size_t idx = plan.slabs[slab_idx].bottom_idx; idx <= plan.slabs[slab_idx].top_idx; ++ idx)
+            plan.slab_index_per_layer[idx] = int(slab_idx);
+    // 首段口径变了，指定的接触面耗材能否随合并段折叠需重新判断。
+    if (const int interface_filament = m_object_config->support_interface_filament.value; interface_filament > 0) {
+        const double interface_nozzle = nozzle_diameter_for_filament(*m_print_config, (unsigned int) interface_filament);
+        plan.interface_fold_enabled = interface_nozzle > EPSILON &&
+            std::all_of(plan.slabs.begin(), plan.slabs.end(), [interface_nozzle](const SupportMergePlan::Slab &other) {
+                return std::abs(other.nozzle_diameter - interface_nozzle) <= EPSILON;
+            });
+    }
+    m_first_support_layer_z = slab.top_z;
+}
+
 std::vector<LayerHeightData> TreeSupport::plan_layer_heights()
 {
     std::vector<LayerHeightData> layer_heights;
@@ -6306,6 +6740,9 @@ std::vector<LayerHeightData> TreeSupport::plan_layer_heights()
         std::map<coordf_t, coordf_t> bounds; // print_z: height
         // Keep first layer still
         bounds[m_object->get_layer(0)->print_z] = {m_object->get_layer(0)->height};
+        // 固定首层的顶面需要落在支撑层上，贴床折叠才能以它为载体。
+        if (m_first_support_layer_z > EPSILON)
+            bounds.emplace(m_first_support_layer_z, 0.);
         std::vector<float> obj_layer_zs;
         obj_layer_zs.reserve(m_object->layer_count());
         for (const Layer *l : m_object->layers()) obj_layer_zs.emplace_back((float) l->print_z);
@@ -6396,6 +6833,8 @@ std::vector<LayerHeightData> TreeSupport::plan_layer_heights()
         coordf_t new_height = layer_heights[layer_nr].height;
         if (std::abs(node1->height - new_height) < EPSILON) continue;
         if (top_z_distance < EPSILON && node1->height < EPSILON) continue; // top_z_distance==0, this is soluable interface
+        // 固定首层是有意加厚的，节点不能重编号成顶部间隙，交给贴床折叠处理。
+        if (layer_heights[layer_nr].print_z <= m_first_support_layer_z + EPSILON) continue;
         coordf_t              accum_height = 0;
         int                   num_layers   = 0;
         for (int i=layer_nr;i>=0;i--){
@@ -6462,6 +6901,8 @@ void TreeSupport::generate_contact_points()
         }
     }
 
+    m_raft_only_overhangs.clear();
+
     const coordf_t layer_height = config.layer_height.value;
     coordf_t       z_distance_top = this->top_z_distance;
   //  if (!m_support_params.independent_layer_height) {
@@ -6513,8 +6954,8 @@ void TreeSupport::generate_contact_points()
         }
     }
 
-    int      nonempty_layers = 0;
-    tbb::concurrent_vector<Slic3r::Vec3f> all_nodes;
+    // 多线程计数，决定 avg_node_per_layer，进而决定用圆形还是方形支撑。
+    std::atomic<int> nonempty_layers{0};
     tbb::parallel_for(tbb::blocked_range<size_t>(1, m_object->layers().size()), [&](const tbb::blocked_range<size_t>& range) {
         for (size_t layer_nr = range.begin(); layer_nr < range.end(); layer_nr++) {
             if (m_object->print()->canceled())
@@ -6558,12 +6999,14 @@ void TreeSupport::generate_contact_points()
                     // print_z=object_layer->bottom_z: it directly contacts the bottom
                     // height=z_distance_top: it's height is exactly the gap distance (the layer height once pre-split)
                     // dist_mm_to_top=0: it directly contacts the bottom
-                    if (bottom_z - overhang_top_z < m_object->get_layer(0)->print_z) return contact_node; // dont add it if overlapping with the initial layer
+                    if (bottom_z - overhang_top_z < m_object->get_layer(0)->print_z - EPSILON) return contact_node; // dont add it if overlapping with the initial layer
                     contact_node = m_ts_data->create_node(pt, -overhang_gap_layers, layer_nr - 1, roof_layers + overhang_gap_layers, to_buildplate, SupportNode::NO_PARENT, bottom_z,
                                                           overhang_gap_height, 0, radius);
                     contact_node->overhang = overhang;
                     contact_node->is_sharp_tail = is_sharp_tail;
                     contact_node->carried_mass = float(M_PI * SQ(std::max(radius, tip_radius)));
+                    if (m_xy_ramp && ! is_sharp_tail)
+                        contact_node->xy_gap = m_support_params.gap_xy;
                     curr_nodes.emplace_back(contact_node);
                     added = true;
                 };
@@ -6571,24 +7014,43 @@ void TreeSupport::generate_contact_points()
             };
 
             auto extrudable_collision = offset_ex(layer->lower_layer->lslices_extrudable, m_ts_data->m_xy_distance);
+            // 本层所有大平面/薄板悬垂都用同一份外扩后的下方轮廓，每层首次用到时计算一次。
+            std::optional<ExPolygons> outlines_below_grown;
+            auto get_outlines_below_grown = [&]() -> const ExPolygons & {
+                if (!outlines_below_grown)
+                    outlines_below_grown = offset_ex(m_ts_data->m_layer_outlines_below[layer_nr - 1], scale_(config.support_object_xy_distance.value));
+                return *outlines_below_grown;
+            };
             for (const auto& overhang_with_type : layer->loverhangs_with_type)  {
                 const auto &overhang_part = overhang_with_type.first;
                 const auto &overhang_type = overhang_with_type.second;
                 is_sharp_tail = overhang_type & OverhangType::SharpTail;
                 set_overhang_top_z(top_z_for_overhang(layer_nr, overhang_part));
+                // 节点底部低于模型首层时 insert_point() 不会加任何点，整片悬空长不出树枝。
+                // 开 raft 时把它的面积并进 raft，raft 与模型的空隙不变；无 raft 时维持不生成。
+                if (bottom_z - overhang_top_z < m_object->get_layer(0)->print_z - EPSILON) {
+                    if (m_raft_layers > 0) {
+                        tbb::spin_mutex::scoped_lock lock(mtx);
+                        m_raft_only_overhangs.emplace_back(overhang_part);
+                    }
+                    continue;
+                }
                 bool       add_interface  = (force_tip_to_roof || area(overhang_part) > minimum_roof_area);
-                const auto &relevant_forbidden = get_collision(0, layer_nr - 1);
                 ExPolygons overhangs{overhang_part};
                 ExPolygons overhangs_regular;
-                if (!is_sharp_tail && (config.support_expansion.value > EPSILON))
+                if (!is_sharp_tail && (config.support_expansion.value > EPSILON)) {
+                    // Z overrides X/Y：扩展后的接触区只按接触间距避让，不能被完整间距再裁掉。
+                    const ExPolygons &relevant_forbidden = m_xy_ramp ? node_collision(layer_nr - 1, m_support_params.gap_xy) :
+                                                                       get_collision(0, layer_nr - 1);
                     overhangs = safe_offset_inc({overhang_part}, scale_(config.support_expansion.value), relevant_forbidden, scale_(MIN_BRANCH_RADIUS * 1.75), 0, 1);
+                }
                 if (m_support_params.support_style == smsTreeHybrid &&
                     (overhang_type & (BigFlat | ThinPlate))) {
-                    overhangs_regular = intersection_ex(overhangs, offset_ex(m_ts_data->m_layer_outlines_below[layer_nr - 1], scale_(config.support_object_xy_distance.value)));
+                    overhangs_regular = intersection_ex(overhangs, get_outlines_below_grown());
                     ExPolygons overhangs_normal = offset2_ex(diff_ex({overhang_part}, overhangs_regular), scale_(extrusion_width), -scale_(extrusion_width));
                     if (add_interface && xy_expansion > EPSILON && !is_sharp_tail)
                         overhangs_normal = safe_offset_inc(overhangs_normal, xy_expansion,
-                                                           offset_ex(m_ts_data->m_layer_outlines_below[layer_nr - 1], scale_(config.support_object_xy_distance.value)),
+                                                           get_outlines_below_grown(),
                                                            scale_(MIN_BRANCH_RADIUS * 1.75), 0, 1);
                     // if the outside area is still big, we can need normal nodes
                     coord_t gap_width = scale_(extrusion_width / 2.) + scale_(m_ts_data->m_xy_distance);
@@ -6692,8 +7154,7 @@ void TreeSupport::generate_contact_points()
                 if (node)
                     node->skin_direction = pt_and_normal.second;
             }
-            if (!curr_nodes.empty()) nonempty_layers++;
-            for (auto node : curr_nodes) { all_nodes.emplace_back(node->position(0), node->position(1), scale_(node->print_z)); }
+            if (!curr_nodes.empty()) nonempty_layers.fetch_add(1, std::memory_order_relaxed);
 #ifdef SUPPORT_TREE_DEBUG_TO_SVG
             if (!curr_nodes.empty())
             draw_contours_and_nodes_to_svg(debug_out_path("init_contact_points_%.2f.svg", bottom_z), layer->loverhangs,layer->lslices_extrudable, m_ts_data->m_layer_outlines_below[layer_nr],
@@ -6702,24 +7163,26 @@ void TreeSupport::generate_contact_points()
         }}
     ); // end tbb::parallel_for
 
-
-
-    int nNodes = all_nodes.size();
+    // 按层顺序累加；原先按线程写入顺序累加浮点数，nodes_angle（方形支撑朝向）每次切片会略有不同。
+    int nNodes = 0;
     avg_node_per_layer = nodes_angle = 0;
+    for (size_t layer_nr = 0; layer_nr + 1 < contact_nodes.size(); ++layer_nr)
+        nNodes += int(contact_nodes[layer_nr].size());
     if (nNodes > 0) {
-        avg_node_per_layer = nNodes / nonempty_layers;
+        avg_node_per_layer = nNodes / nonempty_layers.load();
         // get orientation of nodes by line fitting
         // line: y=kx+b, where
         //       k=tan(nodes_angle)=(n\sum{xy}-\sum{x}\sum{y})/(n\sum{x^2}-\sum{x}^2)
         float mx = 0, my = 0, mxy = 0, mx2 = 0;
-        for (auto &pt : all_nodes) {
-            float x = unscale_(pt(0));
-            float y = unscale_(pt(1));
-            mx += x;
-            my += y;
-            mxy += x * y;
-            mx2 += x * x;
-        }
+        for (size_t layer_nr = 0; layer_nr + 1 < contact_nodes.size(); ++layer_nr)
+            for (const SupportNode *node : contact_nodes[layer_nr]) {
+                float x = unscale_(node->position(0));
+                float y = unscale_(node->position(1));
+                mx += x;
+                my += y;
+                mxy += x * y;
+                mx2 += x * x;
+            }
         nodes_angle = atan2(nNodes * mxy - mx * my, nNodes * mx2 - SQ(mx));
 
         BOOST_LOG_TRIVIAL(info) << "avg_node_per_layer=" << avg_node_per_layer << ", nodes_angle=" << nodes_angle;
@@ -6798,25 +7261,41 @@ TreeSupportData::TreeSupportData(const PrintObject &object, coordf_t xy_distance
 
 const ExPolygons& TreeSupportData::get_collision(coordf_t radius, size_t layer_nr) const
 {
-    profiler.tic();
     radius = ceil_radius(radius);
     RadiusLayerPair key{radius, layer_nr};
     const auto it = m_collision_cache.find(key);
     const ExPolygons& collision = it != m_collision_cache.end() ? it->second : calculate_collision(key);
-    profiler.stage_add(STAGE_get_collision);
     return collision;
+}
+
+// 按半径分桶的避让区缓存锁；持锁期间只会再请求同一半径，不会嵌套持有不同的锁。
+static std::recursive_mutex &avoidance_radius_mutex(coordf_t radius)
+{
+    static std::recursive_mutex stripes[64];
+    return stripes[std::hash<coordf_t>()(radius) % 64];
 }
 
 const ExPolygons& TreeSupportData::get_avoidance(coordf_t radius, size_t layer_nr, int recursions) const
 {
-    profiler.tic();
     radius = ceil_radius(radius);
     RadiusLayerPair key{radius, layer_nr, recursions };
-    const auto it = m_avoidance_cache.find(key);
-    const ExPolygons& avoidance = it != m_avoidance_cache.end() ? it->second : calculate_avoidance(key);
-
-    profiler.stage_add(STAGE_GET_AVOIDANCE);
-    return avoidance;
+    if (const auto it = m_avoidance_cache.find(key); it != m_avoidance_cache.end())
+        return it->second;
+    // avoidance(r, L) 只依赖 avoidance(r, L-1) 和 collision(r, L)；同一半径由一个线程补齐缺失层，
+    // 其他线程等待后复用，避免重复计算。
+    std::lock_guard<std::recursive_mutex> lock(avoidance_radius_mutex(radius));
+    const ExPolygons *avoidance = nullptr;
+    if (const auto again = m_avoidance_cache.find(key); again != m_avoidance_cache.end())
+        avoidance = &again->second;
+    else {
+        // 不再递归：找到下方最近的已缓存层，再自下而上补齐。
+        size_t first_missing = layer_nr;
+        while (first_missing > 0 && m_avoidance_cache.find({radius, first_missing - 1, 0}) == m_avoidance_cache.end())
+            --first_missing;
+        for (size_t l = first_missing; l <= layer_nr; ++l)
+            avoidance = &calculate_avoidance({radius, l, 0});
+    }
+    return *avoidance;
 }
 
 Polygons TreeSupportData::get_contours(size_t layer_nr) const

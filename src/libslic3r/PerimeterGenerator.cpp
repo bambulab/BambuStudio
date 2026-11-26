@@ -853,7 +853,7 @@ int PerimeterGenerator::effective_wall_loops() const
         return preset_value;
     const double nozzle_diameter = nozzle_diameter_for_filament(
         *this->print_config, (unsigned int) this->config->wall_filament.value);
-    return multi_nozzle_wall_loops(nozzle_diameter, preset_value);
+    return multi_nozzle_wall_loops(*this->print_config, nozzle_diameter, preset_value);
 }
 
 void PerimeterGenerator::process_classic()

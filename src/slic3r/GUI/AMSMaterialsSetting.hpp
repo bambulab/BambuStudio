@@ -136,6 +136,8 @@ public:
     void set_empty_color(wxColour color);
     void set_colors(std::vector<wxColour> colors);
     void set_ctype(int ctype);
+    // Show the full colour name as a tooltip only when the label is too narrow to display it.
+    void update_clr_name_tooltip();
 
     void on_picker_color(wxCommandEvent& color);
 
@@ -213,6 +215,8 @@ protected:
     std::optional<EffectiveNozzle>  get_combo_nozzle() const;
     std::optional<EffectiveNozzle>  get_effective_nozzle() const;
     std::optional<DevNozzle>        get_slot_nozzle() const;
+
+    std::string                     slot_nozzle_diameter_str() const;
 
     void update_nozzle_combo(MachineObject* obj);
     bool switch_nozzle_combo_to_target(NozzleVolumeType volume_type, float nozzle_diameter);

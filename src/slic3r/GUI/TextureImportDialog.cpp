@@ -840,6 +840,47 @@ wxDEFINE_EVENT(EVT_TEXTURE_COMPUTE_PROGRESS, wxCommandEvent);
 wxDEFINE_EVENT(EVT_TEXTURE_COMPUTE_ERROR, wxCommandEvent);
 wxDEFINE_EVENT(EVT_TEXTURE_PATCH_DONE, wxCommandEvent);
 
+// Gradient / multi-colour filaments keep the sidebar chip look. The chip bitmap
+// fills the rounded rect as a texture so the corners stay anti-aliased.
+static void draw_filament_entry_swatch(wxDC& dc, const TextureFilamentEntry* entry, const wxColour& colour,
+                                       int x, int y, int w, int h, int radius)
+{
+    std::vector<wxColour> colors;
+    if (entry && entry->multi_colors.size() >= 2) {
+        for (const std::string& hex : entry->multi_colors) {
+            wxColour c(hex);
+            if (c.IsOk())
+                colors.push_back(c);
+        }
+    }
+    wxBitmap chip;
+    if (colors.size() >= 2 && w > 0 && h > 0)
+        chip = create_filament_bitmap(colors, wxSize(w, h), entry->is_gradient);
+
+    if (!chip.IsOk()) {
+        dc.SetPen(*wxTRANSPARENT_PEN);
+        dc.SetBrush(wxBrush(colour));
+        dc.DrawRoundedRectangle(x, y, w, h, radius);
+    } else if (wxGraphicsContext* gc = dc.GetGraphicsContext()) {
+        gc->PushState();
+        // The texture is anchored at the origin, so align it with the swatch rect.
+        gc->Translate(x, y);
+        gc->SetPen(*wxTRANSPARENT_PEN);
+        gc->SetBrush(wxBrush(chip));
+        if (radius > 0)
+            gc->DrawRoundedRectangle(0, 0, w, h, radius);
+        else
+            gc->DrawRectangle(0, 0, w, h);
+        gc->PopState();
+        // PopState does not restore the pen / brush set on gc; resync them with the DC.
+        dc.SetPen(dc.GetPen());
+        dc.SetBrush(dc.GetBrush());
+    } else {
+        dc.DrawBitmap(chip, x, y, true);
+    }
+    texture_import_draw_swatch_border(dc, colour, x, y, w, h, radius);
+}
+
 // Right end of the gap area slider, in percent of the total patch area.
 static constexpr double kGapAreaMaxPercent = 5.0;
 // CIEDE2000 difference at which a neighbor's boundary counts half when the gap
@@ -1390,10 +1431,26 @@ static std::vector<TextureFilamentEntry> collect_project_filament_entries()
             entry.mixed_ratios.reserve(ratios.size());
             for (double ratio : ratios)
                 entry.mixed_ratios.push_back((int)std::lround(ratio * 100.0));
+        } else {
+            texture_entry_fill_multi_colors(entry, i);
         }
         filament_entries.push_back(std::move(entry));
     }
     return filament_entries;
+}
+
+void texture_entry_fill_multi_colors(TextureFilamentEntry& entry, size_t project_index)
+{
+    entry.multi_colors.clear();
+    entry.is_gradient = false;
+    std::vector<wxColour> colors;
+    bool is_gradient = false;
+    get_filament_colors_by_id((int)project_index, colors, is_gradient);
+    if (colors.size() < 2)
+        return;
+    for (const wxColour& c : colors)
+        entry.multi_colors.push_back(c.GetAsString(wxC2S_HTML_SYNTAX).ToStdString());
+    entry.is_gradient = is_gradient;
 }
 
 static bool starts_with_preset_name(const std::string& name, const char* prefix)
@@ -1930,6 +1987,9 @@ public:
     }
 
     wxColour GetColour() const { return m_colour; }
+    // Full colour set of the picked official colour; empty for a single custom colour.
+    const std::vector<wxColour>& GetColors() const { return m_colors; }
+    bool IsGradient() const { return m_is_gradient; }
     std::string GetPresetName() const { return m_preset_name; }
 
     void on_dpi_changed(const wxRect&) override
@@ -2064,13 +2124,17 @@ private:
         const std::vector<wxColour> wx_colors = fila_color.GetColors();
         if (!wx_colors.empty())
             m_colour = wx_colors.front();
-        set_preview_bitmap(wx_colors,
-                           fila_color.m_color_type == FilamentColor::ColorType::GRADIENT_CLR);
+        const bool gradient = fila_color.m_color_type == FilamentColor::ColorType::GRADIENT_CLR;
+        m_colors = wx_colors.size() >= 2 ? wx_colors : std::vector<wxColour>();
+        m_is_gradient = !m_colors.empty() && gradient;
+        set_preview_bitmap(wx_colors, gradient);
     }
 
     void update_preview_custom(const wxColour& custom_color)
     {
         m_colour = custom_color;
+        m_colors.clear();
+        m_is_gradient = false;
         const std::vector<wxColour> wx_colors = {custom_color};
         set_preview_bitmap(wx_colors, false);
     }
@@ -2268,6 +2332,8 @@ private:
     FilamentColorCodes*                       m_color_codes = nullptr;
     std::vector<TextureAddFilamentTypeOption> m_types;
     wxColour                                  m_colour;
+    std::vector<wxColour>                     m_colors;
+    bool                                      m_is_gradient = false;
     std::string                               m_preset_name;
 };
 
@@ -3487,9 +3553,8 @@ private:
                                      (unsigned char)(m_colors_rgba[idx][1] * 255.f),
                                      (unsigned char)(m_colors_rgba[idx][2] * 255.f));
             }
-            dc.SetBrush(wxBrush(paint_clr));
-            dc.DrawRoundedRectangle(sq_x, sq_y, sq, sq, sq_r);
-            draw_filament_swatch_border(dc, paint_clr, sq_x, sq_y, sq, sq, sq_r);
+            draw_filament_entry_swatch(dc, idx < m_entries.size() ? &m_entries[idx] : nullptr,
+                                       paint_clr, sq_x, sq_y, sq, sq, sq_r);
 
             {
                 dc.SetFont(Label::Body_10);
@@ -3601,10 +3666,9 @@ private:
                                         (unsigned char)(c[2] * 255.f));
                 }
 
-                dc.SetBrush(wxBrush(comp_clr));
-                dc.SetPen(*wxTRANSPARENT_PEN);
-                dc.DrawRoundedRectangle(x, y, sw, sw, sw_r);
-                draw_filament_swatch_border(dc, comp_clr, x, y, sw, sw, sw_r);
+                const TextureFilamentEntry* comp_entry =
+                    comp_dialog_idx >= 0 && comp_dialog_idx < (int)m_entries.size() ? &m_entries[comp_dialog_idx] : nullptr;
+                draw_filament_entry_swatch(dc, comp_entry, comp_clr, x, y, sw, sw, sw_r);
 
                 wxString num = wxString::Format("%d", display_number(comp_dialog_idx));
                 wxSize nsz = dc.GetTextExtent(num);
@@ -4099,6 +4163,62 @@ private:
         draw_step(1, x);
         });
     }
+};
+
+// Self-drawn so the text, underline gap and hand cursor look the same on
+// Windows and macOS (a native static text adds platform-specific padding).
+class TextureImportWikiLink : public wxPanel
+{
+public:
+    TextureImportWikiLink(wxWindow* parent, const wxString& label, const wxString& url)
+        : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE | wxFULL_REPAINT_ON_RESIZE)
+        , m_label(label)
+        , m_url(url)
+    {
+        SetFont(Label::Body_14);
+        SetBackgroundStyle(wxBG_STYLE_PAINT);
+        SetCursor(wxCursor(wxCURSOR_HAND));
+        Bind(wxEVT_PAINT, &TextureImportWikiLink::OnPaint, this);
+        Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent&) {
+            if (!m_url.IsEmpty())
+                wxGetApp().open_browser_with_warning_dialog(m_url);
+        });
+    }
+
+    wxSize DoGetBestSize() const override
+    {
+        wxClientDC dc(const_cast<TextureImportWikiLink*>(this));
+        dc.SetFont(GetFont());
+        const wxSize text = dc.GetTextExtent(m_label);
+        return wxSize(text.x, text.y + FromDIP(2));
+    }
+
+private:
+    void OnPaint(wxPaintEvent&)
+    {
+        texture_import_paint(this, [this](wxDC& dc) {
+            dc.SetBackground(wxBrush(GetParent()->GetBackgroundColour()));
+            dc.Clear();
+
+            const wxColour fg = texture_import_brand_green();
+            dc.SetFont(GetFont());
+            dc.SetTextForeground(fg);
+            wxCoord text_w = 0, text_h = 0, descent = 0;
+            dc.GetTextExtent(m_label, &text_w, &text_h, &descent);
+            const int y = std::max(0, (GetClientSize().y - text_h - FromDIP(2)) / 2);
+            dc.DrawText(m_label, 0, y);
+
+            // Underline one pixel below the baseline instead of relying on an
+            // underlined font, whose offset differs between GDI+ and CoreText.
+            const int thickness = std::max(1, FromDIP(1));
+            dc.SetPen(*wxTRANSPARENT_PEN);
+            dc.SetBrush(wxBrush(fg));
+            dc.DrawRectangle(0, y + text_h - descent + FromDIP(1), text_w, thickness);
+        });
+    }
+
+    wxString m_label;
+    wxString m_url;
 };
 
 // ============================================================
@@ -5133,7 +5253,22 @@ void TextureImportDialog::build_stepper(wxWindow* parent, wxSizer* sizer)
 {
     auto* stepper = new TextureImportStepper(parent);
     m_stepper_panel = stepper;
-    sizer->Add(stepper, 0, wxALIGN_CENTER | wxBOTTOM, FromDIP(12));
+
+    const bool is_zh = wxGetApp().current_language_code_safe().StartsWith("zh");
+    m_wiki_link = new TextureImportWikiLink(parent, _L("Wiki"),
+                                            is_zh ? "https://wiki.bambulab.com/zh/software/bambu-studio/texture-to-color"
+                                                  : "https://wiki.bambulab.com/en/software/bambu-studio/texture-to-color");
+
+    // Equal-proportion side columns keep the stepper centred whatever the link width.
+    auto* link_column = new wxBoxSizer(wxHORIZONTAL);
+    link_column->AddStretchSpacer();
+    link_column->Add(m_wiki_link, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(24));
+
+    auto* row = new wxBoxSizer(wxHORIZONTAL);
+    row->AddStretchSpacer(1);
+    row->Add(stepper, 0, wxALIGN_CENTER_VERTICAL);
+    row->Add(link_column, 1, wxEXPAND);
+    sizer->Add(row, 0, wxEXPAND | wxBOTTOM, FromDIP(12));
 }
 
 void TextureImportDialog::build_preview_panel(wxWindow* parent, wxSizer* sizer)
@@ -5322,7 +5457,7 @@ void TextureImportDialog::build_params_panel(wxWindow* parent, wxSizer* sizer)
     size_color_preset(m_btn_color_8, false);
     size_color_preset(m_btn_color_16, false);
 
-    m_color_slider = new GreenSlider(m_params_panel, m_param_color_count, 1, (int)max_physical_filament_count());
+    m_color_slider = new GreenSlider(m_params_panel, m_param_color_count, 1, (int)Slic3r::texture_max_color_count());
     m_color_spin = new TextInput(m_params_panel, wxString::Format("%d", m_param_color_count),
                                  "", "", wxDefaultPosition,
                                  wxSize(FromDIP(64), FromDIP(28)), wxTE_PROCESS_ENTER);
@@ -5770,6 +5905,8 @@ void TextureImportDialog::apply_theme()
     style_advanced_settings_card();
     if (m_stepper_panel)
         m_stepper_panel->Refresh();
+    if (m_wiki_link)
+        m_wiki_link->Refresh();
 
     std::function<void(wxWindow*)> recolor_params;
     recolor_params = [&](wxWindow* w) {
@@ -6561,7 +6698,7 @@ void TextureImportDialog::on_computation_complete(wxCommandEvent& evt)
         const wxString text = m_color_spin->GetTextCtrl()->GetValue();
         color_spin_dirty = !text.ToLong(&parsed) || (int)parsed != m_param_color_count;
     }
-    if (!color_spin_dirty && actual_colors >= 1 && actual_colors <= (int)max_physical_filament_count()) {
+    if (!color_spin_dirty && actual_colors >= 1 && actual_colors <= (int)Slic3r::texture_max_color_count()) {
         m_updating_params = true;
         set_color_count_value(actual_colors, true);
         m_updating_params = false;
@@ -6720,10 +6857,10 @@ size_t TextureImportDialog::mixed_filament_entry_count() const
 
 int TextureImportDialog::max_color_count() const
 {
-    const int filament_max = (int)max_physical_filament_count();
+    const int color_max = (int)Slic3r::texture_max_color_count();
     if (m_original_color_count <= 0)
-        return filament_max;
-    return std::min(filament_max, m_original_color_count);
+        return color_max;
+    return std::min(color_max, m_original_color_count);
 }
 
 void TextureImportDialog::update_color_count_controls()
@@ -6788,7 +6925,7 @@ void TextureImportDialog::update_color_count_warning()
         else
             warning->set_message(wxString::Format(
                 _L("Up to %d colors supported."),
-                (int)max_physical_filament_count()));
+                (int)Slic3r::texture_max_color_count()));
         warning->InvalidateBestSize();
         warning->SetMinSize(warning->GetBestSize());
     } else {
@@ -6856,7 +6993,9 @@ int TextureImportDialog::find_closest_filament_index(const std::array<std::size_
 
 int TextureImportDialog::add_virtual_filament(const std::array<float, 4>& rgba, const std::string& hex,
                                               const std::string& preset_name,
-                                              const std::string& display_name)
+                                              const std::string& display_name,
+                                              const std::vector<std::string>& multi_colors,
+                                              bool is_gradient)
 {
     if (m_filament_color_strs.size() != m_filament_colors_rgba.size() ||
         m_filament_names.size() != m_filament_colors_rgba.size() ||
@@ -6884,6 +7023,10 @@ int TextureImportDialog::add_virtual_filament(const std::array<float, 4>& rgba, 
     entry.name = resolved_name;
     entry.type = texture_filament_type_from_preset(resolved_preset);
     entry.preset_name = resolved_preset;
+    if (multi_colors.size() >= 2) {
+        entry.multi_colors = multi_colors;
+        entry.is_gradient = is_gradient;
+    }
     m_filament_entries.push_back(entry);
     m_new_filament_colors.push_back(rgba);
     m_new_filament_preset_names.push_back(resolved_preset);
@@ -7693,7 +7836,8 @@ void TextureImportDialog::reload_existing_filaments_from_project(const std::set<
             m_filament_entries.size() >= MAX_FILAMENT_COUNT)
             continue;
         m_reload_index_remap[old_entry.dialog_index] = add_virtual_filament(
-            old_colors[old_entry.dialog_index], old_entry.color_hex, old_entry.preset_name, old_entry.name);
+            old_colors[old_entry.dialog_index], old_entry.color_hex, old_entry.preset_name, old_entry.name,
+            old_entry.multi_colors, old_entry.is_gradient);
     }
 }
 
@@ -8366,7 +8510,11 @@ void TextureImportDialog::show_filament_popup(size_t row_index)
                                          clr.Blue() / 255.f, 1.0f};
             std::string hex = wxString::Format("#%02X%02X%02X",
                 clr.Red(), clr.Green(), clr.Blue()).ToStdString();
-            int new_idx = add_virtual_filament(rgba, hex, dlg.GetPresetName());
+            std::vector<std::string> multi_colors;
+            for (const wxColour& c : dlg.GetColors())
+                multi_colors.push_back(c.GetAsString(wxC2S_HTML_SYNTAX).ToStdString());
+            int new_idx = add_virtual_filament(rgba, hex, dlg.GetPresetName(), std::string(),
+                                               multi_colors, dlg.IsGradient());
             if (new_idx < 0)
                 return;
 
@@ -8811,10 +8959,9 @@ void TextureImportDialog::rebuild_mapping_rows()
                                             (unsigned char)(c[2] * 255.f));
                     }
 
-                    dc.SetPen(*wxTRANSPARENT_PEN);
-                    dc.SetBrush(wxBrush(comp_clr));
-                    dc.DrawRoundedRectangle(x, sw_y, sw, sw, sw_r);
-                    draw_filament_swatch_border(dc, comp_clr, x, sw_y, sw, sw, sw_r);
+                    const TextureFilamentEntry* comp_entry =
+                        comp_idx >= 0 && comp_idx < (int)m_filament_entries.size() ? &m_filament_entries[comp_idx] : nullptr;
+                    draw_filament_entry_swatch(dc, comp_entry, comp_clr, x, sw_y, sw, sw, sw_r);
 
                     wxString num_str = wxString::Format("%d", display_number(comp_idx));
                     wxSize nsz = dc.GetTextExtent(num_str);
@@ -8847,10 +8994,9 @@ void TextureImportDialog::rebuild_mapping_rows()
             int sq_y = (sz.y - sq) / 2;
             int sq_r = p->FromDIP(6);
             wxColour fil_clr = get_target_wxcolor(fil_idx);
-            dc.SetPen(*wxTRANSPARENT_PEN);
-            dc.SetBrush(wxBrush(fil_clr));
-            dc.DrawRoundedRectangle(sq_x, sq_y, sq, sq, sq_r);
-            draw_filament_swatch_border(dc, fil_clr, sq_x, sq_y, sq, sq, sq_r);
+            draw_filament_entry_swatch(dc,
+                                       fil_idx < (int)m_filament_entries.size() ? &m_filament_entries[fil_idx] : nullptr,
+                                       fil_clr, sq_x, sq_y, sq, sq, sq_r);
 
             {
                 dc.SetFont(Label::Body_12);

@@ -11,11 +11,15 @@
 
 #include <wx/app.h>
 
+#include <algorithm>
+#include <cctype>
 #include <chrono>
+#include <cmath>
 #include <ctime>
 #include <iomanip>
 #include <sstream>
 #include <memory>
+#include <set>
 #include <thread>
 #include "libslic3r/Log.hpp"
 
@@ -115,6 +119,15 @@ void wgtFilaManagerCloudDispatcher::enqueue_push_create(const FilamentSpool& spo
     schedule_next();
 }
 
+void wgtFilaManagerCloudDispatcher::enqueue_create_and_bind(const FilamentSpool& spool, const SlotBindTarget& target)
+{
+    BOOST_LOG_TRIVIAL(info) << "[CloudDispatcher] enqueue create_and_bind " << KV(log_key::dev_id, target.dev_id) << " "
+                            << KV(log_key::ams_id, target.ams_id) << KV(log_key::slot_id, target.slot_id)
+                            << KV(log_key::filament_id, spool.filament_id);
+    m_queue.push_back([this, spool, target]() { run_create_and_bind_op(spool, target); });
+    schedule_next();
+}
+
 void wgtFilaManagerCloudDispatcher::enqueue_push_update(const std::string& spool_id,
                                                         const nlohmann::json& local_patch,
                                                         std::function<void()> on_cloud_ok)
@@ -205,6 +218,17 @@ void wgtFilaManagerCloudDispatcher::run_pull_op()
         return;
     }
 
+    do_pull([this](bool) { on_op_done(); });
+}
+
+void wgtFilaManagerCloudDispatcher::do_pull(std::function<void(bool ok)> done)
+{
+    if (!m_sync || !is_user_logged_in()) {
+        BOOST_LOG_TRIVIAL(warning) << "[CloudDispatcher] pull skipped: sync unavailable or not logged in";
+        done(false);
+        return;
+    }
+
     m_pulling = true;
     BOOST_LOG_TRIVIAL(info) << "[CloudDispatcher] pull started";
     wxGetApp().emit_fila_debug_log("data", "info", "Dispatcher pull started",
@@ -232,7 +256,7 @@ void wgtFilaManagerCloudDispatcher::run_pull_op()
     auto poll_start = std::make_shared<std::chrono::steady_clock::time_point>(
         std::chrono::steady_clock::now());
     auto check = std::make_shared<std::function<void()>>();
-    *check = [this, check, before_sz, poll_count, poll_start]() {
+    *check = [this, check, before_sz, poll_count, poll_start, done]() {
         if (m_sync && m_sync->is_syncing()) {
             ++(*poll_count);
             std::thread([check]() {
@@ -245,7 +269,8 @@ void wgtFilaManagerCloudDispatcher::run_pull_op()
             std::chrono::steady_clock::now() - *poll_start).count();
         BOOST_LOG_TRIVIAL(info) << "[CloudDispatcher] pull poll finished: polls=" << *poll_count
                                 << " elapsed_ms=" << elapsed_ms;
-        if (m_sync && m_sync->last_pull_succeeded()) {
+        const bool ok = m_sync && m_sync->last_pull_succeeded();
+        if (ok) {
             update_last_synced_now();
             auto* store_after = wxGetApp().fila_manager_store();
             size_t after_sz = store_after ? store_after->spools_to_json().size() : 0;
@@ -266,12 +291,18 @@ void wgtFilaManagerCloudDispatcher::run_pull_op()
                                            {{"code", m_sync->last_pull_error_code()},
                                             {"error", m_sync->last_pull_error_message()}});
         }
-        on_op_done();
+        m_pulling = false;
+        done(ok);
     };
     wxTheApp->CallAfter(*check);
 }
 
 void wgtFilaManagerCloudDispatcher::run_push_create_op(const FilamentSpool& spool)
+{
+    do_create(spool, [this](bool) { on_op_done(); });
+}
+
+void wgtFilaManagerCloudDispatcher::do_create(const FilamentSpool& spool, std::function<void(bool ok)> done)
 {
     if (!m_sync || !is_user_logged_in()) {
         if (m_sync && !is_user_logged_in()) {
@@ -279,19 +310,19 @@ void wgtFilaManagerCloudDispatcher::run_push_create_op(const FilamentSpool& spoo
                                            "User not logged in — no cloud HTTP",
                                            {{"op", "create"}});
         }
-        on_op_done();
+        done(false);
         return;
     }
     BOOST_LOG_TRIVIAL(info) << "[CloudDispatcher] push_create";
     wxGetApp().emit_fila_debug_log("data", "info", "Dispatcher push_create started",
                                    "Queued create push started running",
                                    {{"setting_id", spool.filament_id}});
-    if (!m_client) { on_op_done(); return; }
+    if (!m_client) { done(false); return; }
 
     nlohmann::json body = wgtFilaManagerCloudSync::spool_to_cloud_json(spool);
     m_client->create_spool(body,
-        [this, spool](const nlohmann::json& resp) {
-            wxTheApp->CallAfter([this, spool, resp]() {
+        [this, spool, done](const nlohmann::json& resp) {
+            wxTheApp->CallAfter([this, spool, resp, done]() {
                 const std::string spool_id = cloud_spool_id_from_response(resp);
                 BOOST_LOG_TRIVIAL(info) << "[CloudDispatcher] push_create ok " << spool_id;
                 if (!spool_id.empty()) {
@@ -307,19 +338,104 @@ void wgtFilaManagerCloudDispatcher::run_push_create_op(const FilamentSpool& spoo
                                                "Queued create push completed successfully",
                                                {{"spool_id", spool_id}});
                 if (m_on_push_done) m_on_push_done(spool_id, "create");
-                on_op_done();
+                done(true);
             });
         },
-        [this](int code, const std::string& err) {
-            wxTheApp->CallAfter([this, code, err]() {
+        [this, done](int code, const std::string& err) {
+            wxTheApp->CallAfter([this, code, err, done]() {
                 record_error(code, err);
                 wxGetApp().emit_fila_debug_log("data", "error", "Dispatcher push_create failed",
                                                "Queued create push failed",
                                                {{"code", code}, {"error", err}});
                 if (m_on_push_failed) m_on_push_failed(std::string(), "create", code, err);
+                done(false);
+            });
+        });
+}
+
+void wgtFilaManagerCloudDispatcher::run_create_and_bind_op(const FilamentSpool& spool, const SlotBindTarget& target)
+{
+    do_pull([this, spool, target](bool before_ok) {
+        std::vector<std::string> before_ids;
+        if (before_ok) {
+            if (auto* store = wxGetApp().fila_manager_store())
+                before_ids = store->all_spool_ids();
+        }
+
+        do_create(spool, [this, spool, target, before_ok, before_ids](bool created) {
+            if (!created) {
+                BOOST_LOG_TRIVIAL(warning) << "[CloudDispatcher] create_and_bind: create failed, skip bind";
+                on_op_done();
+                return;
+            }
+
+            do_pull([this, spool, target, before_ok, before_ids](bool after_ok) {
+                if (before_ok && after_ok) {
+                    bind_created_spool(spool, target, before_ids);
+                } else {
+                    BOOST_LOG_TRIVIAL(warning) << "[CloudDispatcher] create_and_bind: created but cannot locate, skip bind"
+                                               << " before_ok=" << before_ok << " after_ok=" << after_ok;
+                }
                 on_op_done();
             });
         });
+    });
+}
+
+void wgtFilaManagerCloudDispatcher::bind_created_spool(const FilamentSpool&            spool,
+                                                       const SlotBindTarget&           target,
+                                                       const std::vector<std::string>& before_ids)
+{
+    auto* store = wxGetApp().fila_manager_store();
+    if (!store || !m_sync) return;
+
+    const nlohmann::json body           = wgtFilaManagerCloudSync::spool_to_cloud_json(spool);
+    const std::string    expected_fila  = body.value("filamentId", std::string());
+    const int64_t        expected_net   = body.value("netWeight", int64_t(0));
+    const int64_t        expected_total = body.value("totalNetWeight", int64_t(0));
+    const std::string    expected_color = body.value("color", std::string());
+    std::string          expected_color0 = expected_color;
+    if (body.contains("colors") && body["colors"].is_array() && !body["colors"].empty() && body["colors"][0].is_string())
+        expected_color0 = body["colors"][0].get<std::string>();
+
+    const auto same_color = [](const std::string& a, const std::string& b) {
+        return a.size() == b.size() && std::equal(a.begin(), a.end(), b.begin(), [](char x, char y) {
+                   return std::tolower(static_cast<unsigned char>(x)) == std::tolower(static_cast<unsigned char>(y));
+               });
+    };
+
+    const std::set<std::string> before(before_ids.begin(), before_ids.end());
+    std::vector<std::string>    candidates;
+    for (const auto& id : store->all_spool_ids()) {
+        if (before.count(id) > 0) continue;
+        const FilamentSpool* sp = store->get_spool(id);
+        if (!sp || sp->in_printer) continue;
+        if (sp->filament_id != expected_fila) continue;
+        if (!same_color(sp->color_code, expected_color) && !same_color(sp->color_code, expected_color0)) continue;
+        if (std::llround(sp->net_weight) != expected_net) continue;
+        if (std::llround(sp->effective_total_net_weight()) != expected_total) continue;
+        candidates.push_back(id);
+    }
+
+    if (candidates.size() != 1) {
+        BOOST_LOG_TRIVIAL(warning) << "[CloudDispatcher] create_and_bind: skip bind, candidates=" << candidates.size() << " "
+                                   << KV(log_key::filament_id, expected_fila);
+        return;
+    }
+
+    const std::string& new_id = candidates.front();
+    if (!store->force_mount_spool(new_id, target.dev_id, target.dev_name, target.ams_id, target.ams_type, target.slot_id,
+                                  target.ams_sn)) {
+        BOOST_LOG_TRIVIAL(warning) << "[CloudDispatcher] create_and_bind: mount failed spool_id=" << new_id;
+        return;
+    }
+    store->set_dirty();
+    m_sync->sync_slot_bindings_to_cloud(target.dev_id, {new_id}, /*is_bind=*/true);
+
+    BOOST_LOG_TRIVIAL(info) << "[CloudDispatcher] create_and_bind: bound spool_id=" << new_id << " "
+                            << KV(log_key::dev_id, target.dev_id) << " " << KV(log_key::ams_id, target.ams_id)
+                            << KV(log_key::slot_id, target.slot_id);
+    if (m_on_push_done) m_on_push_done(new_id, "update");
 }
 
 void wgtFilaManagerCloudDispatcher::run_push_update_op(const std::string& spool_id,

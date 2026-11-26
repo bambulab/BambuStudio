@@ -52,7 +52,8 @@
 			"bed_temperature_limit": 110,
 			"nozzle_max_temperature": 320,
 			"support_ams_ext_mix_print": true,
-			"support_ams_filament_change_abort": true
+			"support_ams_filament_change_abort": true,
+			"support_big_flush_check": false
 		},
 		"fan": {
 			"-1": {

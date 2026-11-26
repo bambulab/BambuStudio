@@ -177,6 +177,12 @@ public:
         IC_DISTRIBUTE_X_DARK,
         IC_DISTRIBUTE_Y_DARK,
         IC_DISTRIBUTE_Z_DARK,
+        IC_TEXT_CHAR_GAP,
+        IC_TEXT_LINE_GAP,
+        IC_TEXT_CHAR_GAP_DARK,
+        IC_TEXT_LINE_GAP_DARK,
+        IC_TEXT_EXPAND,
+        IC_TEXT_COLLAPSE,
     };
 
     explicit GLGizmosManager(GLCanvas3D& parent);

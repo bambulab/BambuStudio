@@ -411,6 +411,20 @@ struct BridgeGroupArea {
     ExPolygons area;
 };
 
+// Round offset keeping every vertex of the bodies, so the growth only gets larger with the distance.
+// expand() skips the vertices closer to their predecessor than ClipperOffsetShortestEdgeFactor times the distance:
+// the bridge bodies may be triangles with edges of a few hundredths of a millimeter, at the distances of the growth
+// they lose vertices first and are dropped as a whole afterwards.
+static Polygons grow_bodies(const Polygons &bodies, const float dist, const double arc_tol)
+{
+    ClipperLib::ClipperOffset co;
+    co.ArcTolerance = arc_tol;
+    co.AddPaths(ClipperUtils::PolygonsProvider(bodies), ClipperLib::jtRound, ClipperLib::etClosedPolygon);
+    ClipperLib::Paths out;
+    co.Execute(out, dist);
+    return to_polygons(std::move(out));
+}
+
 // Partition the anchors shared by bridge groups, which overlap but run in different directions.
 // Each contested point goes to the group with the nearest bridge body: all bodies grow in lock step,
 // so the dividing line is off by at most one step, ties within a step go to the lower group.
@@ -481,8 +495,18 @@ static void partition_bridge_anchors(std::vector<BridgeGroupArea*> &groups, cons
         bodies[i]     = to_polygons(groups[i]->bodies);
         bbox.merge(get_extents(bodies[i]));
     }
+    // Only the candidates can ever be reached. The contested area outside of them consists of slivers dropped from
+    // the candidates and of rounding differences of the boolean operations, it is handed out after the growth with
+    // the dropped noise and must not keep the growth running to the last step.
+    Polygons reachable;
+    {
+        Polygons all_candidates;
+        for (const Polygons &candidate : candidates)
+            append(all_candidates, candidate);
+        reachable = union_(all_candidates);
+    }
 
-    // Each contested point is reached at the latest when the growth spans the whole extent,
+    // Each candidate point is reached at the latest when the growth spans the whole extent,
     // in practice once the farthest anchor point is covered.
     const size_t max_steps   = size_t(std::ceil(bbox.size().cast<double>().norm() / step)) + 1;
     bool         all_reached = false;
@@ -508,7 +532,7 @@ static void partition_bridge_anchors(std::vector<BridgeGroupArea*> &groups, cons
             Polygons body = intersection(bodies[i], clip_box);
             if (body.empty())
                 continue;
-            Polygons reach = intersection(candidates[i], expand(body, dist, ClipperLib::jtRound, arc_tol));
+            Polygons reach = intersection(candidates[i], grow_bodies(body, dist, arc_tol));
             if (reach.empty())
                 continue;
             append(claimed[i], taken.empty() ? reach : diff(reach, taken));
@@ -517,7 +541,7 @@ static void partition_bridge_anchors(std::vector<BridgeGroupArea*> &groups, cons
         }
         // The reach of a group only grows from step to step, so this step alone covers all the earlier ones.
         reached_before = union_(reached_now);
-        if (drop_noise(diff_ex(contested, reached_before)).empty()) {
+        if (drop_noise(diff_ex(reachable, reached_before)).empty()) {
             all_reached = true;
             break;
         }
@@ -545,8 +569,13 @@ static void partition_bridge_anchors(std::vector<BridgeGroupArea*> &groups, cons
     for (size_t i = 0; i < groups.size(); ++ i) {
         const Polygons body_touch = expand(to_polygons(groups[i]->bodies), touch);
         ExPolygons     kept;
-        for (ExPolygon &piece : groups[i]->area)
-            (intersection_ex(piece, body_touch).empty() ? orphans[i] : kept).emplace_back(std::move(piece));
+        for (ExPolygon &piece : groups[i]->area) {
+            // Only the part of the bodies around the piece may touch it, clipping to the bounding box keeps each
+            // intersection small however large the bodies are.
+            const Polygons body_near = ClipperUtils::clip_clipper_polygons_with_subject_bbox(
+                body_touch, get_extents(piece).inflated(SCALED_EPSILON));
+            (intersection_ex(piece, body_near).empty() ? orphans[i] : kept).emplace_back(std::move(piece));
+        }
         groups[i]->area = std::move(kept);
     }
     // Touch areas are taken before any orphan moves, so the result does not depend on the visiting order.
@@ -556,9 +585,12 @@ static void partition_bridge_anchors(std::vector<BridgeGroupArea*> &groups, cons
         area_touch[i] = expand(to_polygons(groups[i]->area), touch);
     for (size_t i = 0; i < groups.size(); ++ i)
         for (ExPolygon &orphan : orphans[i]) {
-            size_t owner = i;
+            // The touch areas span the whole group while the orphans are mostly tiny, only the part of a touch area
+            // around the orphan may meet it: clipping to the bounding box keeps each intersection small.
+            const BoundingBox orphan_bbox = get_extents(orphan).inflated(SCALED_EPSILON);
+            size_t            owner       = i;
             for (size_t j = 0; j < groups.size(); ++ j)
-                if (j != i && ! intersection_ex(orphan, area_touch[j]).empty()) {
+                if (j != i && ! intersection_ex(orphan, ClipperUtils::clip_clipper_polygons_with_subject_bbox(area_touch[j], orphan_bbox)).empty()) {
                     owner = j;
                     break;
                 }
@@ -791,7 +823,7 @@ void LayerRegion::process_external_surfaces(const Layer *lower_layer, const Poly
     if (multi_nozzle_diameter_mode_enabled(print_object->print()->full_print_config())) {
         const double nozzle_diameter = nozzle_diameter_for_filament(
             print_object->print()->config(), (unsigned int) region_config.wall_filament.value);
-        num_perimeters = multi_nozzle_wall_loops(nozzle_diameter, num_perimeters);
+        num_perimeters = multi_nozzle_wall_loops(print_object->print()->full_print_config(), nozzle_diameter, num_perimeters);
     }
     if (num_perimeters > 0) {
         Flow external_perimeter_flow = this->flow(frExternalPerimeter);

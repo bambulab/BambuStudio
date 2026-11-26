@@ -61,6 +61,7 @@ public:
         ABORT = 51,
         DISABLE_PURIFICATION = 54,
         DONT_REMIND_NEXT_TIME = 57,
+        AMS_RESUME_REMIND = 75,
 
         // old error code to pseudo action
         DBL_CHECK_CANCEL = 10000,

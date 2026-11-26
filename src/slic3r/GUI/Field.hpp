@@ -37,6 +37,7 @@ using t_field = std::unique_ptr<Field>;
 using t_kill_focus = std::function<void(const std::string&)>;
 using t_change = std::function<void(const t_config_option_key&, const boost::any&)>;
 using t_back_to_init = std::function<void(const std::string&)>;
+using t_out_of_range = std::function<void(const t_config_option_key&, long)>;
 
 wxString double_to_string(double const value, const int max_precision = 4);
 wxString get_thumbnail_string(const Vec2d& value);
@@ -85,6 +86,15 @@ public:
 	/// Function object to store callback passed in from owning object.
 	t_back_to_init	m_back_to_initial_value{ nullptr };
 	t_back_to_init	m_back_to_sys_value{ nullptr };
+
+	/**
+	 * \brief Called with the typed value when it is outside the option range, before the value is clamped
+	 *
+	 * \note Only integer spin fields report it; it is read when the value is typed or committed, so it
+	 *       may be set at any time. While it is set the typed text is kept as is until committed
+	 *       instead of being clamped on every keystroke
+	 */
+	t_out_of_range	m_on_out_of_range{ nullptr };
 
 	// This is used to avoid recursive invocation of the field change/update by wxWidgets.
     bool			m_disable_change_event {false};
@@ -183,6 +193,19 @@ public:
 		return &m_blink;
     }
 
+    /**
+     * \brief Show or clear a warning: the value is highlighted and a warning icon shows \p tooltip on hover
+     *
+     * \param tooltip warning text; empty clears the warning
+     * \note The icon only shows when room was reserved for it, see OptionsGroup::reserve_warning_icons
+     */
+    void set_warning(const wxString &tooltip);
+    const wxString &warning() const { return m_warning; }
+
+    /// Keep room for the warning icon after the field, so the layout does not move when it appears.
+    /// Set before the options group is laid out
+    bool m_reserve_warning_icon{false};
+
     virtual void msw_rescale();
     virtual void sys_color_changed();
 
@@ -195,9 +218,19 @@ public:
 	static int def_width_thinner()	;
 
 	const ScalableBitmap*	undo_bitmap()			{ return m_undo_bitmap; }
-	const wxString*			undo_tooltip()			{ return m_undo_tooltip; }
+	/**
+	 * \brief Tooltip of the "revert to last saved value" icon
+	 *
+	 * \return empty string if the field has not been decorated yet
+	 */
+	wxString				undo_tooltip() const;
 	const ScalableBitmap*	undo_to_sys_bitmap()	{ return m_undo_to_sys_bitmap; }
-	const wxString*			undo_to_sys_tooltip()	{ return m_undo_to_sys_tooltip; }
+	/**
+	 * \brief Tooltip of the "revert to system value" icon
+	 *
+	 * \return empty string if the field has not been decorated yet
+	 */
+	wxString				undo_to_sys_tooltip() const;
 	const wxColour*			label_color()			{ return m_label_color; }
 	const bool				blink()					{ return m_blink; }
 	const bool				combine_side_text()		{ return m_combine_side_text; } // BBS: new param style
@@ -211,6 +244,10 @@ protected:
 	const wxString*		    m_undo_to_sys_tooltip = nullptr;
 
 	bool					m_blink{ false };
+
+	wxString				m_warning;
+	/// Highlight the value control of a field with a warning; fields without a highlight ignore it
+	virtual void			apply_warning_style(bool /*warning*/) {}
 
 	// Color for Label. The wxColour will be updated only if the new wxColour pointer differs from the currently rendered one.
 	const wxColour*		m_label_color = nullptr;
@@ -337,6 +374,9 @@ public:
 	void			enable() override { dynamic_cast<SpinInput*>(window)->Enable(); }
 	void			disable() override { dynamic_cast<SpinInput*>(window)->Disable(); }
 	wxWindow*		getWindow() override { return window; }
+
+protected:
+	void			apply_warning_style(bool warning) override;
 };
 
 class Choice;

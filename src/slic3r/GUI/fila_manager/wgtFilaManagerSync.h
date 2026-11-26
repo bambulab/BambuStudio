@@ -36,7 +36,8 @@ public:
 private:
     const FilamentSpool* match_tray(const DevAmsTray& tray,
                                     const std::string& dev_id,
-                                    const std::string& ams_id);
+                                    const std::string& ams_id,
+                                    const std::string& slot_id);
   
     static bool slot_pin_still_valid(const FilamentSpool& sp,
                                      const DevAmsTray&    tray);

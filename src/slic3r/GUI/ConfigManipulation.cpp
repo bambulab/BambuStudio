@@ -9,6 +9,7 @@
 #include "libslic3r/PresetBundle.hpp"
 #include "libslic3r/SupportRecommendedParams.hpp"
 #include "MsgDialog.hpp"
+#include "AlertDialog.hpp"
 
 #include <wx/msgdlg.h>
 #include <variant>
@@ -55,74 +56,27 @@ void ConfigManipulation::toggle_line(const std::string& opt_key, const bool togg
         cb_toggle_line(opt_key, toggle, opt_index);
 }
 
-void ConfigManipulation::check_nozzle_recommended_temperature_range(DynamicPrintConfig *config) {
+void ConfigManipulation::report_nozzle_temperature_out_of_range(long entered, int min_allowed, int max_allowed)
+{
     if (is_msg_dlg_already_exist)
         return;
 
-    int temperature_range_low, temperature_range_high;
-    if (!get_temperature_range(config, temperature_range_low, temperature_range_high)) return;
+    const int reset_to = entered > max_allowed ? max_allowed : min_allowed;
+    BOOST_LOG_TRIVIAL(warning) << "nozzle temperature " << entered << " is outside [" << min_allowed << ", " << max_allowed
+                               << "], reset to " << reset_to;
 
-    wxString msg_text;
-    bool     need_check = false;
-    if (temperature_range_low < 190 || temperature_range_high > 300) {
-        msg_text += _L("The recommended minimum temperature is less than 190 degree or the recommended maximum temperature is greater than 300 degree.\n");
-        need_check = true;
-    }
-    if (temperature_range_low > temperature_range_high) {
-        msg_text += _L("The recommended minimum temperature cannot be higher than the recommended maximum temperature.\n");
-        need_check = true;
-    }
-    if (need_check) {
-        msg_text += _L("Please check.\n");
-        MessageDialog dialog(m_msg_dlg_parent, msg_text, "", wxICON_WARNING | wxOK);
-        is_msg_dlg_already_exist = true;
-        dialog.ShowModal();
+    AlertDialog dialog(m_msg_dlg_parent, _L("Error"),
+                       wxString::Format(_L("The set temperature exceeds the allowed range for this filament (%d°C–%d°C) and has been reset to %d°C."),
+                                        min_allowed, max_allowed, reset_to));
+    dialog.AddButton(wxID_OK, _L("OK"), AlertButtonRole::Primary);
+    is_msg_dlg_already_exist = true;
+    dialog.ShowModal();
+
+    // The clamp right after this returns changes the value; the guard keeps other checks of that change quiet
+    if (m_msg_dlg_parent)
+        m_msg_dlg_parent->CallAfter([this]() { is_msg_dlg_already_exist = false; });
+    else
         is_msg_dlg_already_exist = false;
-    }
-}
-
-void ConfigManipulation::check_nozzle_temperature_range(DynamicPrintConfig *config)
-{
-    if (is_msg_dlg_already_exist)
-        return;
-
-    int temperature_range_low, temperature_range_high;
-    if (!get_temperature_range(config, temperature_range_low, temperature_range_high)) return;
-
-    if (config->has("nozzle_temperature")) {
-        if (config->opt_int_nullable("nozzle_temperature", 0) < temperature_range_low || config->opt_int_nullable("nozzle_temperature", 0) > temperature_range_high) {
-            wxString msg_text = _(L("Nozzle may be blocked when the temperature is out of recommended range.\n"
-                                    "Please confirm whether to use the temperature for printing.\n\n"));
-            msg_text += wxString::Format(_L("Recommended nozzle temperature of this filament type is [%d, %d] degree centigrade"), temperature_range_low, temperature_range_high);
-            MessageDialog dialog(m_msg_dlg_parent, msg_text, "", wxICON_WARNING | wxOK);
-            is_msg_dlg_already_exist = true;
-            dialog.ShowModal();
-            is_msg_dlg_already_exist = false;
-        }
-    }
-}
-
-void ConfigManipulation::check_nozzle_temperature_initial_layer_range(DynamicPrintConfig* config)
-{
-    if (is_msg_dlg_already_exist)
-        return;
-
-    int temperature_range_low, temperature_range_high;
-    if (!get_temperature_range(config, temperature_range_low, temperature_range_high)) return;
-
-    if (config->has("nozzle_temperature_initial_layer")) {
-        if (config->opt_int_nullable("nozzle_temperature_initial_layer", 0) < temperature_range_low ||
-            config->opt_int_nullable("nozzle_temperature_initial_layer", 0) > temperature_range_high)
-        {
-            wxString msg_text = _(L("Nozzle may be blocked when the temperature is out of recommended range.\n"
-                "Please confirm whether to use the temperature for printing.\n\n"));
-            msg_text += wxString::Format(_L("Recommended nozzle temperature of this filament type is [%d, %d] degree centigrade"), temperature_range_low, temperature_range_high);
-            MessageDialog dialog(m_msg_dlg_parent, msg_text, "", wxICON_WARNING | wxOK);
-            is_msg_dlg_already_exist = true;
-            dialog.ShowModal();
-            is_msg_dlg_already_exist = false;
-        }
-    }
 }
 
 void ConfigManipulation::check_tower_interface_print_temp(DynamicPrintConfig *config, int variant_idx)
@@ -889,7 +843,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
 {
     bool have_perimeters = config->opt_int("wall_loops") > 0;
     for (auto el : { "ensure_vertical_shell_thickness", "detect_thin_wall", "detect_overhang_wall",
-                    "seam_position","seam_placement_away_from_overhangs","seam_gap","wipe_speed", "wall_sequence", "outer_wall_line_width",
+                    "seam_position","seam_placement_away_from_overhangs","seam_embedded_headroom","seam_gap","wipe_speed", "wall_sequence", "outer_wall_line_width",
                     "inner_wall_speed", "outer_wall_speed","small_perimeter_speed", "small_perimeter_threshold" })
         toggle_field(el, have_perimeters);
 
@@ -1003,7 +957,14 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
     // BBS
     SupportType support_type = config->opt_enum<SupportType>("support_type");
     bool have_support_interface = config->opt_int("support_interface_top_layers") > 0 || config->opt_int("support_interface_bottom_layers") > 0;
-    bool have_support_soluble = have_support_material && config->opt_float("support_top_z_distance") == 0;
+    // Multi-diameter: a set project gap replaces the preset one; auto keeps reading the preset.
+    double top_z_distance = config->opt_float("support_top_z_distance");
+    if (is_global_config && multi_nozzle_diameter_mode_enabled(wxGetApp().preset_bundle->project_config)) {
+        if (const double project_gap = project_support_z_distance(wxGetApp().preset_bundle->project_config, "support_top_z_distance");
+            project_gap >= 0.)
+            top_z_distance = project_gap;
+    }
+    bool have_support_soluble = have_support_material && top_z_distance == 0;
     auto support_style = config->opt_enum<SupportMaterialStyle>("support_style");
     for (auto el : { "support_style", "support_base_pattern",
                     "support_base_pattern_spacing", "support_expansion", "support_angle",
@@ -1278,57 +1239,55 @@ int ConfigManipulation::show_spiral_mode_settings_dialog(bool is_object_config)
     return answer;
 }
 
-bool ConfigManipulation::get_temperature_range(DynamicPrintConfig *config, int &range_low, int &range_high)
-{
-    bool range_low_exist = false, range_high_exist = false;
-    if (config->has("nozzle_temperature_range_low")) {
-        range_low       = config->opt_int("nozzle_temperature_range_low", (unsigned int) 0);
-        range_low_exist       = true;
-    }
-    if (config->has("nozzle_temperature_range_high")) {
-        range_high       = config->opt_int("nozzle_temperature_range_high", (unsigned int) 0);
-        range_high_exist       = true;
-    }
-    return range_low_exist && range_high_exist;
-}
-
 static bool build_support_recommended_config(const SupportRecommendedParams &recommended_params,
                                              DynamicPrintConfig &out_config);
 
-// 根据用户已选择的支撑料和模型主体料，查询是否有推荐参数
-bool query_support_recommended_params_for_combination(int support_filament_index, const std::string& model_material_type, const std::string& model_material_name, DynamicPrintConfig& out_config)
+static SupportMaterialProperties support_material_properties_of_slot(int filament_index)
 {
     auto &filament_presets = Slic3r::GUI::wxGetApp().preset_bundle->filament_presets;
     auto &filaments        = Slic3r::GUI::wxGetApp().preset_bundle->filaments;
 
-    if (support_filament_index < 0 || support_filament_index >= static_cast<int>(filament_presets.size()))
-        return false;
+    if (filament_index < 0 || filament_index >= static_cast<int>(filament_presets.size()))
+        return {};
 
-    Slic3r::Preset* support_preset = filaments.find_preset(filament_presets[support_filament_index]);
-    if (!support_preset) return false;
+    Slic3r::Preset* preset = filaments.find_preset(filament_presets[filament_index]);
+    if (!preset) return {};
 
-    const std::string support_type = support_preset->config.option<Slic3r::ConfigOptionStrings>("filament_type")->values[0];
-    const std::string alias = filaments.get_preset_alias(*support_preset, true);
-    const SupportMaterialProperties support_material {
-        support_recommended_material_name(alias.empty() ? support_preset->name : alias),
-        support_type,
-        is_soluble_filament(support_filament_index),
-        is_support_filament(support_filament_index, true)
+    const std::string alias = filaments.get_preset_alias(*preset, true);
+    return {
+        support_recommended_material_name(alias.empty() ? preset->name : alias),
+        preset->config.option<Slic3r::ConfigOptionStrings>("filament_type")->values[0],
+        is_soluble_filament(filament_index),
+        is_support_filament(filament_index, true)
     };
-    const SupportMaterialProperties model_material {model_material_name, model_material_type};
+}
+
+bool query_support_recommended_params_for_combination(int support_filament_index,
+                                                      const std::vector<SupportMaterialProperties> &model_materials,
+                                                      DynamicPrintConfig &out_config,
+                                                      SupportMaterialCombination &out_combination,
+                                                      size_t &out_model_index)
+{
+    const SupportMaterialProperties support_material = support_material_properties_of_slot(support_filament_index);
+    if (support_material.type.empty() || model_materials.empty())
+        return false;
     const std::string printer_model =
         Slic3r::GUI::wxGetApp().preset_bundle->printers.get_edited_preset().config.opt_string("printer_model");
-    const SupportMaterialCombination combination =
-        evaluate_support_material_combination(support_material, model_material, printer_model);
-    if (combination.recommended_params == nullptr)
+    const SupportMaterialCombination chosen =
+        evaluate_support_material_combination(support_material, model_materials, printer_model, &out_model_index);
+    if (chosen.recommended_params == nullptr || ! build_support_recommended_config(*chosen.recommended_params, out_config))
         return false;
-
-    if (! build_support_recommended_config(*combination.recommended_params, out_config))
-        return false;
-    if (combination.zero_top && ! out_config.has("support_top_z_distance"))
-        out_config.set_key_value("support_top_z_distance", new ConfigOptionFloat(0));
-    if (combination.zero_bottom && ! out_config.has("support_bottom_z_distance"))
-        out_config.set_key_value("support_bottom_z_distance", new ConfigOptionFloat(0));
+    // The zero gaps follow the combined decision, the same one multi-diameter slicing applies: a zero gap of
+    // the chosen entry that not every material shares is left out, and an inherited one is added.
+    for (const auto &[key, zero] : {std::make_pair("support_top_z_distance", chosen.zero_top),
+                                    std::make_pair("support_bottom_z_distance", chosen.zero_bottom)}) {
+        const auto *gap = out_config.option<ConfigOptionFloat>(key);
+        if (zero)
+            out_config.set_key_value(key, new ConfigOptionFloat(0));
+        else if (gap != nullptr && std::abs(gap->value) < EPSILON)
+            out_config.erase(key);
+    }
+    out_combination = chosen;
     return true;
 }
 

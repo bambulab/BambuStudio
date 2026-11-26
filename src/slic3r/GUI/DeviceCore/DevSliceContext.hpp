@@ -36,12 +36,21 @@ struct DevSliceContext
     std::vector<unsigned int> nozzle_change_sequence;
     std::vector<std::vector<std::vector<float>>> flush_matrix;
     bool support_dynamic_nozzle_map = false;
+    int  multi_nozzle_diameter_mode = 0;
 
     void Clear();
     bool Valid() const;
+    // True if any filament change in the slice sequences would flush more than limit mm^3.
+    // flush_matrix is expected to already include the flush multiplier.
+    bool ExceedsFlushVolumeLimit(float limit = 1000.f) const;
+    bool HasMultipleLogicNozzleDiameters() const;
 
 public:
     DevSliceContext() = default;
+
+    // return key-> physical_idx, value-> nozzle data
+    std::unordered_multimap<int, NozzleDef> GetSliceNozzles(int total_ext_count) const;
+
     static std::shared_ptr<DevSliceContext> CreateFromNormal(GUI::PrintFromType print_type,
                                                             Slic3r::GUI::Plater* plater);
     static std::shared_ptr<DevSliceContext> CreateFromSDCard(GUI::PrintFromType print_type,

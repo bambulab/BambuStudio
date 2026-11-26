@@ -31,6 +31,7 @@
         "500",
         "500"
     ],
+    "initial_layer_infill_line_width": "0.6",
     "initial_layer_infill_speed": [
         "70",
         "70"
@@ -93,8 +94,8 @@
     "prime_tower_tail_speed_factor": "50%",
     "prime_tower_width": "60",
     "print_extruder_id": [
-        "2",
-        "2"
+        "1",
+        "1"
     ],
     "print_extruder_variant": [
         "Direct Drive Standard",

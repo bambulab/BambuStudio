@@ -38,11 +38,14 @@ void DevPrintOptionsParser::ParseDetectionV1_0(DevPrintOptions *opts, const nloh
         if (print_json.contains("spd_lvl")) { opts->m_speed_level = static_cast<DevPrintingSpeedLevel>(print_json["spd_lvl"].get<int>()); }
 
         if (print_json.contains("xcam")) {
-            if (time(nullptr) - opts->m_ai_monitoring_detection.detect_hold_start > HOLD_TIME_3SEC) {
-                if (print_json["xcam"].contains("cfg")) {
-                    opts->m_ai_monitoring_detection.is_support_detect = true;
+            // Check each option's own hold window so toggling one detection does not get overwritten by stale pushes.
+            const bool hold_ai_monitoring = (time(nullptr) - opts->m_ai_monitoring_detection.detect_hold_start <= HOLD_TIME_3SEC);
 
-                    int cfg                                          = print_json["xcam"]["cfg"].get<int>();
+            if (print_json["xcam"].contains("cfg")) {
+                opts->m_ai_monitoring_detection.is_support_detect = true;
+
+                int cfg = print_json["xcam"]["cfg"].get<int>();
+                if (time(nullptr) - opts->m_spaghetti_detection.detect_hold_start > HOLD_TIME_3SEC) {
                     opts->m_spaghetti_detection.current_detect_value = DevUtil::get_flag_bits(cfg, 7);
                     switch (DevUtil::get_flag_bits(cfg, 8, 2)) {
                     case 0: opts->m_spaghetti_detection.current_detect_sensitivity_value = "low"; break;
@@ -50,7 +53,9 @@ void DevPrintOptionsParser::ParseDetectionV1_0(DevPrintOptions *opts, const nloh
                     case 2: opts->m_spaghetti_detection.current_detect_sensitivity_value = "high"; break;
                     default: break;
                     }
+                }
 
+                if (time(nullptr) - opts->m_purgechutepileup_detection.detect_hold_start > HOLD_TIME_3SEC) {
                     opts->m_purgechutepileup_detection.current_detect_value = DevUtil::get_flag_bits(cfg, 10);
                     switch (DevUtil::get_flag_bits(cfg, 11, 2)) {
                     case 0: opts->m_purgechutepileup_detection.current_detect_sensitivity_value = "low"; break;
@@ -58,7 +63,9 @@ void DevPrintOptionsParser::ParseDetectionV1_0(DevPrintOptions *opts, const nloh
                     case 2: opts->m_purgechutepileup_detection.current_detect_sensitivity_value = "high"; break;
                     default: break;
                     }
+                }
 
+                if (time(nullptr) - opts->m_nozzleclumping_detection.detect_hold_start > HOLD_TIME_3SEC) {
                     opts->m_nozzleclumping_detection.current_detect_value = DevUtil::get_flag_bits(cfg, 13);
                     switch (DevUtil::get_flag_bits(cfg, 14, 2)) {
                     case 0: opts->m_nozzleclumping_detection.current_detect_sensitivity_value = "low"; break;
@@ -66,7 +73,9 @@ void DevPrintOptionsParser::ParseDetectionV1_0(DevPrintOptions *opts, const nloh
                     case 2: opts->m_nozzleclumping_detection.current_detect_sensitivity_value = "high"; break;
                     default: break;
                     }
+                }
 
+                if (time(nullptr) - opts->m_airprinting_detection.detect_hold_start > HOLD_TIME_3SEC) {
                     opts->m_airprinting_detection.current_detect_value = DevUtil::get_flag_bits(cfg, 16);
                     switch (DevUtil::get_flag_bits(cfg, 17, 2)) {
                     case 0: opts->m_airprinting_detection.current_detect_sensitivity_value = "low"; break;
@@ -74,16 +83,18 @@ void DevPrintOptionsParser::ParseDetectionV1_0(DevPrintOptions *opts, const nloh
                     case 2: opts->m_airprinting_detection.current_detect_sensitivity_value = "high"; break;
                     default: break;
                     }
+                }
 
-                    if (time(nullptr) - opts->m_fod_check_detection.detect_hold_start > HOLD_TIME_3SEC)
-                        opts->m_fod_check_detection.current_detect_value = DevUtil::get_flag_bits(cfg, 21);
-                    if (time(nullptr) - opts->m_displacement_detection.detect_hold_start > HOLD_TIME_3SEC)
-                        opts->m_displacement_detection.current_detect_value = DevUtil::get_flag_bits(cfg, 22);
+                if (time(nullptr) - opts->m_fod_check_detection.detect_hold_start > HOLD_TIME_3SEC)
+                    opts->m_fod_check_detection.current_detect_value = DevUtil::get_flag_bits(cfg, 21);
+                if (time(nullptr) - opts->m_displacement_detection.detect_hold_start > HOLD_TIME_3SEC)
+                    opts->m_displacement_detection.current_detect_value = DevUtil::get_flag_bits(cfg, 22);
 
-                    opts->m_buildplate_type_detection.is_support_detect     = true;
-                    if (time(nullptr) - opts->m_buildplate_align_detection.detect_hold_start > HOLD_TIME_3SEC)
-                        opts->m_buildplate_align_detection.current_detect_value = DevUtil::get_flag_bits(cfg, 20);
-                } else if (print_json["xcam"].contains("printing_monitor")) {
+                opts->m_buildplate_type_detection.is_support_detect = true;
+                if (time(nullptr) - opts->m_buildplate_align_detection.detect_hold_start > HOLD_TIME_3SEC)
+                    opts->m_buildplate_align_detection.current_detect_value = DevUtil::get_flag_bits(cfg, 20);
+            } else if (!hold_ai_monitoring) {
+                if (print_json["xcam"].contains("printing_monitor")) {
                     // new protocol
                     opts->m_ai_monitoring_detection.current_detect_value = print_json["xcam"]["printing_monitor"].get<bool>();
                 } else {
@@ -96,10 +107,10 @@ void DevPrintOptionsParser::ParseDetectionV1_0(DevPrintOptions *opts, const nloh
                         }
                     }
                 }
+            }
 
-                if (print_json["xcam"].contains("halt_print_sensitivity")) {
-                    opts->m_ai_monitoring_detection.current_detect_sensitivity_value = print_json["xcam"]["halt_print_sensitivity"].get<std::string>();
-                }
+            if (!hold_ai_monitoring && print_json["xcam"].contains("halt_print_sensitivity")) {
+                opts->m_ai_monitoring_detection.current_detect_sensitivity_value = print_json["xcam"]["halt_print_sensitivity"].get<std::string>();
             }
 
             if (time(nullptr) - opts->m_first_layer_detection.detect_hold_start > HOLD_TIME_3SEC) {

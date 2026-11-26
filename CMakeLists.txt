@@ -631,9 +631,14 @@ find_package(cereal REQUIRED)
 # l10n
 set(L10N_DIR "${SLIC3R_RESOURCES_DIR}/i18n")
 set(BBL_L18N_DIR "${CMAKE_CURRENT_SOURCE_DIR}/bbl/i18n")
+# The source list is generated each time the target runs, so new files need no manual registration.
+set(I18N_SOURCE_LIST "${CMAKE_CURRENT_BINARY_DIR}/i18n_source_list.txt")
 add_custom_target(gettext_make_pot
+    COMMAND ${CMAKE_COMMAND} -DSOURCE_ROOT=${PROJECT_SOURCE_DIR} -DOUTPUT=${I18N_SOURCE_LIST}
+        -P ${PROJECT_SOURCE_DIR}/cmake/modules/GenerateI18nFileList.cmake
     COMMAND xgettext --keyword=L --no-wrap --keyword=_L --keyword=_u8L --keyword=L_CONTEXT:1,2c --keyword=_L_PLURAL:1,2 --add-comments=TRN --from-code=UTF-8 --no-location --debug --boost
-        -f "${BBL_L18N_DIR}/list.txt"
+        --language=C++
+        -f "${I18N_SOURCE_LIST}"
         -o "${BBL_L18N_DIR}/BambuStudio.pot"
 	COMMAND hintsToPot ${SLIC3R_RESOURCES_DIR} ${BBL_L18N_DIR}
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}

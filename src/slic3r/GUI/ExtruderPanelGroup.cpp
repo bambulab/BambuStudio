@@ -13,13 +13,16 @@
 #include <wx/graphics.h>
 
 #include "I18N.hpp"
+#include "DualNozzleView.hpp"
 #include "GUI_App.hpp"
+#include "libslic3r/PresetBundle.hpp" // the printer preset and project config, for the AMS feed rule
 #include "ExtruderHelpers.hpp"
 #include "wxExtensions.hpp"
 #include "Widgets/Button.hpp"
 #include "Widgets/ComboBox.hpp"
 #include "Widgets/IconView.hpp"
 #include "Widgets/Label.hpp"
+#include "Widgets/NozzleAmsRow.hpp"
 #include "Widgets/StateColor.hpp"
 
 namespace Slic3r::GUI {
@@ -29,6 +32,7 @@ constexpr int HOVER_HIDE_DELAY_MS = 150; // grace after the pointer leaves, so a
 constexpr int MODE_PILL_MARGIN_X  = 16;  // gap between the mode pill and the card's left edge
 constexpr int HEADER_TOP         = 20;  // top border to the header row
 constexpr int HEADER_GAP_PILL    = 8;   // the same, less the pill's lower half inside the card
+constexpr int AMS_DIVIDER_H      = 16;  // half the height of an AMS unit
 
 /**
  * \brief The single-/multi-diameter mode selector, drawn as the pill the design puts on the
@@ -71,6 +75,32 @@ protected:
 private:
     ScalableBitmap m_chevron;
 };
+
+/**
+ * \brief Which extruders can feed from an AMS.
+ *
+ * A single-extruder rack printer feeds only the nozzle in its AMS slot. So its AMS is usable only
+ * while that slot holds a nozzle that can print now. Every other extruder can always feed.
+ */
+std::array<bool, 2> ams_feedable(const std::vector<std::vector<NozzleConfig>> &extruders, const wxString &selected_diameter)
+{
+    std::array<bool, 2> feedable{{true, true}};
+
+    const PresetBundle       &bundle         = *wxGetApp().preset_bundle;
+    const DynamicPrintConfig &printer_config = bundle.printers.get_edited_preset().config;
+    if (extruders.size() != 1 || !is_single_ext_multi_nozzle(printer_config)) return feedable;
+
+    const std::vector<NozzleConfig> &slots          = extruders.front();
+    const int                        ams_nozzle_idx = printer_config.opt_int("ams_nozzle_idx", -1);
+    if (ams_nozzle_idx < 0 || ams_nozzle_idx >= static_cast<int>(slots.size()) || slots[ams_nozzle_idx].is_empty()) {
+        feedable[0] = false;
+        return feedable;
+    }
+
+    const bool multi_diameter = multi_nozzle_diameter_mode_enabled(bundle.project_config);
+    feedable[0]               = multi_diameter || slots[ams_nozzle_idx].diameter == selected_diameter;
+    return feedable;
+}
 } // namespace
 
 
@@ -124,7 +154,7 @@ void NozzleRackPanelGroup::CreateHeader(wxBoxSizer *outer)
 
     // Sized by Layout, which knows whether the pill is shown.
     m_header_gap = outer->AddSpacer(FromDIP(HEADER_GAP_PILL));
-    outer->Add(row, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(6));
+    m_header_row = outer->Add(row, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(6));
 }
 
 // Gear, label and chevron share one panel, so the gaps between them are clickable too. The panel
@@ -158,15 +188,59 @@ void NozzleRackPanelGroup::CreateBody(wxBoxSizer *outer)
     // The spacers widen the side inset to the header row's 6px (4 here plus the body's own 2), so
     // the tiles line up under "Nozzle" instead of starting 4px further left. A wider border on the
     // item itself would push the top and bottom out with them, since a sizer item has only one.
-    // The header stays put; everything below it scrolls as one when the sidebar gets too narrow.
+    // The header stays put. The nozzles below it scroll as one when the sidebar gets too narrow. The
+    // AMS row scrolls on its own: the user can add more units than the sidebar can hold, and in a
+    // shared scroll the long row would also stretch the nozzle cards to its width.
     auto *content = new wxBoxSizer(wxHORIZONTAL);
+    auto *column  = new wxBoxSizer(wxVERTICAL);
     m_body        = new HorizontalScrollView(this);
+    m_ams_body    = new HorizontalScrollView(this);
+    column->Add(m_body, 0, wxEXPAND);
+    column->Add(m_ams_body, 0, wxEXPAND | wxTOP, FromDIP(4));
     content->AddSpacer(FromDIP(4));
-    content->Add(m_body, 1, wxEXPAND | wxALL, FromDIP(2));
+    content->Add(column, 1, wxEXPAND | wxALL, FromDIP(2));
     content->AddSpacer(FromDIP(4));
 
     m_panel = new NozzleRackPanel(m_body->Content());
     m_body->ContentSizer()->Add(m_panel, 0, wxEXPAND);
+
+    m_dual = new DualNozzleView(m_body->Content());
+    m_body->ContentSizer()->Add(m_dual, 0, wxEXPAND);
+    m_dual->Hide();
+    // The cards report only user adds and removes. The sidebar applies them at once, so each is counted
+    // and committed before the refresh takes the next baseline. The row redraws itself before it
+    // reports the edit; fit anyway, the card's height may have changed.
+    m_dual->set_on_ams_changed([this] {
+        m_ams_edits.observe_ams_counts();
+        m_ams_edits.commit();
+        RefreshAms();
+        RequestFit();
+    });
+
+    // A rack printer's AMS units, read-only: "AMS", then L and the left units, a divider, then R and
+    // the right units. The dual layout shows its units inside the nozzle cards instead.
+    auto *ams_row   = new wxBoxSizer(wxHORIZONTAL);
+    auto *ams_label = new Label(m_ams_body->Content(), _L("AMS"));
+    ams_label->SetFont(Label::Body_12);
+    ams_label->SetForegroundColour(ThemeColor::TextPrimary);
+    ams_label->SetBackgroundColour(m_ams_body->Content()->GetBackgroundColour());
+    ams_row->Add(ams_label, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(8));
+    for (int extruder = 0; extruder < int(m_ams_rows.size()); ++extruder) {
+        if (extruder > 0) {
+            m_ams_divider = new wxPanel(m_ams_body->Content(), wxID_ANY);
+            m_ams_divider->SetBackgroundColour(ThemeColor::Grey400);
+            m_ams_divider->SetMinSize(wxSize(FromDIP(1), FromDIP(AMS_DIVIDER_H)));
+            // The left gap is narrower: an AMS preview already draws inside its window with some
+            // blank margin, so equal gaps would look wider on the left.
+            ams_row->Add(m_ams_divider, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, FromDIP(8));
+        }
+        // Read-only, so the user never edits these units and the row never reports a change.
+        m_ams_rows[extruder] = new NozzleAmsRow(m_ams_body->Content(), extruder, extruder == 0 ? "L" : "R", NozzleAmsRow::Style::Inline, nullptr);
+        m_ams_rows[extruder]->set_editable(false);
+        ams_row->Add(m_ams_rows[extruder], 0, wxALIGN_CENTER_VERTICAL);
+    }
+    m_ams_body->ContentSizer()->Add(ams_row, 0, wxEXPAND);
+    m_ams_body->Show(m_ams_rows[0]->IsShown() || m_ams_rows[1]->IsShown()); // RefreshAms keeps this from here
 
     outer->Add(content, 1, wxEXPAND);
 }
@@ -184,6 +258,7 @@ bool NozzleRackPanelGroup::Layout()
     }
 
     if (m_body) m_body->Layout();
+    if (m_ams_body) m_ams_body->Layout();
     return wxPanel::Layout();
 }
 
@@ -276,8 +351,46 @@ void NozzleRackPanelGroup::BindHoverEvents()
     bind_recursive(this);
 }
 
+void NozzleRackPanelGroup::SetNozzleLayout(NozzleLayout layout)
+{
+    const bool dual = layout == NozzleLayout::DualExtruder;
+    if (m_dual->IsShown() == dual) return;
+
+    m_header_row->Show(!dual);
+    m_panel->Show(!dual);
+    m_dual->Show(dual);
+    if (dual) m_dual->refresh();
+    RefreshAms();
+    BindHoverEvents();
+    Layout();
+    FitToPanels();
+}
+
+void NozzleRackPanelGroup::RefreshAms()
+{
+    // Every AMS count change ends here, a sync included; only the card callback counts a change as an edit.
+    m_ams_edits.rebaseline_ams_counts();
+
+    const bool dual    = m_dual->IsShown();
+    bool       changed = dual && m_dual->refresh_ams();
+    for (NozzleAmsRow *row : m_ams_rows) changed |= row->refresh();
+    changed |= m_ams_divider->Show(m_ams_rows[0]->IsShown() && m_ams_rows[1]->IsShown());
+    // Hide the whole AMS row, "AMS" label and gap included, while neither extruder shows units, and
+    // in the dual layout, whose cards show the units.
+    changed |= m_ams_body->Show(!dual && (m_ams_rows[0]->IsShown() || m_ams_rows[1]->IsShown()));
+    if (!changed) return;
+    BindHoverEvents();
+    RequestFit();
+}
+
 void NozzleRackPanelGroup::UpdateNozzles(const std::vector<std::vector<NozzleConfig>> &extruders, const wxString &selected_diameter)
 {
+    // Before the empty check: the dual view may have left every row feedable, and a rack with no
+    // known nozzles still must not feed.
+    const std::array<bool, 2> feedable = ams_feedable(extruders, selected_diameter);
+    for (size_t extruder = 0; extruder < m_ams_rows.size(); ++extruder) m_ams_rows[extruder]->set_feedable(feedable[extruder]);
+    RefreshAms();
+
     const bool all_empty = std::all_of(extruders.begin(), extruders.end(), [](const auto &configs) { return configs.empty(); });
     if (all_empty) return;
 
@@ -356,6 +469,7 @@ void NozzleRackPanelGroup::Rescale()
 {
     StyleModePill();
     m_panel->Rescale();
+    m_dual->Rescale();
 
     Layout();
     Fit();

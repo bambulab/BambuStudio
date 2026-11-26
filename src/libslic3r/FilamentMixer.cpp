@@ -628,13 +628,14 @@ bool try_parse_mixed_components_strict(const std::string &str,
         err = "at least 2 components required (got " + std::to_string(components.size()) + ")";
         return false;
     }
-    std::set<unsigned int> seen;
-    for (unsigned int c : components) {
-        if (!seen.insert(c).second) {
-            err = "duplicate component index " + std::to_string(c);
-            return false;
-        }
-    }
+    // 混色允许同一个耗材进行混色
+    // std::set<unsigned int> seen;
+    // for (unsigned int c : components) {
+    //     if (!seen.insert(c).second) {
+    //         err = "duplicate component index " + std::to_string(c);
+    //         return false;
+    //     }
+    // }
     return true;
 }
 

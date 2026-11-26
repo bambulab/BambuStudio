@@ -510,15 +510,30 @@ void GuideFrame::OnScriptMessage(wxWebViewEvent &evt)
 
         if (strCmd == "close_page") {
             this->EndModal(wxID_CANCEL);
-        }
-        if (strCmd == "user_clause") {
+        } else if (strCmd == "user_clause") {
             wxString strAction = j["data"]["action"];
 
-            if (strAction == "refuse") {
-                // CloseTheApp
-                this->EndModal(wxID_OK);
-
-                m_MainPtr->mainframe->Close(); // Refuse Clause, App quit immediately
+            if (strAction == "agree") {
+                // consent is reported on user_guide_finish, after the chosen region has been saved to app_config
+                m_UserClauseAgreed = true;
+                BOOST_LOG_TRIVIAL(info) << "terms of use and privacy policy agreed in setup wizard";
+            } else if (strAction == "refuse") {
+                BOOST_LOG_TRIVIAL(info) << "terms of use declined, show confirm dialog";
+                wxGetApp().CallAfter([this] {
+                    MessageDialog dlg(this,
+                                      _L("Before using Bambu Studio, please agree to the Terms of Use and acknowledge reading the Privacy Policy."),
+                                      _L("Tip"), 0);
+                    // Close uses wxID_CLOSE so that the title-bar X (wxID_CANCEL) behaves like OK
+                    dlg.AddButton(wxID_CLOSE, _L("Close"), false);
+                    dlg.AddButton(wxID_OK, _L("OK"), true);
+                    dlg.HideLogo();
+                    if (dlg.ShowModal() == wxID_CLOSE) {
+                        BOOST_LOG_TRIVIAL(warning) << "terms of use refused, quit app";
+                        this->EndModal(wxID_OK);
+                        m_MainPtr->mainframe->Close(); // Refuse Clause, App quit immediately
+                    }
+                    // OK / X: stay on the terms page
+                });
             }
         } else if (strCmd == "user_private_choice") {
             wxString strAction = j["data"]["action"];
@@ -538,6 +553,7 @@ void GuideFrame::OnScriptMessage(wxWebViewEvent &evt)
             m_Res["command"] = "response_userguide_profile";
             m_Res["sequence_id"] = "10001";
             m_Res["response"]        = m_ProfileJson;
+            m_Res["response"]["region_selected"] = m_Region;
 
             //wxString strJS = wxString::Format("HandleStudio(%s)", m_Res.dump(-1, ' ', false, json::error_handler_t::ignore));
             wxString strJS = wxString::Format("HandleStudio(%s)", m_Res.dump(-1, ' ', true));
@@ -621,6 +637,12 @@ void GuideFrame::OnScriptMessage(wxWebViewEvent &evt)
                         agent->user_logout();
                     }
                 }
+            }
+
+            if (m_UserClauseAgreed) {
+                BOOST_LOG_TRIVIAL(info) << "report terms of use and privacy policy consent agreed in setup wizard";
+                wxGetApp().report_consent_common(true, "studio_guide_privacy_policy_enable", "PrivacyPolicy");
+                wxGetApp().report_consent_common(true, "studio_guide_terms_of_use_enable", "TOU");
             }
 
             this->EndModal(wxID_OK);

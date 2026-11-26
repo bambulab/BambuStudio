@@ -11,6 +11,13 @@ namespace Slic3r {
 
 namespace MeshBoolean {
 
+// Cheap operand preflight using cached stats. Other mesh diagnostics are not
+// reasons to offer a repair here; the backend still validates its actual input.
+inline bool has_operand_edge_defects(const TriangleMeshStats &stats)
+{
+    return stats.open_edges != 0 || stats.non_manifold_edges != 0;
+}
+
 using EigenMesh = std::pair<Eigen::MatrixXd, Eigen::MatrixXi>;
 
 TriangleMesh eigen_to_triangle_mesh(const EigenMesh &emesh);
@@ -27,6 +34,17 @@ void self_union(TriangleMesh& mesh);
 // only for builds that do not package OpenMeshCraft (e.g. the Linux CLI). New code should
 // call this instead of mcut::make_boolean, which is now considered the fallback backend.
 void make_boolean(const TriangleMesh &src_mesh, const TriangleMesh &cut_mesh,
+                  std::vector<TriangleMesh> &dst_mesh, const std::string &boolean_opts,
+                  const std::function<bool()> &cancel_cb   = nullptr,
+                  const std::function<void(float)> &progress_cb = nullptr,
+                  const std::function<void()> &failed_cb   = nullptr);
+
+// Boolean of any number of operands, each the union of its meshes (e.g. the parts of one
+// object). "UNION": inside any operand. "INTERSECTION": inside every operand. "A_NOT_B":
+// inside the first operand and outside all others. OpenMeshCraft resolves all operands in
+// one pass; the MCUT fallback folds them pairwise.
+using BooleanOperand = std::vector<const TriangleMesh *>;
+void make_boolean(const std::vector<BooleanOperand> &operands,
                   std::vector<TriangleMesh> &dst_mesh, const std::string &boolean_opts,
                   const std::function<bool()> &cancel_cb   = nullptr,
                   const std::function<void(float)> &progress_cb = nullptr,
@@ -117,6 +135,8 @@ using BooleanFailedCB = mcut::BooleanFailedCB;
 // Compile-time switch (SLIC3R_ENABLE_OPENMESHCRAFT_BOOLEAN), not a runtime env-var check.
 bool is_enabled();
 void make_boolean(const TriangleMesh &src_mesh, const TriangleMesh &cut_mesh, std::vector<TriangleMesh> &dst_mesh, const std::string &boolean_opts, const BooleanCancelCB& cancel_cb = nullptr, const BooleanProgressCB& progress_cb = nullptr, const BooleanFailedCB& failed_cb = nullptr);
+// All operands in one OpenMeshCraft pass, see MeshBoolean::make_boolean(operands, ...).
+void make_boolean(const std::vector<BooleanOperand> &operands, std::vector<TriangleMesh> &dst_mesh, const std::string &boolean_opts, const BooleanCancelCB& cancel_cb = nullptr, const BooleanProgressCB& progress_cb = nullptr, const BooleanFailedCB& failed_cb = nullptr);
 } // namespace openmeshcraft
 
 } // namespace MeshBoolean

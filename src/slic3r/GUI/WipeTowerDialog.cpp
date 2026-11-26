@@ -153,6 +153,7 @@ wxString WipingDialog::BuildTableObjStr()
     obj["flush_volume_matrixs"] = json::array();
     obj["min_flush_volumes"] = json::array();
     obj["max_flush_volumes"] = json::array();
+    obj["max_flush_volume_limit"] = json::array();
     obj["min_flush_multiplier"] = g_min_flush_multiplier;
     obj["max_flush_multiplier"] = g_max_flush_multiplier;
     obj["is_dark_mode"] = wxGetApp().dark_mode();
@@ -169,7 +170,8 @@ wxString WipingDialog::BuildTableObjStr()
         GenericFlushPredictor pd(nozzle_flush_dataset[idx]);
         int min_flush_from_flush_data = pd.get_min_flush_volume();
         obj["min_flush_volumes"].push_back(std::min(min_flush_from_flush_data,min_flush_from_nozzle_volume));
-        obj["max_flush_volumes"].push_back(m_max_flush_volume);
+        obj["max_flush_volumes"].push_back(Slic3r::g_max_flush_volume);
+        obj["max_flush_volume_limit"].push_back(m_max_flush_volume);
     }
 
     auto obj_str = obj.dump();

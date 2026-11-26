@@ -188,7 +188,7 @@ static NozzleVolumeType convert_to_nozzle_type(const std::string &str)
 
     if (str[1] == 'S')
         return NozzleVolumeType::nvtStandard;
-    else if (str[1] == 'H')
+    else if (str[1] == 'H' || str[1] == 'E')
         return NozzleVolumeType::nvtHighFlow;
     else if (str[1] == 'U')
         return NozzleVolumeType::nvtTPUHighFlow;
@@ -274,6 +274,11 @@ bool DevCalib::IsPAHistoryReady() const
 void DevCalib::ParseSupportNewAutoCalib(int flag, DevCalib* system)
 {
     if(system) system->m_support_new_auto_cali = flag;
+}
+
+void DevCalib::ParseSupportKNByNozzleId(int flag, DevCalib* system)
+{
+    if(system) system->m_support_kn_by_nozzle_id = flag;
 }
 
 void DevCalib::RequestPAResult()

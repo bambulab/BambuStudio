@@ -489,7 +489,7 @@ bool fix_model_by_win10_sdk_gui(ModelObject &model_object, int volume_idx, GUI::
 		progress.updated = true;
 	    condition.notify_all();
 	};
-	auto worker_thread = boost::thread([&model_object, &volumes, &ivolume, &phase, on_progress, &success, &canceled, &finished]() {
+	auto worker_thread = boost::thread([&model_object, &volumes, &ivolume, &phase, on_progress, &success, &canceled, &finished, &condition]() {
 		try {
 			// local_prcnt is always 0-100 within the current phase for the current volume.
 			auto sdk_on_progress = [&on_progress](const char *msg, unsigned prcnt) {
@@ -542,21 +542,22 @@ bool fix_model_by_win10_sdk_gui(ModelObject &model_object, int volume_idx, GUI::
 			ivolume = volumes.empty() ? 0 : volumes.size() - 1;
 			on_progress(L("Repair finished"), 100);
 			success  = true;
-			finished = true;
 		} catch (RepairCanceledException & /* ex */) {
 			BOOST_LOG_TRIVIAL(warning) << current_exception_message();
 			canceled = true;
-			finished = true;
 			phase = RepairProgressPhase::Reproject;
 			ivolume = volumes.empty() ? 0 : volumes.size() - 1;
 			on_progress(L("Repair canceled"), 100);
-		} catch (std::exception &ex) {
+		} catch (...) {
 			success = false;
-			finished = true;
 			phase = RepairProgressPhase::Reproject;
 			ivolume = volumes.empty() ? 0 : volumes.size() - 1;
-			on_progress(ex.what(), 100);
+			on_progress(current_exception_message().c_str(), 100);
 		}
+		// Publish the final message before waking the GUI. Otherwise it can read a
+		// stale SDK error and join while holding the mutex needed by on_progress.
+		finished = true;
+		condition.notify_all();
 	});
     while (! finished) {
 		std::string progress_message;

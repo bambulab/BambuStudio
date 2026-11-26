@@ -58,6 +58,14 @@ public:
     {
         return !hotend_ams_type_string.empty() && name.rfind(hotend_ams_type_string, 0) == 0;
     }
+    /* The optional drying module is reported with the "ht" module name, the product name is kept as a fallback */
+    bool isDryingModule() const
+    {
+        if (name == "ht" || name.rfind("ht/", 0) == 0)
+            return true;
+        const wxString lower_name = product_name.Lower();
+        return lower_name.Contains("drying module") || lower_name.Contains("dry module");
+    }
 
 };
 

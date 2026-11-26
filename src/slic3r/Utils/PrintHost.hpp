@@ -106,7 +106,10 @@ namespace GUI { class PrintHostQueueDialog; }
 class PrintHostJobQueue
 {
 public:
-    PrintHostJobQueue(GUI::PrintHostQueueDialog *queue_dialog);
+    // Called from enqueue(), before the upload thread starts. May create the dialog.
+    using QueueDialogGetter = std::function<GUI::PrintHostQueueDialog *()>;
+
+    PrintHostJobQueue(QueueDialogGetter get_queue_dialog);
     PrintHostJobQueue(const PrintHostJobQueue &) = delete;
     PrintHostJobQueue(PrintHostJobQueue &&other) = delete;
     ~PrintHostJobQueue();

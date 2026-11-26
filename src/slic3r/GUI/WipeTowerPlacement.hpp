@@ -109,11 +109,13 @@ void init_wipe_tower_placed_flag(PartPlate &plate);
 
 // Always-on safety net: pulls this plate's tower into the legal range and clear of any
 // forbidden region. No-op if there's no tower or it's already clear. Returns true if changed.
+// est_size: tower size the caller already estimated from the same full_config; nullptr estimates it here.
 bool ensure_wipe_tower_clears_forbidden_regions(PartPlate &plate, int plate_idx, Model &model,
                                                 PartPlateList &plate_list,
                                                 ConfigOptionFloats &wipe_tower_x,
                                                 ConfigOptionFloats &wipe_tower_y,
-                                                const DynamicPrintConfig &full_config);
+                                                const DynamicPrintConfig &full_config,
+                                                const Vec3d *est_size = nullptr);
 
 // Re-seats one plate's tower at its "optimal position" using the plate's current layout.
 // No-op if the plate has no tower/instances, uses By-object sequencing, or the optimal

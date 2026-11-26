@@ -50,6 +50,7 @@
 #include "slic3r/GUI/AmsWidgets.hpp"
 #include "Widgets/SideTools.hpp"
 #include "SelectMachinePop.hpp"
+#include "libslic3r_version.h"
 
 namespace Slic3r {
 namespace GUI {
@@ -80,20 +81,20 @@ private:
     Tabbook*		m_tabpanel{ nullptr };
     wxSizer*        m_main_sizer{ nullptr };
 
-    AddMachinePanel*    m_status_add_machine_panel;
-    StatusPanel*        m_status_info_panel;
-    MediaFilePanel*     m_media_file_panel;
-    UpgradePanel*       m_upgrade_panel;
-    HMSPanel*           m_hms_panel;
+    AddMachinePanel*    m_status_add_machine_panel{ nullptr };
+    StatusPanel*        m_status_info_panel{ nullptr };
+    MediaFilePanel*     m_media_file_panel{ nullptr };
+    UpgradePanel*       m_upgrade_panel{ nullptr };
+    HMSPanel*           m_hms_panel{ nullptr };
     DeviceWebHost*      m_print_queue_panel { nullptr };
 
 	/* side tools */
     SideTools*      m_side_tools{nullptr};
-    wxStaticBitmap* m_bitmap_printer_type;
-    wxStaticBitmap* m_bitmap_arrow;
-    wxStaticText*   m_staticText_printer_name;
-    wxStaticBitmap* m_bitmap_wifi_signal;
-    wxBoxSizer *    m_side_tools_sizer;
+    wxStaticBitmap* m_bitmap_printer_type{ nullptr };
+    wxStaticBitmap* m_bitmap_arrow{ nullptr };
+    wxStaticText*   m_staticText_printer_name{ nullptr };
+    wxStaticBitmap* m_bitmap_wifi_signal{ nullptr };
+    wxBoxSizer *    m_side_tools_sizer{ nullptr };
     SelectMachinePopup m_select_machine;
 
 	/* images */
@@ -105,10 +106,20 @@ private:
     wxBitmap m_arrow_img;
 
     int last_wifi_signal = -1;
-    int last_status;
+    int last_status{ 0 };
     bool m_initialized { false };
     bool update_flag{false};
+    // Remaining traced update_all samples after ensure_content (avoid 1Hz log spam).
+    int  m_perf_update_all_traces_left{ 0 };
     wxTimer* m_refresh_timer = nullptr;
+    // One-shot. Fires the first load_last_machine/update_all after the shell paints.
+    wxTimer* m_first_update_timer = nullptr;
+
+    // Start or stop the refresh timer. `shown` is the visibility after this Show(),
+    // which IsShown() does not reflect until wxPanel::Show returns.
+    // `first` arms the one-shot machine bind instead of running it synchronously.
+    void resume_on_show(bool shown, bool first = false);
+    void on_deferred_first_update();
 
 public:
     MonitorPanel(wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxTAB_TRAVERSAL);
@@ -128,9 +139,13 @@ public:
     };
 
 	void init_bitmap();
+    // Allocate the refresh timer only. Show()/resume_on_show() starts it when the page is visible.
     void init_timer();
     void init_tabpanel();
-    Tabbook* get_tabpanel() { return m_tabpanel; };
+    // Build tabbook / StatusPanel / etc. on first Show (empty shell is cheap at MainFrame init).
+    void ensure_content();
+    // Does not create widgets. May return nullptr before the first ensure_content().
+    Tabbook* get_tabpanel();
     void set_default();
     wxWindow* create_side_tools();
 
@@ -138,7 +153,8 @@ public:
     void msw_rescale();
     void on_activate();
 
-    StatusPanel* get_status_panel() {return m_status_info_panel;};
+    // Does not force creation; may return nullptr before first ensure_content().
+    StatusPanel* get_status_panel() { return m_status_info_panel; }
 	void select_machine(std::string machine_sn);
     void on_timer(wxTimerEvent& event);
     void on_select_printer(wxCommandEvent& event);

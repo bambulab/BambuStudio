@@ -39,7 +39,7 @@
     "filament_max_volumetric_speed": [
         "20",
         "35",
-        "20"
+        "35"
     ],
     "filament_prime_volume": [
         "30"

@@ -1728,20 +1728,27 @@ export function AddEditDialog({
       // preset id。user-defined / cloud-pull 派生 preset 会和 system base
       // 共享 filament_id，find() 短路时可能命中错的那条，让 series 被填上
       // 未经规范化的 user alias，再由 cloud sync PUT body 兜底覆盖云端
-      // spool 的 Material Type（=18117 重现链路）。反查必须跳过 is_user item。
-      outer: for (const vendor of presets) {
-        for (const tp of vendor.types) {
-          const hit = tp.items?.find((it) =>
-            !it.is_user && (it.setting_id === settingId || it.filament_id === settingId),
-          );
-          if (hit) {
-            brandName  = vendor.name;
-            typeName   = tp.name;
-            seriesName = hit.series || '';
-            filamentName = normalizePresetFilamentName(hit.name, vendor.name, tp.name, seriesName);
-            break outer;
+      // spool 的 Material Type（=18117 重现链路）。反查优先跳过 is_user item。
+      // 第二轮才放开 is_user：设备页给槽位设置了独立创建的自定义耗材时，
+      // tray_info_idx 是该自定义预设独占的 filament_id，系统预设里不存在，
+      // 而 tray_sub_brands 为空，只有反查 user preset 才能回填品牌 / 类型。
+      const findPresetHit = (allowUser: boolean) => {
+        for (const vendor of presets) {
+          for (const tp of vendor.types) {
+            const hit = tp.items?.find((it) =>
+              (allowUser || !it.is_user) && (it.setting_id === settingId || it.filament_id === settingId),
+            );
+            if (hit) return { vendor, tp, hit };
           }
         }
+        return null;
+      };
+      const found = findPresetHit(false) || findPresetHit(true);
+      if (found) {
+        brandName  = found.vendor.name;
+        typeName   = found.tp.name;
+        seriesName = found.hit.series || '';
+        filamentName = normalizePresetFilamentName(found.hit.name, found.vendor.name, found.tp.name, seriesName);
       }
     }
 

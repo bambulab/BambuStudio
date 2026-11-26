@@ -86,9 +86,18 @@ struct PrintHostJobQueue::priv
     std::thread bg_thread;
     bool bg_exit = false;
 
-    PrintHostQueueDialog *queue_dialog;
+    PrintHostJobQueue::QueueDialogGetter get_queue_dialog;
+    // Created by enqueue() before the upload thread is started. The worker only posts here.
+    PrintHostQueueDialog *dialog = nullptr;
 
     priv(PrintHostJobQueue *q) : q(q) {}
+
+    PrintHostQueueDialog *ensure_dialog()
+    {
+        if (!dialog && get_queue_dialog)
+            dialog = get_queue_dialog();
+        return dialog;
+    }
 
     void emit_progress(int progress);
     void emit_error(wxString error);
@@ -102,10 +111,10 @@ struct PrintHostJobQueue::priv
     void perform_job(PrintHostJob the_job);
 };
 
-PrintHostJobQueue::PrintHostJobQueue(PrintHostQueueDialog *queue_dialog)
+PrintHostJobQueue::PrintHostJobQueue(QueueDialogGetter get_queue_dialog)
     : p(new priv(this))
 {
-    p->queue_dialog = queue_dialog;
+    p->get_queue_dialog = std::move(get_queue_dialog);
 }
 
 PrintHostJobQueue::~PrintHostJobQueue()
@@ -115,20 +124,26 @@ PrintHostJobQueue::~PrintHostJobQueue()
 
 void PrintHostJobQueue::priv::emit_progress(int progress)
 {
-    auto evt = new PrintHostQueueDialog::Event(GUI::EVT_PRINTHOST_PROGRESS, queue_dialog->GetId(), job_id, progress);
-    wxQueueEvent(queue_dialog, evt);
+    if (!dialog)
+        return;
+    auto evt = new PrintHostQueueDialog::Event(GUI::EVT_PRINTHOST_PROGRESS, dialog->GetId(), job_id, progress);
+    wxQueueEvent(dialog, evt);
 }
 
 void PrintHostJobQueue::priv::emit_error(wxString error)
 {
-    auto evt = new PrintHostQueueDialog::Event(GUI::EVT_PRINTHOST_ERROR, queue_dialog->GetId(), job_id, std::move(error));
-    wxQueueEvent(queue_dialog, evt);
+    if (!dialog)
+        return;
+    auto evt = new PrintHostQueueDialog::Event(GUI::EVT_PRINTHOST_ERROR, dialog->GetId(), job_id, std::move(error));
+    wxQueueEvent(dialog, evt);
 }
 
 void PrintHostJobQueue::priv::emit_cancel(size_t id)
 {
-    auto evt = new PrintHostQueueDialog::Event(GUI::EVT_PRINTHOST_CANCEL, queue_dialog->GetId(), id);
-    wxQueueEvent(queue_dialog, evt);
+    if (!dialog)
+        return;
+    auto evt = new PrintHostQueueDialog::Event(GUI::EVT_PRINTHOST_CANCEL, dialog->GetId(), id);
+    wxQueueEvent(dialog, evt);
 }
 
 void PrintHostJobQueue::priv::start_bg_thread()
@@ -262,8 +277,10 @@ void PrintHostJobQueue::priv::perform_job(PrintHostJob the_job)
 
 void PrintHostJobQueue::enqueue(PrintHostJob job)
 {
+    // Create the dialog before the upload thread runs. The worker only posts to it.
+    if (PrintHostQueueDialog *dlg = p->ensure_dialog())
+        dlg->append_job(job);
     p->start_bg_thread();
-    p->queue_dialog->append_job(job);
     p->channel_jobs.push(std::move(job));
 }
 

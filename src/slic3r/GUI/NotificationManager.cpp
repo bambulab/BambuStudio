@@ -13,6 +13,7 @@
 #include "MainFrame.hpp"
 #include "libslic3r/Config.hpp"
 #include "libslic3r/PrintBase.hpp"
+#include "libslic3r/PrintConfig.hpp"
 #include "format.hpp"
 
 #include <boost/algorithm/string.hpp>
@@ -197,8 +198,7 @@ NotificationManager::PopNotification::PopNotification(const NotificationData &n,
 void NotificationManager::PopNotification::ensure_ui_inited()
 {
     if (!m_is_dark_inited) {
-        m_is_dark        = wxGetApp().plater()->get_current_canvas3D()->get_dark_mode_status();
-        m_is_dark_inited = true;
+        on_change_color_mode(wxGetApp().plater()->get_current_canvas3D()->get_dark_mode_status());
     }
 
     if (!m_WindowRadius_inited) {
@@ -2072,6 +2072,9 @@ void NotificationManager::push_slicing_warning_notification(const std::string& t
 	} else if (warning_msg_id == PrintStateBase::SlicingSupportIncomplete) {
 		jump_opt_key = "support_type";
 		jump_link    = _u8L("Jump to: Support");
+	} else if (warning_msg_id == PrintStateBase::SlicingInfillHighAccelNoise) {
+		jump_opt_key = "sparse_infill_acceleration";
+		jump_link    = _u8L("Jump to: Sparse infill acceleration");
 	}
 
 	std::function<bool(wxEvtHandler*)> callback;
@@ -2084,6 +2087,12 @@ void NotificationManager::push_slicing_warning_notification(const std::string& t
 				wxGetApp().obj_list()->select_items({ {*iter, nullptr} });
 			}
 			if (!jump_opt_key.empty()) {
+				if (wxGetApp().plater() && wxGetApp().plater()->is_sidebar_collapsed())
+					wxGetApp().plater()->collapse_sidebar(false);
+				if (const ConfigOptionDef *def = print_config_def.get(jump_opt_key);
+				    def != nullptr && def->mode > wxGetApp().get_mode()) {
+					wxGetApp().save_mode(def->mode);
+				}
 				// Object overrides must open the object tab; otherwise stay on the global process page
 				// so toggling the option does not silently create a per-object override.
 				if (iter != objects.end() && (*iter)->config.has(jump_opt_key))
@@ -3351,7 +3360,7 @@ void NotificationManager::bbl_show_filament_map_invalid_notification_before_slic
     auto callback = [](wxEvtHandler*) {
         auto plater = wxGetApp().plater();
         auto partplate = plater->get_partplate_list().get_curr_plate();
-        try_pop_up_before_slice(false, plater, partplate, true); // ignore the return value
+        try_pop_up_before_slice(false, plater, partplate, true, true); // ignore the return value
         return false;
     };
 

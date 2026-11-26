@@ -47,8 +47,8 @@
         "75",
         "80",
         "75",
-        "65",
-        "65"
+        "75",
+        "75"
     ],
     "filament_dev_ams_drying_time": [
         "12",
@@ -67,7 +67,7 @@
         "80",
         "80",
         "95",
-        "80"
+        "95"
     ],
     "filament_max_volumetric_speed": [
         "8"
@@ -111,6 +111,9 @@
     "supertack_plate_temp_initial_layer": [
         "0"
     ],
+    "temperature_vitrification": [
+        "75"
+    ],
     "textured_plate_temp": [
         "90"
     ],
@@ -119,8 +122,5 @@
     ],
     "filament_end_gcode": [
         "; filament end gcode \n\n"
-    ],
-    "temperature_vitrification": [
-        "75"
     ]
 }

@@ -144,7 +144,7 @@ void InterlockingGenerator::handleThinAreas(const std::unordered_set<GridPoint3>
 {
     const coord_t     number_of_beams_detect = boundary_avoidance;
     const coord_t     number_of_beams_expand = boundary_avoidance - 1;
-    constexpr coord_t rounding_errors        = 5;
+    constexpr coord_t rounding_errors        = scaled<coord_t>(0.005);
 
     const coord_t max_beam_width = beam_width;
     const coord_t detect         = (max_beam_width * number_of_beams_detect) + rounding_errors;

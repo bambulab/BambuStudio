@@ -25,7 +25,7 @@
         "50",
         "50",
         "60",
-        "50"
+        "60"
     ],
     "filament_dev_ams_drying_temperature": [
         "60",
@@ -33,15 +33,15 @@
         "50",
         "50",
         "60",
-        "50",
         "60",
-        "50"
+        "60",
+        "60"
     ],
     "filament_dev_drying_softening_temperature": [
         "55",
         "55",
         "65",
-        "55"
+        "65"
     ],
     "filament_is_support": [
         "1"

@@ -53,31 +53,40 @@ constexpr int ROW_PAD  = 8; // card edge to a caption or a value
 constexpr int ROW_GAP  = 4; // least space between a caption and its value
 
 /**
- * \brief Set on \p value the largest body font, 12 down to 8, at which \p text fits beside \p caption
+ * \brief Fit a card row: the value shows in full, the caption gets the width that is left
  *
- * Falls back to the smallest size when even that overflows. The caption keeps its 12px font.
+ * When both fit at 12px, both show in full. When they do not, the caption is cut with an end
+ * ellipsis and shows its full text on hover. The value shrinks, 12 down to 8, only when it does
+ * not fit even beside a bare ellipsis.
  *
- * \param value    the value label of a card row
- * \param caption  the row's caption text, such as "Diameter"
+ * \param name     the caption label of a card row
+ * \param value    the value label of the same row
+ * \param caption  the full caption text, such as "Diameter"
  * \param text     the new value text
  */
-void set_fitting_value(Label *value, const wxString &caption, const wxString &text)
+void set_fitting_row(Label *name, Label *value, const wxString &caption, const wxString &text)
 {
-    int caption_w = 0, text_w = 0, text_h = 0;
-    value->GetTextExtent(caption, &caption_w, &text_h, nullptr, nullptr, &Label::Body_12);
-    const int max_w = value->FromDIP(CARD_W - 2 * ROW_PAD - ROW_GAP) - caption_w;
+    const int    row_w = value->FromDIP(CARD_W - 2 * ROW_PAD - ROW_GAP);
+    const wxString dots = wxString::FromUTF8("\xE2\x80\xA6");
+    int dots_w = 0;
+    name->GetTextExtent(dots, &dots_w, nullptr, nullptr, nullptr, &Label::Body_12);
 
     const wxFont *fonts[] = {&Label::Body_12, &Label::Body_11, &Label::Body_10, &Label::Body_9, &Label::Body_8};
     const wxFont *fit     = fonts[std::size(fonts) - 1];
+    int           text_w  = 0;
     for (const wxFont *font : fonts) {
-        value->GetTextExtent(text, &text_w, &text_h, nullptr, nullptr, font);
-        if (text_w <= max_w) {
-            fit = font;
-            break;
-        }
+        value->GetTextExtent(text, &text_w, nullptr, nullptr, nullptr, font);
+        fit = font;
+        if (text_w <= row_w - dots_w) break;
     }
     value->SetFont(*fit);
     value->SetLabel(text);
+
+    wxClientDC dc(name);
+    dc.SetFont(Label::Body_12);
+    const wxString shown = wxControl::Ellipsize(caption, dc, wxELLIPSIZE_END, std::max(row_w - text_w, dots_w));
+    name->SetLabel(shown);
+    name->SetToolTip(shown == caption ? wxString() : caption);
 }
 
 // Card fill/border/corner as ThemeColor tokens; mapped through StateColor's dark map at paint time.
@@ -203,7 +212,9 @@ private:
     wxStaticBitmap *m_edit_icon{nullptr};
     wxBitmap        m_badge_bmp;     // "badge" (synced check), drawn at the card's top-right corner
     bool            m_synced{false}; // whether this nozzle still matches the machine-seeded config
+    Label          *m_diameter_name{nullptr};
     Label          *m_diameter_value{nullptr};
+    Label          *m_flow_name{nullptr};
     Label          *m_flow_value{nullptr};
     // Weak: the pair destroys itself when the cascade closes, and is destroyed with the card when
     // it does not. Either way these must not be left pointing at a window that is already gone.
@@ -275,9 +286,10 @@ void NozzleCard::build_header(wxSizer *v, int number)
 // sets both at once -- a diameter and a flow type are only ever valid as a pair.
 void NozzleCard::build_value_rows(wxSizer *v)
 {
-    auto add_row = [this, v](const wxString &caption) {
+    auto add_row = [this, v](const wxString &caption, Label *&name_out) {
         auto *row  = new wxBoxSizer(wxHORIZONTAL);
         auto *name = new Label(this, caption);
+        name_out   = name;
         name->SetFont(Label::Body_12);
         name->SetForegroundColour(themed(ThemeColor::TextMuted));
         name->SetBackgroundColour(GetBackgroundColour());
@@ -296,8 +308,8 @@ void NozzleCard::build_value_rows(wxSizer *v)
         return value;
     };
 
-    m_diameter_value = add_row(_L("Diameter"));
-    m_flow_value     = add_row(_L("Type"));
+    m_diameter_value = add_row(_L("Diameter"), m_diameter_name);
+    m_flow_value     = add_row(_L("Type"), m_flow_name);
     v->AddSpacer(FromDIP(8));
 
     refresh_values();
@@ -316,9 +328,9 @@ void NozzleCard::refresh_values()
     case SlotFace::Unknown: diameter = "-"; flow = "-"; break;
     default: break;
     }
-    // A long translation such as "Empty" would be cut off at 12px in the narrow card.
-    if (m_diameter_value) set_fitting_value(m_diameter_value, _L("Diameter"), diameter);
-    if (m_flow_value) set_fitting_value(m_flow_value, _L("Type"), flow);
+    // A long translation of a caption or of "Empty" would be cut off at 12px in the narrow card.
+    if (m_diameter_value) set_fitting_row(m_diameter_name, m_diameter_value, _L("Diameter"), diameter);
+    if (m_flow_value) set_fitting_row(m_flow_name, m_flow_value, _L("Type"), flow);
     Layout();
     GetParent()->Refresh(); // the hotend under the card follows the face
 }
@@ -789,31 +801,6 @@ void NozzleSettingsCardDialog::build_button_bar(wxBoxSizer *main_sizer)
     main_sizer->Add(btn_sizer, 0, wxEXPAND | wxALL, FromDIP(20));
 }
 
-// The nozzle a project filament slot is pointing at, in multi-diameter mode. Outside that mode the
-// per-slot map is not what drives printing, so editing the rack cannot strand an individual slot.
-static bool project_filament_uses_nozzle(const NozzleConfig &nozzle)
-{
-    PresetBundle *preset_bundle = wxGetApp().preset_bundle;
-    if (preset_bundle == nullptr || !multi_nozzle_diameter_mode_enabled(preset_bundle->project_config))
-        return false;
-    const auto *diameters = preset_bundle->project_config.option<ConfigOptionStrings>("filament_diameter_map");
-    const auto *volumes   = preset_bundle->project_config.option<ConfigOptionInts>("filament_volume_map");
-    if (diameters == nullptr)
-        return false;
-    const std::string wanted = into_u8(nozzle.diameter);
-    for (size_t i = 0; i < diameters->values.size(); ++i) {
-        if (preset_bundle->is_mixed_filament(i))
-            continue;
-        if (diameters->values[i] != wanted)
-            continue;
-        const NozzleVolumeType volume = (volumes != nullptr && i < volumes->values.size())
-            ? static_cast<NozzleVolumeType>(volumes->values[i]) : nvtStandard;
-        if (volume == nozzle.volume)
-            return true;
-    }
-    return false;
-}
-
 bool NozzleSettingsCardDialog::confirm_nozzle_change(const NozzleConfig &from)
 {
     // An empty slot carries nothing for a filament to be pointing at.
@@ -831,7 +818,7 @@ bool NozzleSettingsCardDialog::confirm_nozzle_change(const NozzleConfig &from)
     if (same_kind > 1)
         return true;
 
-    if (!project_filament_uses_nozzle(from))
+    if (!project_filaments_use_nozzle(from))
         return true;
 
     // flow_label() is what the cards and the picker already show, so the question names the nozzle
@@ -839,7 +826,7 @@ bool NozzleSettingsCardDialog::confirm_nozzle_change(const NozzleConfig &from)
     // else in this dialog.
     const wxString nozzle_name = from.diameter + " " + flow_label(from.volume);
     MessageDialog confirm(this,
-        wxString::Format(_L("The %s nozzle is in use by project filaments. Changing it will move them to 0.4 Standard. Change it anyway?"), nozzle_name),
+        wxString::Format(_L("Some project filaments are using the %s nozzle. Changing it will move them to 0.4 Standard. Change it anyway?"), nozzle_name),
         _L("Nozzle Settings"), wxYES | wxNO);
     confirm.SetButtonLabel(wxID_YES, _L("Confirm"));
     confirm.SetButtonLabel(wxID_NO, _L("Cancel"));

@@ -28,6 +28,7 @@ enum MachineBedType {
     BED_TYPE_PEI,
     BED_TYPE_PTE,
     BED_TYPE_SUPERTACK,
+    BED_TYPE_3D_EFFECT,
     BED_TYPE_COUNT,
 };
 

@@ -26,6 +26,14 @@
     "fan_min_speed": [
         "5"
     ],
+    "filament_bridge_speed": [
+        "25",
+        "25",
+        "10",
+        "25",
+        "25",
+        "25"
+    ],
     "filament_cooling_before_tower": [
         "10",
         "10",

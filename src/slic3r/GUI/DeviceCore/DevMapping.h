@@ -36,6 +36,10 @@ enum class NozzleMatchWeight
     Ignore = 0, // the slot's nozzle is not considered
     Prefer,     // soft: a mismatch only loses a near-equal colour tie to a matching slot
     Require,    // hard: a mismatch is barred (filament left unmapped when no slot fits)
+    // As Prefer / Require, but a slot with no rack nozzle takes the nozzle of the extruder it feeds.
+    // Without a rack the plain values see no slot nozzle, so they leave the match unchanged.
+    PreferBoundExtruder,
+    RequireBoundExtruder,
 };
 
 class DevMappingUtil
@@ -67,6 +71,8 @@ public:
      * \param nozzle_weight       how much a slot's nozzle (diameter + flow type) constrains the match:
      *                            Ignore skips it; Prefer only breaks a near-equal colour tie toward a
      *                            matching nozzle; Require bars a mismatched slot from auto mapping.
+     *                            The *BoundExtruder variants also give a rack-less slot the nozzle of
+     *                            the extruder it feeds.
      * \param allow_manual_feed   let slots the printer cannot load on its own (e.g. an unloaded external
      *                            AMS) take part; on an equal match a self-loadable slot still wins.
      *                            Only affects hotend-rack machines.

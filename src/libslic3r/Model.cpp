@@ -231,7 +231,8 @@ Model Model::read_from_step(const std::string&                                  
                             double                                                  linear_defletion,
                             double                                                  angle_defletion,
                             bool                                                   is_split_compound,
-                            std::function<void(const std::vector<std::string>&)>    open_shell_warn_fn)
+                            std::function<void(const std::vector<std::string>&)>    open_shell_warn_fn,
+                            bool*                                                   has_unit)
 {
     Model model;
     bool result = false;
@@ -242,6 +243,8 @@ Model Model::read_from_step(const std::string&                                  
     if(status != Step::Step_Status::LOAD_SUCCESS) {
         goto _finished;
     }
+    if (has_unit != nullptr)
+        *has_unit = step_file.has_unit();
     if (open_shell_warn_fn && !step_file.get_unclosed_shells().empty()) {
         open_shell_warn_fn(step_file.get_unclosed_shells());
     }
@@ -314,7 +317,8 @@ Model Model::read_from_file(const std::string&                                  
                             Import3mfProgressFn                                 proFn,
                             ImportstlProgressFn                                 stlFn,
                             BBLProject *                                        project,
-                            int                                                 plate_id)
+                            int                                                 plate_id,
+                            bool*                                               has_unit)
 {
     Model model;
 
@@ -441,7 +445,7 @@ Model Model::read_from_file(const std::string&                                  
         // BBS: backup & restore
         //FIXME options & LoadStrategy::CheckVersion ?
         //BBS: is_xxx is used for is_bbs_3mf when load 3mf
-        result = load_bbs_3mf(input_file.c_str(), config, config_substitutions, &model, plate_data, project_presets, is_xxx, file_version, proFn, options, project, plate_id);
+        result = load_bbs_3mf(input_file.c_str(), config, config_substitutions, &model, plate_data, project_presets, is_xxx, file_version, proFn, options, project, plate_id, nullptr, nullptr, nullptr, has_unit);
 #ifdef __APPLE__
     else if (boost::algorithm::iends_with(input_file, ".usd") || boost::algorithm::iends_with(input_file, ".usda") ||
              boost::algorithm::iends_with(input_file, ".usdc") || boost::algorithm::iends_with(input_file, ".usdz") ||
@@ -494,7 +498,7 @@ Model Model::read_from_file(const std::string&                                  
 Model Model::read_from_archive(const std::string& input_file, DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions, En3mfType& out_file_type, LoadStrategy options,
         PlateDataPtrs* plate_data, std::vector<Preset*>* project_presets, Semver* file_version, Import3mfProgressFn proFn, BBLProject *project,
         std::map<int, std::vector<std::string>>* color_group_map, VolumeColorInfoMap* volume_color_data,
-        bool* has_textures, bool* has_unit)
+        bool* has_textures, bool* has_unit, ExternalMixedFilamentInfo* external_mixed)
 {
     PERF_TRACE(std::string("read archive ") + input_file);
     assert(config != nullptr);
@@ -516,7 +520,7 @@ Model Model::read_from_archive(const std::string& input_file, DynamicPrintConfig
         } else {
             // BBS: add part plate related logic
             // BBS: backup & restore
-            result = load_bbs_3mf(input_file.c_str(), config, config_substitutions, &model, plate_data, project_presets, &is_bbl_3mf, file_version, proFn, options, project, 0, color_group_map, volume_color_data, has_textures, has_unit);
+            result = load_bbs_3mf(input_file.c_str(), config, config_substitutions, &model, plate_data, project_presets, &is_bbl_3mf, file_version, proFn, options, project, 0, color_group_map, volume_color_data, has_textures, has_unit, external_mixed);
         }
     }
     else if (boost::algorithm::iends_with(input_file, ".zip.amf"))
@@ -1006,13 +1010,17 @@ bool Model::looks_like_imperial_units() const
 void Model::convert_from_imperial_units(bool only_small_volumes)
 {
     static constexpr const float in_to_mm = 25.4f;
+    std::set<const TriangleMesh*> scaled_meshes;
     for (ModelObject* obj : this->objects)
         if (! only_small_volumes || obj->get_object_stl_stats().volume < volume_threshold_inches) {
-            obj->scale_mesh_after_creation(in_to_mm);
             for (ModelVolume* v : obj->volumes) {
+                if (scaled_meshes.insert(v->mesh_ptr()).second)
+                    v->scale_geometry_after_creation(in_to_mm);
+                v->set_offset(Vec3d(in_to_mm, in_to_mm, in_to_mm).cwiseProduct(v->get_offset()));
                 assert(! v->source.is_converted_from_meters);
                 v->source.is_converted_from_inches = true;
             }
+            obj->invalidate_bounding_box();
         }
     if (texture_mesh) {
         for (auto& v : texture_mesh->vertices) {
@@ -1040,13 +1048,17 @@ bool Model::looks_like_saved_in_meters() const
 void Model::convert_from_meters(bool only_small_volumes)
 {
     static constexpr const double m_to_mm = 1000;
+    std::set<const TriangleMesh*> scaled_meshes;
     for (ModelObject* obj : this->objects)
         if (! only_small_volumes || obj->get_object_stl_stats().volume < volume_threshold_meters) {
-            obj->scale_mesh_after_creation(m_to_mm);
             for (ModelVolume* v : obj->volumes) {
+                if (scaled_meshes.insert(v->mesh_ptr()).second)
+                    v->scale_geometry_after_creation(m_to_mm);
+                v->set_offset(Vec3d(m_to_mm, m_to_mm, m_to_mm).cwiseProduct(v->get_offset()));
                 assert(! v->source.is_converted_from_inches);
                 v->source.is_converted_from_meters = true;
             }
+            obj->invalidate_bounding_box();
         }
     if (texture_mesh) {
         const float scale = static_cast<float>(m_to_mm);
@@ -1972,8 +1984,10 @@ void ModelObject::mirror(Axis axis)
 // This method could only be called before the meshes of this ModelVolumes are not shared!
 void ModelObject::scale_mesh_after_creation(const float scale)
 {
+    std::set<const TriangleMesh*> scaled_meshes;
     for (ModelVolume *v : this->volumes) {
-        v->scale_geometry_after_creation(scale);
+        if (scaled_meshes.insert(v->mesh_ptr()).second)
+            v->scale_geometry_after_creation(scale);
         v->set_offset(Vec3d(scale, scale, scale).cwiseProduct(v->get_offset()));
     }
     this->invalidate_bounding_box();
@@ -4639,6 +4653,20 @@ void FacetsAnnotation::set_enforcer_block_type_limit(const ModelVolume  &mv,
     TriangleSelector selector(mv.mesh());
     selector.deserialize(m_data, false, max_type, to_delete_filament, replace_filament);
     this->set(selector);
+}
+
+void FacetsAnnotation::remap_filament_ids(const ModelVolume &mv, EnforcerBlockerType max_type,
+                                          const std::vector<int> &old_to_new_1based)
+{
+    if (empty())
+        return;
+    TriangleSelector selector(mv.mesh());
+    // Deserialize with the old filament limit first; otherwise N_new < N_old
+    // would clear valid old painted states before the remap can translate them.
+    selector.deserialize(m_data, false, (EnforcerBlockerType) old_to_new_1based.size());
+    selector.remap_filament_states(old_to_new_1based, max_type);
+    this->set(selector);
+    this->set_enforcer_block_type_limit(mv, max_type);
 }
 
 indexed_triangle_set FacetsAnnotation::get_facets_strict(const ModelVolume& mv, EnforcerBlockerType type) const

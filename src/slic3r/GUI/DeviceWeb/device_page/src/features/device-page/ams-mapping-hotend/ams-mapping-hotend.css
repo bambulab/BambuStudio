@@ -156,6 +156,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
   min-width: 14px;
   max-width: 50px;
   height: 14px;
@@ -166,6 +167,7 @@
   font-weight: 700;
   color: var(--color-text-primary);
   line-height: 16px;
+  white-space: nowrap;
 }
 
 .ams-map-hotend__slot-card__pill-ext {
