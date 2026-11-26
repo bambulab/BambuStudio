@@ -26794,7 +26794,7 @@ wxBoxSizer *ProjectDropDialog::create_item_checkbox(wxString title, wxWindow *pa
 void ProjectDropDialog::select_radio(int index)
 {
     m_action                         = index;
-    RadioSelectorList::Node *node    = m_radio_group.GetFirst();
+    RadioSelectorList::compatibility_iterator node    = m_radio_group.GetFirst();
     auto                     groupid = 0;
 
     while (node) {
@@ -26814,7 +26814,7 @@ void ProjectDropDialog::select_radio(int index)
 
 int ProjectDropDialog::get_select_radio(int groupid)
 {
-    RadioSelectorList::Node *node = m_radio_group.GetFirst();
+    RadioSelectorList::compatibility_iterator node = m_radio_group.GetFirst();
     while (node) {
         RadioSelector *rs = node->GetData();
         if (rs->m_groupid == groupid && rs->m_radiobox->GetValue()) { return rs->m_select_id; }
@@ -26825,7 +26825,7 @@ int ProjectDropDialog::get_select_radio(int groupid)
 }
 void ProjectDropDialog::on_select_radio(wxMouseEvent &event)
 {
-    RadioSelectorList::Node *node    = m_radio_group.GetFirst();
+    RadioSelectorList::compatibility_iterator node    = m_radio_group.GetFirst();
     auto                     groupid = 0;
 
     while (node) {

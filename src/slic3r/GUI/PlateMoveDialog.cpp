@@ -94,7 +94,7 @@ PlateMoveDialog::PlateMoveDialog(wxWindow *parent, wxWindowID id, const wxString
     m_specify_plate_idx            = GUI::wxGetApp().plater()->get_partplate_list().get_curr_plate_index();
     for (size_t i = 0; i < plate_list.get_plate_count(); i++) {
         if (i < 9) {
-            m_plate_number_choices_str.Add("0" + std::to_wstring(i + 1));
+            m_plate_number_choices_str.Add(wxString("0") + std::to_wstring(i + 1));
         } else if (i == 9) {
             m_plate_number_choices_str.Add("10");
         } else {
