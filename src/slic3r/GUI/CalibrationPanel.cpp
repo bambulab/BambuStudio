@@ -271,7 +271,7 @@ void SelectMObjectPopup::Popup(wxWindow* WXUNUSED(focus))
         }
     }
 
-    wxPostEvent(this, wxTimerEvent());
+    wxPostEvent(this, wxTimerEvent(*m_refresh_timer));
     PopupWindow::Popup();
 }
 
@@ -686,7 +686,7 @@ void CalibrationPanel::resume_on_show(bool shown)
         if (shown) {
             m_refresh_timer->SetOwner(this);
             m_refresh_timer->Start(REFRESH_INTERVAL);
-            wxPostEvent(this, wxTimerEvent());
+            wxPostEvent(this, wxTimerEvent(*m_refresh_timer));
         }
     }
     if (!shown)

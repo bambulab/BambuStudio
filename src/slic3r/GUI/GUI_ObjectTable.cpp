@@ -201,9 +201,16 @@ void GridCellFilamentsEditor::SetSize(const wxRect& rect)
     DoPositionEditor(size, rect);*/
 }
 
+static void dismiss_grid_editor(wxWindow* control)
+{
+    // wxGridCellChoiceEditor::OnComboCloseUp() was removed in wxWidgets 3.3, do what it did.
+    if (auto* evtHandler = wxDynamicCast(control->GetEventHandler(), wxGridCellEditorEvtHandler))
+        evtHandler->DismissEditor();
+}
+
 void GridCellFilamentsEditor::OnComboCloseUp(wxCommandEvent& evt)
 {
-    wxGridCellChoiceEditor::OnComboCloseUp(evt);
+    dismiss_grid_editor(m_control);
 }
 
 void GridCellFilamentsEditor::BeginEdit(int row, int col, wxGrid* grid)
@@ -418,7 +425,7 @@ void GridCellChoiceEditor::SetSize(const wxRect &rect)
     wxGridCellChoiceEditor::SetSize(rect);
 }
 
-void GridCellChoiceEditor::OnComboCloseUp(wxCommandEvent &evt) { wxGridCellChoiceEditor::OnComboCloseUp(evt); }
+void GridCellChoiceEditor::OnComboCloseUp(wxCommandEvent &evt) { dismiss_grid_editor(m_control); }
 
 void GridCellChoiceEditor::BeginEdit(int row, int col, wxGrid *grid)
 {

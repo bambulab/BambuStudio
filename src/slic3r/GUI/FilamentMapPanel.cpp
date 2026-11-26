@@ -931,7 +931,7 @@ bool FilamentMapManualPanel::Show(bool show)
     const bool ret = FilamentMapPanel::Show(show);
     // Validate at once rather than on the first tick: until then OK stays enabled for an invalid grouping.
     if (show) {
-        wxTimerEvent evt;
+        wxTimerEvent evt(*m_timer);
         OnTimer(evt);
     }
     return ret;
@@ -1569,7 +1569,7 @@ bool FilamentMapMultiNozzlePanel::Show(bool show)
     const bool ret = FilamentMapPanel::Show(show);
     // Validate at once rather than on the first tick: until then OK stays enabled for an invalid grouping.
     if (show) {
-        wxTimerEvent evt;
+        wxTimerEvent evt(*m_timer);
         OnTimer(evt);
     }
     return ret;
