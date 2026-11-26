@@ -2202,9 +2202,14 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
             _(L("When the infill pattern is 3D Honeycomb, Honeycomb, or Gyroid, the printer produces significant vibration and noise when printing at high acceleration. It is recommended to reduce the infill acceleration.")),
             PrintStateBase::SlicingInfillHighAccelNoise);
     print->set_done(psGCodeExport);
-    //BBS: set enable_label_object
-    result->label_object_enabled = m_enable_label_object;
-    result->support_material_on_wipe_tower = print->support_material_on_wipe_tower();
+    // result is optional: it is null-checked above before the processor output is moved
+    // into it, so these writes need the same guard. Without it, exporting with a null
+    // result wrote through a null pointer.
+    if (result != nullptr) {
+        //BBS: set enable_label_object
+        result->label_object_enabled = m_enable_label_object;
+        result->support_material_on_wipe_tower = print->support_material_on_wipe_tower();
+    }
     // Write the profiler measurements to file
     PROFILE_UPDATE();
     PROFILE_OUTPUT(debug_out_path("gcode-export-profile.txt").c_str());
