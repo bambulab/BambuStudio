@@ -246,8 +246,8 @@ bool GCodeReader::GCodeLine::has(char axis) const
 
 bool GCodeReader::GCodeLine::has_value(char axis, float &value) const
 {
-    assert(is_decimal_separator_point());
     const char *c = m_raw.c_str();
+    const char *raw_end = c + m_raw.size();
     // Skip the whitespaces.
     c = skip_whitespaces(c);
     // Skip the command.
@@ -260,9 +260,9 @@ bool GCodeReader::GCodeLine::has_value(char axis, float &value) const
             break;
         // Check the name of the axis.
         if (*c == axis) {
-            // Try to parse the numeric value.
-            char   *pend = nullptr;
-            double  v = strtod(++ c, &pend);
+            // Try to parse the numeric value. Not strtod(): its result follows the calling thread's C locale.
+            const char *pend = nullptr;
+            double      v    = strtod_decimal_point(++ c, raw_end, &pend);
             if (pend != nullptr && is_end_of_word(*pend)) {
                 // The axis value has been parsed correctly.
                 value = float(v);

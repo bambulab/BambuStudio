@@ -167,15 +167,13 @@ static int get_object_label_id(const std::string_view comment_1)
 
 static float get_z_height(const std::string_view comment_1)
 {
-    std::string comment(comment_1);
-    auto pos = comment.find(":");
-    std::string num_str = comment.substr(pos + 1);
-    float print_z = 0.0f;
-    try {
-        print_z = stof(num_str);
-    } catch (const std::exception &) {
-        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
-    }
+    // Not stof(): its result follows the calling thread's C locale.
+    const std::string_view num_str = comment_1.substr(comment_1.find(':') + 1);
+    const char *end = num_str.data() + num_str.size();
+    const char *pend = nullptr;
+    const float print_z = float(strtod_decimal_point(num_str.data(), end, &pend));
+    if (pend == num_str.data())
+        BOOST_LOG_TRIVIAL(warning) << "Invalid Z_HEIGHT: " << std::string(comment_1);
     return print_z;
 }
 
@@ -5788,7 +5786,8 @@ void GCodeProcessor::process_SET_VELOCITY_LIMIT(const GCodeReader::GCodeLine& li
         float _jerk = 0;
         try
         {
-            _jerk = std::stof(matches[1]);
+            // Not stof(): its result follows the calling thread's C locale.
+            _jerk = float(string_to_double_decimal_point(matches[1].str()));
         }
         catch (...) {
             BOOST_LOG_TRIVIAL(warning) << current_exception_message();
@@ -5804,7 +5803,7 @@ void GCodeProcessor::process_SET_VELOCITY_LIMIT(const GCodeReader::GCodeLine& li
         float _accl = 0;
         try
         {
-            _accl = std::stof(matches[1]);
+            _accl = float(string_to_double_decimal_point(matches[1].str()));
         }
         catch (...) {
             BOOST_LOG_TRIVIAL(warning) << current_exception_message();
@@ -5820,7 +5819,7 @@ void GCodeProcessor::process_SET_VELOCITY_LIMIT(const GCodeReader::GCodeLine& li
         float _speed = 0;
         try
         {
-            _speed = std::stof(matches[1]);
+            _speed = float(string_to_double_decimal_point(matches[1].str()));
         }
         catch (...) {
             BOOST_LOG_TRIVIAL(warning) << current_exception_message();

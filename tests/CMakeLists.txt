@@ -64,3 +64,4 @@ add_subdirectory(cpp17 EXCLUDE_FROM_ALL)    # does not have to be built all the 
 # add_subdirectory(example)
 
 add_subdirectory(material_color_label)
+add_subdirectory(decimal_comma)
