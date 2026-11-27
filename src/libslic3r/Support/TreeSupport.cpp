@@ -3625,6 +3625,14 @@ void TreeSupport::generate_toolpaths()
                         filler_support->spacing = flow.spacing();
                         filler_support->angle = Geometry::deg2rad(object_config.support_angle.value);
 
+                        // support_fills holds the paths of every area group of this layer filled so far. Remember them,
+                        // so the cooling below marks only the paths of this group.
+                        ExtrusionEntitiesPtr entities_before;
+                        if (area_group.need_cooling) {
+                            entities_before = ts_layer->support_fills.entities;
+                            std::sort(entities_before.begin(), entities_before.end(), std::less<ExtrusionEntity *>());
+                        }
+
                         Polygons loops = to_polygons(poly);
                         if (base_starts_on_bed) {
                             float density = float(m_object_config->raft_first_layer_density.value * 0.01);
@@ -3655,20 +3663,22 @@ void TreeSupport::generate_toolpaths()
 
                         if (area_group.need_cooling) 
                         {
-                            std::function<void(ExtrusionEntityCollection *)> setOverhangDegreeImpl = [&](ExtrusionEntityCollection *entity) {
-                                for (auto entityPtr : entity->entities) {
-                                    if (ExtrusionEntityCollection *collection = dynamic_cast<ExtrusionEntityCollection *>(entityPtr)) {
-                                        setOverhangDegreeImpl(collection);
-                                    } else if (ExtrusionPath *path = dynamic_cast<ExtrusionPath *>(entityPtr)) {
-                                        path->set_overhang_degree(10);
-                                    } else if (ExtrusionMultiPath *multipath = dynamic_cast<ExtrusionMultiPath *>(entityPtr)) {
-                                        for (ExtrusionPath &path : multipath->paths) { path.set_overhang_degree(10); }
-                                    } else if (ExtrusionLoop *loop = dynamic_cast<ExtrusionLoop *>(entityPtr)) {
-                                        for (ExtrusionPath &path : loop->paths) { path.set_overhang_degree(10); }
-                                    }
+                            std::function<void(ExtrusionEntity *)> setOverhangDegreeImpl = [&](ExtrusionEntity *entityPtr) {
+                                if (ExtrusionEntityCollection *collection = dynamic_cast<ExtrusionEntityCollection *>(entityPtr)) {
+                                    for (auto child : collection->entities) setOverhangDegreeImpl(child);
+                                } else if (ExtrusionPath *path = dynamic_cast<ExtrusionPath *>(entityPtr)) {
+                                    path->set_overhang_degree(10);
+                                } else if (ExtrusionMultiPath *multipath = dynamic_cast<ExtrusionMultiPath *>(entityPtr)) {
+                                    for (ExtrusionPath &path : multipath->paths) { path.set_overhang_degree(10); }
+                                } else if (ExtrusionLoop *loop = dynamic_cast<ExtrusionLoop *>(entityPtr)) {
+                                    for (ExtrusionPath &path : loop->paths) { path.set_overhang_degree(10); }
                                 }
                             };
-                            setOverhangDegreeImpl(&ts_layer->support_fills);
+                            // make_perimeter_and_infill() may reorder the whole layer, so the new paths are found by
+                            // pointer instead of by position.
+                            for (auto entityPtr : ts_layer->support_fills.entities)
+                                if (!std::binary_search(entities_before.begin(), entities_before.end(), entityPtr, std::less<ExtrusionEntity *>()))
+                                    setOverhangDegreeImpl(entityPtr);
                         }
                     }
                 }
