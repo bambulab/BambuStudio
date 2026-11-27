@@ -2732,7 +2732,7 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
 
         if (tray_opt.has_value() && (!tray_opt->is_exists || !tray_opt->is_tray_info_ready())) {
             has_slice_warnings = true; //has_unknown_filament
-            confirm_text.push_back(ConfirmBeforeSendInfo(_L("There are some unknown filaments in the AMS mappings. Please check whether they are the required filaments. If they are okay, press \"Confirm\" to start printing.")));
+            confirm_text.push_back(ConfirmBeforeSendInfo(_L("There are some unknown filaments in the AMS mappings. Please check whether they are the required filaments. If they are okay, click \"Continue printing\" to start printing.")));
             break;
         }
     }
