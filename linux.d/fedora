@@ -23,7 +23,7 @@ REQUIRED_DEV_PACKAGES=(
     libtool
     m4
     mesa-libGLU-devel
-    mesa-libOSMesa-devel
+    'pkgconfig(osmesa)'
     mesa-libGL-devel
     ninja-build
     openssl-devel
@@ -46,7 +46,7 @@ then
     NEEDED_PKGS=""
     REQUIRED_DEV_PACKAGES+=(webkit2gtk4.1-devel)
     for PKG in ${REQUIRED_DEV_PACKAGES[@]}; do
-        rpm -q ${PKG} > /dev/null || NEEDED_PKGS+=" ${PKG}"
+        rpm -q --whatprovides "${PKG}" > /dev/null 2>&1 || NEEDED_PKGS+=" ${PKG}"
     done
 
     if [ -n "${NEEDED_PKGS}" ]; then
