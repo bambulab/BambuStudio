@@ -3463,6 +3463,13 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
         }
     }
 
+    // The sync above resized filament_map to the new slot count; keep the other per-filament maps in step,
+    // padded with the same defaults load_selections() uses.
+    if (auto *opt = project_config.option<ConfigOptionInts>("filament_nozzle_map"))
+        opt->values.resize(this->filament_presets.size(), 0);
+    if (auto *opt = project_config.option<ConfigOptionInts>("filament_volume_map"))
+        opt->values.resize(this->filament_presets.size(), static_cast<int>(NozzleVolumeType::nvtStandard));
+
     // Update ams_multi_color_filment
     update_filament_multi_color();
     update_multi_material_filament_presets();
@@ -5392,6 +5399,9 @@ DynamicPrintConfig PresetBundle::full_fff_config(bool apply_extruder, std::optio
     out.option<ConfigOptionString >("printer_settings_id",  true)->value  = this->printers.get_selected_preset_name();
     out.option<ConfigOptionStrings>("filament_ids", true)->values = filament_ids;
     out.option<ConfigOptionInts>("filament_map", true)->values = filament_maps;
+    // Same as filament_map: hand out the copy sized to num_filaments above (the one used for the variant
+    // selection), not a project_config vector whose size no longer matches the filament count.
+    out.option<ConfigOptionInts>("filament_volume_map", true)->values = filament_volume_maps;
     // Serialize the collected "compatible_printers_condition" and "inherits" fields.
     // There will be 1 + num_exturders fields for "inherits" and 2 + num_extruders for "compatible_printers_condition" stored.
     // The vector will not be stored if all fields are empty strings.
