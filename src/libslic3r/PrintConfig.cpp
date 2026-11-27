@@ -2237,9 +2237,14 @@ void PrintConfigDef::init_fff_params()
     def = this->add("overhang_threshold_participating_cooling", coEnums);
     def->label = L("Overhang threshold for participating cooling");
     // xgettext:no-c-format, no-boost-format
-    def->tooltip = L("Decide which overhang part join the cooling function to slow down the speed."
-                     "Expressed as percentage which indicides how much width of the line without support from lower layer. "
-                     "100% means forcing cooling for all outer wall no matter how much overhang degree");
+    def->tooltip = L("Decide which walls \"Slow printing down for better layer cooling\" may slow down. "
+                     "Walls in the selected overhang step or a lower one can be slowed down with the rest of the layer, "
+                     "walls with more overhang keep their speed. Bridges and fully unsupported walls are never slowed down, "
+                     "and other lines are not affected by this option. "
+                     "Expressed as percentage which indicates how much width of the line is without support from lower layer. "
+                     "100% means all walls except fully unsupported ones can be slowed down, 0% means only walls with less than 10% overhang. "
+                     "Without \"Slow down for overhang\" the overhang of a wall is not measured, "
+                     "and every wall except fully unsupported ones can be slowed down");
     def->sidetext = "";
     def->enum_keys_map = &ConfigOptionEnum<OverhangThresholdParticipatingCooling>::get_enum_values();
     def->mode = comAdvanced;
