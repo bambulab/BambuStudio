@@ -2702,7 +2702,7 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
         bool size_edited = false;
         {
             MetricInputStyle metric_input(currt_scale);
-            size_edited = ImGui::InputFloat("##text_height_layout", &edited, 0.0f, 0.0f, "%.0f");
+            size_edited = ImGui::InputFloat("##text_height_layout", &edited, 0.0f, 0.0f, "%.1f");
             size_input_h = ImGui::GetItemRectSize().y;
         }
         if (size_edited) {
