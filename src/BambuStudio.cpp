@@ -5707,7 +5707,7 @@ int CLI::run(int argc, char **argv)
             && !(m_config.has("no_check") && m_config.opt_bool("no_check"));
         if (downward_prime_volume_45) {
             // set filament_prime_volume to 45 when uploading
-            ConfigOptionFloats *filament_prime_volume_option = m_print_config.option<ConfigOptionFloats>("filament_prime_volume");
+            ConfigOptionFloats *filament_prime_volume_option = downward_tower_config.option<ConfigOptionFloats>("filament_prime_volume");
             int                 temp_count                   = filament_prime_volume_option->values.size();
             for (int temp_index = 0; temp_index < temp_count; temp_index++) {
                 filament_prime_volume_option->values[temp_index] = 45.f;
@@ -5775,7 +5775,7 @@ int CLI::run(int argc, char **argv)
                         return item.size;
                 }
                 plate_obj_size_info_t adjusted;
-                check_plate_wipe_tower(cur_plate, index, m_print_config, adjusted, hotend ? 1 : 0, false, extruder_count);
+                check_plate_wipe_tower(cur_plate, index, downward_tower_config, adjusted, hotend ? 1 : 0, false, extruder_count);
                 Vec3d adjusted_size = base_size;
                 if (adjusted.has_wipe_tower)
                     adjusted_size = adjusted.obj_bbox.size();
@@ -7886,6 +7886,16 @@ int CLI::run(int argc, char **argv)
                         //BOOST_LOG_TRIVIAL(info) << boost::format("print_volume {%1%,%2%,%3%}->{%4%, %5%, %6%}, has %7% printables") % print_volume.min(0) % print_volume.min(1)
                         //    % print_volume.min(2) % print_volume.max(0) % print_volume.max(1) % print_volume.max(2) % count << std::endl;
 #endif
+                        if (is_bbl_3mf && !no_check && load_filament_count == 0)
+                        {
+                            //set filament_prime_volume to 45 when uploading
+                            ConfigOptionFloats *filament_prime_volume_option = m_print_config.option<ConfigOptionFloats>("filament_prime_volume");
+                            int temp_count = filament_prime_volume_option->values.size();
+                            for (int temp_index = 0; temp_index < temp_count; temp_index++)
+                            {
+                                filament_prime_volume_option->values[temp_index] = 45.f;
+                            }
+                        }
                         DynamicPrintConfig new_print_config = m_print_config;
                         new_print_config.apply(*part_plate->config());
                         new_print_config.apply(m_extra_config, true);
