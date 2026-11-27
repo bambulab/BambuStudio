@@ -4973,7 +4973,12 @@ int CLI::run(int argc, char **argv)
     }
 
     // 机型变化时要触发model change  => 原来没值或者model发生变化
-    if (!has_extruder_nozzle_stats || machine_switch) {
+    // machine_switch is only set when the project's process does not fit the new printer. A new printer
+    // loaded together with its own process changes the printer too, and the per-slot layout of the old
+    // printer must not be carried over.
+    const bool printer_changed = machine_switch ||
+        (!new_printer_system_name.empty() && !current_printer_system_name.empty() && (new_printer_system_name != current_printer_system_name));
+    if (!has_extruder_nozzle_stats || printer_changed) {
         auto max_nozzle_count   = m_print_config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count", true)->values;
         const size_t slot_count = max_nozzle_count.size();
         std::vector<int> curr_volume_map_value(slot_count, static_cast<int>(NozzleVolumeType::nvtStandard));
@@ -5001,7 +5006,7 @@ int CLI::run(int argc, char **argv)
         // 切换机型后统计已按新机型重建，逐槽参数随之同步重建，避免残留旧机型布局；
         // 命令行显式传逐槽参数、多口径模式开启时除外（混装布局由逐盘处理保留或兜底）。
         const bool cli_has_per_slot_nozzles = m_extra_config.has("extruder_nozzle_count") && m_extra_config.has("extruder_nozzle_volume_type");
-        if (machine_switch && !cli_has_per_slot_nozzles && !multi_nozzle_diameter_mode_enabled(m_print_config)) {
+        if (printer_changed && !cli_has_per_slot_nozzles && !multi_nozzle_diameter_mode_enabled(m_print_config)) {
             const std::string diameter_str = m_print_config.opt_string("printer_variant");
             ExtruderFullStat full_stat = build_extruder_full_stat_from_nozzle_stat(nozzle_stats_obj, max_nozzle_count, diameter_str);
             sync_per_slot_nozzle_options_from_full_stat(m_print_config, full_stat);

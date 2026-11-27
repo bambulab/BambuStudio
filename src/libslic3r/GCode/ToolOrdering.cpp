@@ -2782,6 +2782,11 @@ MultiNozzleUtils::LayeredNozzleGroupResult ToolOrdering::get_recommended_filamen
             FilamentGroup fg(context);
             fg.get_custom_seq = create_custom_seq_function(print_config, false);
             ret = fg.calc_filament_group();
+            // The solver returns indices into the context's nozzle list, which comes from the per-slot
+            // params and can hold more nozzles than the per-extruder default list (e.g. a project whose
+            // per-slot layout belongs to another printer). Read the result against the same list.
+            if (context.nozzle_info.nozzle_list.size() != nozzle_list.size())
+                nozzle_list = context.nozzle_info.nozzle_list;
         }
     }
 
