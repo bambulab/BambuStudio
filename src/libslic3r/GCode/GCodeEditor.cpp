@@ -149,6 +149,7 @@ std::vector<PerExtruderAdjustments> GCodeEditor::parse_layer_gcode(  const      
             ++ line_end;
         // sline will not contain the trailing '\n'.
         std::string sline(line_start, line_end);
+        const char *sline_end = sline.data() + sline.size();
         // CoolingLine will contain the trailing '\n'.
         if (*line_end == '\n')
             ++ line_end;
@@ -185,13 +186,14 @@ std::vector<PerExtruderAdjustments> GCodeEditor::parse_layer_gcode(  const      
                 if (*c == 0 || *c == ';')
                     break;
 
-                assert(is_decimal_separator_point()); // for atof
                 //BBS: Parse the axis.
                 size_t axis = (*c >= 'X' && *c <= 'Z') ? (*c - 'X') :
                               (*c == 'E') ? 3 : (*c == 'F') ? 4 :
                               (*c == 'I') ? 5 : (*c == 'J') ? 6 : size_t(-1);
                 if (axis != size_t(-1)) {
-                    new_pos[axis] = float(atof(++c));
+                    // Not atof(): its result follows the calling thread's C locale; with a decimal comma
+                    // atof("1.4") returns 1 and a Z move within the same millimeter looks like a zero-length move.
+                    new_pos[axis] = float(strtod_decimal_point(++ c, sline_end));
                     if (axis == 4) {
                         // Convert mm/min to mm/sec.
                         new_pos[4] /= 60.f;
@@ -332,10 +334,9 @@ std::vector<PerExtruderAdjustments> GCodeEditor::parse_layer_gcode(  const      
             line.type = CoolingLine::TYPE_G4;
             size_t pos_S = sline.find('S', 3);
             size_t pos_P = sline.find('P', 3);
-            assert(is_decimal_separator_point()); // for atof
             line.time = line.time_max = float(
-                (pos_S > 0) ? atof(sline.c_str() + pos_S + 1) :
-                (pos_P > 0) ? atof(sline.c_str() + pos_P + 1) * 0.001 : 0.);
+                (pos_S > 0) ? strtod_decimal_point(sline.c_str() + pos_S + 1, sline_end) :
+                (pos_P > 0) ? strtod_decimal_point(sline.c_str() + pos_P + 1, sline_end) * 0.001 : 0.);
             line.origin_time_max      = line.time_max;
         } else if (boost::starts_with(sline, ";_FORCE_RESUME_FAN_SPEED")) {
             line.type = CoolingLine::TYPE_FORCE_RESUME_FAN;

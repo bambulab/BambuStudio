@@ -5022,7 +5022,8 @@ GCode::LayerResult GCode::process_layer(
     }
 
     std::string gcode;
-    assert(is_decimal_separator_point()); // for the sprintfs
+    // Keep the sprintf output below independent of the calling thread's C locale.
+    CNumericLocalesSetter locales_setter;
 
     // add tag for processor
     gcode += ";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Layer_Change) + "\n";

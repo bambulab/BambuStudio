@@ -42,6 +42,10 @@ bool is_decimal_separator_point();
 std::string float_to_string_decimal_point(double value, int precision = -1);
 //std::string float_to_string_decimal_point(float value,  int precision = -1);
 double string_to_double_decimal_point(const std::string_view str, size_t* pos = nullptr);
+// strtod() as in the "C" locale, whatever the calling thread's C locale is: skips leading white space
+// and one '+', reads no further than end, and sets *pend past the number (to str when nothing was converted).
+// Unlike strtod(), it does not read hexadecimal floats.
+double strtod_decimal_point(const char *str, const char *end, const char **pend = nullptr);
 
 } // namespace Slic3r
 

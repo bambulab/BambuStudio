@@ -62,6 +62,30 @@ double string_to_double_decimal_point(const std::string_view str, size_t* pos /*
     return out;
 }
 
+double strtod_decimal_point(const char *str, const char *end, const char **pend /* = nullptr*/)
+{
+    // Same leading white space and sign as strtod() in the "C" locale; fast_float alone takes neither.
+    const char *p = str;
+    while (p < end && (*p == ' ' || *p == '\t' || *p == '\n' || *p == '\v' || *p == '\f' || *p == '\r'))
+        ++ p;
+    if (p < end && *p == '+') {
+        ++ p;
+        // strtod() takes one sign only; fast_float would still take the '-' of "+-1".
+        if (p < end && (*p == '-' || *p == '+'))
+            p = end;
+    }
+    double out = 0.;
+    const char *ptr = p < end ? fast_float::from_chars(p, end, out).ptr : p;
+    if (ptr == p) {
+        // Nothing converted: like strtod(), return 0 and point at the start of the input.
+        out = 0.;
+        ptr = str;
+    }
+    if (pend)
+        *pend = ptr;
+    return out;
+}
+
 std::string float_to_string_decimal_point(double value, int precision/* = -1*/)
 {
     // Our Windows build server fully supports C++17 std::to_chars. Let's use it.
