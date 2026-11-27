@@ -111,6 +111,13 @@ public:
 	void create(const std::vector<Points> &polygons, coord_t resolution) { this->create(polygons, resolution, false); }
 	void create(const ExPolygon &expoly, coord_t resolution);
 	void create(const ExPolygons &expolygons, coord_t resolution);
+	// The grid keeps pointers into the points it is created from and does not copy them, so the input has to outlive
+	// the grid. Reject temporaries, such as a brace-initialized { polyline.points }, at compile time.
+	void create(std::vector<Points> &&polylines_or_polygons, coord_t resolution, bool open) = delete;
+	void create(std::vector<Points> &&polygons, coord_t resolution) = delete;
+	void create(Polygons &&polygons, coord_t resolution) = delete;
+	void create(ExPolygon &&expoly, coord_t resolution) = delete;
+	void create(ExPolygons &&expolygons, coord_t resolution) = delete;
 
 	const std::vector<Contour>& contours() const { return m_contours; }
 
