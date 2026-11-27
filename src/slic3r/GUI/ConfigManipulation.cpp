@@ -771,10 +771,10 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
         const bool alt_on       = config->opt_bool("alternate_extra_wall");
         const auto evt          = config->opt_enum<EnsureVerticalThicknessLevel>("ensure_vertical_shell_thickness");
         const int  wall_loops   = config->opt_int("wall_loops");
-        const int  density      = config->option<ConfigOptionPercent>("sparse_infill_density")->value;
+        const double density    = config->option<ConfigOptionPercent>("sparse_infill_density")->value;
         const bool evt_enabled  = evt == EnsureVerticalThicknessLevel::evtEnabled;
         const bool walls_not_rec = wall_loops != 2;
-        const bool density_zero = density == 0;
+        const bool density_zero = density <= 0.;
         const bool suboptimal   = evt_enabled || walls_not_rec || density_zero;
 
         if (!alt_on || !suboptimal)
