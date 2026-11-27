@@ -236,10 +236,11 @@ void GLGizmoSimplify::refresh_dialog()
 
     SimplifyDialogView view;
 
-    std::string name = m_volume->name;
+    // Shorten by characters: cutting the UTF-8 bytes can split a character, and the label then stays empty.
+    wxString name = wxString::FromUTF8(m_volume->name);
     if (name.length() > max_char_in_name)
-        name = name.substr(0, max_char_in_name - 3) + "...";
-    view.mesh_name = wxString::FromUTF8(name);
+        name = name.Left(max_char_in_name - 3) + "...";
+    view.mesh_name = name;
     view.triangle_count = m_volume->mesh().its.indices.size();
 
     bool preview_current = false;
