@@ -2818,6 +2818,11 @@ void PresetBundle::update_num_filaments(unsigned int to_del_flament_id)
     erase_or_resize(filament_color_type->values);
     erase_or_resize(selected_nozzle_diameters->values);
     erase_or_resize(ams_multi_color_filment);
+    // filament_nozzle_map and filament_volume_map are indexed by filament too. Left as they are, every filament after the
+    // deleted one takes over the entry of the filament before it.
+    for (const char *key : {"filament_nozzle_map", "filament_volume_map"})
+        if (auto *opt = project_config.option<ConfigOptionInts>(key); opt && opt->values.size() > to_del_flament_id)
+            opt->values.erase(opt->values.begin() + to_del_flament_id);
 
     {
         auto* is_mixed_opt = project_config.option<ConfigOptionBools>("filament_is_mixed");
