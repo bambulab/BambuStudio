@@ -3634,7 +3634,11 @@ void MainFrame::init_menubar_as_editor()
             this);
         this->Bind(wxEVT_UPDATE_UI, [this, labels_item, curr_plate_is_by_object](wxUpdateUIEvent &evt) {
             if (curr_plate_is_by_object())
+#ifdef __APPLE__ // In the macOS menu Shift+E is a key equivalent that runs before the 3D view, so an uppercase E could not be typed into the Text tool. The 3D view handles Shift+E itself.
+                labels_item->SetItemLabel(_L("Show Labels by Object"));
+#else
                 labels_item->SetItemLabel(_L("Show Labels by Object") + "\t" + "Shift+" + "E");
+#endif
             else
                 labels_item->SetItemLabel(_L("Show Labels by Layer") + "\t" + ctrl + "E");
             evt.Enable(m_plater->is_view3D_shown());
