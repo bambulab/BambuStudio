@@ -656,7 +656,7 @@ namespace Slic3r {
             struct CustomGCodeTime
             {
                 bool needed;
-                float cache;
+                double cache;
                 std::vector<std::pair<CustomGCode::Type, float>> times;
 
                 void reset();
@@ -695,10 +695,12 @@ namespace Slic3r {
             CustomGCodeTime gcode_time;
             std::vector<TimeBlock> blocks;
             std::vector<G1LinesCacheItem> g1_times_cache;
-            std::array<float, static_cast<size_t>(EMoveType::Count)> moves_time;
-            std::array<float, static_cast<size_t>(ExtrusionRole::erCount)> roles_time;
-            std::map<int, float> filaments_time; // keyed by TimeBlock::filament_id
-            std::vector<float> layers_time;
+            // double, like time: each sums up to millions of short blocks, and a float sum rounds every block
+            // to the float spacing of the running total (15.6 ms above 2^17 s, 31.25 ms above 2^18 s)
+            std::array<double, static_cast<size_t>(EMoveType::Count)> moves_time;
+            std::array<double, static_cast<size_t>(ExtrusionRole::erCount)> roles_time;
+            std::map<int, double> filaments_time; // keyed by TimeBlock::filament_id
+            std::vector<double> layers_time;
             //BBS: prepare stage time before print model, including start gcode time and mostly same with start gcode time
             float prepare_time;
 

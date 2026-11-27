@@ -331,7 +331,7 @@ void GCodeProcessor::TimeMachine::reset()
     std::fill(moves_time.begin(), moves_time.end(), 0.0f);
     std::fill(roles_time.begin(), roles_time.end(), 0.0f);
     filaments_time.clear();
-    layers_time = std::vector<float>();
+    layers_time = std::vector<double>();
     prepare_time = 0.0f;
     m_additional_time_buffer.clear();
 }
@@ -2846,7 +2846,7 @@ void GCodeProcessor::finalize(bool post_process)
             machine.handle_time_block(block,time,i,result);
         });
         if (gcode_time.needed && gcode_time.cache != 0.0f)
-            gcode_time.times.push_back({ CustomGCode::ColorChange, gcode_time.cache });
+            gcode_time.times.push_back({ CustomGCode::ColorChange, static_cast<float>(gcode_time.cache) });
     }
 
     m_used_filaments.process_caches(this);
@@ -2959,7 +2959,7 @@ std::vector<std::pair<EMoveType, float>> GCodeProcessor::get_moves_time(PrintEst
     std::vector<std::pair<EMoveType, float>> ret;
     if (mode < PrintEstimatedStatistics::ETimeMode::Count) {
         for (size_t i = 0; i < m_time_processor.machines[static_cast<size_t>(mode)].moves_time.size(); ++i) {
-            float time = m_time_processor.machines[static_cast<size_t>(mode)].moves_time[i];
+            float time = static_cast<float>(m_time_processor.machines[static_cast<size_t>(mode)].moves_time[i]);
             if (time > 0.0f)
                 ret.push_back({ static_cast<EMoveType>(i), time });
         }
@@ -2972,7 +2972,7 @@ std::vector<std::pair<ExtrusionRole, float>> GCodeProcessor::get_roles_time(Prin
     std::vector<std::pair<ExtrusionRole, float>> ret;
     if (mode < PrintEstimatedStatistics::ETimeMode::Count) {
         for (size_t i = 0; i < m_time_processor.machines[static_cast<size_t>(mode)].roles_time.size(); ++i) {
-            float time = m_time_processor.machines[static_cast<size_t>(mode)].roles_time[i];
+            float time = static_cast<float>(m_time_processor.machines[static_cast<size_t>(mode)].roles_time[i]);
             if (time > 0.0f)
                 ret.push_back({ static_cast<ExtrusionRole>(i), time });
         }
@@ -2990,7 +2990,7 @@ std::map<size_t, float> GCodeProcessor::get_filaments_time(PrintEstimatedStatist
             [](const GCodeProcessorResult::MoveVertex& move) { return move.type == EMoveType::Tool_change; });
         const size_t first_filament_id = (first_tool_change != m_result.moves.end()) ? first_tool_change->extruder_id : 0;
         for (const auto& [filament_id, time] : m_time_processor.machines[static_cast<size_t>(mode)].filaments_time)
-            ret[filament_id < 0 ? first_filament_id : static_cast<size_t>(filament_id)] += time;
+            ret[filament_id < 0 ? first_filament_id : static_cast<size_t>(filament_id)] += static_cast<float>(time);
     }
     return ret;
 }
@@ -3030,9 +3030,10 @@ void GCodeProcessor::apply_config_superslicer(const std::string& filename)
 
 std::vector<float> GCodeProcessor::get_layers_time(PrintEstimatedStatistics::ETimeMode mode) const
 {
-    return (mode < PrintEstimatedStatistics::ETimeMode::Count) ?
-        m_time_processor.machines[static_cast<size_t>(mode)].layers_time :
-        std::vector<float>();
+    if (mode >= PrintEstimatedStatistics::ETimeMode::Count)
+        return std::vector<float>();
+    const std::vector<double>& layers_time = m_time_processor.machines[static_cast<size_t>(mode)].layers_time;
+    return std::vector<float>(layers_time.begin(), layers_time.end());
 }
 
 void GCodeProcessor::apply_config_simplify3d(const std::string& filename)
@@ -6501,7 +6502,7 @@ void GCodeProcessor::process_custom_gcode_time(CustomGCode::Type code)
             machine.handle_time_block(block,time,i,result);
         });
         if (gcode_time.cache != 0.0f) {
-            gcode_time.times.push_back({ code, gcode_time.cache });
+            gcode_time.times.push_back({ code, static_cast<float>(gcode_time.cache) });
             gcode_time.cache = 0.0f;
         }
     }
