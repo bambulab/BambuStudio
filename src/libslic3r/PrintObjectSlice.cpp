@@ -2099,7 +2099,12 @@ static bool should_skip_filament_shrink(const PrintObject &object)
         return filament_shrink[extruder];
     };
 
-    const std::vector<unsigned int> used_filaments = object.object_extruders();
+    std::vector<unsigned int> used_filaments = object.object_extruders();
+    // A height range can put the object on another filament; object_extruders() doesn't list it.
+    for (const auto &range : object.model_object()->layer_config_ranges)
+        for (const char *key : { "extruder", "wall_filament" })
+            if (const ConfigOption *opt = range.second.get().option(key); opt != nullptr && opt->getInt() > 0)
+                used_filaments.push_back(unsigned(opt->getInt() - 1));
     if (used_filaments.empty())
         return false;
 
